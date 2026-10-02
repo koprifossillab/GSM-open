@@ -1,0 +1,20 @@
+{
+ "_주석": "CCOP(동·동남아시아 지구과학 조정위원회)의 1:200만 지질도 씨앗이다. GSJ 의 새 호스트 ows.gsj.jp 의 MapServer WMS GetCapabilities(2026-09-30)에서 옮겨 적었다. 한글 제목과 레이어군은 사람이 붙였다. 조건은 '개인·교육·연구·비상업 용도' — 밖에 열 때 geo3al 을 대신할 후보다(wetherilli 108). 문은 web/viewer/gsj.py 의 CCOP 다.",
+ "_뽑은날": "2026-09-30",
+ "_출처": "https://ows.gsj.jp/ows/GSJ_CCOP_Combined_Bedrock_and_Superficial_Geology_and_Age/wms",
+ "_지역": "china",
+ "_상류": "ccop",
+ "_레이어군차례": 0,
+ "레이어군순서": [
+  "동·동남아시아 지질도 (CCOP)"
+ ],
+ "레이어": [
+  {
+   "name": "EASIA_CCOP_2M_Combined_BLT_SLT_BA",
+   "title": "CCOP 200만 지질도 (기반암·표층·연대)",
+   "group": "동·동남아시아 지질도 (CCOP)",
+   "abstract": "CCOP 1:2M Combined Bedrock and Superficial Geology and Age — East and Southeast Asia",
+   "bbox": [92.190331, -16.6333, 155.954768, 47.612849]
+  }
+ ]
+}

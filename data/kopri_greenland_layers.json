@@ -1,0 +1,112 @@
+{
+ "_주석": "극지연구소(KOPRI)의 씨앗이다. 2026-09-29 에 암석 시료 DB·KPDC 목록·KPDC 지도 서버를 받아 보고 넣었다. 한글 제목과 레이어군은 사람이 붙였다. 무엇을 어디서 받는지는 web/viewer/kopri.py 의 LAYERS·WMS 에 있다. KPDC 자료는 주제마다 한 레이어이고 범위는 암석 시료와 같다 — 2026-09-30 에 모아 둔 목록(kpdc.json)에서 이 탭에 드는 자료가 있는 주제만 넣었다. 새 주제가 생기면 여기 더한다 (devlog 075).",
+ "_뽑은날": "2026-09-30",
+ "_출처": "https://rock.kopri.re.kr/rock",
+ "_지역": "greenland",
+ "_상류": "kopri",
+ "_레이어군차례": 20,
+ "레이어군순서": [
+  "극지연구소 시료",
+  "KPDC 자료",
+  "KPDC 기본도"
+ ],
+ "레이어": [
+  {
+   "name": "kopri:rock_greenland",
+   "title": "암석 시료 (KOPRI)",
+   "group": "극지연구소 시료",
+   "abstract": "KOPRI rock sample DB — sample no., rock type, formation, age",
+   "bbox": [
+    -51.75,
+    63.66,
+    -49.76,
+    65.21
+   ]
+  },
+  {
+   "name": "kopri:kpdc_paleo_greenland",
+   "title": "고기후",
+   "group": "KPDC 자료",
+   "abstract": "KPDC datasets — paleoclimate",
+   "bbox": [
+    -75,
+    59,
+    -10,
+    84
+   ]
+  },
+  {
+   "name": "kopri:kpdc_cryo_greenland",
+   "title": "빙권",
+   "group": "KPDC 자료",
+   "abstract": "KPDC datasets — cryosphere (glaciers, ice sheets, sea ice)",
+   "bbox": [
+    -75,
+    59,
+    -10,
+    84
+   ]
+  },
+  {
+   "name": "kopri:kpdc_ocean_greenland",
+   "title": "해양",
+   "group": "KPDC 자료",
+   "abstract": "KPDC datasets — oceans",
+   "bbox": [
+    -75,
+    59,
+    -10,
+    84
+   ]
+  },
+  {
+   "name": "kopri:kpdc_atmo_greenland",
+   "title": "대기",
+   "group": "KPDC 자료",
+   "abstract": "KPDC datasets — atmosphere",
+   "bbox": [
+    -75,
+    59,
+    -10,
+    84
+   ]
+  },
+  {
+   "name": "kopri:kpdc_bio_greenland",
+   "title": "생물",
+   "group": "KPDC 자료",
+   "abstract": "KPDC datasets — biosphere",
+   "bbox": [
+    -75,
+    59,
+    -10,
+    84
+   ]
+  },
+  {
+   "name": "kopri:kpdc_other_greenland",
+   "title": "그 밖",
+   "group": "KPDC 자료",
+   "abstract": "KPDC datasets — other topics",
+   "bbox": [
+    -75,
+    59,
+    -10,
+    84
+   ]
+  },
+  {
+   "name": "kopri:greenland_ice_contours",
+   "title": "빙상 등고선",
+   "group": "KPDC 기본도",
+   "abstract": "KPDC 북극 기본도 — 그린란드 빙상 표면의 등고선(m)",
+   "bbox": [
+    -75,
+    59,
+    -10,
+    84
+   ],
+   "확인한날": "2026-09-30"
+  }
+ ]
+}

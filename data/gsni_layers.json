@@ -1,0 +1,25 @@
+{
+ "_주석": "GSNI(북아일랜드 지질조사소) 1:25만 기반암 씨앗이다 — 아일랜드 탭의 같은 레이어군에 든다. BGS 서버(GeoIndex_GSNI)가 대신 내주어 문은 bgs.py 의 GSNI 다. 레이어 번호 5 가 'Bedrock Geology 250k' 다 (wetherilli 147).",
+ "_뽑은날": "2026-10-02",
+ "_출처": "https://map.bgs.ac.uk/arcgis/services/GeoIndex_GSNI/GSNI_Geology_Landsat_WMS/MapServer/WmsServer?request=GetCapabilities&service=WMS",
+ "_지역": "ireland",
+ "_상류": "gsni",
+ "_레이어군차례": 1,
+ "레이어군순서": [
+  "아일랜드 기반암 (GSI·GSNI)"
+ ],
+ "레이어": [
+  {
+   "name": "gsni:5",
+   "title": "기반암 (1:25만, 북아일랜드)",
+   "group": "아일랜드 기반암 (GSI·GSNI)",
+   "abstract": "GSNI Bedrock Geology 1:250k (1997)",
+   "bbox": [
+    -8.2,
+    54.0,
+    -5.4,
+    55.4
+   ]
+  }
+ ]
+}

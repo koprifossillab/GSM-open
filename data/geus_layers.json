@@ -1,0 +1,135 @@
+{
+ "_주석": "GEUS greenland_portal WMS 의 GetCapabilities(2026-09-27)에서 옮겨 적은 씨앗이다. 한글 제목과 레이어군은 사람이 붙였다. 범위는 GEUS 가 준 LatLonBoundingBox 그대로다 — 그린란드 둘레가 넉넉히 잡혀 있다.",
+ "_뽑은날": "2026-09-27",
+ "_출처": "https://data.geus.dk/geusmap/ows/3857.jsp?mapname=greenland_portal",
+ "_지역": "greenland",
+ "_상류": "geus",
+ "레이어군순서": [
+  "지질도",
+  "야외 관찰",
+  "지화학",
+  "탄성파 탐사"
+ ],
+ "레이어": [
+  {
+   "name": "grl_g500_lithostr_search",
+   "title": "50만 지질도 (암층)",
+   "group": "지질도",
+   "abstract": "GEUS 1:500 000 lithostratigraphic units",
+   "bbox": [
+    -93.3452,
+    57.8602,
+    7.30762,
+    84.6441
+   ]
+  },
+  {
+   "name": "lithologies",
+   "title": "야외 관찰 암상",
+   "group": "야외 관찰",
+   "abstract": "Greenland lithology observations",
+   "bbox": [
+    -93.3452,
+    57.8602,
+    7.30762,
+    84.6441
+   ]
+  },
+  {
+   "name": "geochemistry_greenland_v2_external",
+   "title": "하천 퇴적물 지화학",
+   "group": "지화학",
+   "abstract": "Stream sediment samples",
+   "bbox": [
+    -93.3452,
+    57.8602,
+    7.30762,
+    84.6441
+   ]
+  },
+  {
+   "name": "geochemistry_greenland_ss_sw",
+   "title": "하천 퇴적물 지화학도 — 남·서",
+   "group": "지화학",
+   "abstract": "Geochemical Atlas, South and West Greenland",
+   "bbox": [
+    -93.3452,
+    57.8602,
+    7.30762,
+    84.6441
+   ]
+  },
+  {
+   "name": "geochemistry_greenland_ss_n",
+   "title": "하천 퇴적물 지화학도 — 북",
+   "group": "지화학",
+   "abstract": "Geochemical Atlas, North Greenland",
+   "bbox": [
+    -93.3452,
+    57.8602,
+    7.30762,
+    84.6441
+   ]
+  },
+  {
+   "name": "geochemistry_greenland_soil",
+   "title": "토양 지화학",
+   "group": "지화학",
+   "abstract": "Soil samples",
+   "bbox": [
+    -93.3452,
+    57.8602,
+    7.30762,
+    84.6441
+   ]
+  },
+  {
+   "name": "seismic_surveys_grl",
+   "title": "탄성파 탐사 구역",
+   "group": "탄성파 탐사",
+   "abstract": "Seismic surveys",
+   "bbox": [
+    -66.3459,
+    55.539,
+    -6.3459,
+    85.5034
+   ]
+  },
+  {
+   "name": "seismic_lines_grl",
+   "title": "탄성파 측선",
+   "group": "탄성파 탐사",
+   "abstract": "Seismic lines",
+   "bbox": [
+    -95.7118,
+    52.0591,
+    -6.83782,
+    81.0606
+   ]
+  },
+  {
+   "name": "seismic_3d_surveys_grl",
+   "title": "3D 탄성파 탐사",
+   "group": "탄성파 탐사",
+   "abstract": "Seismic 3D surveys",
+   "bbox": [
+    -95.7118,
+    52.0591,
+    -6.83782,
+    81.0606
+   ]
+  },
+  {
+   "name": "seismic_csem_grl",
+   "title": "CSEM 측선",
+   "group": "탄성파 탐사",
+   "abstract": "Seismic CSEM lines",
+   "bbox": [
+    -95.7118,
+    52.0591,
+    -6.83782,
+    81.0606
+   ]
+  }
+ ]
+}

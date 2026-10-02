@@ -1,0 +1,26 @@
+{
+ "_주석": "중국(과 동아시아) 지질도 USGS geo3al (OFR 97-470F, 1999)의 레이어 씨앗이다. 파일은 저장소에 없고 서버의 GSM_USGS_DIR 에 둔다 (devlog 025). **연구실 내부용** — 이용 조건이 가공물을 포함한 제3자 재배포를 막는다. 범위는 2026-09-28 에 셰이프파일을 위경도로 옮겨 잰 것이다. 한글 제목과 레이어군은 사람이 붙였다. 읽는 법·색·팝업 이름은 web/viewer/geo3al.py 에 있다.",
+ "_뽑은날": "2026-09-28",
+ "_출처": "https://doi.org/10.5066/P9EXVH3J",
+ "_지역": "china",
+ "_상류": "geo3al",
+ "레이어군순서": [
+  "중국·동아시아 지질 (USGS)"
+ ],
+ "레이어": [
+  {
+   "name": "geo3al:age",
+   "title": "지질시대 (1:500만)",
+   "group": "중국·동아시아 지질 (USGS)",
+   "abstract": "Generalized Geology of the Far East (geo3al) — 12 037 polygons coloured by generalized geologic age (GEN_GLG). After UNESCO/CGMW Geology of East and South Asia, 1:5 000 000 and 1:3 000 000. Internal use only.",
+   "bbox": [73.46, 16.09, 148.93, 53.6]
+  },
+  {
+   "name": "geo3al:rock",
+   "title": "화성암·풍성 퇴적물",
+   "group": "중국·동아시아 지질 (USGS)",
+   "abstract": "Polygons with a rock-type code (TYPE) — intrusive, extrusive, ultrabasic/ophiolite, eolian. The source legend does not separate sedimentary from metamorphic rocks. Internal use only.",
+   "bbox": [73.51, 16.1, 148.93, 53.45]
+  }
+ ]
+}

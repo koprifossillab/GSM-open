@@ -1,0 +1,317 @@
+{% load static gsm_i18n %}<!DOCTYPE html>
+<html lang="{{ lang }}" data-region="mercury">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{% t "대돌여지도" %} · {% t "수성" %}</title>
+<meta name="theme-color" content="#120f0d">
+<link rel="icon" type="image/png" href="{% static 'viewer/emblem-mercury.png' %}?v={{ stamp|default:version }}">
+{% comment %}수성 (wetherilli P10) — 화성 화면(mars.html)을 옮겨 왔다. 같은 틀·같은 설정(테마·글꼴·크기)으로 뜨고 색만
+MESSENGER 강조색의 청회색·황갈이다(map.css 의 `data-region="mercury"`). CSS 가 입혀지기 전에 달아야 깜빡이지 않는다.{% endcomment %}
+<script>
+(function () {
+  var root = document.documentElement;
+  function saved(key, fallback) {
+    try { return localStorage.getItem(key) || fallback; } catch (e) { return fallback; }
+  }
+  root.setAttribute("data-theme", saved("gsm.theme", "brown"));
+  root.setAttribute("data-font", saved("gsm.font", "sans"));
+  root.setAttribute("data-size", saved("gsm.size", "m"));
+})();
+</script>
+{% comment %}대기 화면 — 지구(map.html)와 같은 꼴이다. 바탕색은 gif 의 바탕(#120f0d)과 같아야 가장자리가 안 보인다{% endcomment %}
+<style>
+  #splash{position:fixed;inset:0;z-index:100;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;background:#120f0d;transition:opacity .45s ease,visibility .45s}
+  #splash img{width:min(760px,92vw);height:auto}
+  #splash p{margin:0;font:500 15px/1.4 "Pretendard","Apple SD Gothic Neo","Noto Sans KR",system-ui,sans-serif;letter-spacing:.22em;color:#c9a46a}
+  #splash.gone{opacity:0;visibility:hidden}
+  #splash p.splash-ver{font-size:12px;letter-spacing:.12em;opacity:.65}
+</style>
+<link rel="stylesheet" href="{% static 'viewer/vendor/ol.css' %}">
+<link rel="stylesheet" href="{% static 'viewer/vendor/cesium/Widgets/widgets.css' %}">
+<link rel="stylesheet" href="{% static 'viewer/map.css' %}?v={{ stamp|default:version }}">
+</head>
+<body>
+
+<div id="splash" role="status" aria-live="polite">
+  <img src="{% static 'viewer/splash-mercury.gif' %}" alt="{% t "대돌여지도" %} · {% t "수성" %}">
+  <p>{% t "불러오는 중" %}</p>
+  <p class="splash-ver">v{{ version }}</p>
+</div>
+
+<aside id="panel">
+  <header class="brand">
+    <button type="button" class="emblem-btn" id="emblem-btn" aria-haspopup="menu" aria-expanded="false"
+            aria-controls="hidden-menu" title="{% t "대돌여지도" %}">
+      <img class="emblem" src="{% static 'viewer/emblem-mercury.png' %}?v={{ stamp|default:version }}" alt="" width="46" height="46">
+    </button>
+    <nav class="hidden-menu" id="hidden-menu" role="menu" hidden>
+      <a role="menuitem" href="{{ base }}map/"><span class="moon-dot earth-dot" aria-hidden="true"></span>{% t "지구" %}</a>
+      <a role="menuitem" href="{{ base }}earth/"><span class="moon-dot whole-dot" aria-hidden="true"></span>{% t "온 지구" %}</a>
+      <a role="menuitem" href="{{ base }}moon/"><span class="moon-dot" aria-hidden="true"></span>{% t "달" %}</a>
+      <a role="menuitem" href="{{ base }}mars/"><span class="moon-dot mars-dot" aria-hidden="true"></span>{% t "화성" %}</a>
+    </nav>
+    <div>
+      <h1>{% t "대돌여지도" %} <span class="ver">v{{ version }}</span></h1>
+      <p class="tagline">{% if lang == "en" %}대돌여지도 · 수성{% else %}GREAT STONE MAP · MERCURY{% endif %}</p>
+    </div>
+  </header>
+  <nav class="regions body-tabs" aria-label="{% t "지역" %}">
+    <a class="region-tab" href="{{ base }}map/">{% t "지구" %}</a>
+    <a class="region-tab" href="{{ base }}earth/">{% t "온 지구" %}</a>
+    <a class="region-tab" href="{{ base }}moon/">{% t "달" %}</a>
+    <a class="region-tab" href="{{ base }}mars/">{% t "화성" %}</a>
+    <span class="region-tab on" aria-current="page">{% t "수성" %}</span>
+  </nav>
+
+  <div id="panel-body">
+  <nav class="tabs">
+    <button class="tab on" data-tab="layers">{% t "레이어" %}</button>
+    <button class="tab" data-tab="points">{% t "불러오기" %}</button>
+  </nav>
+
+  <section id="tab-layers" class="tabbody on">
+    <div class="box">
+      <h2 class="box-head">{% t "레이어 고르기" %}</h2>
+      <div class="box-body">
+      <label class="basemap-row">
+        <span>{% t "배경" %}</span>
+        <select id="basemap">
+          <option value="mdis">{% t "MESSENGER 모자이크 (2013)" %}</option>
+          <option value="bdr">{% t "MESSENGER 모자이크 BDR (고해상)" %}</option>
+          <option value="color">{% t "MESSENGER 강조색 모자이크" %}</option>
+          <option value="topo">{% t "MESSENGER 표고 색 음영" %}</option>
+        </select>
+      </label>
+      {% comment %}영상 보정 — 배경 영상만 고친다(지질도·점묶음은 그대로). 구는 Cesium 의 레이어 속성으로,
+      평면은 WebGL 타일의 셰이더로 — 두 공식이 같다 (042){% endcomment %}
+      <details class="tune" id="tune">
+        <summary>{% t "영상 보정" %} <span class="hint" id="tune-state"></span></summary>
+        <div class="tune-body">
+          <label class="tune-row"><span>{% t "밝기" %}</span>
+            <input type="range" id="tune-bright" min="50" max="200" value="100"><output id="tune-bright-num">100%</output></label>
+          <label class="tune-row"><span>{% t "대비" %}</span>
+            <input type="range" id="tune-contrast" min="50" max="250" value="100"><output id="tune-contrast-num">100%</output></label>
+          <label class="tune-row"><span>{% t "감마" %}</span>
+            <input type="range" id="tune-gamma" min="40" max="250" value="100"><output id="tune-gamma-num">1.00</output></label>
+          <label class="tune-row"><span>{% t "채도" %}</span>
+            <input type="range" id="tune-sat" min="0" max="200" value="100"><output id="tune-sat-num">100%</output></label>
+          <label class="tune-check"><input type="checkbox" id="tune-shade"> {% t "표고 음영 겹치기 — 영상 위에 지형의 그늘을 곱한다" %}</label>
+          <div class="tune-acts">
+            <button type="button" class="btn quiet" data-preset="crisp">{% t "선명하게" %}</button>
+            <button type="button" class="btn quiet" data-preset="relief">{% t "지형 강조" %}</button>
+            <button type="button" class="btn quiet" id="tune-reset">{% t "되돌리기" %}</button>
+          </div>
+        </div>
+      </details>
+
+      <h3 class="sub-head">{% t "켠 지질 레이어" %} <span class="count" id="count-layers">0</span>
+        <span class="hint">{% t "위가 앞이다" %}</span></h3>
+      <ul id="active-list"><li class="empty">{% t "아직 켠 레이어가 없다" %}</li></ul>
+
+      <div id="layer-catalog"></div>
+
+      <h3 class="sub-head">{% t "NASA Trek 판" %} <span class="count" id="count-trek">0</span></h3>
+      <div class="trek-filter">
+        <input type="search" id="trek-q" placeholder="{% t "판 이름으로 거르기" %}" aria-label="{% t "판 이름으로 거르기" %}">
+        <label><input type="checkbox" id="trek-here"> {% t "보는 자리를 덮는 것만" %}</label>
+      </div>
+      <div id="trek-catalog"></div>
+
+      <h3 class="sub-head">{% t "지형" %} <span class="hint">{% t "구에서만" %}</span></h3>
+      <div class="moon-layer">
+        <div class="layer-row"><input type="checkbox" id="moon-terrain" checked>
+          <label for="moon-terrain">{% t "MESSENGER 표고로 세운다" %}</label></div>
+        <div class="active-foot">
+          <input type="range" id="moon-exag" min="10" max="50" value="20" aria-label="{% t "지형 과장" %}">
+          <span class="opacity-num" id="moon-exag-num">×2.0</span>
+        </div>
+      </div>
+      <p class="hint">{% t "곧장 내려다보며 가까이 가면 평면으로, 멀어지면 다시 구로 넘어간다. 기울이면 구에 머문다." %}</p>
+      <p class="hint">{% t "오른쪽 단추를 누른 채 끌면(또는 Ctrl+끌기) 기울이고 돌린다." %} {% t "평면에서 그렇게 끌면 구로 넘어가며 기울어진다." %}</p>
+      </div>
+    </div>
+
+    <div class="box">
+      <h2 class="box-head">{% t "내 자료" %} <span class="hint">{% t "수성에 얹은 내 것" %}</span></h2>
+      <div class="box-body">
+      <section class="well" id="well-temp">
+        <h3 class="well-head">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path class="stroke" d="M12 21s-6.5-6.2-6.5-11a6.5 6.5 0 0 1 13 0c0 4.8-6.5 11-6.5 11Z"/><circle class="stroke" cx="12" cy="10" r="2.3"/></svg>
+          {% t "찍고 잰 것" %} <span class="count" id="count-temp">0</span>
+          <span class="hint">{% t "저장 전까지 임시" %}</span>
+        </h3>
+        <p id="measure-out" class="measure-out">{% t "아직 잰 것이 없다" %}</p>
+        <ul id="temp-list"><li class="empty">{% t "지도 오른쪽 위 <b>점</b> 도구로 찍는다" %}</li></ul>
+        <div class="folder-acts">
+          <button type="button" id="save-temp" class="btn primary">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path class="stroke" d="M5 5h11l3 3v11a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1V5Z"/><path class="stroke" d="M8 5v5h7V5M8 19v-5h8v5"/></svg>
+            {% t "점묶음으로 저장" %}
+          </button>
+          <button type="button" id="clear-temp" class="btn quiet danger" title="{% t "찍은 점과 잰 것을 모두 지운다" %}">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path class="stroke" d="M4.5 7h15M9.5 7V4.5h5V7M6.5 7l1 13h9l1-13"/></svg>
+            <span class="sr">{% t "모두 지운다" %}</span>
+          </button>
+        </div>
+        <p id="save-msg" class="msg"></p>
+      </section>
+      <section class="well" id="well-points">
+        <h3 class="well-head">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><circle class="stroke" cx="7" cy="8" r="2.2"/><circle class="stroke" cx="16.5" cy="6.5" r="2.2"/><circle class="stroke" cx="11" cy="16.5" r="2.2"/><circle class="stroke" cx="18" cy="15" r="2.2"/></svg>
+          {% t "점묶음" %} <span class="count" id="count-points">0</span>
+          <span class="hint">{% t "불러오거나 저장한 자료" %}</span>
+        </h3>
+        <ul id="pointset-list"></ul>
+      </section>
+      </div>
+    </div>
+  </section>
+
+  <section id="tab-points" class="tabbody">
+    <div class="box">
+      <h2 class="box-head">{% t "불러오기" %} <span class="hint">{% t "바깥 자료를 수성에" %}</span></h2>
+      <div class="box-body">
+    <form id="upload-form">
+      {% csrf_token %}
+      <label class="filebox">
+        <input type="file" id="upload-file" name="file" accept=".csv,.tsv,.txt,.geojson,.json" required>
+        <span>{% t "CSV · GeoJSON 고르기" %}</span>
+      </label>
+      <div class="row">
+        <input type="text" id="upload-name" name="name" maxlength="120" placeholder="{% t "점묶음 이름 (비우면 파일 이름)" %}">
+        <input type="color" id="upload-color" name="color" value="#f2c14e" title="{% t "점 색" %}">
+      </div>
+      <button type="submit" class="btn primary wide">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path class="stroke" d="M12 16V4m0 0L8 8m4-4 4 4"/><path class="stroke" d="M4 16v3a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-3"/></svg>
+        {% t "올린다" %}
+      </button>
+      <p class="hint">
+        {% t "위경도 열은 이름으로 알아낸다 — <code>lat</code>·<code>위도</code>·<code>y</code>, <code>lon</code>·<code>경도</code>·<code>x</code>. 나머지 열은 점을 누르면 뜬다." %}
+        {% t "GeoJSON 은 점·선·면을 다 받는다." %}
+        {% t "좌표는 수성의 위도·경도(도, 행성 중심·동경)다. 평면 좌표계는 받지 않는다." %}
+      </p>
+      <p id="upload-msg" class="msg"></p>
+    </form>
+      </div>
+    </div>
+    <p class="hint moon-credit">{% t "영상·표고: NASA Mercury Trek (MESSENGER MDIS — NASA/JHUAPL/Carnegie Institution of Washington, USGS Astrogeology)." %}</p>
+  </section>
+  </div>
+
+  <footer id="panel-foot">
+    <span class="foot-name">GSM <span class="ver">v{{ version }}</span></span>
+    <a class="gear" href="{{ base }}map/" title="{% t "지구로 돌아간다" %}">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><circle class="stroke" cx="12" cy="12" r="8.5"/><path class="stroke" d="M3.5 12h17M12 3.5c2.4 2.3 3.6 5.2 3.6 8.5s-1.2 6.2-3.6 8.5c-2.4-2.3-3.6-5.2-3.6-8.5S9.6 5.8 12 3.5Z"/></svg>
+      <span>{% t "지구" %}</span>
+    </a>
+  </footer>
+</aside>
+
+<main id="map-wrap" class="moon-globe">
+  {% comment %}구(Cesium)와 평면(OpenLayers)이 한 자리를 나눠 쓴다. 보이는 것은 하나다 — `moon-globe`·`moon-flat`{% endcomment %}
+  <div id="globe"></div>
+  <div id="map"></div>
+  <button type="button" id="panel-handle" class="panel-handle" aria-controls="panel" aria-expanded="true"
+          title="{% t "패널을 접는다" %}">&lt;</button>
+
+  <div id="popup" class="popup">
+    <button id="popup-close" class="popup-close" title="{% t "닫는다" %}">&times;</button>
+    <div id="popup-body"></div>
+  </div>
+
+  {% comment %}오른쪽 위 손잡이 두 묶음 — 달(041)과 같다{% endcomment %}
+  <div id="toolbar" class="toolbar" role="toolbar" aria-label="{% t "도구" %}">
+    <div class="tool-col" role="group" aria-labelledby="cap-draw">
+      <span class="tool-cap" id="cap-draw">{% t "도구" %}</span>
+      <button type="button" class="tool" data-draw="point" title="{% t "점 찍기 — 누른 자리에 점을 찍고 위경도를 적는다" %}">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path class="stroke" d="M12 21s-6.5-6.2-6.5-11a6.5 6.5 0 0 1 13 0c0 4.8-6.5 11-6.5 11Z"/><circle class="fill" cx="12" cy="10" r="2.4"/></svg>
+        <span>{% t "점" %}</span>
+      </button>
+      <button type="button" class="tool" data-draw="line" title="{% t "거리 재기 — 눌러 가며 잇고, 두 번 누르면 끝난다" %}">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path class="stroke dash" d="M6 18 18 6"/><circle class="fill" cx="5" cy="19" r="2.3"/><circle class="fill" cx="19" cy="5" r="2.3"/></svg>
+        <span>{% t "거리" %}</span>
+      </button>
+      <button type="button" class="tool" data-draw="area" title="{% t "넓이 재기 — 눌러 가며 두르고, 두 번 누르면 끝난다" %}">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path class="stroke tint" d="M5 8.5 11 4l8 4.5-1.5 9L8 20 5 8.5Z"/><circle class="fill" cx="5" cy="8.5" r="1.7"/><circle class="fill" cx="11" cy="4" r="1.7"/><circle class="fill" cx="19" cy="8.5" r="1.7"/><circle class="fill" cx="17.5" cy="17.5" r="1.7"/><circle class="fill" cx="8" cy="20" r="1.7"/></svg>
+        <span>{% t "넓이" %}</span>
+      </button>
+      <button type="button" class="tool" data-draw="box" title="{% t "범위잡기 — 누른 채 끌어 네모를 그리면 꼭짓점·중앙·넓이가 뜬다" %}">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><rect class="stroke" x="4.5" y="6" width="15" height="12" rx="1" stroke-dasharray="2.6 2.2"/><circle class="fill" cx="4.5" cy="6" r="1.8"/><circle class="fill" cx="19.5" cy="18" r="1.8"/><path class="stroke" d="M12 10.5v3M10.5 12h3"/></svg>
+        <span>{% t "범위" %}</span>
+      </button>
+      <button type="button" class="tool" id="tool-export" title="{% t "그림으로 내려받기 — 지금 보는 화면을 PNG 한 장으로. 배경·레이어·가운데·출처를 아래에 적는다" %}">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><rect class="stroke" x="4" y="4" width="16" height="13" rx="1.5"/><path class="stroke" d="m6.5 14 3.5-4 3 3 2-2 2.5 3"/><path class="stroke" d="M12 17v4M9.5 19l2.5 2 2.5-2"/></svg>
+        <span>{% t "그림" %}</span>
+      </button>
+      <span class="tool-sep" aria-hidden="true"></span>
+      <button type="button" class="tool danger" id="tool-clear" title="{% t "찍은 점과 잰 것을 모두 지운다" %}">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path class="stroke" d="M4.5 7h15M9.5 7V4.5h5V7M6.5 7l1 13h9l1-13M10 11v5M14 11v5"/></svg>
+        <span>{% t "지우기" %}</span>
+      </button>
+    </div>
+    <div class="tool-col" role="group" aria-labelledby="cap-pose">
+      <span class="tool-cap" id="cap-pose">{% t "자세" %}</span>
+      <button type="button" class="tool" id="tool-mode" title="{% t "구와 평면을 오간다" %}">
+        <svg class="if-globe" viewBox="0 0 24 24" aria-hidden="true"><rect class="stroke" x="4" y="6" width="16" height="12" rx="1"/><path class="stroke" d="M4 12h16M12 6v12"/></svg>
+        <svg class="if-flat" viewBox="0 0 24 24" aria-hidden="true"><circle class="stroke" cx="12" cy="12" r="8"/><path class="stroke" d="M4 12h16M12 4c2.2 2.2 3.3 4.9 3.3 8s-1.1 5.8-3.3 8c-2.2-2.2-3.3-4.9-3.3-8S9.8 6.2 12 4Z"/></svg>
+        <span class="if-globe">{% t "평면" %}</span><span class="if-flat">{% t "구" %}</span>
+      </button>
+      <button type="button" class="tool" id="tool-home" title="{% t "경도 0°·위도 0° 로 — 본초 자오선 둘레(훈 칼 크레이터가 서경 20°)" %}">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><circle class="stroke" cx="12" cy="12" r="8"/><circle class="fill" cx="12" cy="12" r="2"/></svg>
+        <span>{% t "처음" %}</span>
+      </button>
+      <button type="button" class="tool if-globe" id="tool-top" title="{% t "기울기와 방위를 풀고 곧장 내려다본다" %}">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path class="stroke" d="M12 4v16M12 4l-3.5 3.5M12 4l3.5 3.5"/><path class="stroke" d="M5 20h14"/></svg>
+        <span>{% t "북쪽 위" %}</span>
+      </button>
+      <button type="button" class="tool if-globe" id="tool-compass" title="{% t "방위 — 바늘이 수성의 북쪽을 가리킨다. 누르면 기울기는 두고 북쪽을 위로 돌린다" %}">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><circle class="stroke" cx="12" cy="12" r="8.5"/><g id="compass-needle"><path class="fill" d="M12 4.5 14.2 12h-4.4Z"/><path class="stroke" d="M9.8 12 12 19.5 14.2 12"/></g></svg>
+        <span>{% t "방위" %}</span>
+      </button>
+      <button type="button" class="tool if-globe" id="tool-axis" aria-pressed="true" title="{% t "수성의 자전축 — 북극과 남극을 잇는 선을 켜고 끈다" %}">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><circle class="stroke" cx="12" cy="12" r="6.5"/><path class="stroke dash" d="M12 2v20"/><circle class="fill" cx="12" cy="3" r="1.6"/></svg>
+        <span>{% t "자전축" %}</span>
+      </button>
+    </div>
+    <output id="tool-out" class="tool-out" hidden></output>
+  </div>
+
+  <!-- 높이 그래프 — 거리를 다 재면 뜬다 (달의 wetherilli 100, wetherilli 148) -->
+  <section id="profile" class="profile-dock" hidden>
+    <header>
+      <strong>{% t "높이 그래프" %}</strong>
+      <span id="profile-sum" class="profile-sum"></span>
+      <button type="button" id="profile-close" class="profile-close" title="{% t "닫기" %}" aria-label="{% t "닫기" %}">×</button>
+    </header>
+    <svg id="profile-svg" class="profile-svg" viewBox="0 0 640 170" aria-hidden="true"></svg>
+    <p id="profile-read" class="profile-read"></p>
+  </section>
+
+  <div id="scalebar"></div>
+
+  <details class="legend-dock" id="legend-dock" open>
+    <summary>{% t "범례" %} <span class="hint" id="legend-sub"></span></summary>
+    <ul class="legend-list" id="legend-list"><li class="empty">{% t "읽는 중…" %}</li></ul>
+  </details>
+
+  <div id="coordbar">
+    <ul id="search-results" class="search-results" hidden></ul>
+    <form id="goto-form">
+      <input id="goto-input" type="text" placeholder="{% t "좌표·지명으로 이동 — 31.5, 162.7 · Caloris · Rembrandt" %}"
+             autocomplete="off" spellcheck="false">
+      <button type="submit">{% t "이동" %}</button>
+    </form>
+    <output id="pose" class="pose-readout if-globe" title="{% t "화면 한가운데 점에서 본 기울기(곧장 내려다봄 0°)와 방위(수성의 북쪽 0°)" %}"></output>
+    <output id="readout" class="coord-readout"></output>
+  </div>
+</main>
+
+<script id="i18n-data" type="application/json">{{ i18n_json|safe }}</script>
+<script id="pointset-data" type="application/json">{{ pointsets|safe }}</script>
+<script id="trek-data" type="application/json">{{ trek_catalog|safe }}</script>
+<script>window.CESIUM_BASE_URL = "{% static 'viewer/vendor/cesium/' %}";</script>
+<script src="{% static 'viewer/vendor/ol.js' %}"></script>
+<script src="{% static 'viewer/vendor/cesium/Cesium.js' %}"></script>
+<script src="{% static 'viewer/mercury.js' %}?v={{ stamp|default:version }}"></script>
+</body>
+</html>

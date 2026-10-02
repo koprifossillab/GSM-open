@@ -1,0 +1,39 @@
+{
+ "_주석": "PGC(ArcticDEM·REMA) ImageServer 가 그 자리에서 그려 주는 경사·등고선. 지질도 위에 겹친다. 받는 법은 web/viewer/elevation.py 의 PGC_LAYERS (wetherilli 099). CC BY 4.0",
+ "_뽑은날": "2026-09-30",
+ "_출처": "https://di-pgc.img.arcgis.com/arcgis/rest/services",
+ "_지역": "svalbard",
+ "_상류": "pgc",
+ "_레이어군차례": 30,
+ "레이어군순서": [
+  "지형 (PGC)"
+ ],
+ "레이어": [
+  {
+   "name": "pgc:svalbard_slope",
+   "title": "경사",
+   "group": "지형 (PGC)",
+   "abstract": "ArcticDEM 2 m 표고에서 그린 경사 — 평지는 회색, 가파를수록 노랑·주황·빨강. 누르면 경사 몇 도",
+   "bbox": [
+    10.0,
+    74.0,
+    35.0,
+    81.0
+   ],
+   "확인한날": "2026-09-30"
+  },
+  {
+   "name": "pgc:svalbard_contours",
+   "title": "등고선 (25 m)",
+   "group": "지형 (PGC)",
+   "abstract": "ArcticDEM 2 m 표고의 25 m 등고선. 줌 10 부터 그려진다. 누르면 해발",
+   "bbox": [
+    10.0,
+    74.0,
+    35.0,
+    81.0
+   ],
+   "확인한날": "2026-09-30"
+  }
+ ]
+}

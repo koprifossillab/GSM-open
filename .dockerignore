@@ -1,0 +1,68 @@
+# 이미지에 들어가면 안 되는 것.
+#
+# **이 파일이 없으면 `COPY . .` 이 .env 를 통째로 구워 넣는다.** 지금은 키가
+# 비어 있어 샌 것이 없지만, 키를 채운 뒤 다시 구우면 그 키가 Docker Hub 의
+# public 이미지에 박힌다. 2026-09-23 에 실제로 그렇게 구워보고 알았다.
+#
+# 설정은 언제나 **돌 때** 넣는다 — compose 의 env_file 과 environment 다.
+
+.env
+.env.*
+!.env.template
+
+# 저장소 이력. 이미지에 들어갈 까닭이 없고 층만 키운다.
+.git
+.gitignore
+.github
+
+# 자료. /srv 에서 마운트해 본다. `**/` 를 붙여야 하위 폴더까지 거른다 —
+# 맨 `*.db` 는 맥락의 뿌리에만 맞는다
+**/*.db
+**/*.sqlite3
+**/GSM.db*
+
+# Claude Code 의 작업 자리 — 에이전트 worktree 가 저장소 사본을 통째로 든다.
+# v0.7.0 이미지에 34 MB 가 딸려 들어갔다(빈 DB 와 코드 사본뿐이라 샌 것은 없다)
+.claude/
+
+# 호스트에서 모은 정적 파일. 이미지는 제 손으로 다시 모은다
+# (Dockerfile 의 collectstatic). 안 지우면 호스트 것이 덮인다.
+web/staticfiles/
+web/media/
+web/uploads/
+
+# 상류에서 새로 뽑은 씨앗의 원본 XML
+data/*.xml
+
+# 파이썬 부스러기
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+
+# 문서는 넣어 둔다 — 컨테이너 안에서 CLAUDE.md·HANDOFF.md 를 읽을 일이 있다.
+
+# 남극 지질도(GeoMAP) 파일 — 490 MB. 이미지에 굽지 않고 운영에서 붙인다 (devlog 018)
+geomap/
+# 얀마옌 지질도(NPI) 파일 — 저장소에도 이미지에도 두지 않는다 (devlog 022)
+npolar/
+*.gpkg
+# 중국 지질도(USGS geo3al) — 이용 조건이 재배포를 막는다. public 이미지에 **절대** 굽지 않는다 (devlog 025)
+usgs/
+# 한반도 지질도 음영판 — 출처를 모른다. 이미지에 굽지 않는다 (devlog 027)
+peninsula/
+# 달 지질도 원도를 구운 것 (devlog 039) — 운영은 /srv/GSM/db/moon/
+moon/
+# 남극 해저·빙저 지형 IBCSO v2 (devlog 047) — 운영은 /srv/GSM/db/ibcso/
+ibcso/
+# 극지연구소에서 모아 둔 것 (devlog 053) — 운영은 /srv/GSM/db/kopri/
+kopri/
+# 화성 크레이터 목록을 구운 것 (devlog 067) — 운영은 /srv/GSM/db/mars/
+mars/
+# 수성 지질도를 구운 것 (wetherilli 144) — 운영은 /srv/GSM/db/mercury/
+mercury/
+# 자료 파일만 — `geo3al.*` 로 쓰면 코드(`web/viewer/geo3al.py`)까지 빠져 컨테이너가 못 뜬다
+**/geo3al.shp
+**/geo3al.shx
+**/geo3al.dbf
+**/geo3al.prj

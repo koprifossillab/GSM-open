@@ -1,0 +1,70 @@
+{
+ "_주석": "그린란드 정부 광물자원 포털(ArcGIS FeatureServer)의 점·면 레이어 씨앗이다. 2026-09-27 에 각 서비스를 끝까지 받아 본 점들의 범위를 옮겨 적었다. 한글 제목과 레이어군은 사람이 붙였다. 받는 열과 팝업 이름은 web/viewer/grportal.py 의 LAYERS 에 있다.",
+ "_뽑은날": "2026-09-27",
+ "_출처": "https://services5.arcgis.com/wbN76kmEQ2ue8VQm/arcgis/rest/services",
+ "_지역": "greenland",
+ "_상류": "grportal",
+ "레이어군순서": [
+  "시료·연대 (정부 포털)",
+  "광물 자원 (정부 포털)",
+  "사면 재해 (정부 포털)"
+ ],
+ "레이어": [
+  {
+   "name": "grportal:geochron",
+   "title": "연대측정",
+   "group": "시료·연대 (정부 포털)",
+   "abstract": "Greenland geochronology — age (Ma), uncertainty, mineral, technique, reference",
+   "bbox": [-72.34, 59.89, -6.41, 83.58]
+  },
+  {
+   "name": "grportal:mineral_occurrences",
+   "title": "광물 산출지",
+   "group": "시료·연대 (정부 포털)",
+   "abstract": "Greenland mineral occurrences — commodity, economic status, GEUS report",
+   "bbox": [-70.09, 60.12, -17.90, 83.09]
+  },
+  {
+   "name": "grportal:intrusions",
+   "title": "관입암체",
+   "group": "시료·연대 (정부 포털)",
+   "abstract": "Greenland intrusions — name, description, report",
+   "bbox": [-72.10, 59.83, -20.55, 83.25]
+  },
+  {
+   "name": "grportal:samples",
+   "title": "암석·퇴적물 시료",
+   "group": "시료·연대 (정부 포털)",
+   "abstract": "GEUS samples on the portal — 20 000, a cut of the full register",
+   "bbox": [-72.90, 59.82, -13.24, 83.47]
+  },
+  {
+   "name": "grportal:mineral_tracts",
+   "title": "광물 잠재 구역",
+   "group": "광물 자원 (정부 포털)",
+   "abstract": "GEUS·그린란드 정부의 광종별 평가 워크숍(2009–2014)이 그은 구역 162 — 광상 모델, 미발견 광상 수(확률별), 보고서",
+   "bbox": [-73.3, 59.72, -13.24, 83.67]
+  },
+  {
+   "name": "grportal:diamond_occurrences",
+   "title": "다이아몬드 관련 산출지 (킴벌라이트 등)",
+   "group": "광물 자원 (정부 포털)",
+   "abstract": "다이아몬드 탐사 자료(DED)의 산출지 3 029 — 암석군, 산상, 주향·경사, 기재",
+   "bbox": [-54.0, 60.86, -21.39, 73.33]
+  },
+  {
+   "name": "grportal:unstable_slopes",
+   "title": "불안정 사면",
+   "group": "사면 재해 (정부 포털)",
+   "abstract": "그린란드 정부 지질과가 작성 중인 지도(2026-02 갱신) — 부피, 높이, 도달 거리, 가까운 마을. 30 일마다 다시 받는다",
+   "bbox": [-56.83, 63.89, -36.3, 72.86]
+  },
+  {
+   "name": "grportal:mass_movements",
+   "title": "매스무브먼트 기록",
+   "group": "사면 재해 (정부 포털)",
+   "abstract": "기록된 산사태·암반 붕괴 42 — 일어난 때, 부피, 쓰나미를 일으켰는지. 30 일마다 다시 받는다",
+   "bbox": [-57.09, 64.15, -36.94, 72.89]
+  }
+ ]
+}

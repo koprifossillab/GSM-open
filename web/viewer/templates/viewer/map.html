@@ -1,0 +1,404 @@
+{% load static gsm_i18n %}<!DOCTYPE html>
+<html lang="{{ lang }}">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{% t "대돌여지도" %}</title>
+<meta name="theme-color" content="#2b1d10">
+<link rel="icon" id="favicon" type="image/svg+xml" href="{% static 'viewer/emblem.svg' %}?v={{ stamp|default:version }}">
+{% comment %}대기 화면은 CSS 파일보다 먼저 그려져야 해서 여기 둔다. 바탕색은 gif 의
+바탕(#2b1d10)과 같아야 가장자리가 안 보인다.{% endcomment %}
+<style>
+  #splash{position:fixed;inset:0;z-index:100;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;background:#2b1d10;transition:opacity .45s ease,visibility .45s}
+  #splash img{width:min(760px,92vw);height:auto}
+  #splash p{margin:0;font:500 15px/1.4 "Pretendard","Apple SD Gothic Neo","Noto Sans KR",system-ui,sans-serif;letter-spacing:.22em;color:#c9a24b}
+  #splash.gone{opacity:0;visibility:hidden}
+  #splash p.splash-ver{font-size:12px;letter-spacing:.12em;opacity:.65}
+  #splash.polar{background:#07121c}
+  #splash.polar p{color:#8fd0ee}
+</style>
+<link rel="stylesheet" href="{% static 'viewer/vendor/ol.css' %}">
+<link rel="stylesheet" href="{% static 'viewer/map.css' %}?v={{ stamp|default:version }}">
+</head>
+<body data-linked-proxy="{{ linked_proxy|yesno:"1,0" }}">
+
+<div id="splash" role="status" aria-live="polite">
+  <img src="{% static 'viewer/splash.gif' %}" alt="{% t "대돌여지도" %}">
+  <p>{% t "불러오는 중" %}</p>
+  <p class="splash-ver">v{{ version }}</p>
+</div>
+{% comment %}극지 지역으로 열리면 극지 대기 화면 (wetherilli 123). 지역은 map.js 가 정하지만 대기 화면은 그보다 먼저
+떠야 해서 여기서 주소(?region=)와 기억한 지역(gsm.region)만 보고 고른다. 극지 = 평사도법으로 보는 지역이다{% endcomment %}
+<script>
+(function () {
+  var POLAR = ["antarctica", "greenland", "svalbard", "jan_mayen", "arctic", "arctic_ocean", "fennoscandia"];
+  var r = new URLSearchParams(location.search).get("region");
+  try { if (!r) r = localStorage.getItem("gsm.region"); } catch (e) { /* 사생활 모드 */ }
+  if (POLAR.indexOf(r) < 0) return;
+  var s = document.getElementById("splash");
+  s.className = "polar";
+  s.querySelector("img").src = "{% static 'viewer/splash-polar.gif' %}";
+})();
+</script>
+
+<aside id="panel">
+  <header class="brand">
+    {% comment %}숨은 차림 — 아이콘을 누르면 뜬다. 지역 탭에 두지 않을 곳(달, P05)으로 가는 문이다{% endcomment %}
+    <button type="button" class="emblem-btn" id="emblem-btn" aria-haspopup="menu" aria-expanded="false"
+            data-emblem="{% static 'viewer/emblem.svg' %}?v={{ stamp|default:version }}" data-emblem-polar="{% static 'viewer/emblem-polar.png' %}"
+            aria-controls="hidden-menu" title="{% t "대돌여지도" %}">
+      <img class="emblem" src="{% static 'viewer/emblem.svg' %}?v={{ stamp|default:version }}" alt="" width="46" height="46">
+    </button>
+    <nav class="hidden-menu" id="hidden-menu" role="menu" hidden>
+      <a role="menuitem" href="{{ base }}earth/"><span class="moon-dot whole-dot" aria-hidden="true"></span>{% t "온 지구" %}</a>
+      <a role="menuitem" href="{{ base }}moon/"><span class="moon-dot" aria-hidden="true"></span>{% t "달" %}</a>
+      <a role="menuitem" href="{{ base }}mars/"><span class="moon-dot mars-dot" aria-hidden="true"></span>{% t "화성" %}</a>
+      <a role="menuitem" href="{{ base }}mercury/"><span class="moon-dot mercury-dot" aria-hidden="true"></span>{% t "수성" %}</a>
+      <a role="menuitem" class="intro-link" href="{{ base }}"><span class="moon-dot intro-dot" aria-hidden="true"></span>{% t "대돌여지도 소개" %}</a>
+    </nav>
+    <div>
+      <h1>{% t "대돌여지도" %} <span class="ver">v{{ version }}</span></h1>
+      <p class="tagline">{% if lang == "en" %}대돌여지도{% else %}GREAT STONE MAP{% endif %}</p>
+    </div>
+  </header>
+  <nav class="regions" id="regions" aria-label="{% t "지역" %}"></nav>
+  <p class="warn region-note" id="region-note" hidden>
+    {% t "<b>남극 지질도는 준비 중이다.</b> 남극점을 가운데 둔 평사도법 화면과 배경지도를 먼저 띄워 둔다. GeoMAP 레이어는 곧 붙인다." %}
+  </p>
+
+  {% if dev_direct %}
+  <p class="warn direct korea-only">
+    {% t "<b>임시 경로로 받고 있다.</b> 인증키가 아직 없어 문서에 없는 주소 (<code>/mgeo/geoserver/wms</code>)로 지도를 받는다. 키가 들어오면 <code>dev_direct_wms</code> 를 지우고 다시 띄운다 — 그때부터 문서화된 <code>/openapi/wms</code> 로 간다." %}
+  </p>
+  {% elif not has_key %}
+  <p class="warn korea-only">
+    {% t "인증키가 없다. 타일 자리에 안내가 뜬다 — <code>GSM_KIGAM_KEY</code> 를 채우거나 <code>kigam_key</code> 파일을 둔다." %}
+  </p>
+  {% endif %}
+
+  <div id="panel-body">
+  <nav class="tabs">
+    <button class="tab on" data-tab="layers">{% t "레이어" %}</button>
+    <button class="tab" data-tab="points">{% t "불러오기" %}</button>
+  </nav>
+
+  <section id="tab-layers" class="tabbody on">
+    <div class="box">
+      <h2 class="box-head">{% t "레이어 고르기" %}</h2>
+      <div class="box-body">
+      <label class="basemap-row">
+        <span>{% t "배경" %}</span>
+        <select id="basemap"></select>
+      </label>
+      <label class="basemap-labels" id="basemap-labels-wrap">
+        <input type="checkbox" id="basemap-labels" checked>
+        <span>{% t "지명 보이기" %}</span>
+      </label>
+
+      <h3 class="sub-head">{% t "켠 지질 레이어" %} <span class="count" id="count-layers">0</span>
+        <span class="hint">{% t "위가 앞이다" %}</span>
+        <button type="button" class="layers-off" id="layers-off" title="{% t "켠 지질 레이어를 모두 끈다" %}" disabled>{% t "모두 끄기" %}</button></h3>
+      <ul id="active-list"><li class="empty">{% t "아직 켠 레이어가 없다" %}</li></ul>
+
+      <div class="compare" id="compare">
+        <h3 class="sub-head">{% t "주제도 비교" %}</h3>
+        <div class="seg" id="compare-mode">
+          <button type="button" data-cmp="off">{% t "끔" %}</button>
+          <button type="button" data-cmp="swipe">{% t "밀어 보기" %}</button>
+          <button type="button" data-cmp="split">{% t "나란히" %}</button>
+        </div>
+        <label class="compare-pick" id="compare-pick-wrap" hidden>
+          <span id="compare-pick-label"></span>
+          <select id="compare-pick"></select>
+        </label>
+        <p class="hint" id="compare-hint"></p>
+      </div>
+
+      <div id="layer-catalog"></div>
+      </div>
+    </div>
+
+    <div class="box" id="box-personal" hidden>
+      <h2 class="box-head">{% t "개인 레이어" %} <span class="count" id="count-personal">0</span>
+        <span class="hint">{% t "이 브라우저에만" %}</span></h2>
+      <div class="box-body">
+        <ul id="personal-list"></ul>
+        <p id="personal-warn" class="personal-warn" hidden></p>
+        <a class="btn quiet wide personal-manage" href="{{ base }}manage/">{% t "반입·관리" %}</a>
+      </div>
+    </div>
+
+    <div class="box">
+      <h2 class="box-head">{% t "그리기" %} <span class="hint">{% t "지도에 얹은 내 것" %}</span></h2>
+      <div class="box-body">
+
+      <section class="well" id="well-temp">
+        <h3 class="well-head">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path class="stroke" d="M12 21s-6.5-6.2-6.5-11a6.5 6.5 0 0 1 13 0c0 4.8-6.5 11-6.5 11Z"/><circle class="stroke" cx="12" cy="10" r="2.3"/></svg>
+          {% t "찍고 잰 것" %} <span class="count" id="count-temp">0</span>
+          <span class="hint">{% t "저장 전까지 임시" %}</span>
+        </h3>
+        <p id="measure-out" class="measure-out">{% t "아직 잰 것이 없다" %}</p>
+        <ul id="temp-list"><li class="empty">{% t "지도 오른쪽 위 <b>점</b> 도구로 찍는다" %}</li></ul>
+        <div class="folder-acts">
+          <button type="button" id="save-temp" class="btn primary">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path class="stroke" d="M5 5h11l3 3v11a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1V5Z"/><path class="stroke" d="M8 5v5h7V5M8 19v-5h8v5"/></svg>
+            {% t "점묶음으로 저장" %}
+          </button>
+          <button type="button" id="clear-temp" class="btn quiet danger" title="{% t "찍은 점과 잰 것을 모두 지운다" %}">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path class="stroke" d="M4.5 7h15M9.5 7V4.5h5V7M6.5 7l1 13h9l1-13"/></svg>
+            <span class="sr">{% t "모두 지운다" %}</span>
+          </button>
+        </div>
+        <p id="save-msg" class="msg"></p>
+      </section>
+
+      <section class="well" id="well-points">
+        <h3 class="well-head">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><circle class="stroke" cx="7" cy="8" r="2.2"/><circle class="stroke" cx="16.5" cy="6.5" r="2.2"/><circle class="stroke" cx="11" cy="16.5" r="2.2"/><circle class="stroke" cx="18" cy="15" r="2.2"/></svg>
+          {% t "점묶음" %} <span class="count" id="count-points">0</span>
+          <span class="hint">{% t "불러오거나 저장한 자료" %}</span>
+        </h3>
+        <ul id="pointset-list"></ul>
+      </section>
+      </div>
+    </div>
+  </section>
+
+  <section id="tab-points" class="tabbody">
+    <div class="box">
+      <h2 class="box-head">{% t "불러오기" %} <span class="hint">{% t "바깥 자료를 지도에" %}</span></h2>
+      <div class="box-body">
+    <form id="upload-form">
+      {% csrf_token %}
+      <label class="filebox">
+        <input type="file" id="upload-file" name="file" accept=".csv,.tsv,.txt,.geojson,.json" required>
+        <span>{% t "CSV · GeoJSON 고르기" %}</span>
+      </label>
+      <div class="row">
+        <input type="text" id="upload-name" placeholder="{% t "점묶음 이름 (비우면 파일 이름)" %}">
+        <input type="color" id="upload-color" value="#e4572e" title="{% t "점 색" %}">
+      </div>
+      <label class="upload-crs">
+        <span>{% t "좌표계" %}</span>
+        <select id="upload-crs" name="crs">
+          {% for code, name in crs_options %}<option value="{{ code }}">{{ name }}</option>{% endfor %}
+        </select>
+      </label>
+      <button type="submit" class="btn primary wide">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path class="stroke" d="M12 16V4m0 0L8 8m4-4 4 4"/><path class="stroke" d="M4 16v3a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-3"/></svg>
+        {% t "올린다" %}
+      </button>
+      <p class="hint">
+        {% t "위경도 열은 이름으로 알아낸다 — <code>lat</code>·<code>위도</code>·<code>y</code>, <code>lon</code>·<code>경도</code>·<code>x</code>. 나머지 열은 점을 누르면 뜬다." %}
+        {% t "GeoJSON 은 점·선·면을 다 받는다." %}
+      </p>
+      <p id="upload-msg" class="msg"></p>
+    </form>
+      </div>
+    </div>
+  </section>
+  </div>
+
+  <footer id="panel-foot">
+    <span class="foot-name">GSM <span class="ver">v{{ version }}</span></span>
+    <a id="manage-btn" class="gear manage-btn" href="{{ base }}manage/" title="{% t "관리 화면 — 개인 레이어 반입, 저장 자료 관리" %}">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><rect class="stroke" x="4" y="4" width="16" height="16" rx="2"/><path class="stroke" d="M8 9h8M8 12h8M8 15h5"/></svg>
+      <span>{% t "관리" %}</span>
+    </a>
+    <button type="button" id="gear" class="gear" title="{% t "설정과 판 이력" %}">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path class="stroke" d="M12 15.4a3.4 3.4 0 1 0 0-6.8 3.4 3.4 0 0 0 0 6.8Z"/><path class="stroke" d="m19.2 13.6.1-1.6-.1-1.6 1.7-1.3-1.7-2.9-2 .7a7.4 7.4 0 0 0-2.8-1.6L14 3h-4l-.4 2.3a7.4 7.4 0 0 0-2.8 1.6l-2-.7-1.7 2.9 1.7 1.3-.1 1.6.1 1.6-1.7 1.3 1.7 2.9 2-.7a7.4 7.4 0 0 0 2.8 1.6L10 21h4l.4-2.3a7.4 7.4 0 0 0 2.8-1.6l2 .7 1.7-2.9-1.7-1.3Z"/></svg>
+      <span>{% t "설정" %}</span>
+    </button>
+  </footer>
+</aside>
+
+<div id="settings" class="sheet" hidden>
+  <div class="sheet-box" role="dialog" aria-modal="true" aria-labelledby="settings-title">
+    <header class="sheet-head">
+      <div>
+        <h2 id="settings-title"><img class="emblem sm" src="{% static 'viewer/emblem.svg' %}?v={{ stamp|default:version }}" alt="" width="26" height="26"> {% t "대돌여지도" %} <span class="ver">v{{ version }}</span></h2>
+        <p class="hint">{% t "GSM — 한국지질자원연구원 지오빅데이터 오픈플랫폼 오픈API 지도뷰어" %}</p>
+      </div>
+      <button type="button" id="settings-close" class="icon-btn" title="{% t "닫는다" %}">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path class="stroke" d="m6 6 12 12M18 6 6 18"/></svg>
+      </button>
+    </header>
+
+    <nav class="sheet-tabs">
+      <button class="stab on" data-stab="look">{% t "모양" %}</button>
+      <button class="stab" data-stab="notes">{% t "판 이력" %}</button>
+      <button class="stab" data-stab="state">{% t "지금 상태" %}</button>
+    </nav>
+
+    <section id="stab-look" class="stabbody on">
+      <div class="field">
+        <label for="opt-theme">{% t "화면" %}</label>
+        <div class="seg" id="opt-theme">
+          <button type="button" data-theme="brown">{% t "먹갈색" %}</button>
+          <button type="button" data-theme="light">{% t "한지" %}</button>
+        </div>
+        <p class="hint">{% t "먹갈색이 기본이다. 한지는 밝은 바탕에 갈색 글자다." %}</p>
+      </div>
+
+      <div class="field">
+        <label for="opt-font">{% t "글꼴" %}</label>
+        <div class="seg" id="opt-font">
+          <button type="button" data-font="sans">{% t "고딕" %}</button>
+          <button type="button" data-font="serif">{% t "명조" %}</button>
+          <button type="button" data-font="system">{% t "기기 기본" %}</button>
+        </div>
+        <p class="hint">{% t "지질도 위의 글자는 상류가 그린 것이라 바뀌지 않는다." %}</p>
+      </div>
+
+      <div class="field">
+        <label for="opt-size">{% t "글자 크기" %}</label>
+        <div class="seg" id="opt-size">
+          <button type="button" data-size="s">{% t "작게" %}</button>
+          <button type="button" data-size="m">{% t "보통" %}</button>
+          <button type="button" data-size="l">{% t "크게" %}</button>
+        </div>
+      </div>
+
+      <div class="field">
+        <label for="opt-lang">언어 · Language</label>
+        <div class="seg" id="opt-lang">
+          <button type="button" data-lang="ko">한국어</button>
+          <button type="button" data-lang="en">English</button>
+        </div>
+        <p class="hint">{% t "속성 값(지층명·암석명)은 상류가 한국어로 주는 것이라 그대로 둔다. 지질시대만 영어로 옮긴다." %}</p>
+      </div>
+      <div class="field">
+        <label for="opt-labs">{% t "실험 기능" %}</label>
+        <div class="seg" id="opt-labs">
+          <button type="button" data-labs="off">{% t "끔" %}</button>
+          <button type="button" data-labs="on">{% t "켬" %}</button>
+        </div>
+        <p class="hint">{% t "다 여물지 않은 기능을 먼저 써 본다. 지금은 실험 중인 기능이 없다 — 3D 보기는 상시 기능이 되었다." %}</p>
+      </div>
+      <p class="field-note">{% t "고른 것은 이 브라우저에만 남는다. 서버로 가지 않는다." %}</p>
+    </section>
+
+    <section id="stab-notes" class="stabbody">
+      {% if lang == "en" %}<p class="hint">{% t "판 이력은 한국어로만 적는다." %}</p>{% endif %}
+      <div id="notes" class="notes">{% t "읽는 중…" %}</div>
+    </section>
+
+    <section id="stab-state" class="stabbody">
+      <dl id="settings-state" class="kv"></dl>
+      <h3 class="sub-head">{% t "최근 지운 점묶음" %}</h3>
+      <ul id="deleted-list" class="deleted-list"><li class="empty">{% t "읽는 중…" %}</li></ul>
+      <p class="hint">{% t "지울 때 사본을 남겨 둔다. 잘못 지웠으면 되살린다." %}</p>
+    </section>
+  </div>
+</div>
+
+<main id="map-wrap">
+  <div id="map"></div>
+  <button type="button" id="panel-handle" class="panel-handle" aria-controls="panel" aria-expanded="true"
+          title="{% t "패널을 접는다" %}">&lt;</button>
+  <div id="map2" hidden></div>
+  <div id="swipe" class="swipe" hidden title="{% t "끌어서 견준다" %}"><span class="swipe-grip"></span></div>
+  <div class="split-tag left"><span id="split-left"></span></div>
+  <div class="split-tag right"><span id="split-right"></span></div>
+
+  <div id="popup" class="popup">
+    <button id="popup-close" class="popup-close" title="{% t "닫는다" %}">&times;</button>
+    <div id="popup-body"></div>
+  </div>
+
+  <div id="toolbar" class="toolbar" role="toolbar" aria-label="{% t "그리기 도구" %}">
+    <div class="tool-col">
+      {% comment %}옆에 "자세" 묶음이 서므로 두 묶음에 이름표를 단다 (049). 방위 단추가 생겨 모든 탭에 선다 (wetherilli 114){% endcomment %}
+      <div class="tool-cap">{% t "도구" %}</div>
+      <button type="button" class="tool" data-mode="point" title="{% t "점 찍기 — 누른 자리에 점을 찍고 위경도를 적는다" %}">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path class="stroke" d="M12 21s-6.5-6.2-6.5-11a6.5 6.5 0 0 1 13 0c0 4.8-6.5 11-6.5 11Z"/><circle class="fill" cx="12" cy="10" r="2.4"/></svg>
+        <span>{% t "점" %}</span>
+      </button>
+      <button type="button" class="tool" data-mode="line" title="{% t "거리 재기 — 눌러 가며 잇고, 두 번 누르면 끝난다" %}">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path class="stroke dash" d="M6 18 18 6"/><circle class="fill" cx="5" cy="19" r="2.3"/><circle class="fill" cx="19" cy="5" r="2.3"/></svg>
+        <span>{% t "거리" %}</span>
+      </button>
+      <button type="button" class="tool" data-mode="area" title="{% t "넓이 재기 — 눌러 가며 두르고, 두 번 누르면 끝난다" %}">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path class="stroke tint" d="M5 8.5 11 4l8 4.5-1.5 9L8 20 5 8.5Z"/><circle class="fill" cx="5" cy="8.5" r="1.7"/><circle class="fill" cx="11" cy="4" r="1.7"/><circle class="fill" cx="19" cy="8.5" r="1.7"/><circle class="fill" cx="17.5" cy="17.5" r="1.7"/><circle class="fill" cx="8" cy="20" r="1.7"/></svg>
+        <span>{% t "넓이" %}</span>
+      </button>
+      <button type="button" class="tool" data-mode="box" title="{% t "범위잡기 — 누른 채 끌어 네모를 그리면 꼭짓점·중앙·넓이가 뜬다" %}">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><rect class="stroke" x="4.5" y="6" width="15" height="12" rx="1" stroke-dasharray="2.6 2.2"/><circle class="fill" cx="4.5" cy="6" r="1.8"/><circle class="fill" cx="19.5" cy="18" r="1.8"/><path class="stroke" d="M12 10.5v3M10.5 12h3"/></svg>
+        <span>{% t "범위" %}</span>
+      </button>
+      <button type="button" class="tool" id="tool-export" title="{% t "그림으로 내려받기 — 지금 보는 지도를 PNG 한 장으로. 레이어·축척·출처를 아래에 적는다" %}">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><rect class="stroke" x="4" y="4" width="16" height="13" rx="1.5"/><path class="stroke" d="m6.5 14 3.5-4 3 3 2-2 2.5 3"/><path class="stroke" d="M12 17v4M9.5 19l2.5 2 2.5-2"/></svg>
+        <span>{% t "그림" %}</span>
+      </button>
+      <a class="tool" id="tool-3d" href="{{ base }}3d/" title="{% t "3D 로 본다 — 지금 보던 자리를 연다" %}">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path class="stroke" d="M3 18 9 8l4 6 3-4 5 8H3Z"/><path class="stroke" d="M12 4v2M17 5.5l-1 1.6"/></svg>
+        <span>3D</span>
+      </a>
+      <span class="tool-sep" aria-hidden="true"></span>
+      <button type="button" class="tool danger" id="tool-clear" title="{% t "찍은 점과 잰 것을 모두 지운다" %}">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path class="stroke" d="M4.5 7h15M9.5 7V4.5h5V7M6.5 7l1 13h9l1-13M10 11v5M14 11v5"/></svg>
+        <span>{% t "지우기" %}</span>
+      </button>
+    </div>
+    {% comment %}"자세" — 방위는 모든 탭, 기지는 남극 탭만 (049). `row-reverse` 라 도구 묶음의 왼쪽에 선다.
+       우클릭한 채 끌면 지도가 돌고, 방위 단추가 처음 방위로 되돌린다 (wetherilli 114){% endcomment %}
+    <div class="tool-col" role="group" aria-label="{% t "자세" %}">
+      <div class="tool-cap">{% t "자세" %}</div>
+      <button type="button" class="tool" id="tool-compass" disabled title="{% t "방위 — 바늘이 지도의 본래 위쪽을 가리킨다. 우클릭한 채 끌면 지도가 돌고, 누르면 처음 방위로 되돌린다" %}">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><circle class="stroke" cx="12" cy="12" r="8.5"/><g id="compass-needle"><path class="fill" d="M12 4.5 14.2 12h-4.4Z"/><path class="stroke" d="M9.8 12 12 19.5 14.2 12"/></g></svg>
+        <span>{% t "방위" %}</span>
+      </button>
+      <button type="button" class="tool antarctica-only" data-goto="jangbogo" title="{% t "장보고과학기지로 간다 — 74°37′26″S 164°13′44″E" %}">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path class="stroke" d="M6 21V4"/><path class="stroke tint" d="M6 4h11l-2.5 3.5L17 11H6"/><path class="stroke" d="M3 21h8"/></svg>
+        <span>{% t "장보고" %}</span>
+      </button>
+      <button type="button" class="tool antarctica-only" data-goto="sejong" title="{% t "세종과학기지로 간다 — 62°13′22″S 58°47′18″W" %}">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path class="stroke" d="M6 21V4"/><path class="stroke tint" d="M6 4h11l-2.5 3.5L17 11H6"/><path class="stroke" d="M3 21h8"/></svg>
+        <span>{% t "세종" %}</span>
+      </button>
+    </div>
+    <output id="tool-out" class="tool-out" hidden></output>
+  </div>
+
+  <output id="edge-n" class="edge n" title="{% t "보이는 지도의 북쪽 끝" %}"></output>
+  <output id="edge-s" class="edge s" title="{% t "보이는 지도의 남쪽 끝" %}"></output>
+  <output id="edge-w" class="edge w" title="{% t "보이는 지도의 서쪽 끝" %}"></output>
+  <output id="edge-e" class="edge e" title="{% t "보이는 지도의 동쪽 끝" %}"></output>
+
+  <!-- 높이 그래프 — 거리를 다 재면 뜬다. 달 화면의 것(wetherilli 100)을 옮겼다 (wetherilli 109) -->
+  <section id="profile" class="profile-dock" hidden>
+    <header>
+      <strong>{% t "높이 그래프" %}</strong>
+      <span id="profile-sum" class="profile-sum"></span>
+      <button type="button" id="profile-close" class="profile-close" title="{% t "닫기" %}" aria-label="{% t "닫기" %}">×</button>
+    </header>
+    <svg id="profile-svg" class="profile-svg" viewBox="0 0 640 170" aria-hidden="true"></svg>
+    <p id="profile-read" class="profile-read"></p>
+  </section>
+
+  <div id="scalebar"><output id="projbadge" class="projbadge"></output><output id="zoombadge" class="projbadge zoombadge"></output></div>
+
+  <div id="coordbar">
+    <ul id="search-results" class="search-results" hidden></ul>
+    <form id="goto-form">
+      <input id="goto-input" type="text" placeholder="{% t "좌표·주소·장소로 이동 — 36.378, 127.362 · 과학로 124 · 가정동" %}" autocomplete="off">
+      <button type="submit">{% t "간다" %}</button>
+    </form>
+    <button id="dms-toggle" type="button" title="{% t "십진도와 도분초를 오간다" %}">{% t "도분초" %}</button>
+    <select id="crs-pick" class="crs-pick" title="{% t "좌표 칸이 받는 좌표계. 평면 좌표계면 팝업에도 그 좌표가 뜬다" %}">
+      {% for code, name in crs_options %}<option value="{{ code }}">{{ name }}</option>{% endfor %}
+    </select>
+  </div>
+</main>
+
+<script id="i18n-data" type="application/json">{{ i18n_json|safe }}</script>
+<script id="vworld-key" type="application/json">"{{ vworld_key|escapejs }}"</script>
+<script id="catalog-data" type="application/json">{{ catalog|safe }}</script>
+<script id="pointset-data" type="application/json">{{ pointsets|safe }}</script>
+<script src="{% static 'viewer/vendor/ol.js' %}"></script>
+<script src="{% static 'viewer/vendor/proj4.js' %}"></script>
+<script src="{% static 'viewer/personal.js' %}?v={{ stamp|default:version }}"></script>
+<script src="{% static 'viewer/map.js' %}?v={{ stamp|default:version }}"></script>
+</body>
+</html>

@@ -1,0 +1,40 @@
+# GSM 이미지를 굽는 구성.
+#
+#   docker compose -f deploy/docker-compose.yml build
+#   GSM_TAG=v0.1.0 docker compose -f deploy/docker-compose.yml build
+#   GSM_TAG=v0.1.0 docker compose -f deploy/docker-compose.yml push
+#
+# 이름을 레지스트리 형태로 두는 까닭: 굽고 나서 따로 `docker tag` 하는 단계가
+# 있으면 그 단계를 잊는다. 굽는 순간 이미 올릴 수 있는 이름이어야 한다.
+#
+# **운영은 이 파일로 하지 않는다.** 배포는 /srv/GSM/docker-compose.yml 이다
+# (ForGIA·DiaRUGA 와 같은 갈래 — 저장소는 굽고, /srv/<앱>/ 은 돌린다).
+
+name: gsm
+
+services:
+  web:
+    image: koprifossillab/gsm:${GSM_TAG:-dev}
+    build:
+      context: ..
+      dockerfile: deploy/Dockerfile.web
+    user: "1000:1000"
+    environment:
+      TZ: Asia/Seoul
+      GSM_DB_PATH: /srv/GSM/db/GSM.db
+      GSM_TILE_CACHE_DIR: /srv/GSM/tiles
+      GSM_DEBUG: "0"
+      GSM_URL_PREFIX: "GSM/"
+      GSM_SECRET_KEY: ${GSM_SECRET_KEY:-dev-only-not-a-secret}
+      GSM_ALLOWED_HOSTS: ${GSM_ALLOWED_HOSTS:-127.0.0.1,localhost}
+      # 인증키. 이미지에 굽지 않는다 — 돌 때 넣는다.
+      GSM_KIGAM_KEY: ${GSM_KIGAM_KEY:-}
+      # 운영에서는 반드시 꺼 둔다. CLAUDE.md "두 개의 상류 주소".
+      GSM_DEV_DIRECT_WMS: "0"
+    volumes:
+      - /srv/GSM/db:/srv/GSM/db
+      # cron 이 부르는 스크립트 — 뜰 때 이미지의 것을 여기 깐다 (deploy/scripts/install.sh, koprifossillab 005)
+      - /srv/GSM/scripts:/srv/GSM/scripts
+      - /srv/GSM/tiles:/srv/GSM/tiles
+    ports:
+      - "127.0.0.1:8094:9090"

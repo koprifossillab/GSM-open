@@ -1,0 +1,23 @@
+# 뷰어(Django)가 쓰는 것만. 컨테이너 web 이미지가 이 파일로 만들어진다.
+# ForGIA·DiaRUGA 의 requirements-web.txt 와 판을 맞췄다.
+#
+# GDAL·shapely·geopandas 가 여기 없는 것은 실수가 아니다 — 이 뷰어는 공간
+# 연산을 하지 않는다. 지도는 브라우저의 OpenLayers 가 그리고, 서버는 상류
+# 타일을 중계하고 점묶음을 표로 들고 있을 뿐이다. 이 경계가 web 이미지를
+# 200 MB 대로 유지한다. 공간 연산이 필요해지면 그때 devlog 를 쓰고 더한다.
+#
+# 남극 지질도(GeoMAP)는 우리가 그리지만 그래도 더하지 않았다 — GeoPackage 는
+# 표준 sqlite3 로, 기하는 struct 로, 그리기는 Pillow 로 한다 (viewer/geomap.py,
+# devlog 018).
+
+Django==5.2.16
+pillow==12.2.0        # 안내 타일(viewer/tiles.py), 남극 지질도 타일(viewer/geomap.py)
+requests==2.32.3      # 상류 WMS 중계 (viewer/kigam.py)
+whitenoise==6.8.2     # 정적 파일 서빙. 아래 주석을 볼 것
+gunicorn==26.0.0      # 운영 서빙. 개발용 runserver 를 대신한다
+
+# **whitenoise 가 왜 필요한가.** DEBUG=0 이면 Django 는 정적 파일을 내주지
+# 않는다. ForGIA·DiaRUGA 는 템플릿이 CSS·JS 를 인라인으로 들고 있어 이 일을
+# 겪지 않지만, 여기는 OpenLayers 를 저장소에 담아 파일로 부른다
+# (web/viewer/static/viewer/vendor/). 없으면 컨테이너에서 화면이 뜨되
+# 지도가 하나도 안 그려진다 — 2026-09-23 에 그렇게 한 번 겪었다.

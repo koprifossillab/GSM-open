@@ -1,0 +1,7 @@
+# 개발·시험에만 쓰는 것. 어느 컨테이너 이미지에도 안 넣는다.
+
+-r requirements.txt
+
+pytest==8.3.4
+pytest-django==4.9.0
+responses==0.25.3     # 상류 WMS 응답을 가짜로 세워 시험한다

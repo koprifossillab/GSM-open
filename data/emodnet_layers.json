@@ -1,0 +1,41 @@
+{
+ "_주석": "EMODnet Geology 의 해저 지질 씨앗이다 — 북극해 탭(북극 묶음에도 든다). 스발바르 탭은 map.js 의 REGIONS.svalbard.borrow 로 이 레이어군을 빌려 보인다. 2026-10-02 에 스발바르(0–40°E, 74–82°N)·얀마옌(14–2°W, 69–73°N) 둘레에서 레이어마다 한 장씩 받아 덮는 곳이 있는 것만 넣었다. 해저 침식·지질 사건·제4기 퇴적층은 이 둘레에서 거의 비어 뺐다. 상류의 이름 앞에 emodnet: 을 붙였다 — 문(web/viewer/emodnet.py)이 떼어 낸다. 범위는 GetCapabilities 의 것이다. 바다가 주인공인 탭이라 레이어군을 KPDC(20) 앞에 둔다 (wetherilli 135).",
+ "_뽑은날": "2026-10-02",
+ "_출처": "https://drive.emodnet-geology.eu/geoserver/ows?SERVICE=WMS&REQUEST=GetCapabilities",
+ "_지역": "arctic_ocean",
+ "_상류": "emodnet",
+ "_레이어군차례": 10,
+ "레이어군순서": [
+  "해저 지질 (EMODnet)"
+ ],
+ "레이어": [
+  {
+   "name": "emodnet:cp_wp4_pre_quaternary_geology_lithology",
+   "title": "제4기 이전 지질 — 암상",
+   "group": "해저 지질 (EMODnet)",
+   "abstract": "해저 밑 기반암(제4기 퇴적층 밑)의 암상. 나라마다의 해저 지질도를 EMODnet 이 이어 붙였다 — 바렌츠해는 BGR 의 유럽 500만 지질도다",
+   "bbox": [-89.92, 8.81, 86.31, 80.88]
+  },
+  {
+   "name": "emodnet:cp_wp4_pre_quaternary_geology_age",
+   "title": "제4기 이전 지질 — 시대",
+   "group": "해저 지질 (EMODnet)",
+   "abstract": "같은 면을 지질시대로 칠한 것",
+   "bbox": [-89.92, 8.81, 86.31, 80.88]
+  },
+  {
+   "name": "emodnet:bgr:pre_quaternary_faults",
+   "title": "제4기 이전 단층",
+   "group": "해저 지질 (EMODnet)",
+   "abstract": "해저 기반암의 단층. 노르웨이 쪽은 NGU 의 북유럽 400만 지질도다",
+   "bbox": [-91.30, 6.80, 60.00, 80.88]
+  },
+  {
+   "name": "emodnet:cp_wp3_seabed_substrate_folk_7",
+   "title": "해저 퇴적물 (Folk 7)",
+   "group": "해저 지질 (EMODnet)",
+   "abstract": "해저 표층 퇴적물의 알갱이 — 진흙·모래·자갈과 섞인 것을 Folk 의 일곱 갈래로. 축척에 따라 상류가 더 자세한 판을 고른다",
+   "bbox": [-88.52, 9.33, 112.92, 83.20]
+  }
+ ]
+}

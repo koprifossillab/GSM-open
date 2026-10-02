@@ -1,0 +1,33 @@
+{
+ "_주석": "얀마옌 1:25만 기반암 지질도(NPI NP_J250_Geologi, CC BY 4.0)의 레이어 씨앗이다. 파일은 저장소에 없고 서버의 GSM_NPOLAR_DIR 에 둔다 (devlog 022). 범위는 2026-09-27 에 세 파일을 위경도로 옮겨 잰 것이다. 한글 제목과 레이어군은 사람이 붙였다. 읽는 법·팝업 이름·선과 점의 색은 web/viewer/janmayen.py 에 있다.",
+ "_뽑은날": "2026-09-27",
+ "_출처": "https://data.npolar.no/dataset/8c7a7c18-eec9-47d9-b86b-1e86938050c8",
+ "_지역": "jan_mayen",
+ "_상류": "janmayen",
+ "레이어군순서": [
+  "얀마옌 지질 (NPI)"
+ ],
+ "레이어": [
+  {
+   "name": "janmayen:units",
+   "title": "지질 단위 (1:25만)",
+   "group": "얀마옌 지질 (NPI)",
+   "abstract": "Bedrock geology of Jan Mayen, 1:250 000 — 306 polygons, Imsland (1978) stratigraphy, compiled by W.K. Dallmann",
+   "bbox": [-9.08, 70.82, -7.92, 71.17]
+  },
+  {
+   "name": "janmayen:lines",
+   "title": "분출 열극·용암 전선·칼데라",
+   "group": "얀마옌 지질 (NPI)",
+   "abstract": "Eruptive fissures, lava fronts of 1970 and 1985, volcanic depression (caldera)",
+   "bbox": [-8.89, 70.86, -7.93, 71.17]
+  },
+  {
+   "name": "janmayen:vents",
+   "title": "분출 중심·분기공",
+   "group": "얀마옌 지질 (NPI)",
+   "abstract": "95 eruptive centres and 2 fumaroles",
+   "bbox": [-9.06, 70.82, -7.95, 71.15]
+  }
+ ]
+}

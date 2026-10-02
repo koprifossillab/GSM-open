@@ -1,0 +1,6 @@
+# 휴대폰 화면 시험(viewer/tests/test_mobile.py)에만 쓰는 것. 운영 이미지에도, 기본 시험에도 안 넣는다.
+# 깔고 나서 브라우저를 받는다 — python -m playwright install chromium
+
+-r requirements-dev.txt
+
+playwright==1.49.1

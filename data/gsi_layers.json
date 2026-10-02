@@ -1,0 +1,49 @@
+{
+ "_주석": "GSI(아일랜드 지질조사소) 기반암 지질도 씨앗이다 — 아일랜드 탭(섬 전체, 유럽 묶음에도 든다). 1:100만은 GSI·GSNI 가 함께 만든 섬 전체 판이고 1:10만은 공화국만 덮는다(줌 6–14). 레이어명은 gsi:<판>:<상류 이름> (web/viewer/gsi.py). 북아일랜드 1:25만은 gsni_layers.json 이다 (wetherilli 147).",
+ "_뽑은날": "2026-10-02",
+ "_출처": "https://gsi.geodata.gov.ie/server/services/Bedrock/IE_GSI_GSNI_Bedrock_Geology_1M_IE32_ITM/MapServer/WMSServer?request=GetCapabilities&service=WMS",
+ "_지역": "ireland",
+ "_상류": "gsi",
+ "_레이어군차례": 1,
+ "레이어군순서": [
+  "아일랜드 기반암 (GSI·GSNI)"
+ ],
+ "레이어": [
+  {
+   "name": "gsi:1m:IE_GSI_GSNI_Bedrock_Geology_1M_IE32_ITM",
+   "title": "기반암 (1:100만, 섬 전체)",
+   "group": "아일랜드 기반암 (GSI·GSNI)",
+   "abstract": "IE GSI GSNI Bedrock Geology 1:1M — 공화국과 북아일랜드를 이은 판",
+   "bbox": [
+    -10.7,
+    51.3,
+    -5.4,
+    55.5
+   ]
+  },
+  {
+   "name": "gsi:1m:IE_GSI_GSNI_Faults_1M_IE32_ITM",
+   "title": "단층 (1:100만)",
+   "group": "아일랜드 기반암 (GSI·GSNI)",
+   "abstract": "IE GSI GSNI Faults 1:1M",
+   "bbox": [
+    -10.7,
+    51.3,
+    -5.4,
+    55.5
+   ]
+  },
+  {
+   "name": "gsi:100k:IE_GSI_Bedrock_Geology_100K_IE26_ITM",
+   "title": "기반암 (1:10만, 공화국)",
+   "group": "아일랜드 기반암 (GSI·GSNI)",
+   "abstract": "IE GSI Bedrock Geology 1:100k — 공화국만. 줌 6–14",
+   "bbox": [
+    -10.7,
+    51.3,
+    -5.4,
+    55.5
+   ]
+  }
+ ]
+}

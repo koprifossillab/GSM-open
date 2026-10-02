@@ -1,0 +1,2189 @@
+/* 먹갈색 바탕에 금색 강조 — 로고(docs/brand)의 색을 그대로 쓴다.
+ *
+ *   바탕     #2b1d10   로고와 대기 화면 gif 의 바탕
+ *   깊은 칸  #241a0e   로고 육각 안쪽
+ *   금       #c9a24b   육각 테
+ *   밝은 금  #e8c876   나침반·해머
+ *   흐린 금  #b3925a   GREAT STONE MAP
+ *
+ * **금색은 아껴 쓴다.** 켜진 것·고른 것·세는 것·제목에만 얹고, 나머지
+ * 구조(테두리·칸)는 갈색의 밝기 차이가 맡는다. 금을 넓게 칠하면 값싸
+ * 보이고, 좁게 얹으면 귀해 보인다.
+ *
+ * 색은 모두 아래 토큰으로만 쓴다. 앞 판에서는 밝은 판 위에 어두운 판을
+ * 덧칠하고 또 금색을 덧칠해 세 벌이 서로 덮었다 — 그래서 바탕은 크림색인데
+ * 좌표 막대만 검게 뜨는 식이 되었다. 테마는 토큰만 바꾼다.
+ */
+:root,
+:root[data-theme="brown"] {
+  --bg: #2b1d10;
+  --panel: #35251a;
+  --panel-tint: #241a0e;
+  --raise: #3e2c1c;
+
+  --ink: #f1e5cd;
+  --ink-soft: #c9b18c;
+  --ink-faint: #917a5b;
+
+  --line: #4d3922;
+  --line-soft: #3b2b18;
+
+  --gold: #c9a24b;
+  --gold-bright: #e8c876;
+  --gold-muted: #b3925a;
+  --gold-wash: rgba(201, 162, 75, .13);
+  --gold-edge: rgba(201, 162, 75, .42);
+
+  /* 켜진 것 — 칠하는 색, 그 위의 글자, 강조 글자 */
+  --hi: #c9a24b;
+  --hi-deep: #e8c876;
+  --on-hi: #241a0e;
+  --hi-ink: #e8c876;
+
+  /* 지도 위에 뜨는 칸 */
+  --glass: rgba(36, 26, 14, .93);
+  --glass-line: rgba(201, 162, 75, .35);
+
+  --warn-bg: #3a2b12;
+  --warn-line: #6b5322;
+  --warn-ink: #e6cf93;
+  --direct-bg: #36202c;
+  --direct-line: #5e3a4d;
+  --direct-ink: #e8c6d8;
+
+  --bad: #e0907f;
+  --bad-fill: #a8452f;
+  --good: #a6c78c;
+
+  --shadow: 0 1px 2px rgba(0, 0, 0, .4), 0 10px 28px rgba(0, 0, 0, .45);
+  --shadow-soft: 0 1px 2px rgba(0, 0, 0, .3), 0 4px 14px rgba(0, 0, 0, .3);
+
+  color-scheme: dark;
+
+  --font-sans: "Pretendard", "Apple SD Gothic Neo", "Noto Sans KR", system-ui, sans-serif;
+  --font-serif: "Nanum Myeongjo", "Noto Serif KR", "Batang", serif;
+  --font-system: system-ui, -apple-system, sans-serif;
+  --font-mono: ui-monospace, "SF Mono", Menlo, monospace;
+  --font: var(--font-sans);
+  --fs: 14px;
+
+  --panel-w: 340px;
+  --radius: 7px;
+}
+
+/* 한지 — 밝은 바탕에 먹갈색 글자. 켜진 것은 갈색으로 칠하고 금은 테에만 둔다 */
+:root[data-theme="light"] {
+  --bg: #f1e9da;
+  --panel: #fffcf5;
+  --panel-tint: #f7f0e2;
+  --raise: #efe5d2;
+
+  --ink: #2a1f15;
+  --ink-soft: #66533f;
+  --ink-faint: #97846d;
+
+  --line: #dccfb8;
+  --line-soft: #ebe1cf;
+
+  --gold: #b08a34;
+  --gold-bright: #8d6d26;
+  --gold-muted: #9a7c45;
+  --gold-wash: #f8efd8;
+  --gold-edge: #e0cb95;
+
+  --hi: #5c3a1e;
+  --hi-deep: #3f2712;
+  --on-hi: #fff8e8;
+  --hi-ink: #5c3a1e;
+
+  --glass: rgba(255, 252, 245, .95);
+  --glass-line: #dccfb8;
+
+  --warn-bg: #fbf4e4;
+  --warn-line: #e0cb95;
+  --warn-ink: #6d5623;
+  --direct-bg: #f8eef5;
+  --direct-line: #dcc0d3;
+  --direct-ink: #5c3a52;
+
+  --bad: #9e3b2a;
+  --bad-fill: #9e3b2a;
+  --good: #4a6b3a;
+
+  --shadow: 0 1px 2px rgba(42, 31, 21, .06), 0 8px 24px rgba(42, 31, 21, .12);
+  --shadow-soft: 0 1px 2px rgba(42, 31, 21, .05), 0 3px 10px rgba(42, 31, 21, .07);
+
+  color-scheme: light;
+}
+
+:root[data-font="serif"]  { --font: var(--font-serif); }
+:root[data-font="system"] { --font: var(--font-system); }
+:root[data-size="s"] { --fs: 13px; }
+:root[data-size="l"] { --fs: 15.5px; }
+
+* { box-sizing: border-box; }
+
+html, body {
+  margin: 0;
+  height: 100%;
+  font: var(--fs)/1.55 var(--font);
+  color: var(--ink);
+  background: var(--bg);
+  -webkit-font-smoothing: antialiased;
+}
+
+/* 머리와 바닥은 붙박이고 패널 가운데만 구른다. 페이지는 구르지 않는다 —
+   지도와 그 위의 손잡이가 늘 화면 안에 있어야 한다. */
+html { overflow: hidden; }
+body { display: flex; height: 100vh; overflow: hidden; }
+
+ul { list-style: none; margin: 0; padding: 0; }
+b { font-weight: 600; color: var(--hi-ink); }
+
+.hint { font-size: 11px; font-weight: 400; letter-spacing: 0; color: var(--ink-faint); }
+li.empty { padding: 8px 2px; font-size: 12.5px; color: var(--ink-faint); }
+
+/* 화면 읽개에만 들리는 이름. **붙은 단추가 기준이 되어야 한다** — 기준이
+   없으면 패널의 굴림 칸을 빠져나가 페이지를 늘리고, 그러면 페이지째 밀려
+   올라가 지도 위 손잡이가 화면 밖으로 나간다. */
+.btn, .tool, .icon-btn, .gear { position: relative; }
+#panel-body { position: relative; }
+.sr {
+  position: absolute;
+  top: 0; left: 0;
+  width: 1px; height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+/* ══ 왼쪽 패널 ═════════════════════════════════════════════════════ */
+
+#panel {
+  display: flex;
+  flex-direction: column;
+  width: var(--panel-w);
+  flex: 0 0 var(--panel-w);
+  height: 100vh;
+  padding: 18px 0 0;
+  overflow: hidden;
+  background: var(--bg);
+  border-right: 1px solid var(--line);
+}
+#panel > header,
+#panel > .warn { margin-left: 16px; margin-right: 16px; }
+
+/* `min-height: 0` 이 빠지면 flex 자식이 제 내용만큼 부풀어 패널 대신
+   페이지가 구른다. */
+#panel-body {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  padding: 0 16px 16px;
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding-bottom: 16px;
+  margin-bottom: 16px;
+  border-bottom: 1px solid var(--line-soft);
+}
+.emblem { display: block; flex: 0 0 auto; }
+.brand { position: relative; }
+.emblem-btn { flex: 0 0 auto; padding: 0; background: none; border: 0; border-radius: 50%; cursor: pointer; }
+.emblem-btn:focus-visible { outline: 2px solid var(--gold-bright); outline-offset: 2px; }
+/* 숨은 차림 (P05) — 아이콘 밑에 작게 뜬다. 달은 흑백이라 이 한 줄만 테마를 따르지 않는다 */
+.hidden-menu {
+  position: absolute; top: 56px; left: 0; z-index: 40; min-width: 150px; padding: 4px;
+  background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius); box-shadow: var(--shadow);
+}
+.hidden-menu a {
+  display: flex; align-items: center; gap: 8px; padding: 6px 10px;
+  color: var(--ink); text-decoration: none; border-radius: calc(var(--radius) - 2px);
+}
+.hidden-menu a:hover, .hidden-menu a:focus-visible { background: #111; color: #f2f2f2; outline: none; }
+.hidden-menu .moon-dot {
+  width: 12px; height: 12px; border-radius: 50%;
+  background: radial-gradient(circle at 35% 35%, #f4f4f4, #9a9a9a 60%, #4a4a4a);
+}
+.brand h1 {
+  margin: 0;
+  font-size: 21px;
+  font-weight: 700;
+  line-height: 1.2;
+  letter-spacing: .06em;
+  color: var(--gold-bright);
+}
+.brand h1 .ver {
+  margin-left: 4px;
+  color: var(--gold-muted);
+  vertical-align: 2px;
+}
+.brand .tagline {
+  margin: 3px 0 0;
+  font-size: 10.5px;
+  letter-spacing: .24em;
+  color: var(--gold-muted);
+}
+
+.warn {
+  margin: 0 0 14px;
+  padding: 10px 12px;
+  font-size: 12px;
+  line-height: 1.55;
+  color: var(--warn-ink);
+  background: var(--warn-bg);
+  border: 1px solid var(--warn-line);
+  border-radius: var(--radius);
+}
+.warn.direct { color: var(--direct-ink); background: var(--direct-bg); border-color: var(--direct-line); }
+.warn b { color: inherit; }
+.warn code {
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  padding: 1px 4px;
+  background: rgba(127, 127, 127, .16);
+  border-radius: 3px;
+}
+
+/* 탭 */
+.tabs {
+  display: flex;
+  gap: 3px;
+  padding: 3px;
+  margin-bottom: 14px;
+  background: var(--panel-tint);
+  border: 1px solid var(--line);
+  border-radius: 9px;
+}
+.tab {
+  flex: 1;
+  padding: 7px 0;
+  font: inherit;
+  font-size: 13px;
+  letter-spacing: .02em;
+  color: var(--ink-soft);
+  background: none;
+  border: 0;
+  border-radius: 7px;
+  cursor: pointer;
+  transition: background .14s, color .14s;
+}
+.tab:hover { color: var(--hi-ink); }
+.tab.on { font-weight: 600; color: var(--on-hi); background: var(--hi); box-shadow: var(--shadow-soft); }
+
+.tabbody { display: none; }
+.tabbody.on { display: block; }
+
+/* ── 박스 ──
+ * 박스는 **눈에 박스로 보여야 한다.** 패널 바탕보다 한 단 밝은 카드로
+ * 띄우고, 머리에 금색 띠를 세운다. 박스 안의 칸(well)은 다시 한 단
+ * 어둡게 파서 "박스 안에 칸이 둘" 이 한눈에 읽히게 한다. */
+.box {
+  margin-bottom: 14px;
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  box-shadow: var(--shadow-soft);
+  overflow: hidden;
+}
+.box-head {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  margin: 0;
+  padding: 10px 12px 10px 14px;
+  font-size: 12.5px;
+  font-weight: 700;
+  letter-spacing: .1em;
+  color: var(--gold-bright);
+  background: var(--raise);
+  border-bottom: 1px solid var(--line);
+  box-shadow: inset 3px 0 0 var(--gold);
+}
+.box-head .hint { margin-left: auto; letter-spacing: 0; }
+.box-body { padding: 12px; }
+
+.well {
+  padding: 10px 10px 11px;
+  background: var(--panel-tint);
+  border: 1px solid var(--line-soft);
+  border-radius: 8px;
+}
+.well + .well { margin-top: 10px; }
+.well-head {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  margin: 0 0 8px;
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--ink);
+}
+.well-head svg { width: 16px; height: 16px; color: var(--gold); flex: 0 0 auto; }
+.well-head .hint { margin-left: auto; }
+
+.sub-head {
+  display: flex;
+  align-items: baseline;
+  gap: 7px;
+  margin: 14px 0 7px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--ink-soft);
+}
+.sub-head .hint { margin-left: auto; }
+/* 켠 지질 레이어 모두 끄기 (wetherilli 131) — 줄 오른쪽 끝 */
+.sub-head .layers-off {
+  flex: 0 0 auto; height: 22px; padding: 0 9px; font: inherit; font-size: 11px; font-weight: 500;
+  color: var(--ink-soft); background: transparent; border: 1px solid var(--line); border-radius: 999px; cursor: pointer;
+}
+.sub-head .layers-off:hover:not(:disabled) { color: var(--bad); border-color: var(--bad); }
+.sub-head .layers-off:disabled { opacity: .4; cursor: default; }
+
+/* 세는 표 — 금 */
+.count {
+  display: inline-block;
+  min-width: 18px;
+  padding: 0 5px;
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  font-weight: 600;
+  line-height: 17px;
+  text-align: center;
+  color: #241a0e;
+  background: linear-gradient(180deg, var(--gold-bright), var(--gold));
+  border-radius: 9px;
+}
+
+svg .stroke { fill: none; stroke: currentColor; stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round; }
+svg .fill { fill: currentColor; }
+
+/* ── 배경지도 ── */
+.basemap-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0 0 8px;
+  font-size: 12px;
+  color: var(--ink-faint);
+}
+.basemap-row > span { flex: 0 0 auto; white-space: nowrap; }
+/* 이름이 긴 배경(달의 "고해상 영상 (…)")이 이름표를 꺾고 상자를 밀어내지 않게 — 고르개가 줄어든다 */
+.basemap-row select, .compare-pick select {
+  flex: 1;
+  min-width: 0;
+  text-overflow: ellipsis;
+  padding: 6px 8px;
+  font: inherit;
+  font-size: 12.5px;
+  color: var(--ink);
+  background: var(--panel-tint);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  cursor: pointer;
+}
+.basemap-labels {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 0 0 4px 2px;
+  font-size: 12px;
+  color: var(--ink-soft);
+  cursor: pointer;
+}
+
+input[type=checkbox], input[type=range] { accent-color: var(--hi); }
+
+/* ── 켠 레이어 ── */
+.box #active-list { margin-bottom: 12px; }
+#active-list li {
+  padding: 9px 10px;
+  margin-bottom: 6px;
+  background: var(--gold-wash);
+  border: 1px solid var(--gold-edge);
+  border-left: 3px solid var(--gold);
+  border-radius: var(--radius);
+}
+#active-list li.empty { background: none; border: 0; padding: 6px 2px; }
+.active-head { display: flex; align-items: center; gap: 5px; }
+.active-head.grab { cursor: grab; }
+.active-head.grab:active { cursor: grabbing; }
+#active-list li.dragging { opacity: .45; }
+#active-list li.drop-before { box-shadow: 0 -3px 0 0 var(--hi); }
+#active-list li.drop-after { box-shadow: 0 3px 0 0 var(--hi); }
+.active-title {
+  flex: 1;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--ink);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.iconbtn {
+  width: 23px; height: 23px;
+  flex: 0 0 auto;
+  padding: 0;
+  font: inherit; font-size: 12px; line-height: 1;
+  color: var(--ink-soft);
+  background: var(--panel-tint);
+  border: 1px solid var(--line);
+  border-radius: 5px;
+  cursor: pointer;
+  transition: color .12s, border-color .12s, background .12s;
+}
+.iconbtn:hover:not(:disabled) { color: var(--on-hi); background: var(--hi); border-color: var(--hi); }
+.iconbtn:disabled { opacity: .3; cursor: default; }
+.active-foot { display: flex; align-items: center; gap: 8px; margin-top: 7px; }
+.active-foot input[type=range] { flex: 1; height: 3px; }
+.opacity-num {
+  width: 34px;
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  color: var(--ink-soft);
+  text-align: right;
+}
+.legend-img {
+  display: block;
+  max-width: 100%;
+  margin-top: 8px;
+  background: #fff;
+  border: 1px solid var(--line);
+  border-radius: 5px;
+}
+/* 켠 레이어의 출처 — VWorld 레이어에만 붙는다 (devlog 020) */
+.active-src { margin: 4px 0 0; font-size: 10.5px; color: var(--ink-faint); }
+/* 5만 지질도 카드 밑 — 층리·엽리·편리·절리를 늘 그릴지 (jikhanjung 005) */
+/* 아라온호 항적의 기간 (koprifossillab 017) */
+.period-row { display: flex; align-items: center; gap: 8px; margin-top: 6px; font-size: 11.5px; font-weight: 600; }
+.attitude-toggles { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 12px; margin-top: 6px; font-size: 11.5px; font-weight: 600; }
+.attitude-toggles label { display: inline-flex; align-items: center; gap: 4px; cursor: pointer; }
+.attitude-toggles input { margin: 0; }
+/* 글자를 지도 위 기호의 색으로. 어두운 패널에서는 같은 색조를 조금 밝게 — 짙은 빨강·파랑은 안 읽힌다 */
+.attitude-toggles .bedding { color: #ec6b62; }
+.attitude-toggles .foliation { color: #6fa6ea; }
+.attitude-toggles .schistosity { color: #b28ce8; }
+.attitude-toggles .joint { color: #6cc070; }
+:root[data-theme="light"] .attitude-toggles .bedding { color: #b3261e; }
+:root[data-theme="light"] .attitude-toggles .foliation { color: #1f5fa8; }
+:root[data-theme="light"] .attitude-toggles .schistosity { color: #6b3fa0; }
+:root[data-theme="light"] .attitude-toggles .joint { color: #2e7d32; }
+/* 벡터 레이어의 범례. 선을 우리가 그리므로 범례도 우리가 적는다 */
+.vector-legend {
+  margin-top: 8px;
+  padding: 6px 8px;
+  background: #fff;
+  border: 1px solid var(--line);
+  border-radius: 5px;
+  color: #333;
+  font-size: 11px;
+}
+.vector-legend-row { display: flex; align-items: center; gap: 8px; }
+
+/* ── 카탈로그 ── */
+#layer-catalog { max-height: 42vh; overflow-y: auto; }
+/* NASA Trek 판 목록 (060) — 달·화성. 판이 수백이라 거르개를 둔다 */
+#trek-catalog { max-height: 42vh; overflow-y: auto; }
+.trek-filter { display: flex; flex-direction: column; gap: 6px; padding: 0 2px 8px; }
+.trek-filter input[type=search] { padding: 6px 8px; font: inherit; font-size: 12.5px; color: var(--ink);
+                                  background: var(--panel-tint); border: 1px solid var(--line); border-radius: var(--radius); }
+.trek-filter label { display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--ink-soft); cursor: pointer; }
+#trek-catalog .empty { padding: 6px 2px; font-size: 12px; color: var(--ink-faint); }
+.group { border-top: 1px solid var(--line-soft); }
+.group > summary {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 9px 2px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--ink);
+  cursor: pointer;
+  list-style: none;
+  transition: color .12s;
+}
+.group > summary:hover { color: var(--hi-ink); }
+.group > summary::-webkit-details-marker { display: none; }
+.group > summary::before { content: "▸"; width: 12px; font-weight: 400; color: var(--ink-faint); }
+.group[open] > summary::before { content: "▾"; color: var(--gold); }
+.group.more > summary { color: var(--ink-soft); }
+.group.more .group { border-top: 0; }
+.group.more .group > summary { padding-left: 14px; font-size: 12.5px; font-weight: 500; }
+.group.more .group .count { background: none; color: var(--ink-faint); font-weight: 400; }
+.group.more .layer-row { padding-left: 30px; }
+
+.layer-row { display: flex; align-items: flex-start; gap: 8px; padding: 4px 2px 4px 18px; }
+.layer-row label { flex: 1; font-size: 12.5px; color: var(--ink-soft); cursor: pointer; transition: color .12s; }
+.layer-row label:hover { color: var(--hi-ink); }
+.layer-row input:checked + label { color: var(--ink); font-weight: 600; }
+.layer-row input[type=checkbox] { margin-top: 3px; }
+.layer-row .unverified { color: var(--gold-muted); cursor: help; }
+
+/* 지도 화면의 레이어 목록 (wetherilli 133) — 줄을 눌러 켜고 끈다. 체크박스 자리에 상류 딱지,
+   같은 상류가 이어지면 딱지 밑으로 줄을 그어 묶는다. 달·화성 화면의 목록(.moon-layer)은 그대로 체크박스다 */
+#layer-catalog .layer-row {
+  align-items: center; gap: 9px; padding: 0 6px 0 14px; min-height: 26px;
+  border-radius: 6px; cursor: pointer; user-select: none; transition: background .12s;
+}
+#layer-catalog .group.more .layer-row { padding-left: 24px; }
+#layer-catalog .layer-row:hover { background: var(--gold-wash); }
+#layer-catalog .layer-row:focus-visible { outline: 2px solid var(--gold); outline-offset: -2px; }
+#layer-catalog .layer-name { flex: 1; font-size: 12.5px; line-height: 1.35; padding: 4px 0; color: var(--ink-soft); transition: color .12s; }
+#layer-catalog .layer-row:hover .layer-name { color: var(--hi-ink); }
+#layer-catalog .layer-row.on { background: var(--gold-wash); box-shadow: inset 3px 0 0 var(--gold); }
+#layer-catalog .layer-row.on .layer-name { color: var(--ink); font-weight: 600; }
+#layer-catalog .layer-row.on .layer-name::after { content: " ●"; font-size: 9px; color: var(--gold); vertical-align: 1px; }
+
+#layer-catalog .up {
+  --up-c: #8a7a62;
+  position: relative; flex: 0 0 46px; height: 17px; align-self: stretch; margin: 4px 0;
+  display: flex; align-items: center; justify-content: center;
+  font-family: var(--font-mono); font-size: 9.5px; font-weight: 700; letter-spacing: .02em;
+  color: #fff; background: var(--up-c); border-radius: 4px; opacity: .78;
+}
+#layer-catalog .layer-row.on .up, #layer-catalog .layer-row:hover .up { opacity: 1; }
+#layer-catalog .up.tie { background: none; margin: 0; height: auto; }
+#layer-catalog .up.tie::before { content: ""; position: absolute; left: 50%; top: 0; bottom: 0; border-left: 1.5px solid var(--up-c); }
+#layer-catalog .up.tie.end::before { bottom: 50%; }
+#layer-catalog .up.tie::after { content: ""; position: absolute; left: 50%; top: 50%; width: 11px; border-top: 1.5px solid var(--up-c); }
+#layer-catalog .up.lead::after { content: ""; position: absolute; left: 50%; top: 100%; height: 4px; border-left: 1.5px solid var(--up-c); }
+#layer-catalog .up-kigam { --up-c: #a8742a; }
+#layer-catalog .up-vworld { --up-c: #2f7d6d; }
+#layer-catalog .up-geus, #layer-catalog .up-grportal { --up-c: #b5442f; }
+#layer-catalog .up-npolar, #layer-catalog .up-janmayen { --up-c: #2c4f8c; }
+#layer-catalog .up-gsj { --up-c: #b0476e; }
+#layer-catalog .up-ccop { --up-c: #5d7d33; }
+#layer-catalog .up-geomap, #layer-catalog .up-ibcso { --up-c: #3e7f9c; }
+#layer-catalog .up-geo3al { --up-c: #6f6a5f; }
+#layer-catalog .up-kopri { --up-c: #1f8f8a; }
+#layer-catalog .up-pgc { --up-c: #7a5aa8; }
+#layer-catalog .up-phyloserver, #layer-catalog .up-peninsula { --up-c: #8c6239; }
+
+/* 레이어군 머리의 모두 켜기·끄기 */
+#layer-catalog .group > summary .group-all {
+  margin-left: auto; height: 21px; padding: 0 9px; font: inherit; font-size: 11px; font-weight: 500; letter-spacing: 0;
+  color: var(--ink-soft); background: transparent; border: 1px solid var(--line); border-radius: 999px; cursor: pointer;
+}
+#layer-catalog .group > summary .group-all:hover { color: var(--on-hi); background: var(--hi); border-color: var(--hi); }
+
+/* ── 그리기 칸 ── */
+.measure-out {
+  margin: 0 0 8px;
+  padding: 8px 10px;
+  font-family: var(--font-mono);
+  font-size: 12.5px;
+  color: var(--ink-faint);
+  background: var(--panel);
+  border: 1px dashed var(--line);
+  border-radius: var(--radius);
+}
+.measure-out.done { color: var(--hi-ink); background: var(--gold-wash); border: 1px solid var(--gold-edge); }
+
+#temp-list { margin-bottom: 8px; }
+#temp-list li:not(.empty) {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding: 5px 0;
+  border-bottom: 1px solid var(--line-soft);
+}
+.temp-no {
+  width: 20px; height: 20px;
+  flex: 0 0 auto;
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  font-weight: 600;
+  line-height: 20px;
+  text-align: center;
+  color: #241a0e;
+  background: linear-gradient(180deg, var(--gold-bright), var(--gold));
+  border-radius: 50%;
+}
+.temp-coord {
+  flex: 1;
+  padding: 3px 5px;
+  font-family: var(--font-mono);
+  font-size: 11.5px;
+  color: var(--ink);
+  text-align: left;
+  background: none;
+  border: 1px solid transparent;
+  border-radius: 4px;
+  cursor: pointer;
+}
+.temp-coord:hover { background: var(--gold-wash); border-color: var(--gold-edge); }
+
+.folder-acts { display: flex; gap: 6px; align-items: center; }
+.folder-acts .btn.primary { flex: 1; }
+
+#pointset-list li:not(.empty) {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 7px 0;
+  border-bottom: 1px solid var(--line-soft);
+}
+#pointset-list li:last-child { border-bottom: 0; }
+
+/* 개인 레이어 (wetherilli P08·118) — 이 브라우저에만 있는 것이라 음영을 달리한다.
+   상자는 한 단 깊은 바탕(--panel-tint)에 안쪽 그림자를 두고, 머리의 금 띠는 빗금으로 끊는다.
+   지도 위 기호도 어두운 그림자 테를 둘러 점묶음과 가른다 (map.js `personalStyle`). */
+#box-personal {
+  background: var(--panel-tint);
+  border-style: dashed;
+  box-shadow: inset 0 2px 10px rgba(0, 0, 0, .22);
+}
+#box-personal[hidden] { display: none; }
+#box-personal .box-head {
+  background: repeating-linear-gradient(135deg, var(--raise) 0 7px, var(--panel) 7px 14px);
+  box-shadow: inset 3px 0 0 var(--gold-muted);
+}
+#personal-list li:not(.empty) {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 7px 0;
+  border-bottom: 1px dashed var(--line-soft);
+}
+#personal-list li:last-child { border-bottom: 0; }
+#personal-list .ps-count.stale { color: var(--bad); }
+
+/* 개인 레이어 아이콘·꾸밈 고르개·용량 경고 (wetherilli 131) */
+#personal-list .ps-symbol {
+  flex: 0 0 auto; display: inline-flex; align-items: center; justify-content: center;
+  width: 28px; height: 28px; padding: 0; background: transparent; border: 1px solid transparent; border-radius: 6px; cursor: pointer;
+}
+#personal-list .ps-symbol:hover, #personal-list .ps-symbol:focus-visible { background: var(--gold-wash); border-color: var(--gold-edge); }
+.personal-warn { display: flex; flex-direction: column; gap: 4px; margin: 8px 0 0; padding: 7px 10px; font-size: 12px;
+  color: var(--warn-ink); background: var(--warn-bg); border: 1px solid var(--warn-line); border-radius: 6px; }
+.personal-warn.bad { color: var(--bad); border-color: var(--bad); }
+.personal-warn[hidden] { display: none; }
+.personal-warn a { color: inherit; font-weight: 600; }
+
+.style-picker {
+  position: fixed; z-index: 60; width: 248px; padding: 12px;
+  color: var(--ink); background: var(--panel); border: 1px solid var(--line); border-radius: 10px; box-shadow: var(--shadow);
+  font-size: 12.5px;
+}
+.style-picker .sp-sec + .sp-sec { margin-top: 12px; padding-top: 10px; border-top: 1px solid var(--line-soft); }
+.style-picker .sp-title { margin-bottom: 7px; font-weight: 600; color: var(--ink-soft); }
+.style-picker .sp-colors { display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; }
+.style-picker .sp-color { width: 26px; height: 26px; padding: 0; border: 2px solid rgba(0, 0, 0, .35); border-radius: 50%; cursor: pointer; }
+.style-picker .sp-color.on { outline: 2px solid var(--gold-bright); outline-offset: 2px; }
+.style-picker .sp-custom { width: 26px; height: 26px; padding: 0; border: 1px dashed var(--line); border-radius: 50%; background: none; cursor: pointer; }
+.style-picker .sp-shapes { display: grid; grid-template-columns: repeat(6, 1fr); gap: 4px; margin-bottom: 8px; }
+.style-picker .sp-shape { display: flex; align-items: center; justify-content: center; height: 34px; padding: 0;
+  background: var(--panel-tint); border: 1px solid var(--line-soft); border-radius: 6px; cursor: pointer; }
+.style-picker .sp-shape.on { border-color: var(--gold); background: var(--gold-wash); }
+.style-picker .sp-slider { display: grid; grid-template-columns: 52px 1fr 44px; align-items: center; gap: 8px; margin: 4px 0; }
+.style-picker .sp-slider input { width: 100%; accent-color: var(--gold); }
+.style-picker .sp-val { font-family: var(--font-mono); font-size: 11px; color: var(--ink-faint); text-align: right; }
+.style-picker .sp-dash { display: inline-flex; margin-top: 6px; border: 1px solid var(--line); border-radius: 999px; overflow: hidden; }
+.style-picker .sp-dash button { height: 26px; padding: 0 12px; font: inherit; font-size: 12px; color: var(--ink-soft); background: transparent; border: 0; cursor: pointer; }
+.style-picker .sp-dash button.on { color: var(--on-hi); background: var(--hi); font-weight: 600; }
+.style-picker .sp-foot { display: flex; justify-content: space-between; gap: 8px; margin-top: 12px; }
+#personal-list .swatch { border-radius: 2px; box-shadow: 0 0 0 1.5px rgba(0, 0, 0, .45); }
+.personal-manage { margin-top: 8px; justify-content: center; text-decoration: none; }
+
+/* 바닥의 관리 단추 — 설정 단추와 같은 꼴, 설정의 왼쪽 */
+.manage-btn { text-decoration: none; }
+.manage-btn + .gear { margin-left: 0; }
+.manage-btn:hover svg { transform: none; }
+.swatch { width: 10px; height: 10px; border-radius: 50%; flex: 0 0 auto; box-shadow: 0 0 0 1.5px rgba(255, 255, 255, .25); }
+.ps-name { flex: 1; font-size: 13px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.ps-count { font-family: var(--font-mono); font-size: 10.5px; color: var(--ink-faint); }
+
+.msg { margin: 8px 0 0; font-size: 12.5px; }
+.msg:empty { display: none; }
+.msg.bad { color: var(--bad); }
+.msg.good { color: var(--good); }
+
+/* ── 불러오기 ── */
+.filebox { display: block; margin-bottom: 9px; }
+.filebox input { display: none; }
+.filebox span {
+  display: block;
+  padding: 18px 12px;
+  font-size: 12.5px;
+  color: var(--ink-faint);
+  text-align: center;
+  background: var(--panel-tint);
+  border: 1px dashed var(--line);
+  border-radius: var(--radius);
+  cursor: pointer;
+  transition: color .12s, border-color .12s;
+}
+.filebox span:hover { color: var(--hi-ink); border-color: var(--gold-edge); }
+.filebox.has span { color: var(--hi-ink); background: var(--gold-wash); border-style: solid; border-color: var(--gold-edge); }
+.row { display: flex; gap: 7px; margin-bottom: 9px; }
+.row input[type=color] {
+  width: 42px;
+  padding: 2px;
+  background: var(--panel-tint);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  cursor: pointer;
+}
+#upload-form .hint { display: block; margin: 10px 0 0; line-height: 1.6; }
+#upload-form .hint code { font-family: var(--font-mono); font-size: 10.5px; color: var(--ink-soft); }
+
+#upload-name, #goto-input {
+  width: 100%;
+  padding: 8px 10px;
+  font: inherit;
+  font-size: 13px;
+  color: var(--ink);
+  background: var(--panel-tint);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  transition: border-color .12s, box-shadow .12s;
+}
+#upload-name::placeholder, #goto-input::placeholder { color: var(--ink-faint); }
+#upload-name:focus, #goto-input:focus {
+  outline: none;
+  border-color: var(--gold);
+  box-shadow: 0 0 0 3px var(--gold-wash);
+}
+
+/* ── 단추 한 벌 ── */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  height: 34px;
+  padding: 0 13px;
+  font: inherit;
+  font-size: 12.5px;
+  font-weight: 500;
+  color: var(--ink-soft);
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: color .14s, background .14s, border-color .14s, box-shadow .14s;
+}
+.btn svg { width: 15px; height: 15px; flex: 0 0 auto; }
+.btn:hover { color: var(--hi-ink); border-color: var(--gold-edge); }
+.btn:focus-visible { outline: 2px solid var(--gold); outline-offset: 1px; }
+.btn.wide { width: 100%; }
+.btn.primary { font-weight: 600; color: var(--on-hi); background: var(--hi); border-color: var(--hi); }
+.btn.primary:hover { background: var(--hi-deep); border-color: var(--hi-deep); box-shadow: 0 2px 10px var(--gold-wash); }
+.btn.quiet { padding: 0 10px; background: transparent; border-color: transparent; }
+.btn.quiet:hover { background: var(--gold-wash); border-color: var(--gold-edge); }
+.btn.quiet.danger:hover { color: var(--bad); background: rgba(168, 69, 47, .14); border-color: rgba(168, 69, 47, .45); }
+
+.icon-btn {
+  display: grid;
+  place-items: center;
+  width: 30px; height: 30px;
+  padding: 0;
+  color: var(--ink-faint);
+  background: transparent;
+  border: 0;
+  border-radius: 8px;
+  cursor: pointer;
+}
+.icon-btn svg { width: 16px; height: 16px; }
+.icon-btn:hover { color: var(--hi-ink); background: var(--gold-wash); }
+
+/* ── 바닥 ── */
+#panel-foot {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex: 0 0 auto;
+  padding: 9px 14px;
+  background: var(--panel-tint);
+  border-top: 1px solid var(--line);
+}
+.foot-name { font-size: 11.5px; letter-spacing: .08em; color: var(--ink-faint); }
+.ver {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 400;
+  letter-spacing: 0;
+  color: var(--ink-faint);
+}
+.gear {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-left: auto;
+  height: 30px;
+  padding: 0 12px 0 10px;
+  font: inherit;
+  font-size: 12px;
+  color: var(--ink-soft);
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  cursor: pointer;
+  transition: color .14s, background .14s, border-color .14s;
+}
+.gear svg { width: 15px; height: 15px; transition: transform .45s ease; }
+.gear svg .stroke { stroke-width: 1.6; }
+.gear:hover { color: var(--on-hi); background: var(--hi); border-color: var(--hi); }
+.gear:hover svg { transform: rotate(90deg); }
+
+#panel-body::-webkit-scrollbar, #layer-catalog::-webkit-scrollbar, #trek-catalog::-webkit-scrollbar,
+.popup::-webkit-scrollbar { width: 9px; }
+#panel-body::-webkit-scrollbar-thumb, #layer-catalog::-webkit-scrollbar-thumb, #trek-catalog::-webkit-scrollbar-thumb,
+.popup::-webkit-scrollbar-thumb {
+  background: var(--line);
+  border: 2px solid transparent;
+  background-clip: padding-box;
+  border-radius: 5px;
+}
+#panel-body::-webkit-scrollbar-thumb:hover, #layer-catalog::-webkit-scrollbar-thumb:hover { background-color: var(--gold-muted); }
+
+/* ══ 지도 ══════════════════════════════════════════════════════════ */
+
+#map-wrap { position: relative; flex: 1; min-width: 0; height: 100vh; }
+
+/* 패널 접는 손잡이 — 패널 오른쪽 가장자리, 가운데보다 조금 위(가운데에는 서쪽 가장자리의 경도가 뜬다).
+   지도 칸 왼쪽에 붙어 있어 패널을 접어도 제자리에 남는다 (jikhanjung 007) */
+.panel-handle {
+  position: absolute;
+  top: calc(50% - 120px);
+  left: 0;
+  z-index: 30;
+  width: 18px;
+  height: 48px;
+  padding: 0;
+  font: 600 13px/1 ui-monospace, Menlo, monospace;
+  color: var(--gold-bright);
+  background: var(--bg);
+  border: 1px solid var(--line);
+  border-left: 0;
+  border-radius: 0 8px 8px 0;
+  box-shadow: 2px 0 6px rgba(0, 0, 0, .18);
+  cursor: pointer;
+}
+.panel-handle:hover, .panel-handle:focus-visible { color: var(--hi-ink); background: var(--raise); outline: none; }
+body.panel-folded #panel { display: none; }
+#map { width: 100%; height: 100%; background: #e8e0d2; }
+
+/* ── 주제도 비교 ── */
+.compare { margin: 4px 0 12px; }
+.compare .seg { margin-top: 6px; }
+.compare-pick { display: flex; align-items: center; gap: 8px; margin-top: 8px; font-size: 12px; color: var(--ink-soft); }
+.compare-pick[hidden] { display: none; }
+.compare-pick select { flex: 1; min-width: 0; }
+.compare .hint:empty { display: none; }
+
+/* 나란히 — 지도를 둘로 가른다 */
+#map-wrap.split #map { width: 50%; }
+#map2 { position: absolute; top: 0; right: 0; width: 50%; height: 100%; background: #e8e0d2;
+        border-left: 2px solid var(--gold, #c9a24b); }
+#map2[hidden] { display: none; }
+.split-tag { display: none; position: absolute; top: 10px; z-index: 6; max-width: 40%;
+             pointer-events: none; }
+#map-wrap.split .split-tag { display: block; }
+.split-tag.left { left: 56px; }
+.split-tag.right { left: calc(50% + 12px); }
+.split-tag span { display: inline-block; max-width: 100%; padding: 4px 9px; overflow: hidden;
+                  text-overflow: ellipsis; white-space: nowrap; font-size: 12px; color: var(--ink);
+                  background: var(--glass); border: 1px solid var(--glass-line); border-radius: var(--radius); }
+#map-wrap.split .edge { display: none; }
+.mirror-dot { width: 14px; height: 14px; border: 2px solid #9e3b2a; border-radius: 50%;
+              background: rgba(255, 255, 255, .6); box-shadow: 0 0 0 2px rgba(255,255,255,.8); }
+
+/* 밀어 보기 — 세로 막대 */
+.swipe { position: absolute; top: 0; bottom: 0; z-index: 5; width: 16px; margin-left: -8px;
+         cursor: ew-resize; touch-action: none; }
+.swipe[hidden] { display: none; }
+.swipe::before { content: ""; position: absolute; top: 0; bottom: 0; left: 7px; width: 2px;
+                 background: var(--gold, #c9a24b); box-shadow: 0 0 0 1px rgba(0,0,0,.25); }
+.swipe-grip { position: absolute; top: 50%; left: 50%; width: 22px; height: 42px; margin: -21px 0 0 -11px;
+              background: var(--panel); border: 2px solid var(--gold, #c9a24b); border-radius: 11px; }
+.swipe-grip::before { content: "⟷"; position: absolute; inset: 0; display: flex; align-items: center;
+                      justify-content: center; font-size: 12px; color: var(--gold-bright, #e8c876);
+                      writing-mode: vertical-lr; }
+
+.ol-control { background: none !important; }
+.ol-control button {
+  width: 30px !important;
+  height: 30px !important;
+  margin: 2px !important;
+  font-size: 17px !important;
+  font-weight: 500 !important;
+  color: var(--gold-bright) !important;
+  background-color: var(--glass) !important;
+  border: 1px solid var(--glass-line) !important;
+  border-radius: 7px !important;
+  box-shadow: var(--shadow-soft);
+}
+.ol-control button:hover, .ol-control button:focus { color: var(--on-hi) !important; background-color: var(--hi) !important; outline: none; }
+.ol-zoom { top: 12px !important; left: 12px !important; }
+.ol-attribution { bottom: 58px !important; right: 12px !important; }
+
+/* ── 지도 위 손잡이 — 오른쪽 위에 세로로 붙는다 ──
+ * 늘 화면 안에 있어야 해서 지도의 **위쪽**에 붙인다. 아래에 두면 좌표
+ * 막대·출처 표기와 자리를 다투고, 창이 낮으면 먼저 가려진다. 아이콘만으로는
+ * 무엇인지 몰라서 이름을 아래에 적는다. */
+.toolbar {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  z-index: 6;
+  display: flex;
+  flex-direction: row-reverse;
+  align-items: flex-start;
+  gap: 8px;
+}
+.tool-col {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  padding: 5px;
+  background: var(--glass);
+  border: 1px solid var(--glass-line);
+  border-radius: 12px;
+  box-shadow: var(--shadow);
+  backdrop-filter: blur(6px);
+}
+.tool {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  width: 50px;
+  height: 50px;
+  padding: 0;
+  font: inherit;
+  font-size: 10.5px;
+  font-weight: 500;
+  letter-spacing: .02em;
+  color: var(--ink-soft);
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 9px;
+  cursor: pointer;
+  transition: color .12s, background .12s, border-color .12s;
+}
+.tool svg { width: 22px; height: 22px; }
+.tool svg .stroke { stroke-width: 1.8; }
+.tool svg .dash { stroke-dasharray: 2.6 2.4; }
+.tool svg .tint { fill: currentColor; fill-opacity: .16; }
+.tool:hover { color: var(--gold-bright); background: var(--gold-wash); }
+.tool.on { color: var(--on-hi); background: var(--hi); border-color: var(--hi-deep); }
+.tool.danger:hover { color: #fff; background: var(--bad-fill); }
+.tool:focus { outline: none; }
+.tool:focus-visible { outline: 2px solid var(--gold); outline-offset: -2px; }
+.tool-sep { height: 1px; margin: 2px 6px; background: var(--line); }
+
+.tool-out {
+  max-width: 280px;
+  padding: 8px 12px;
+  font-family: var(--font-mono);
+  font-size: 12.5px;
+  line-height: 1.5;
+  color: var(--gold-bright);
+  background: var(--glass);
+  border: 1px solid var(--glass-line);
+  border-radius: 9px;
+  box-shadow: var(--shadow);
+}
+.tool-out[hidden] { display: none; }
+
+/* ── 좌표 막대 ── */
+#coordbar {
+  position: absolute;
+  left: 0; right: 0; bottom: 0;
+  z-index: 5;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  background: var(--glass);
+  border-top: 1px solid var(--glass-line);
+  backdrop-filter: blur(6px);
+}
+#goto-form { display: flex; gap: 6px; flex: 1; max-width: 520px; }
+
+/* 주소·장소 찾기 목록 — 좌표 막대 바로 위로 뜬다 */
+.search-results {
+  position: absolute;
+  left: 12px; bottom: calc(100% + 6px);
+  width: min(520px, calc(100% - 24px));
+  max-height: 46vh;
+  overflow-y: auto;
+  margin: 0; padding: 4px;
+  list-style: none;
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+}
+.search-results[hidden] { display: none; }
+.search-results li {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  column-gap: 8px;
+  padding: 7px 9px;
+  border-radius: calc(var(--radius) - 2px);
+  cursor: pointer;
+}
+.search-results li.on { background: var(--hi); color: var(--on-hi); }
+.search-results .kind {
+  grid-row: span 2;
+  align-self: start;
+  padding: 1px 6px;
+  font-size: 11px;
+  color: var(--ink-soft);
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  white-space: nowrap;
+}
+.search-results li.on .kind { color: inherit; border-color: currentColor; }
+.search-results .title { font-size: 13px; }
+.search-results .sub { font-size: 11.5px; color: var(--ink-faint); }
+.search-results li.on .sub { color: inherit; opacity: .8; }
+.search-results li.note { display: block; cursor: default; font-size: 12px; color: var(--ink-faint); }
+.search-results li.note.src { font-size: 10.5px; text-align: right; padding-top: 4px; }
+
+/* 팝업 첫 줄 밑의 주소 */
+.popup-addr { margin: 6px 2px 10px; font-size: 12px; color: var(--ink-soft); line-height: 1.45; }
+.popup-addr:empty { display: none; }
+#goto-form button, #dms-toggle {
+  height: 34px;
+  padding: 0 13px;
+  font: inherit;
+  font-size: 12.5px;
+  color: var(--ink-soft);
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  cursor: pointer;
+  white-space: nowrap;
+  transition: color .12s, border-color .12s, background .12s;
+}
+#goto-form button:hover, #dms-toggle:hover { color: var(--hi-ink); border-color: var(--gold-edge); }
+#dms-toggle.on { color: var(--on-hi); background: var(--hi); border-color: var(--hi); }
+
+/* 가장자리 위경도 — 종이 지도의 테두리 눈금처럼 네 변 한가운데에 붙는다.
+   아래 것은 좌표 막대 바로 위에 앉는다. */
+.edge {
+  position: absolute;
+  z-index: 4;
+  padding: 3px 8px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: .02em;
+  color: var(--gold-bright);
+  white-space: nowrap;
+  pointer-events: none;
+  background: var(--glass);
+  border: 1px solid var(--glass-line);
+  border-radius: 5px;
+}
+.edge:empty { display: none; }
+/* 팝업이 떠 있으면 걷는다. OL 은 팝업을 지도 안쪽 층에 두어서, 지도 위에
+   얹은 이 표들이 팝업을 덮는다. 속성을 읽는 동안에는 필요 없다. */
+.popup-open .edge { opacity: 0; }
+.edge { transition: opacity .15s; }
+.edge.n { top: 8px; left: 50%; transform: translateX(-50%); }
+.edge.s { bottom: 62px; left: 50%; transform: translateX(-50%); }
+.edge.w { left: 8px; top: calc((100% - 54px) / 2); transform: translateY(-50%); }
+.edge.e { right: 8px; top: calc((100% - 54px) / 2); transform: translateY(-50%); }
+
+/* 축척 막대 — 좌표 막대 바로 위 */
+#scalebar {
+  position: absolute;
+  left: 12px;
+  bottom: 60px;
+  z-index: 5;
+  pointer-events: none;
+  display: flex;
+  align-items: flex-end;
+  gap: 6px;
+}
+/* 화면 투영의 EPSG 번호. 축척 막대 오른쪽에 늘 떠 있다 */
+.projbadge {
+  order: 2;
+  pointer-events: auto;
+  padding: 3px 8px;
+  font-size: 11px;
+  font-variant-numeric: tabular-nums;
+  color: var(--gold-bright);
+  background: var(--glass);
+  border: 1px solid var(--glass-line);
+  border-radius: 6px;
+  white-space: nowrap;
+}
+.projbadge:empty { display: none; }
+.zoombadge { order: 3; }
+.projbadge.flash { animation: projflash 1.6s ease-out; }
+@keyframes projflash {
+  0%, 30% { background: var(--gold); color: var(--panel-tint); }
+  100% { background: var(--glass); color: var(--gold-bright); }
+}
+#scalebar .ol-scale-bar,
+#scalebar .ol-scale-line {
+  position: relative !important;
+  left: auto !important;
+  bottom: auto !important;
+  background: var(--glass) !important;
+  border: 1px solid var(--glass-line);
+  border-radius: 6px;
+}
+/* 축척 숫자는 위, 거리 눈금은 아래에 둔다. OL 은 둘을 막대 위에 겹쳐 띄운다. */
+#scalebar .ol-scale-bar { padding: 21px 16px 19px 10px; }
+#scalebar .ol-scale-text { top: 4px; bottom: auto; font-size: 11px; }
+#scalebar .ol-scale-step-text { bottom: 3px; font-size: 10px; }
+#scalebar .ol-scale-text,
+#scalebar .ol-scale-step-text { color: var(--gold-bright) !important; text-shadow: none !important; }
+#scalebar .ol-scale-step-marker { background-color: var(--gold) !important; }
+#scalebar .ol-scale-singlebar { border-color: var(--gold) !important; }
+#scalebar .ol-scale-singlebar-even { background-color: var(--gold) !important; }
+#scalebar .ol-scale-singlebar-odd { background-color: var(--panel-tint) !important; }
+.ol-scale-line-inner { color: var(--gold-bright) !important; border-color: var(--gold) !important; }
+
+/* ── 팝업 ── */
+.popup {
+  position: absolute;
+  display: none;
+  min-width: 300px;
+  max-width: 420px;
+  max-height: 380px;
+  overflow-y: auto;
+  padding: 12px 14px 14px;
+  background: var(--panel);
+  border: 1px solid var(--gold-edge);
+  border-radius: 10px;
+  box-shadow: var(--shadow);
+}
+.popup.on { display: block; }
+.popup-close {
+  position: absolute; top: 6px; right: 8px;
+  padding: 0;
+  font-size: 19px; line-height: 1;
+  color: var(--ink-faint);
+  background: none; border: 0;
+  cursor: pointer;
+}
+.popup-close:hover { color: var(--hi-ink); }
+
+/* 팝업 첫 줄 — 누른 자리의 위경도. 속성이 무엇이든 늘 여기 있다. */
+.popup-coord {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: baseline;
+  gap: 2px 10px;
+  width: calc(100% - 18px);
+  margin: 0 0 10px;
+  padding: 8px 10px;
+  font: inherit;
+  text-align: left;
+  background: var(--gold-wash);
+  border: 1px solid var(--gold-edge);
+  border-left: 3px solid var(--gold);
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background .12s;
+}
+.popup-coord .k { font-size: 11px; font-weight: 600; letter-spacing: .08em; color: var(--gold-muted); }
+.popup-coord .v { font-family: var(--font-mono); font-size: 13px; color: var(--hi-ink); }
+.popup-coord .copy {
+  grid-column: 3;
+  grid-row: 1 / span 2;
+  align-self: center;
+  font-size: 10.5px;
+  color: var(--ink-faint);
+}
+.popup-coord:hover { background: var(--gold-edge); }
+.popup-coord:hover .copy, .popup-coord.copied .copy { color: var(--hi-ink); }
+
+.popup h3 {
+  margin: 0 0 6px;
+  padding: 0 0 5px;
+  font-size: 11.5px;
+  font-weight: 700;
+  letter-spacing: .06em;
+  color: var(--gold-bright);
+  border-bottom: 1px solid var(--line);
+}
+.popup h3 + h3, .popup table + h3 { margin-top: 14px; }
+.popup table { width: 100%; border-collapse: collapse; font-size: 12.5px; }
+.popup th {
+  width: 1%;
+  padding: 4px 8px 4px 0;
+  font-weight: 400;
+  color: var(--ink-faint);
+  text-align: left;
+  vertical-align: top;
+  white-space: nowrap;
+}
+.popup td { padding: 4px 0; color: var(--ink); vertical-align: top; word-break: break-word; }
+.popup tr + tr th, .popup tr + tr td { border-top: 1px solid var(--line-soft); }
+.popup tr.extra { display: none; }
+.popup table.show-extra tr.extra { display: table-row; }
+.popup table.show-extra tr.extra th { color: var(--gold-muted); }
+.extra-toggle {
+  display: block;
+  margin: 6px 0 0 auto;
+  padding: 2px 9px;
+  font: inherit;
+  font-size: 11px;
+  color: var(--ink-faint);
+  background: none;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  cursor: pointer;
+}
+.extra-toggle:hover { color: var(--hi-ink); border-color: var(--gold-edge); }
+.popup .none { margin: 0; font-size: 12.5px; color: var(--ink-faint); }
+
+/* 속성값에 딸려 오는 링크 (5만 지질도의 도폭 — 원도 PDF·수치지질도 DOI) */
+.proplink {
+  display: inline-block;
+  margin: 2px 4px 0 0;
+  padding: 1px 8px;
+  font-size: 11px;
+  color: var(--hi-ink);
+  text-decoration: none;
+  background: var(--gold-wash);
+  border: 1px solid var(--gold-edge);
+  border-radius: 10px;
+}
+.proplink:hover { color: var(--on-hi); background: var(--hi); }
+button.proplink { font-family: inherit; line-height: inherit; cursor: pointer; }
+
+/* ══ 설정 화면 ═════════════════════════════════════════════════════ */
+.sheet {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  background: rgba(20, 13, 6, .55);
+  backdrop-filter: blur(3px);
+}
+.sheet[hidden] { display: none; }
+.sheet-box {
+  display: flex;
+  flex-direction: column;
+  width: min(580px, 100%);
+  max-height: 84vh;
+  background: var(--panel);
+  border: 1px solid var(--gold-edge);
+  border-radius: 13px;
+  box-shadow: var(--shadow);
+  overflow: hidden;
+}
+.sheet-head {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 18px 18px 14px;
+  border-bottom: 1px solid var(--line-soft);
+}
+.sheet-head h2 {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  margin: 0 0 4px;
+  font-size: 17px;
+  font-weight: 700;
+  letter-spacing: .04em;
+  color: var(--gold-bright);
+}
+.sheet-head .hint { margin: 0; }
+.sheet-head .icon-btn { margin-left: auto; }
+
+.sheet-tabs {
+  display: flex;
+  gap: 4px;
+  padding: 10px 14px 0;
+  border-bottom: 1px solid var(--line-soft);
+}
+.stab {
+  padding: 8px 14px;
+  font: inherit;
+  font-size: 12.5px;
+  font-weight: 500;
+  color: var(--ink-faint);
+  background: none;
+  border: 0;
+  border-bottom: 2px solid transparent;
+  cursor: pointer;
+  transition: color .14s, border-color .14s;
+}
+.stab:hover { color: var(--hi-ink); }
+.stab.on { color: var(--gold-bright); border-bottom-color: var(--gold); }
+
+.stabbody { display: none; padding: 18px; overflow-y: auto; }
+.stabbody.on { display: block; }
+
+.field { margin-bottom: 20px; }
+.field > label {
+  display: block;
+  margin-bottom: 8px;
+  font-size: 11.5px;
+  font-weight: 600;
+  letter-spacing: .06em;
+  color: var(--ink-soft);
+}
+.field .hint { margin: 7px 0 0; }
+.field-note {
+  margin: 0;
+  padding-top: 14px;
+  font-size: 11.5px;
+  color: var(--ink-faint);
+  border-top: 1px solid var(--line-soft);
+}
+
+.seg {
+  display: inline-flex;
+  padding: 3px;
+  background: var(--panel-tint);
+  border: 1px solid var(--line);
+  border-radius: 9px;
+}
+.seg button {
+  padding: 7px 16px;
+  font: inherit;
+  font-size: 12.5px;
+  color: var(--ink-soft);
+  background: none;
+  border: 0;
+  border-radius: 7px;
+  cursor: pointer;
+  transition: color .14s, background .14s;
+}
+.seg button:hover { color: var(--hi-ink); }
+.seg button.on { font-weight: 600; color: var(--on-hi); background: var(--hi); }
+
+.kv { display: grid; grid-template-columns: 90px 1fr; gap: 5px 12px; margin: 0; font-size: 12.5px; }
+.kv dt { color: var(--ink-faint); }
+.kv dd { margin: 0; color: var(--ink); word-break: break-word; }
+
+.notes h4 {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  margin: 14px 0 5px;
+  font-family: var(--font-mono);
+  font-size: 13px;
+  color: var(--gold-bright);
+}
+.notes h4:first-child { margin-top: 0; }
+.note-title { font-family: var(--font); font-size: 12.5px; color: var(--ink); }
+.note-date { margin-left: auto; font-size: 11px; font-weight: 400; color: var(--ink-faint); }
+.note-lead { margin: 0 0 7px; font-size: 12.5px; color: var(--ink-soft); }
+.notes ul { margin: 0; padding-left: 16px; list-style: disc; }
+.notes li { margin-bottom: 4px; font-size: 12.5px; line-height: 1.6; }
+.notes li::marker { color: var(--gold-muted); }
+.notes code {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  padding: 1px 4px;
+  background: var(--gold-wash);
+  border-radius: 3px;
+}
+
+/* ══ 좁은 화면 ═════════════════════════════════════════════════════
+ * 휴대폰이다 (wetherilli 128). 패널은 지도 위에 쌓이고, **접으면 머리(이름·지역 탭)만 남는다** —
+ * 처음에는 접힌 채로 열어 지도가 화면을 차지한다. 손잡이는 지도 칸 위 가운데의 탭이 되고,
+ * 손잡이 묶음은 이름표를 떼고 아이콘만 한 줄로 세운다. 주소창이 들고 나는 휴대폰에서는
+ * 100vh 가 화면보다 길어 dvh 로 잰다. */
+@media (max-width: 760px) {
+  body { flex-direction: column; height: 100vh; height: 100dvh; overflow: hidden; }
+  #panel {
+    width: 100%;
+    flex: 0 0 auto;
+    height: 55vh; height: 55dvh;
+    padding-top: 10px;
+    border-right: 0;
+    border-bottom: 1px solid var(--line);
+  }
+  #map-wrap { flex: 1 1 auto; height: auto; min-height: 0; }
+  body.panel-folded #panel { display: flex; height: auto; }
+  body.panel-folded #panel > :not(.brand):not(.regions) { display: none; }
+  .brand { gap: 10px; padding-bottom: 8px; margin-bottom: 8px; }
+  .brand .emblem { width: 34px; height: 34px; }
+  .brand h1 { font-size: 17px; }
+  .brand .tagline { display: none; }
+  .hidden-menu { top: 42px; }
+  .regions { flex-wrap: nowrap; overflow-x: auto; margin-bottom: 8px; scrollbar-width: none; }
+  .regions > * { flex: 0 0 auto; }
+  #panel > .brand, #panel > .regions, #panel > .warn { flex-shrink: 0; }
+  #panel-foot { padding-top: 6px; padding-bottom: 6px; }
+
+  .panel-handle {
+    display: block;
+    top: 0; left: 50%;
+    width: 64px; height: 22px;
+    font-size: 0;
+    transform: translateX(-50%);
+    border: 1px solid var(--line); border-top: 0;
+    border-radius: 0 0 10px 10px;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, .18);
+  }
+  .panel-handle::after { content: "▴"; font-size: 13px; }
+  body.panel-folded .panel-handle::after { content: "▾"; }
+  .edge.n { top: 28px; }
+  .edge.s, .edge.w, .edge.e { display: none; }
+
+  .toolbar { top: 8px; right: 8px; flex-direction: column-reverse; align-items: flex-end; gap: 6px;
+             max-height: calc(100% - 70px); overflow-y: auto; scrollbar-width: none; }
+  /* 패널을 펴면 지도 칸이 낮아 두 묶음을 옆으로 세운다 */
+  body:not(.panel-folded) .toolbar { flex-direction: row-reverse; align-items: flex-start; }
+  .tool-col { gap: 1px; padding: 3px; border-radius: 10px; }
+  .tool-cap, .tool > span { display: none; }
+  .tool { width: 40px; height: 40px; }
+  .tool-sep { margin: 2px 4px; }
+  .tool-out { max-width: calc(100vw - 80px); font-size: 11.5px; }
+  .ol-zoom { top: 8px !important; left: 8px !important; }
+
+  #coordbar { gap: 6px; padding: 6px 8px; }
+  #goto-form { min-width: 0; }
+  #goto-input { min-width: 0; }
+  #coordbar .crs-pick { flex: 0 1 96px; min-width: 0; width: 96px; }
+  #scalebar { left: 8px; bottom: 54px; transform: scale(.82); transform-origin: left bottom; }
+  .ol-attribution { bottom: 52px !important; right: 8px !important; max-width: calc(100% - 16px); }
+  .popup { min-width: 0; width: min(320px, calc(100vw - 24px)); max-width: calc(100vw - 24px); max-height: 50vh; }
+}
+
+/* 범위잡기 — 끄는 동안의 네모. 다 그리면 지도 위의 금색 네모(rangeStyle)로 바뀐다 */
+.range-box {
+  border: 2px solid #c9a24b;
+  background: rgba(201, 162, 75, .16);
+}
+.temp-no.range { border-radius: 3px; outline: 1.5px dashed currentColor; outline-offset: 1px; }
+
+/* 점묶음 목록 — 이름 밑에 수 */
+.ps-text { flex: 1; min-width: 0; display: flex; flex-direction: column; line-height: 1.25; }
+.ps-text .ps-name { flex: none; }
+.ps-text .ps-count { font-size: 11px; }
+
+/* 좌표계 고르개 */
+.crs-pick { height: 34px; max-width: 190px; padding: 0 8px; font: inherit; font-size: 12px;
+            color: var(--ink-soft); background: var(--panel); border: 1px solid var(--line);
+            border-radius: var(--radius); cursor: pointer; }
+.upload-crs { display: flex; align-items: center; gap: 8px; margin: 8px 0; font-size: 12px; color: var(--ink-soft); }
+.upload-crs select { flex: 1; min-width: 0; padding: 6px 8px; font: inherit; font-size: 12.5px; color: var(--ink);
+                     background: var(--panel-tint); border: 1px solid var(--line); border-radius: var(--radius); }
+.popup-tm { display: flex; gap: 8px; align-items: baseline; width: 100%; margin: 6px 0 0; padding: 4px 2px;
+            font: inherit; font-size: 12px; text-align: left; color: var(--ink-soft); background: none;
+            border: 0; border-bottom: 1px dashed var(--line); cursor: pointer; }
+.popup-tm .k { color: var(--ink-faint); white-space: nowrap; }
+.popup-tm .v { font-family: var(--font-mono); color: var(--ink); }
+.popup-tm.copied .v { color: var(--hi-ink); }
+
+/* 설정 — 최근 지운 점묶음 */
+.deleted-list { margin: 6px 0 4px; padding: 0; list-style: none; }
+.deleted-list li { display: flex; align-items: center; gap: 8px; padding: 6px 2px;
+                   border-bottom: 1px solid var(--line); font-size: 12.5px; }
+.deleted-list li.empty { color: var(--ink-faint); border: 0; }
+.del-text { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.del-meta { color: var(--ink-faint); font-size: 11.5px; }
+.del-done { font-size: 11.5px; color: var(--ink-faint); }
+
+/* ── 지역 탭 ── */
+.regions { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin: 0 16px 10px; }
+.region-tab { position: relative; padding: 5px 12px; font: inherit; font-size: 12.5px; color: var(--ink-soft);
+              background: var(--panel-tint); border: 1px solid var(--line); border-radius: 999px; cursor: pointer; }
+.region-tab.on { color: var(--on-hi); background: var(--hi); border-color: var(--hi); font-weight: 600; }
+.region-x { margin-left: 6px; opacity: .6; }
+.region-x:hover { opacity: 1; }
+.region-more { position: relative; }
+.region-add { padding: 5px 10px; font: inherit; font-size: 12px; color: var(--ink-faint); background: none;
+              border: 1px dashed var(--line); border-radius: 999px; cursor: pointer; }
+.region-add:hover { color: var(--hi-ink); border-color: var(--gold-edge); }
+.region-menu { position: absolute; z-index: 20; top: calc(100% + 4px); left: 0; min-width: 170px; margin: 0; padding: 4px;
+               list-style: none; background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius);
+               box-shadow: var(--shadow); }
+.region-menu[hidden] { display: none; }
+.region-menu li { padding: 7px 10px; font-size: 12.5px; border-radius: calc(var(--radius) - 2px); cursor: pointer; }
+.region-menu li:hover { color: var(--on-hi); background: var(--hi); }
+/* 묶음 밑의 지역은 들여 세운다. 이미 더한 묶음은 누를 수 없는 제목으로만 (wetherilli 111) */
+.region-menu li.group { font-weight: 600; }
+.region-menu li.sub { padding-left: 24px; position: relative; }
+.region-menu li.sub::before { content: ""; position: absolute; left: 12px; top: 0; bottom: 50%; width: 6px;
+                              border-left: 1px solid var(--line); border-bottom: 1px solid var(--line); }
+.region-menu li.head { cursor: default; color: var(--ink-faint); font-weight: 600; font-size: 11.5px; }
+.region-menu li.head:hover { color: var(--ink-faint); background: none; }
+.region-note { margin-left: 16px; margin-right: 16px; }
+.region-note[hidden] { display: none; }
+
+/* ── 지역 테마 ──
+   한국은 먹갈색·금(로고의 색). 극지는 다른 색으로 지금 어느 땅을 보는지 한눈에
+   가른다. 화면(먹갈색·한지)의 밝기는 그대로 따르고 바탕·칸·강조의 색만 바꾼다. */
+
+/* 그린란드 — 빙하: 깊은 청회색 바탕에 얼음빛 하늘색 */
+:root[data-region="greenland"] {
+  --bg: #0f1c26; --panel: #15252f; --panel-tint: #0e1a22; --raise: #1c3140;
+  --ink: #e3eef3; --ink-soft: #a9c3cf; --ink-faint: #6f8e9c;
+  --line: #264252; --line-soft: #1b3240;
+  --gold: #7cc4dc; --gold-bright: #b3e2f0; --gold-muted: #6ea9bd;
+  --gold-wash: rgba(124, 196, 220, .13); --gold-edge: rgba(124, 196, 220, .42);
+  --hi: #7cc4dc; --hi-deep: #b3e2f0; --on-hi: #0e1a22; --hi-ink: #b3e2f0;
+  --glass: rgba(14, 26, 34, .93); --glass-line: rgba(124, 196, 220, .35);
+}
+:root[data-region="greenland"][data-theme="light"] {
+  --bg: #e7f0f4; --panel: #f8fcfd; --panel-tint: #eef5f8; --raise: #dde9ee;
+  --ink: #102430; --ink-soft: #3e5c6b; --ink-faint: #7b95a1;
+  --line: #c6d9e1; --line-soft: #dde9ee;
+  --gold: #3b8fb0; --gold-bright: #1f6f8f; --gold-muted: #4f8ea6;
+  --gold-wash: #e3f1f7; --gold-edge: #a9d2e2;
+  --hi: #1f5f7a; --hi-deep: #123f52; --on-hi: #f2fafd; --hi-ink: #1f5f7a;
+  --glass: rgba(248, 252, 253, .95); --glass-line: #c6d9e1;
+}
+
+/* 남극 — 오로라: 짙은 남색 바탕에 청록 */
+:root[data-region="antarctica"] {
+  --bg: #0d1224; --panel: #141a33; --panel-tint: #0c1122; --raise: #1d2545;
+  --ink: #e6ecfa; --ink-soft: #a8b5d8; --ink-faint: #6b789e;
+  --line: #28325a; --line-soft: #1c2548;
+  --gold: #5fe0b4; --gold-bright: #9ff2d4; --gold-muted: #5bbf9d;
+  --gold-wash: rgba(95, 224, 180, .12); --gold-edge: rgba(95, 224, 180, .4);
+  --hi: #5fe0b4; --hi-deep: #9ff2d4; --on-hi: #0c1122; --hi-ink: #9ff2d4;
+  --glass: rgba(12, 17, 34, .93); --glass-line: rgba(95, 224, 180, .33);
+}
+:root[data-region="antarctica"][data-theme="light"] {
+  --bg: #eceffa; --panel: #fbfcff; --panel-tint: #f1f3fb; --raise: #e1e5f4;
+  --ink: #141a33; --ink-soft: #46507a; --ink-faint: #8089ab;
+  --line: #cfd5ec; --line-soft: #e1e5f4;
+  --gold: #1f9e76; --gold-bright: #137a5a; --gold-muted: #3b9c7d;
+  --gold-wash: #e3f6ef; --gold-edge: #a6dfcb;
+  --hi: #1f4f8a; --hi-deep: #14335c; --on-hi: #f5f8ff; --hi-ink: #1f4f8a;
+  --glass: rgba(251, 252, 255, .95); --glass-line: #cfd5ec;
+}
+
+/* ── 얀마옌 (devlog 022) — 현무암: 숯빛 바탕에 용암 주황 ──
+   그린란드(빙하 청)·남극(오로라 청록)·스발바르(노르웨이 남색·빨강)와 겹치지 않게,
+   섬을 이룬 것(현무암 용암)에서 땄다. 한국의 금빛보다 붉고 채도가 높다 */
+:root[data-region="jan_mayen"] {
+  --bg: #1a1817; --panel: #22201f; --panel-tint: #171514; --raise: #2d2a28;
+  --ink: #f0e9e4; --ink-soft: #c2b6ad; --ink-faint: #85786f;
+  --line: #3a3532; --line-soft: #2b2725;
+  --gold: #ff7a2f; --gold-bright: #ffa468; --gold-muted: #d9713a;
+  --gold-wash: rgba(255, 122, 47, .13); --gold-edge: rgba(255, 122, 47, .42);
+  --hi: #ff7a2f; --hi-deep: #ffa468; --on-hi: #171514; --hi-ink: #ffa468;
+  --glass: rgba(23, 21, 20, .93); --glass-line: rgba(255, 122, 47, .35);
+}
+:root[data-region="jan_mayen"][data-theme="light"] {
+  --bg: #efebe8; --panel: #fcfaf9; --panel-tint: #f4f0ed; --raise: #e5dfdb;
+  --ink: #1d1a18; --ink-soft: #564c46; --ink-faint: #8f837b;
+  --line: #d9d1cb; --line-soft: #e5dfdb;
+  --gold: #d4561a; --gold-bright: #a83f0e; --gold-muted: #b8612f;
+  --gold-wash: #fbe9df; --gold-edge: #efb897;
+  --hi: #3a3330; --hi-deep: #1d1a18; --on-hi: #fff4ec; --hi-ink: #b8480f;
+  --glass: rgba(252, 250, 249, .95); --glass-line: #d9d1cb;
+}
+
+/* ── 스발바르 (devlog 021) — 노르웨이 국기: 짙은 남색 바탕에 빨강, 흰 선 ──
+   빨강(#ba0c2f)은 남색 위에서 글자로 읽히지 않아, 칠하는 자리(켜진 탭·단추)에만
+   국기 빨강을 쓰고 강조 글자는 밝힌 빨강으로 적는다. 칸의 선은 흰빛이다 */
+:root[data-region="svalbard"] {
+  --bg: #00163f; --panel: #04204f; --panel-tint: #001236; --raise: #0b2c63;
+  --ink: #f3f6fc; --ink-soft: #b9c5de; --ink-faint: #7a8bb0;
+  --line: rgba(255, 255, 255, .2); --line-soft: rgba(255, 255, 255, .1);
+  --gold: #e0415c; --gold-bright: #ff8a9b; --gold-muted: #d4586d;
+  --gold-wash: rgba(186, 12, 47, .2); --gold-edge: rgba(255, 138, 155, .45);
+  --hi: #ba0c2f; --hi-deep: #ff8a9b; --on-hi: #ffffff; --hi-ink: #ff8a9b;
+  --glass: rgba(0, 18, 54, .93); --glass-line: rgba(255, 255, 255, .3);
+}
+:root[data-region="svalbard"][data-theme="light"] {
+  --bg: #eef1f8; --panel: #ffffff; --panel-tint: #f4f6fb; --raise: #e2e7f2;
+  --ink: #00205b; --ink-soft: #33477a; --ink-faint: #7482a3;
+  --line: #cdd5e6; --line-soft: #e2e7f2;
+  --gold: #ba0c2f; --gold-bright: #8e0822; --gold-muted: #b23a50;
+  --gold-wash: #fbe7eb; --gold-edge: #eeaab6;
+  --hi: #00205b; --hi-deep: #00133a; --on-hi: #ffffff; --hi-ink: #ba0c2f;
+  --glass: rgba(255, 255, 255, .95); --glass-line: #cdd5e6;
+}
+
+/* ── 북극해 (devlog 076) — 극야의 바다: 먹보라 바탕에 얼음 라일락 ──
+   품은 묶음(북극, 흰 얼음빛)과 이웃 탭(그린란드 빙하 청·스발바르 남색 빨강·얀마옌 용암 주황·
+   남극 오로라 청록) 어느 것과도 겹치지 않게 보랏빛으로 갔다 */
+:root[data-region="arctic_ocean"] {
+  --bg: #13111f; --panel: #1a1829; --panel-tint: #100e1a; --raise: #242138;
+  --ink: #ece9f7; --ink-soft: #b7b1d4; --ink-faint: #7a7499;
+  --line: #2f2b48; --line-soft: #221f36;
+  --gold: #a99cff; --gold-bright: #cfc7ff; --gold-muted: #9187d6;
+  --gold-wash: rgba(169, 156, 255, .13); --gold-edge: rgba(169, 156, 255, .42);
+  --hi: #a99cff; --hi-deep: #cfc7ff; --on-hi: #100e1a; --hi-ink: #cfc7ff;
+  --glass: rgba(16, 14, 26, .93); --glass-line: rgba(169, 156, 255, .35);
+}
+:root[data-region="arctic_ocean"][data-theme="light"] {
+  --bg: #eeedf6; --panel: #fbfbfe; --panel-tint: #f3f2f9; --raise: #e3e1ef;
+  --ink: #16142a; --ink-soft: #4a4668; --ink-faint: #8a86a3;
+  --line: #d4d1e5; --line-soft: #e3e1ef;
+  --gold: #6a5acd; --gold-bright: #4b3db0; --gold-muted: #7a6fc0;
+  --gold-wash: #ece9fb; --gold-edge: #c3bbf0;
+  --hi: #3b3175; --hi-deep: #231c52; --on-hi: #f6f4ff; --hi-ink: #4b3db0;
+  --glass: rgba(251, 251, 254, .95); --glass-line: #d4d1e5;
+}
+
+/* ── 노르웨이·핀란드 (wetherilli 140) — 타이가의 순록이끼: 가문비 숲그늘 바탕에 지의류의 연두 ──
+   북쪽 숲 바닥을 덮는 이끼에서 땄다. 이웃 탭(스발바르 국기 남색·빨강, 북극해 라일락, 그린란드 빙하 청, 얀마옌 용암 주황)과
+   남쪽의 청자(동아시아)보다 노란 기를 더 넣어 갈랐다 */
+:root[data-region="fennoscandia"] {
+  --bg: #111710; --panel: #182017; --panel-tint: #0d130c; --raise: #212b1f;
+  --ink: #eef2e6; --ink-soft: #bcc6ab; --ink-faint: #7d8a6d;
+  --line: #2e3a2a; --line-soft: #212b1f;
+  --gold: #c2d65a; --gold-bright: #e0ec9c; --gold-muted: #a5b754;
+  --gold-wash: rgba(194, 214, 90, .12); --gold-edge: rgba(194, 214, 90, .4);
+  --hi: #c2d65a; --hi-deep: #e0ec9c; --on-hi: #0d130c; --hi-ink: #e0ec9c;
+  --glass: rgba(13, 19, 12, .93); --glass-line: rgba(194, 214, 90, .33);
+}
+:root[data-region="fennoscandia"][data-theme="light"] {
+  --bg: #f1f4ea; --panel: #fcfdf9; --panel-tint: #f5f7ef; --raise: #e6eadb;
+  --ink: #1a2115; --ink-soft: #4b5640; --ink-faint: #868f78;
+  --line: #d7ddc8; --line-soft: #e6eadb;
+  --gold: #5f7a12; --gold-bright: #45590b; --gold-muted: #6d8430;
+  --gold-wash: #eef3dc; --gold-edge: #c9d79a;
+  --hi: #2e3a17; --hi-deep: #1c240e; --on-hi: #f8fbef; --hi-ink: #5f7a12;
+  --glass: rgba(252, 253, 249, .95); --glass-line: #d7ddc8;
+}
+
+/* ── 북극 (devlog 021) — 그린란드·스발바르·얀마옌을 한 화면에. 극야: 먹청 바탕에
+   흰 얼음빛. 품은 지역의 색(빙하 청·국기 빨강·용암 주황) 어느 것과도 겹치지 않게
+   색을 빼고 밝기로만 가른다 */
+:root[data-region="arctic"] {
+  --bg: #0e141b; --panel: #151d26; --panel-tint: #0b1117; --raise: #1e2833;
+  --ink: #edf2f6; --ink-soft: #b4c0cb; --ink-faint: #75838f;
+  --line: #2a3643; --line-soft: #1d2833;
+  --gold: #dce6ee; --gold-bright: #ffffff; --gold-muted: #aebdca;
+  --gold-wash: rgba(220, 230, 238, .1); --gold-edge: rgba(220, 230, 238, .4);
+  --hi: #dce6ee; --hi-deep: #ffffff; --on-hi: #0b1117; --hi-ink: #ffffff;
+  --glass: rgba(11, 17, 23, .93); --glass-line: rgba(220, 230, 238, .3);
+}
+:root[data-region="arctic"][data-theme="light"] {
+  --bg: #eef2f5; --panel: #fbfcfd; --panel-tint: #f2f5f8; --raise: #e2e8ed;
+  --ink: #111a22; --ink-soft: #45535f; --ink-faint: #85929c;
+  --line: #d0d8df; --line-soft: #e2e8ed;
+  --gold: #3c4b58; --gold-bright: #1c2731; --gold-muted: #5b6b78;
+  --gold-wash: #e6ecf1; --gold-edge: #b7c3cd;
+  --hi: #1c2731; --hi-deep: #0b1117; --on-hi: #f5f8fa; --hi-ink: #1c2731;
+  --glass: rgba(251, 252, 253, .95); --glass-line: #d0d8df;
+}
+
+/* ── 일본 (devlog 024) — 벚꽃: 짙은 자두빛 바탕에 벚꽃 분홍 ──
+   스발바르(국기 남색·빨강)와 얀마옌(용암 주황)을 피해, 붉은 기를 빼고 분홍으로 갔다 */
+:root[data-region="japan"] {
+  --bg: #1c141b; --panel: #251a24; --panel-tint: #170f16; --raise: #30222e;
+  --ink: #f6ebf1; --ink-soft: #cdb3c2; --ink-faint: #8e7483;
+  --line: #3e2c3a; --line-soft: #2d202b;
+  --gold: #f0a6c4; --gold-bright: #ffd0e2; --gold-muted: #cf8eaa;
+  --gold-wash: rgba(240, 166, 196, .13); --gold-edge: rgba(240, 166, 196, .42);
+  --hi: #f0a6c4; --hi-deep: #ffd0e2; --on-hi: #170f16; --hi-ink: #ffd0e2;
+  --glass: rgba(23, 15, 22, .93); --glass-line: rgba(240, 166, 196, .35);
+}
+:root[data-region="japan"][data-theme="light"] {
+  --bg: #f6eef2; --panel: #fffafc; --panel-tint: #f9f1f5; --raise: #eee2e8;
+  --ink: #2a1824; --ink-soft: #624959; --ink-faint: #9a8190;
+  --line: #e3d1da; --line-soft: #eee2e8;
+  --gold: #c2517f; --gold-bright: #93325b; --gold-muted: #b0668a;
+  --gold-wash: #fbe8f0; --gold-edge: #ebb3cb;
+  --hi: #5b2a45; --hi-deep: #3a1a2c; --on-hi: #fff4f9; --hi-ink: #a83d6b;
+  --glass: rgba(255, 250, 252, .95); --glass-line: #e3d1da;
+}
+
+/* ── 중국 (devlog 025) — 청화백자: 먹회색 바탕에 코발트 청 ──
+   스발바르의 남색 바탕, 그린란드의 빙하 하늘빛과 겹치지 않게 바탕은 회색으로 두고
+   청은 보랏빛이 도는 코발트로 갔다. 밝은 판은 백자 바탕이다 */
+:root[data-region="china"] {
+  --bg: #15171c; --panel: #1c1f26; --panel-tint: #111318; --raise: #262a33;
+  --ink: #eceff5; --ink-soft: #b4bccb; --ink-faint: #7b8394;
+  --line: #2e333e; --line-soft: #22262e;
+  --gold: #7f9ff0; --gold-bright: #b5c8fa; --gold-muted: #6f8bd4;
+  --gold-wash: rgba(127, 159, 240, .13); --gold-edge: rgba(127, 159, 240, .42);
+  --hi: #7f9ff0; --hi-deep: #b5c8fa; --on-hi: #111318; --hi-ink: #b5c8fa;
+  --glass: rgba(17, 19, 24, .93); --glass-line: rgba(127, 159, 240, .35);
+}
+:root[data-region="china"][data-theme="light"] {
+  --bg: #f1f3f7; --panel: #fcfcfd; --panel-tint: #f5f6f9; --raise: #e6e9f0;
+  --ink: #161b2a; --ink-soft: #48506a; --ink-faint: #858ca0;
+  --line: #d6dbe6; --line-soft: #e6e9f0;
+  --gold: #2f55c2; --gold-bright: #1d3d99; --gold-muted: #4a67b8;
+  --gold-wash: #e6ecfb; --gold-edge: #b3c3ef;
+  --hi: #1d2d5c; --hi-deep: #111c3d; --on-hi: #f4f7ff; --hi-ink: #2f55c2;
+  --glass: rgba(252, 252, 253, .95); --glass-line: #d6dbe6;
+}
+
+/* ── 대만 (wetherilli 136) — 보라얼룩나비(紫斑蝶): 가지빛 먹 바탕에 나비 날개의 보라 ──
+   나비의 섬이라 그 나비에서 땄다. 이웃 탭의 벚꽃 분홍(일본)·코발트(중국)·비색(동아시아)과 겹치지 않게
+   붉은 기도 푸른 기도 덜어 낸 제비꽃빛으로 갔다. 밝은 판은 날개 안쪽의 흰 반점이다 */
+:root[data-region="taiwan"] {
+  --bg: #17141d; --panel: #1f1a27; --panel-tint: #120f17; --raise: #2a2333;
+  --ink: #f0ebf6; --ink-soft: #c2b6d2; --ink-faint: #857a95;
+  --line: #352c41; --line-soft: #262030;
+  --gold: #b79af0; --gold-bright: #dacbfb; --gold-muted: #9d84d0;
+  --gold-wash: rgba(183, 154, 240, .13); --gold-edge: rgba(183, 154, 240, .42);
+  --hi: #b79af0; --hi-deep: #dacbfb; --on-hi: #120f17; --hi-ink: #dacbfb;
+  --glass: rgba(18, 15, 23, .93); --glass-line: rgba(183, 154, 240, .35);
+}
+:root[data-region="taiwan"][data-theme="light"] {
+  --bg: #f3f0f7; --panel: #fdfcfe; --panel-tint: #f7f4fa; --raise: #e9e3f0;
+  --ink: #1f1729; --ink-soft: #564a66; --ink-faint: #8f84a0;
+  --line: #ddd5e7; --line-soft: #e9e3f0;
+  --gold: #6d45c2; --gold-bright: #4f2c99; --gold-muted: #7a5db8;
+  --gold-wash: #efe8fb; --gold-edge: #cbb8ef;
+  --hi: #34224f; --hi-deep: #211534; --on-hi: #f8f4ff; --hi-ink: #6d45c2;
+  --glass: rgba(253, 252, 254, .95); --glass-line: #ddd5e7;
+}
+
+/* ── 영국 (wetherilli 143) — 스코틀랜드 고지의 히스: 이탄의 먹갈 바탕에 히스꽃 자주 ──
+   황야를 덮는 꽃에서 땄다. 이웃의 보라(대만·북극해)보다 붉고 벚꽃(일본)보다 짙게 갔다 */
+:root[data-region="uk"] {
+  --bg: #171216; --panel: #20181e; --panel-tint: #120e11; --raise: #2b2029;
+  --ink: #f4ecf2; --ink-soft: #cdb8c8; --ink-faint: #8c7887;
+  --line: #3a2b37; --line-soft: #2a2028;
+  --gold: #d985c8; --gold-bright: #efbde6; --gold-muted: #bb73ad;
+  --gold-wash: rgba(217, 133, 200, .13); --gold-edge: rgba(217, 133, 200, .42);
+  --hi: #d985c8; --hi-deep: #efbde6; --on-hi: #120e11; --hi-ink: #efbde6;
+  --glass: rgba(18, 14, 17, .93); --glass-line: rgba(217, 133, 200, .35);
+}
+:root[data-region="uk"][data-theme="light"] {
+  --bg: #f6f0f4; --panel: #fefcfd; --panel-tint: #f9f4f8; --raise: #ece2ea;
+  --ink: #26161f; --ink-soft: #5f4659; --ink-faint: #9a8494;
+  --line: #e2d4de; --line-soft: #ece2ea;
+  --gold: #a1388c; --gold-bright: #7a2369; --gold-muted: #9b5a8d;
+  --gold-wash: #f6e6f2; --gold-edge: #e2b6d7;
+  --hi: #4a1d40; --hi-deep: #2e1027; --on-hi: #fdf6fb; --hi-ink: #a1388c;
+  --glass: rgba(254, 252, 253, .95); --glass-line: #e2d4de;
+}
+
+/* ── 프랑스 (wetherilli 143) — 부르고뉴의 포도밭: 석회암 그늘 바탕에 포도잎 초록 ──
+   포도밭 아래가 쥐라기 석회암이라 땄다. 이끼 연두(노르웨이·핀란드)보다 푸르고 청자(동아시아)보다 짙게 갔다 */
+:root[data-region="france"] {
+  --bg: #111711; --panel: #172018; --panel-tint: #0d130d; --raise: #1f2b20;
+  --ink: #ebf3ea; --ink-soft: #b2c6b1; --ink-faint: #758a74;
+  --line: #2a3a2b; --line-soft: #1f2b20;
+  --gold: #7fcf6a; --gold-bright: #b7e8a8; --gold-muted: #6cb35a;
+  --gold-wash: rgba(127, 207, 106, .12); --gold-edge: rgba(127, 207, 106, .4);
+  --hi: #7fcf6a; --hi-deep: #b7e8a8; --on-hi: #0d130d; --hi-ink: #b7e8a8;
+  --glass: rgba(13, 19, 13, .93); --glass-line: rgba(127, 207, 106, .33);
+}
+:root[data-region="france"][data-theme="light"] {
+  --bg: #eff5ee; --panel: #fbfdfb; --panel-tint: #f4f8f3; --raise: #e1ebdf;
+  --ink: #142114; --ink-soft: #435842; --ink-faint: #7f917e;
+  --line: #d2e0d0; --line-soft: #e1ebdf;
+  --gold: #2f8a1f; --gold-bright: #1f6a13; --gold-muted: #4d8a40;
+  --gold-wash: #e3f3dd; --gold-edge: #b1dca4;
+  --hi: #1d3a17; --hi-deep: #10240c; --on-hi: #f5fbf3; --hi-ink: #2f8a1f;
+  --glass: rgba(251, 253, 251, .95); --glass-line: #d2e0d0;
+}
+
+/* ── 독일 (wetherilli 147) — 라인 점판암: 먹청 바탕에 점판암 지붕의 청회 ──
+   라인 편암 산지의 슬레이트 지붕에서 땄다. 북극(흰 얼음)보다 어둡고 채도를 낮춰, 그린란드 빙하 청과도 가른다 */
+:root[data-region="germany"] {
+  --bg: #121519; --panel: #191d22; --panel-tint: #0e1114; --raise: #23282f;
+  --ink: #eaeef3; --ink-soft: #b6c0cc; --ink-faint: #78838f;
+  --line: #2d343c; --line-soft: #21262c;
+  --gold: #9db0c4; --gold-bright: #cbd7e3; --gold-muted: #8597aa;
+  --gold-wash: rgba(157, 176, 196, .12); --gold-edge: rgba(157, 176, 196, .4);
+  --hi: #9db0c4; --hi-deep: #cbd7e3; --on-hi: #0e1114; --hi-ink: #cbd7e3;
+  --glass: rgba(14, 17, 20, .93); --glass-line: rgba(157, 176, 196, .33);
+}
+:root[data-region="germany"][data-theme="light"] {
+  --bg: #f0f2f5; --panel: #fcfdfe; --panel-tint: #f5f7f9; --raise: #e3e7ec;
+  --ink: #161b21; --ink-soft: #46505c; --ink-faint: #848d98;
+  --line: #d4dae1; --line-soft: #e3e7ec;
+  --gold: #4b6178; --gold-bright: #334659; --gold-muted: #5e7186;
+  --gold-wash: #e7ecf2; --gold-edge: #bfcad6;
+  --hi: #22303e; --hi-deep: #141d26; --on-hi: #f6f8fb; --hi-ink: #4b6178;
+  --glass: rgba(252, 253, 254, .95); --glass-line: #d4dae1;
+}
+
+/* ── 스페인 (wetherilli 147) — 리오하의 포도주: 붉은 흙 그늘 바탕에 짙은 장밋빛 ──
+   벚꽃(일본)보다 짙고 스발바르의 국기 빨강보다 장미 쪽으로 갔다 */
+:root[data-region="spain"] {
+  --bg: #1a1214; --panel: #23181b; --panel-tint: #140d0f; --raise: #2f2024;
+  --ink: #f6ecee; --ink-soft: #d1b8bd; --ink-faint: #917a7f;
+  --line: #3d2a2f; --line-soft: #2c1f22;
+  --gold: #d96383; --gold-bright: #f0a6b9; --gold-muted: #bd5873;
+  --gold-wash: rgba(217, 99, 131, .13); --gold-edge: rgba(217, 99, 131, .42);
+  --hi: #d96383; --hi-deep: #f0a6b9; --on-hi: #140d0f; --hi-ink: #f0a6b9;
+  --glass: rgba(20, 13, 15, .93); --glass-line: rgba(217, 99, 131, .35);
+}
+:root[data-region="spain"][data-theme="light"] {
+  --bg: #f7f0f2; --panel: #fefcfc; --panel-tint: #faf5f6; --raise: #eee2e5;
+  --ink: #2a1519; --ink-soft: #634750; --ink-faint: #9e858b;
+  --line: #e5d4d8; --line-soft: #eee2e5;
+  --gold: #a8304f; --gold-bright: #82203b; --gold-muted: #9e5668;
+  --gold-wash: #f8e5ea; --gold-edge: #e7b3c1;
+  --hi: #4d1726; --hi-deep: #300c17; --on-hi: #fdf5f7; --hi-ink: #a8304f;
+  --glass: rgba(254, 252, 252, .95); --glass-line: #e5d4d8;
+}
+
+/* ── 아일랜드 (wetherilli 147) — 코네마라 대리석: 이탄 먹녹 바탕에 사문석 초록 ──
+   서쪽 해안의 녹색 대리석에서 땄다. 포도잎(프랑스)보다 푸르고 청자(동아시아)보다 짙고 맑게, 남극 박하빛보다 어둡게 갔다 */
+:root[data-region="ireland"] {
+  --bg: #0f1613; --panel: #151f1b; --panel-tint: #0b120f; --raise: #1d2a25;
+  --ink: #e8f3ee; --ink-soft: #acc6ba; --ink-faint: #6f8a7e;
+  --line: #263932; --line-soft: #1c2a25;
+  --gold: #45c48c; --gold-bright: #93e2bf; --gold-muted: #3fa878;
+  --gold-wash: rgba(69, 196, 140, .12); --gold-edge: rgba(69, 196, 140, .4);
+  --hi: #45c48c; --hi-deep: #93e2bf; --on-hi: #0b120f; --hi-ink: #93e2bf;
+  --glass: rgba(11, 18, 15, .93); --glass-line: rgba(69, 196, 140, .33);
+}
+:root[data-region="ireland"][data-theme="light"] {
+  --bg: #edf5f1; --panel: #fafdfb; --panel-tint: #f2f8f5; --raise: #dfebe5;
+  --ink: #12211a; --ink-soft: #3f5a4d; --ink-faint: #7c9286;
+  --line: #cfe0d7; --line-soft: #dfebe5;
+  --gold: #1d8a5a; --gold-bright: #136841; --gold-muted: #3f8a68;
+  --gold-wash: #dcf2e7; --gold-edge: #a6dcc2;
+  --hi: #123a28; --hi-deep: #0a2418; --on-hi: #f3fbf7; --hi-ink: #1d8a5a;
+  --glass: rgba(250, 253, 251, .95); --glass-line: #cfe0d7;
+}
+
+/* ── 유럽 (wetherilli 143) — 영국·프랑스를 한 화면에. 백악 절벽: 플린트 먹회 바탕에 백악의 회백 ──
+   도버 해협 양쪽이 같은 백악이라 땄다. 품은 지역의 색(히스 자주·포도잎 초록) 어느 쪽도 아니게 색을 빼고 밝기로 가른다 */
+:root[data-region="europe"] {
+  --bg: #151514; --panel: #1d1d1b; --panel-tint: #10100f; --raise: #282826;
+  --ink: #f1efe9; --ink-soft: #c4c0b5; --ink-faint: #858176;
+  --line: #34332f; --line-soft: #262624;
+  --gold: #dcd5c2; --gold-bright: #f3efe4; --gold-muted: #b9b29f;
+  --gold-wash: rgba(220, 213, 194, .12); --gold-edge: rgba(220, 213, 194, .4);
+  --hi: #dcd5c2; --hi-deep: #f3efe4; --on-hi: #10100f; --hi-ink: #f3efe4;
+  --glass: rgba(16, 16, 15, .93); --glass-line: rgba(220, 213, 194, .33);
+}
+:root[data-region="europe"][data-theme="light"] {
+  --bg: #f3f2ee; --panel: #fdfdfb; --panel-tint: #f7f6f2; --raise: #e7e5de;
+  --ink: #1d1c18; --ink-soft: #545147; --ink-faint: #8f8b80;
+  --line: #dcd9d0; --line-soft: #e7e5de;
+  --gold: #6b6553; --gold-bright: #4a4536; --gold-muted: #7d7766;
+  --gold-wash: #efece3; --gold-edge: #d1ccbd;
+  --hi: #2f2c24; --hi-deep: #1b1a15; --on-hi: #faf9f5; --hi-ink: #6b6553;
+  --glass: rgba(253, 253, 251, .95); --glass-line: #dcd9d0;
+}
+
+/* ── 동아시아 (devlog 024) — 한국·일본을 한 화면에. 청자: 먹녹 바탕에 비색 ──
+   두 나라가 함께 빚은 것에서 땄다. 품은 지역의 색(금·벚꽃 분홍) 어느 쪽도 아니다.
+   남극의 청록보다 회색이 돌고 밝다 */
+:root[data-region="eastasia"] {
+  --bg: #121b18; --panel: #19241f; --panel-tint: #0e1613; --raise: #22302a;
+  --ink: #e9f1ec; --ink-soft: #b1c4b9; --ink-faint: #74887c;
+  --line: #2b3b34; --line-soft: #1f2c26;
+  --gold: #9cc9b0; --gold-bright: #c9e6d5; --gold-muted: #86ae98;
+  --gold-wash: rgba(156, 201, 176, .12); --gold-edge: rgba(156, 201, 176, .4);
+  --hi: #9cc9b0; --hi-deep: #c9e6d5; --on-hi: #0e1613; --hi-ink: #c9e6d5;
+  --glass: rgba(14, 22, 19, .93); --glass-line: rgba(156, 201, 176, .33);
+}
+:root[data-region="eastasia"][data-theme="light"] {
+  --bg: #edf3ef; --panel: #fbfdfc; --panel-tint: #f2f7f4; --raise: #e0eae4;
+  --ink: #15211b; --ink-soft: #465a4f; --ink-faint: #82958a;
+  --line: #cfddd5; --line-soft: #e0eae4;
+  --gold: #4f8a6c; --gold-bright: #2f6a4d; --gold-muted: #5f8f76;
+  --gold-wash: #e3f0e8; --gold-edge: #aecfbc;
+  --hi: #24483a; --hi-deep: #142c22; --on-hi: #f3faf6; --hi-ink: #2f6a4d;
+  --glass: rgba(251, 253, 252, .95); --glass-line: #cfddd5;
+}
+
+a.tool { text-decoration: none; }                /* 3D 단추는 링크다 */
+
+/* 실험 기능 — 설정에서 켠 사람에게만 보인다. 3D 가 059 에서 벗어나 지금은 붙은 것이 없다 */
+.tool.labs[hidden] { display: none; }          /* .tool 의 display 가 hidden 을 덮지 않게 */
+:root[data-labs="on"] .tool.labs[hidden] { display: flex; }
+.tool.labs::after { content: "β"; position: absolute; top: 2px; right: 4px; font-size: 9px; color: var(--hi-ink); }
+.tool.labs { position: relative; }
+
+/* ── 점 레이어의 범례 (그린란드 정부 포털, map.js 의 vectorLegend) ── */
+.vector-legend { margin-top: 8px; font-size: 11.5px; }   /* 글자색은 위(흰 바탕의 #333)를 따른다 */
+.vector-legend > div { display: flex; align-items: center; gap: 7px; margin: 2px 0; }
+.vector-legend .sw { flex: none; width: 10px; height: 10px; border: 1px solid rgba(20, 20, 20, .85); }
+.vector-legend .sw.dot { border-radius: 50%; }
+.vector-legend .sw.diamond { transform: rotate(45deg) scale(.85); }
+.vector-legend .sw.triangle { clip-path: polygon(50% 0, 100% 100%, 0 100%); border: 0; }
+/* 얀마옌 지질도의 범례 (map.js 의 dataLegend) — 면은 네모, 분기공은 별, 선은 그린 선 */
+.vector-legend .sw.box { width: 14px; height: 10px; border-radius: 2px; }
+.vector-legend .sw.star { clip-path: polygon(50% 0, 61% 35%, 98% 35%, 68% 57%, 79% 91%, 50% 70%, 21% 91%, 32% 57%, 2% 35%, 39% 35%); border: 0; width: 12px; height: 12px; }
+.vector-legend .sw-line { flex: none; display: inline-flex; }
+/* 갈래 범례의 묶음 제목 (map.js 의 classLegend — IBCSO 자료 출처, 071) */
+.vector-legend > div.vector-legend-head { margin: 6px 0 1px; font-weight: 600; }
+
+/* KIGAM 인증키·임시 경로 띠는 한국 지질도에 대한 것이다. 다른 지역에서는 숨긴다.
+   동아시아는 한국을 품으므로 보인다 (devlog 024) */
+:root[data-region]:not([data-region="korea"]):not([data-region="eastasia"]) .korea-only { display: none; }
+
+/* ══ 달 (036·038) ══════════════════════════════════════════════════
+ * 달은 흑백이다 — 영상이 회색이라 화면도 흑백이면 지질도의 색만 도드라진다. 지역 테마(016)와
+ * 같은 틀(`data-region`)이지만 딴 빛이 없다. 사용자가 고른 테마는 따른다 — 먹갈색이면 검은 바탕,
+ * 한지면 흰 바탕. 화면은 2D 의 틀(패널·탭·상자·좌표 막대·팝업)을 그대로 쓴다 (038). */
+:root[data-region="moon"] {
+  --bg: #0b0b0b; --panel: #151515; --panel-tint: #0e0e0e; --raise: #1d1d1d;
+  --ink: #f2f2f2; --ink-soft: #bdbdbd; --ink-faint: #818181;
+  --line: #333333; --line-soft: #242424;
+  --gold: #d6d6d6; --gold-bright: #ffffff; --gold-muted: #a3a3a3;
+  --gold-wash: rgba(255, 255, 255, .08); --gold-edge: rgba(255, 255, 255, .34);
+  --hi: #e4e4e4; --hi-deep: #ffffff; --on-hi: #0b0b0b; --hi-ink: #ffffff;
+  --glass: rgba(10, 10, 10, .9); --glass-line: rgba(255, 255, 255, .24);
+}
+:root[data-region="moon"][data-theme="light"] {
+  --bg: #efefef; --panel: #ffffff; --panel-tint: #f5f5f5; --raise: #e7e7e7;
+  --ink: #111111; --ink-soft: #444444; --ink-faint: #8a8a8a;
+  --line: #d0d0d0; --line-soft: #e4e4e4;
+  --gold: #333333; --gold-bright: #000000; --gold-muted: #555555;
+  --gold-wash: #f0f0f0; --gold-edge: #bdbdbd;
+  --hi: #1a1a1a; --hi-deep: #000000; --on-hi: #ffffff; --hi-ink: #000000;
+  --glass: rgba(255, 255, 255, .94); --glass-line: #cfcfcf;
+}
+/* ══ 화성 (058) — 달의 틀 그대로, 색만 아이콘의 녹슨 주황과 검붉은 흙빛이다 ══ */
+:root[data-region="mars"] {
+  --bg: #140a06; --panel: #1d100a; --panel-tint: #170c07; --raise: #28160d;
+  --ink: #f6e6da; --ink-soft: #d0b3a0; --ink-faint: #957462;
+  --line: #4a2a1a; --line-soft: #331c11;
+  --gold: #e8894c; --gold-bright: #f6a36a; --gold-muted: #b86a3c;
+  --gold-wash: rgba(232, 137, 76, .1); --gold-edge: rgba(232, 137, 76, .42);
+  --hi: #e07a3c; --hi-deep: #f6a36a; --on-hi: #1a0d08; --hi-ink: #f6a36a;
+  --glass: rgba(26, 13, 8, .9); --glass-line: rgba(232, 137, 76, .32);
+}
+:root[data-region="mars"][data-theme="light"] {
+  --bg: #f6ece4; --panel: #fffaf6; --panel-tint: #fbf1ea; --raise: #f0e0d4;
+  --ink: #2a140a; --ink-soft: #5c3a28; --ink-faint: #9a7a66;
+  --line: #e0c8b8; --line-soft: #efe0d4;
+  --gold: #b4501f; --gold-bright: #8e3a12; --gold-muted: #a86a48;
+  --gold-wash: #fbe9dc; --gold-edge: #e8b896;
+  --hi: #c1552a; --hi-deep: #8e3a12; --on-hi: #ffffff; --hi-ink: #8e3a12;
+  --glass: rgba(255, 250, 246, .94); --glass-line: #e0c8b8;
+}
+/* ══ 수성 (wetherilli P10) — 화성의 틀 그대로, 색은 MESSENGER 강조색 모자이크에서 땄다 — 저반사 물질(LRM)의
+ * 청회색을 바탕에, 고반사 평원(HRP)의 황갈을 빛에 ══ */
+:root[data-region="mercury"] {
+  --bg: #0f1317; --panel: #161b21; --panel-tint: #12161b; --raise: #1f262e;
+  --ink: #e8ecf0; --ink-soft: #aeb8c2; --ink-faint: #75818c;
+  --line: #2c3640; --line-soft: #1f272f;
+  --gold: #c9a46a; --gold-bright: #e3c38a; --gold-muted: #9c7f52;
+  --gold-wash: rgba(201, 164, 106, .1); --gold-edge: rgba(201, 164, 106, .42);
+  --hi: #b8935a; --hi-deep: #e3c38a; --on-hi: #14181d; --hi-ink: #e3c38a;
+  --glass: rgba(18, 22, 27, .9); --glass-line: rgba(201, 164, 106, .3);
+}
+:root[data-region="mercury"][data-theme="light"] {
+  --bg: #eef1f4; --panel: #ffffff; --panel-tint: #f4f6f8; --raise: #e3e8ed;
+  --ink: #161b21; --ink-soft: #3f4a55; --ink-faint: #85909b;
+  --line: #ccd4dc; --line-soft: #e2e7ec;
+  --gold: #8a6630; --gold-bright: #6b4d1f; --gold-muted: #9c7f52;
+  --gold-wash: #f5eee2; --gold-edge: #dcc7a2;
+  --hi: #8a6630; --hi-deep: #6b4d1f; --on-hi: #ffffff; --hi-ink: #6b4d1f;
+  --glass: rgba(255, 255, 255, .94); --glass-line: #ccd4dc;
+}
+:root[data-region="mercury"] .count { color: var(--on-hi); background: var(--hi); }
+:root[data-region="mercury"] #map { background: #000; }
+:root[data-region="mercury"] .popup { z-index: 8; }
+:root[data-region="mercury"] .temp-no { color: var(--on-hi); background: var(--hi); }
+:root[data-region="mercury"] .range-box { border-color: #e3c38a; background: rgba(227, 195, 138, .14); }
+/* ══ 온 지구 (wetherilli P06) — 화성의 틀 그대로, 색만 깊은 바다의 남색과 산호초의 청록이다 ══ */
+:root[data-region="earth"] {
+  --bg: #07111c; --panel: #0c1826; --panel-tint: #09141f; --raise: #132336;
+  --ink: #e6f0fa; --ink-soft: #a9bfd4; --ink-faint: #6f879e;
+  --line: #1f3650; --line-soft: #162a3f;
+  --gold: #4fc3c7; --gold-bright: #7fe0e0; --gold-muted: #3a9699;
+  --gold-wash: rgba(79, 195, 199, .1); --gold-edge: rgba(79, 195, 199, .42);
+  --hi: #3fb4b8; --hi-deep: #7fe0e0; --on-hi: #07111c; --hi-ink: #7fe0e0;
+  --glass: rgba(8, 19, 31, .9); --glass-line: rgba(79, 195, 199, .32);
+}
+:root[data-region="earth"][data-theme="light"] {
+  --bg: #eaf2f7; --panel: #fbfdff; --panel-tint: #f1f7fb; --raise: #e0ecf4;
+  --ink: #0b1d2c; --ink-soft: #33526b; --ink-faint: #7890a4;
+  --line: #c6d8e6; --line-soft: #deeaf2;
+  --gold: #1d7f86; --gold-bright: #0f5e66; --gold-muted: #4f8c92;
+  --gold-wash: #dff1f2; --gold-edge: #9fd0d3;
+  --hi: #1d8f96; --hi-deep: #0f5e66; --on-hi: #ffffff; --hi-ink: #0f5e66;
+  --glass: rgba(251, 253, 255, .94); --glass-line: #c6d8e6;
+}
+:root[data-region="earth"] .count { color: var(--on-hi); background: var(--hi); }
+:root[data-region="earth"] #map { background: #0b1a2a; }
+:root[data-region="earth"] .popup { z-index: 8; }
+/* 바람 — 구·평면 위의 입자 판 (koprifossillab P02). z-index 를 주지 않는다 — 뒤에 오는 도구·팝업이 그 위에 선다 */
+.wind-canvas { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; }
+.wind-controls { display: flex; flex-direction: column; gap: 4px; margin: 4px 0; }
+.wind-row { display: flex; flex-wrap: wrap; gap: 4px; align-items: center; }
+.wind-row[hidden] { display: none; }
+/* 고르개는 한 줄에 하나 — 둘을 나란히 두면 영어판에서 글자가 잘린다 */
+.wind-row select { flex: 1 1 100%; min-width: 0; font: inherit; font-size: 12px; }
+.wind-row input { flex: 1 1 8em; min-width: 0; font: inherit; font-size: 12px; }
+.wind-row .wind-play { flex: 0 0 auto; min-width: 2.2em; }
+.wind-when { margin: 0; font-size: 11px; opacity: 0.8; }
+:root[data-region="earth"] .temp-no { color: var(--on-hi); background: var(--hi); }
+:root[data-region="earth"] .range-box { border-color: #7fe0e0; background: rgba(127, 224, 224, .14); }
+/* 그때의 자리 (wetherilli 087) — 팝업의 위경도 밑에 연대를 넣어 옮겨 보는 칸 */
+.paleo-form { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin: 6px 0 2px; font-size: 12px;
+              color: var(--ink-soft); }
+.paleo-form input { width: 72px; padding: 2px 6px; font: inherit; color: var(--ink); background: var(--panel-tint);
+                    border: 1px solid var(--line); border-radius: 5px; }
+.paleo-form button { padding: 2px 10px; font: inherit; color: var(--on-hi); background: var(--hi); border: 0;
+                     border-radius: 5px; cursor: pointer; }
+.paleo-form .paleo-out { flex-basis: 100%; font-family: var(--font-mono); color: var(--hi-ink); }
+.paleo-form .paleo-out:empty { display: none; }
+/* EarthThruTime3D 로 건너가는 링크 (wetherilli 088) */
+.ett-link { color: var(--hi-ink); text-decoration: underline; text-underline-offset: 2px; white-space: nowrap; }
+.ett-link::after { content: " ↗"; font-size: .9em; }
+.hidden-menu .moon-dot.whole-dot { background: radial-gradient(circle at 35% 35%, #9ff0e0, #2f8f9a 55%, #123a52); }
+:root[data-region="moon"] .count, :root[data-region="mars"] .count { color: var(--on-hi); background: var(--hi); }
+:root[data-region="moon"] #map, :root[data-region="mars"] #map { background: #000; }
+/* 구와 평면 — 한 자리를 나눠 쓴다. 넘어가는 것은 `moon.js` 의 `setMode` */
+#globe { position: absolute; inset: 0; background: #000; }
+.moon-globe #map, .moon-flat #globe { visibility: hidden; }
+.moon-globe #map, .moon-flat #map { position: absolute; inset: 0; }
+.moon-globe .if-flat, .moon-flat .if-globe { display: none !important; }
+.moon-globe #scalebar { display: none; }
+.hidden-menu .moon-dot.earth-dot { background: radial-gradient(circle at 35% 35%, #9fd0ff, #3d6fa8 60%, #1d3a5c); }
+.hidden-menu .moon-dot.mars-dot { background: radial-gradient(circle at 35% 35%, #f6a36a, #c1552a 60%, #5a2210); }
+.hidden-menu .moon-dot.mercury-dot { background: radial-gradient(circle at 35% 35%, #e3c38a, #7d8a96 60%, #2c3640); }
+/* 소개 화면(뿌리)으로 — 몸이 아니라 금 테두리만 둔 빈 동그라미 (wetherilli 113) */
+.hidden-menu .intro-link { border-top: 1px solid var(--line); margin-top: 2px; }
+.hidden-menu .moon-dot.intro-dot { background: none; border: 2px solid var(--gold-bright); box-sizing: border-box; }
+.moon-credit { margin: 4px 2px 0; line-height: 1.5; }
+/* 지구·달·화성 — 2D 의 지역 탭 자리. 달·화성은 지역이 아니라 몸이다 */
+.body-tabs { margin: 0 16px 12px; }
+.body-tabs a.region-tab { text-decoration: none; }
+/* 지질 레이어 줄 — 투명도·과장 칸이 줄 밑에 붙는다 */
+.moon-layer { padding: 2px 0 4px; }
+.moon-layer .layer-row { padding-left: 2px; }
+.moon-layer .active-foot { margin: 2px 0 6px 24px; }
+/* 좌표 막대 오른쪽 — 누르개 밑의 달 위경도 */
+.coord-readout { margin-left: auto; font-family: var(--font-mono); font-size: 12px; color: var(--ink-soft);
+                 white-space: nowrap; }
+/* 높이 그래프 — 아래 가운데, 범례 왼쪽. 거리를 다 재면 뜬다 (wetherilli 100) */
+.profile-dock { position: absolute; left: 50%; bottom: 62px; z-index: 5; transform: translateX(-50%);
+                width: min(660px, calc(100% - 340px)); min-width: 280px;
+                background: var(--glass); border: 1px solid var(--glass-line); border-radius: 10px;
+                box-shadow: var(--shadow); backdrop-filter: blur(6px); }
+.profile-dock[hidden] { display: none; }
+.profile-dock > header { display: flex; align-items: baseline; gap: 10px; padding: 7px 10px 2px 12px;
+                         font-size: 12px; color: var(--gold-bright); }
+.profile-dock > header strong { letter-spacing: .08em; }
+.profile-sum { font-family: var(--font-mono); font-size: 11.5px; color: var(--ink-soft); }
+.profile-close { margin-left: auto; border: 0; background: none; color: var(--ink-faint); font-size: 16px;
+                 line-height: 1; cursor: pointer; }
+.profile-close:hover { color: var(--gold-bright); }
+.profile-svg { display: block; width: 100%; height: 170px; cursor: crosshair; }
+.profile-svg .area { fill: var(--gold); fill-opacity: .16; stroke: none; }
+.profile-svg .line { fill: none; stroke: var(--gold-bright); stroke-width: 1.6; vector-effect: non-scaling-stroke; }
+.profile-svg .grid { stroke: var(--line); stroke-width: 1; vector-effect: non-scaling-stroke; }
+.profile-svg .tick { fill: var(--ink-faint); font-family: var(--font-mono); font-size: 10.5px; }
+.profile-svg .cursor { stroke: var(--ink-soft); stroke-width: 1; stroke-dasharray: 3 3; }
+.profile-svg .dot { fill: var(--gold-bright); stroke: var(--glass); stroke-width: 1.5; }
+.profile-read { min-height: 1.5em; margin: 0; padding: 0 12px 7px; font-family: var(--font-mono); font-size: 11.5px;
+                color: var(--ink-soft); }
+/* 범례 — 오른쪽 아래, 좌표 막대 위에 펼쳐 둔다. 머리를 누르면 접힌다 */
+.legend-dock { position: absolute; right: 12px; bottom: 62px; z-index: 5; width: 290px; max-width: calc(100% - 24px);
+               background: var(--glass); border: 1px solid var(--glass-line); border-radius: 10px;
+               box-shadow: var(--shadow); backdrop-filter: blur(6px); overflow: hidden; }
+.legend-dock > summary { display: flex; align-items: baseline; gap: 8px; padding: 8px 12px; cursor: pointer;
+                         font-size: 12px; font-weight: 700; letter-spacing: .08em; color: var(--gold-bright);
+                         list-style: none; }
+.legend-dock > summary::-webkit-details-marker { display: none; }
+.legend-dock > summary::after { content: "▾"; margin-left: auto; font-weight: 400; color: var(--ink-faint); }
+.legend-dock:not([open]) > summary::after { content: "▸"; }
+.legend-dock > summary .hint { letter-spacing: 0; }
+.legend-list { max-height: 42vh; overflow-y: auto; padding: 2px 12px 10px; border-top: 1px solid var(--line-soft); }
+.legend-list li { display: flex; align-items: center; gap: 8px; padding: 2px 0; font-size: 11.5px; color: var(--ink-soft); }
+.legend-list img { width: 18px; height: 14px; flex: 0 0 auto; border-radius: 2px; }
+.legend-list img.trek-legend { width: auto; height: auto; max-width: 100%; padding: 4px; background: #fff; border-radius: 3px; }
+/* 시대마다 상자 하나 (044) — 머리에 시대와 단위 수 */
+.legend-list li.age-box { display: block; margin-top: 8px; padding: 0 8px 4px; border: 1px solid var(--line);
+                          border-radius: 7px; background: var(--panel-tint); }
+.legend-list li.age-box:first-child { margin-top: 6px; }
+.legend-list .age-head { display: flex; align-items: baseline; gap: 6px; margin: 0 -8px 3px; padding: 4px 8px;
+                         font-size: 10.5px; font-weight: 700; letter-spacing: .08em; color: var(--ink);
+                         background: var(--gold-wash); border-bottom: 1px solid var(--line-soft);
+                         border-radius: 6px 6px 0 0; }
+.legend-list .age-n { margin-left: auto; font-family: var(--font-mono); font-weight: 400; letter-spacing: 0;
+                      color: var(--ink-faint); }
+.legend-list li.empty { padding: 6px 0; }
+.legend-list .layer { margin-top: 8px; padding-bottom: 2px; font-size: 11.5px; font-weight: 700; color: var(--ink);
+                     border-bottom: 1px solid var(--line-soft); }
+.legend-list .layer:first-child { margin-top: 2px; }
+.legend-list .chip { width: 18px; height: 12px; flex: 0 0 auto; border-radius: 2px; box-shadow: inset 0 0 0 1px rgba(0,0,0,.25); }
+.legend-list .chip.line { height: 0; border-top: 2.5px solid; border-radius: 0; box-shadow: none; }
+.legend-list .chip.line.dash { border-top-style: dashed; }
+.legend-list .chip.dot { width: 10px; height: 10px; margin: 0 4px; border-radius: 50%; box-shadow: 0 0 0 1.5px #000; } /* 착륙지 (046) */
+/* Cesium 의 출처 줄 — 좌표 막대에 가리지 않게 위로 */
+.cesium-viewer-bottom { left: 12px !important; bottom: 58px !important; opacity: .7; }
+:root[data-region="moon"] .popup, :root[data-region="mars"] .popup { z-index: 8; }
+/* 좌표 막대 — 구에서 가운데 점의 기울기·방위 (045) */
+.pose-readout { margin-left: auto; font-family: var(--font-mono); font-size: 12px; color: var(--ink-faint);
+                white-space: nowrap; }
+.pose-readout + .coord-readout { margin-left: 14px; }
+.moon-flat .pose-readout + .coord-readout { margin-left: auto; }
+#compass-needle { transition: transform .08s linear; }
+/* 할 일이 없는 자세 단추 — 이미 북쪽 위일 때의 "북쪽 위" */
+.tool:disabled { opacity: .35; cursor: default; background: transparent; color: var(--ink-soft); }
+/* 남극 탭에만 서는 것 — "자세" 묶음의 장보고·세종 (049). 방위는 모든 탭에 선다 (wetherilli 114) */
+:root:not([data-region="antarctica"]) .antarctica-only { display: none; }
+/* 손잡이 묶음의 이름표 — "도구"·"자세" (041) */
+.tool-cap { padding: 2px 0 4px; margin-bottom: 1px; font-size: 10px; font-weight: 700; letter-spacing: .1em;
+            text-align: center; color: var(--ink-faint); border-bottom: 1px solid var(--line-soft); }
+/* 평면에서 범위를 끄는 동안의 네모 — 2D 의 금색 대신 흰색 */
+:root[data-region="moon"] .range-box { border-color: #fff; background: rgba(255, 255, 255, .12); }
+:root[data-region="moon"] .temp-no, :root[data-region="mars"] .temp-no { color: var(--on-hi); background: var(--hi); }
+:root[data-region="mars"] .range-box { border-color: #f6a36a; background: rgba(246, 163, 106, .14); }
+/* 영상 보정 (042) — 배경 줄 밑에 접어 둔다 */
+.tune { margin: -2px 0 10px; }
+.tune > summary { cursor: pointer; font-size: 12px; color: var(--ink-soft); }
+.tune > summary .hint { margin-left: 6px; color: var(--hi-ink); }
+.tune-body { margin-top: 6px; padding: 8px 10px; background: var(--panel-tint); border: 1px solid var(--line-soft); border-radius: 8px; }
+.tune-row { display: grid; grid-template-columns: 34px 1fr 38px; align-items: center; gap: 6px; font-size: 12px; color: var(--ink-soft); }
+.tune-row output { font-family: var(--font-mono); font-size: 10.5px; text-align: right; color: var(--ink-faint); }
+.tune-check { display: flex; gap: 6px; align-items: flex-start; margin: 6px 0 2px; font-size: 12px; color: var(--ink-soft); }
+.tune-acts { display: flex; gap: 4px; margin-top: 6px; }
+.tune-acts .btn { height: 28px; font-size: 11.5px; }
+/* 음영 겹치기 — 평면에서는 배경 위에 곱한다. 레이어의 캔버스가 나중에 생겨도 먹게 규칙으로 둔다 */
+#map .moon-shade { mix-blend-mode: multiply; }
+.popup .swatch-img { width: 14px; height: 11px; margin-right: 6px; vertical-align: -1px; border-radius: 2px; }
+.popup .from { display: flex; align-items: center; gap: 6px; margin: -2px 0 8px; font-size: 12px; color: var(--ink-soft); }
+@media (max-width: 760px) {
+  .legend-dock { width: auto; left: 8px; right: 8px; bottom: 54px; }
+  .legend-list { max-height: 34vh; }
+  /* 온 지구는 시간 축이 아래에 앉는다 — 범례는 그 위로 */
+  .timebar ~ .legend-dock { bottom: 150px; }
+  .coord-readout, .pose-readout { display: none; }
+}
+/* 시간 축 (wetherilli 091) — 온 지구 화면의 왼쪽 위. 연대 하나를 로그 막대로 고른다 */
+.timebar { position: absolute; left: 12px; top: 12px; z-index: 6; width: min(520px, calc(100% - 200px));
+           padding: 8px 12px 6px; background: var(--glass); border: 1px solid var(--glass-line); border-radius: 10px;
+           box-shadow: var(--shadow); backdrop-filter: blur(6px); font-size: 12px; color: var(--ink-soft); }
+.timebar .tb-row { display: flex; align-items: center; gap: 8px; }
+.timebar .tb-cap { font-weight: 700; letter-spacing: .08em; color: var(--gold-bright); }
+.timebar .tb-form input { width: 92px; padding: 2px 6px; font: 600 13px var(--font-mono); color: var(--ink);
+                          background: var(--panel-tint); border: 1px solid var(--line); border-radius: 5px; }
+.timebar .tb-period { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+                      color: var(--ink); }
+.timebar .tb-now { padding: 2px 10px; font: inherit; color: var(--on-hi); background: var(--hi); border: 0;
+                   border-radius: 5px; cursor: pointer; }
+.timebar .tb-now:disabled { opacity: .45; cursor: default; }
+.timebar .tb-track { position: relative; margin-top: 6px; }
+.timebar input[type="range"] { display: block; width: 100%; margin: 0; accent-color: var(--hi); }
+/* 자료가 있는 구간 — 막대 위 띠. 레이어마다 한 줄 */
+.timebar .tb-bands { position: relative; height: 0; }
+.timebar .tb-band { position: relative; height: 4px; margin-bottom: 2px; border-radius: 2px; opacity: .8; }
+.timebar .tb-band span { position: absolute; top: 0; bottom: 0; border-radius: 2px; background: var(--gold); }
+.timebar .tb-ticks { position: relative; height: 14px; font: 10px var(--font-mono); color: var(--ink-faint); }
+.timebar .tb-ticks span { position: absolute; top: 1px; transform: translateX(-50%); white-space: nowrap; }
+.timebar .tb-ticks span:first-child { transform: none; }
+.timebar .tb-ticks span:last-child { transform: translateX(-100%); }
+.timebar .tb-note { margin: 2px 0 0; line-height: 1.45; color: var(--ink-faint); }
+.timebar .tb-note:empty { display: none; }
+.timebar.paleo { border-color: var(--gold); }
+.popup .today-go { margin: 4px 0 2px; padding: 2px 10px; font: inherit; font-size: 12px; color: var(--on-hi);
+                   background: var(--hi); border: 0; border-radius: 5px; cursor: pointer; }
+@media (max-width: 760px) { .timebar { left: 8px; width: calc(100% - 16px); top: auto; bottom: 54px; } }
+/* 구의 그리기가 멈췄을 때 (wetherilli 110) */
+.render-failed { position: absolute; left: 50%; top: 50%; z-index: 20; width: min(460px, calc(100% - 32px));
+                 transform: translate(-50%, -50%); padding: 16px 18px; background: var(--panel); color: var(--ink);
+                 border: 1px solid var(--gold-edge); border-radius: 12px; box-shadow: var(--shadow); font-size: 13px;
+                 line-height: 1.55; }
+.render-failed[hidden] { display: none; }
+.render-failed .rf-head { margin: 0 0 6px; font-weight: 700; color: var(--gold-bright); }
+.render-failed p { margin: 0 0 8px; }
+.render-failed .rf-why { font: 11px var(--font-mono); color: var(--ink-faint); word-break: break-all; }
+.render-failed .rf-why:empty { display: none; }
+.render-failed .rf-buttons { display: flex; flex-wrap: wrap; gap: 8px; }
+.render-failed button { padding: 5px 12px; font: inherit; color: var(--on-hi); background: var(--hi); border: 0;
+                        border-radius: 6px; cursor: pointer; }
+.render-failed button + button { color: var(--ink); background: var(--raise); }
+/* 지역 탭의 높이 그래프(wetherilli 109) — 축척 막대(왼쪽 아래)를 덮지 않게 조금 올린다 */
+:root:not([data-region="moon"]):not([data-region="mars"]):not([data-region="earth"]):not([data-region="mercury"]) .profile-dock { bottom: 108px; }

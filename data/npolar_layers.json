@@ -1,0 +1,78 @@
+{
+ "_주석": "노르웨이 극지연구소(NPI)의 스발바르 레이어 씨앗이다. 2026-09-27 에 레이어마다 롱이어비엔 둘레(가까이)와 스발바르 전체(멀리)에서 한 장씩 받아 비지 않은 것만 넣었다(devlog 001 의 함정, 021 의 표). 한글 제목과 레이어군은 사람이 붙였다. 서비스·레이어 번호·팝업 이름은 web/viewer/npolar.py 에 있다. 남극 드로닝모드랜드는 npolar_dml_layers.json 이다.",
+ "_뽑은날": "2026-09-27",
+ "_출처": "https://geodata.npolar.no/arcgis/rest/services/Temadata · https://services3.arcgis.com/CflNQ7lugha7SFIt/arcgis/rest/services",
+ "_지역": "svalbard",
+ "_상류": "npolar",
+ "레이어군순서": [
+  "스발바르 지질 (NPI)",
+  "스발바르 시료·층서 (NPI)",
+  "스발바르 빙하 (NPI)"
+ ],
+ "레이어": [
+  {
+   "name": "npolar:svalbard_units",
+   "title": "지질 단위 (1:25만·1:75만)",
+   "group": "스발바르 지질 (NPI)",
+   "abstract": "Geological map of Svalbard — 1:250 000 units when closer than 1:250 000, 1:750 000 units farther out (NPI switches by scale)",
+   "bbox": [10.0, 74.0, 35.0, 81.0],
+   "확인한날": "2026-09-27"
+  },
+  {
+   "name": "npolar:svalbard_faults",
+   "title": "단층·습곡",
+   "group": "스발바르 지질 (NPI)",
+   "abstract": "Faults and folds, 1:250 000 / 1:750 000",
+   "bbox": [10.0, 74.0, 35.0, 81.0],
+   "확인한날": "2026-09-27"
+  },
+  {
+   "name": "npolar:svalbard_paper",
+   "title": "종이 지질도 (음영)",
+   "group": "스발바르 지질 (NPI)",
+   "abstract": "Printed 1:100 000 / 1:250 000 geological maps of Svalbard, georeferenced and hillshaded — one continuous raster",
+   "bbox": [10.0, 74.0, 35.0, 81.0],
+   "확인한날": "2026-09-27"
+  },
+  {
+   "name": "npolar:svalbard_sheets",
+   "title": "도폭 스캔 (1:10만 등, 전부)",
+   "group": "스발바르 지질 (NPI)",
+   "abstract": "Scanned geological map sheets of Svalbard (mostly 1:100 000), map face only — 38 rasters. Turn on one sheet from the sheet index popup",
+   "bbox": [10.0, 74.0, 35.0, 81.0],
+   "확인한날": "2026-09-28"
+  },
+  {
+   "name": "npolar:svalbard_sheet_index",
+   "title": "도폭 경계",
+   "group": "스발바르 지질 (NPI)",
+   "abstract": "Index of geological map sheets — number, name, year printed, publication. Click a sheet to show only its scan",
+   "bbox": [10.0, 74.0, 35.0, 81.0],
+   "확인한날": "2026-09-28"
+  },
+  {
+   "name": "npolar:rock_archive",
+   "title": "암석 시료 보관소",
+   "group": "스발바르 시료·층서 (NPI)",
+   "abstract": "NPI rock sample archive, Svalbard — 2 054 samples with lithology, place, year, geologist",
+   "bbox": [10.46, 76.84, 33.5, 80.45],
+   "확인한날": "2026-09-27"
+  },
+  {
+   "name": "npolar:svalbard_type_localities",
+   "title": "층서명 모식지",
+   "group": "스발바르 시료·층서 (NPI)",
+   "abstract": "Lithostratigraphic Lexicon of Svalbard — type localities (296)",
+   "bbox": [10.0, 74.0, 35.0, 81.0],
+   "확인한날": "2026-09-27"
+  },
+  {
+   "name": "npolar:svalbard_glacier_fronts",
+   "title": "빙하 전면 변화 (1936–2025)",
+   "group": "스발바르 빙하 (NPI)",
+   "abstract": "Glacier fronts of Svalbard — 4 064 front lines coloured by year, 1936–2025 (Sentinel-2, Landsat, aerial photos). CC BY 4.0",
+   "bbox": [10.0, 74.0, 35.0, 81.0],
+   "확인한날": "2026-09-30"
+  }
+ ]
+}

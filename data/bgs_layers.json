@@ -1,0 +1,49 @@
+{
+ "_주석": "BGS(영국 지질조사소) 1:5만 지질도 씨앗이다 — 영국 탭(유럽 묶음에도 든다). 그레이트브리튼만 덮는다(북아일랜드는 GSNI 다). 상류가 1:94 495 보다 가까울 때만 그려서 화면은 줌 13 부터 묻는다(web/viewer/bgs.py 의 MIN_ZOOM). 넓게 볼 때는 EGDI 1:100만(egdi_layers.json)이 밑을 채운다. 상류 이름 앞에 bgs: 를 붙였다 — 문이 뗀다. 한글 제목과 레이어군은 사람이 붙였다 (wetherilli 143).",
+ "_뽑은날": "2026-10-02",
+ "_출처": "https://map.bgs.ac.uk/arcgis/services/BGS_Detailed_Geology/MapServer/WMSServer?SERVICE=WMS&REQUEST=GetCapabilities",
+ "_지역": "uk",
+ "_상류": "bgs",
+ "_레이어군차례": 1,
+ "레이어군순서": [
+  "영국 지질 (BGS)"
+ ],
+ "레이어": [
+  {
+   "name": "bgs:BGS.50k.Bedrock",
+   "title": "기반암 (1:5만)",
+   "group": "영국 지질 (BGS)",
+   "abstract": "GBR BGS 1:50k Bedrock — 지층·암석·시대. 줌 13 부터 그린다",
+   "bbox": [
+    -8.7,
+    49.8,
+    2.0,
+    60.9
+   ]
+  },
+  {
+   "name": "bgs:BGS.50k.Superficial.deposits",
+   "title": "표층 퇴적층 (1:5만)",
+   "group": "영국 지질 (BGS)",
+   "abstract": "GBR BGS 1:50k Superficial deposits — 빙하 퇴적층·충적층 따위. 줌 13 부터",
+   "bbox": [
+    -8.7,
+    49.8,
+    2.0,
+    60.9
+   ]
+  },
+  {
+   "name": "bgs:BGS.50k.Linear.features",
+   "title": "선 구조 (1:5만)",
+   "group": "영국 지질 (BGS)",
+   "abstract": "GBR BGS 1:50k Linear features — 단층·탄층·해성층 따위. 줌 13 부터",
+   "bbox": [
+    -8.7,
+    49.8,
+    2.0,
+    60.9
+   ]
+  }
+ ]
+}

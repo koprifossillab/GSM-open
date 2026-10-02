@@ -1,0 +1,59 @@
+# 파이썬
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+
+# Django
+*.db
+*.sqlite3
+/web/staticfiles/
+/web/media/
+/web/.thumbcache/
+
+# 비밀 — 절대 커밋하지 않는다. 인증키가 여기 든다
+.env
+.env.*
+!.env.template
+
+# 올린 자료
+/web/uploads/
+
+# 상류에서 새로 뽑은 씨앗의 원본 XML (822 KB, 저장소에 두지 않는다)
+/data/*.xml
+
+# 편집기·OS
+.idea/
+.vscode/
+*.swp
+.DS_Store
+
+# 받아둔 타일. 캐시지 자료가 아니다 — 지워도 다시 받는다.
+/web/.tilecache/
+
+# 남극 지질도(GeoMAP) 파일. 개발에서 GSM_GEOMAP_DIR 을 안 주면 DB 옆(저장소 뿌리)의
+# geomap/ 을 본다. 490 MB 라 커밋하지 않는다 — 자료의 주인은 GNS Science 다.
+/geomap/
+*.gpkg
+# 얀마옌 지질도(NPI) — 기본 자리 <DB 옆>/npolar/. 저장소가 공개라 받은 것을 올리지 않는다 (devlog 022)
+/npolar/
+# 중국 지질도(USGS geo3al) — 기본 자리 <DB 옆>/usgs/. 이용 조건이 재배포를 막는다 (devlog 025)
+/usgs/
+geo3al.shp
+geo3al.dbf
+# 한반도 지질도 음영판 — 기본 자리 <DB 옆>/peninsula/. 출처를 몰라 올리지 않는다 (devlog 027)
+/peninsula/
+# 달 지질도 원도를 구운 것 — 기본 자리 <DB 옆>/moon/. 84 MB, 원본은 NAS 에 있다 (devlog 039)
+/moon/
+
+# Claude Code 의 작업 자리 (에이전트 worktree 등)
+/.claude/
+# 남극 해저·빙저 지형 IBCSO v2 — 기본 자리 <DB 옆>/ibcso/. 340 MB 라 올리지 않는다 (devlog 047)
+/ibcso/
+# 극지연구소에서 모아 둔 것 — 기본 자리 <DB 옆>/kopri/. 우리 자료가 아니다 (devlog 053)
+/kopri/
+# 화성 크레이터 목록을 구운 것 — 기본 자리 <DB 옆>/mars/. 51 MB, 원본은 NAS 에 있다 (devlog 067)
+/mars/
+# 수성 지질도를 구운 것 — 기본 자리 <DB 옆>/mercury/. 5 MB, 원본은 NAS 의 sources/mercury/ (wetherilli 144)
+/mercury/

@@ -1,0 +1,12 @@
+# 바람을 받아 굽는 쪽만 쓰는 것 (koprifossillab P02). **운영 이미지에는 넣지 않는다.**
+#
+# 받고 굽는 일(`fetch_gfs_wind`·`build_era5_wind`)은 호스트에서 `/srv/GSM/scripts/run.sh` 가 전용 venv 로 한다 — install.sh 의
+# REQS 에 이 파일이 들어 있어 venv 가 저절로 깔린다 (koprifossillab 005). 개발에서는 ~/venv/GSM 에 함께 깐다.
+# 컨테이너는 구워 둔 PNG·JSON 을 내주기만 한다 — ecCodes 는 eckit 까지 45 MB 라 이미지에 들일 까닭이 없다.
+#
+#   pip install -r requirements.txt -r requirements-wind.txt
+
+numpy==2.5.3
+eccodes==2.49.0       # GFS 의 GRIB2 (viewer/gfs.py). 바이너리(eccodeslib·eckitlib)를 휠이 함께 깐다
+numcodecs==0.17.0     # ERA5 Zarr 덩이의 blosc-lz4 (viewer/era5.py)
+h5py==3.16.0          # GMGSI 위성 구름의 HDF5 (viewer/gmgsi.py, koprifossillab 012)

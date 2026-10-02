@@ -1,0 +1,37 @@
+{
+ "_주석": "EGDI(EuroGeoSurveys) 범유럽 1:100만 지표 지질도 씨앗이다 — 영국 지역에 두고 프랑스 탭이 빌린다(map.js 의 REGIONS.france.borrow), 유럽 묶음에는 한 번 든다. 나라마다의 INSPIRE 1:100만을 모은 것이라 영국·아일랜드·프랑스·스페인·독일을 다 덮는다 — 넓게 볼 때 밑에 까는 판이다. 상류가 느리고(한 장 9 초) 속성 서버가 오류를 내서 누르지 못하게 둔다(web/viewer/egdi.py). 상류 이름 앞에 egdi: 를 붙였다 (wetherilli 143).",
+ "_뽑은날": "2026-10-02",
+ "_출처": "https://geoserver.geo-zs.si/egdi-surface-geology/gsmlp/wms?service=wms&version=1.3.0&request=GetCapabilities",
+ "_지역": "uk",
+ "_상류": "egdi",
+ "_레이어군차례": 0,
+ "레이어군순서": [
+  "유럽 지질 (EGDI 1:100만)"
+ ],
+ "레이어": [
+  {
+   "name": "egdi:GeologicUnitView_Age",
+   "title": "지표 지질 — 시대",
+   "group": "유럽 지질 (EGDI 1:100만)",
+   "abstract": "EGDI 1:1M Surface Geologic Units Age — 유럽 여러 나라의 1:100만 지표 지질을 시대로 칠했다",
+   "bbox": [
+    -25.0,
+    34.0,
+    45.0,
+    72.0
+   ]
+  },
+  {
+   "name": "egdi:GeologicUnitView_Lithology",
+   "title": "지표 지질 — 암상",
+   "group": "유럽 지질 (EGDI 1:100만)",
+   "abstract": "EGDI 1:1M Surface Geologic Units Lithology",
+   "bbox": [
+    -25.0,
+    34.0,
+    45.0,
+    72.0
+   ]
+  }
+ ]
+}

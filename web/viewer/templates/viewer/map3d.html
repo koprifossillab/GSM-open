@@ -1,0 +1,134 @@
+{% load static gsm_i18n %}<!DOCTYPE html>
+<html lang="{{ lang }}">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{% t "대돌여지도" %} 3D</title>
+<link rel="icon" type="image/svg+xml" href="{% static 'viewer/emblem.svg' %}?v={{ stamp|default:version }}">
+<link rel="stylesheet" href="{% static 'viewer/vendor/maplibre/maplibre-gl.css' %}">
+<link rel="stylesheet" href="{% static 'viewer/map.css' %}?v={{ stamp|default:version }}">
+{% comment %}2D 와 같은 테마·지역 색으로 뜬다. 지역은 2D 의 3D 단추가 `?region=` 으로 넘기고, 없으면
+2D 에서 마지막에 보던 지역이다. CSS 가 입혀지기 전에 달아야 깜빡이지 않는다.{% endcomment %}
+<script>
+(function () {
+  var root = document.documentElement, q = new URLSearchParams(location.search);
+  function saved(key, fallback) {
+    try { return localStorage.getItem(key) || fallback; } catch (e) { return fallback; }
+  }
+  root.setAttribute("data-theme", saved("gsm.theme", "brown"));
+  root.setAttribute("data-font", saved("gsm.font", "sans"));
+  root.setAttribute("data-size", saved("gsm.size", "m"));
+  var region = q.get("region") || saved("gsm.region", "korea");
+  if (/^[a-z_]+$/.test(region)) root.setAttribute("data-region", region);
+})();
+</script>
+<style>
+  body { margin: 0; }
+  #map3d { position: fixed; inset: 0; background: #e8e0d2; }
+  .panel3d { position: fixed; top: 12px; left: 12px; z-index: 5; width: 280px; padding: 12px 14px;
+             color: var(--ink); background: var(--panel); border: 1px solid var(--line);
+             border-radius: var(--radius); box-shadow: var(--shadow); font-size: 12.5px; }
+  .panel3d h1 { margin: 0 0 2px; font-size: 16px; color: var(--hi-ink); }
+  .p3-head { display: flex; align-items: center; gap: 8px; }
+  .p3-head h1 { flex: 1; margin: 0; }
+  .fold3d { width: 28px; height: 24px; padding: 0; font: 600 13px/1 ui-monospace, Menlo, monospace;
+            color: var(--hi-ink); background: var(--panel-tint); border: 1px solid var(--line);
+            border-radius: var(--radius); cursor: pointer; }
+  .fold3d::after { content: "▴"; }
+  .panel3d.folded .fold3d::after { content: "▾"; }
+  .panel3d.folded #p3-body { display: none; }
+  #p3-body { margin-top: 2px; }
+  @media (max-width: 760px) {
+    .panel3d { top: 8px; left: 8px; width: auto; right: 56px; max-height: calc(100dvh - 90px); overflow-y: auto;
+               padding: 10px 12px; }
+    .panel3d .hint.mouse { display: none; }
+    .ps3d { max-height: none; }
+  }
+  .panel3d label { display: block; margin-top: 10px; color: var(--ink-soft); }
+  .panel3d select, .panel3d input[type=range] { width: 100%; margin-top: 4px; }
+  .panel3d select { padding: 5px 6px; font: inherit; color: var(--ink); background: var(--panel-tint);
+                    border: 1px solid var(--line); border-radius: var(--radius); }
+  .panel3d .hint { margin: 10px 0 0; }
+  .panel3d .hint.touch { display: none; }
+  @media (pointer: coarse) { .panel3d .hint.touch { display: block; } .panel3d .hint.mouse { display: none; } }
+  .panel3d a { color: var(--hi-ink); }
+  .panel3d h2 { margin: 14px 0 4px; font-size: 12.5px; color: var(--ink-soft); font-weight: 600; }
+  .ps3d { margin: 0; padding: 0; list-style: none; max-height: 30vh; overflow: auto; }
+  .ps3d li { display: flex; align-items: center; gap: 6px; padding: 2px 0; }
+  .ps3d li.empty { color: var(--ink-soft); }
+  .ps3d .swatch { width: 10px; height: 10px; border-radius: 50%; border: 1.5px solid #fff;
+                  box-shadow: 0 0 0 1px var(--line); flex: none; }
+  .ps3d .ps-name { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .ps3d .ps-count { color: var(--ink-soft); font-size: 11px; }
+  .ps3d button { padding: 0 5px; font: inherit; color: var(--ink); background: var(--panel-tint);
+                 border: 1px solid var(--line); border-radius: var(--radius); cursor: pointer; }
+  .panel3d .export3d { display: block; width: 100%; margin-top: 10px; padding: 5px 6px; font: inherit;
+                        color: var(--ink); background: var(--panel-tint); border: 1px solid var(--line);
+                        border-radius: var(--radius); cursor: pointer; }
+  .panel3d .export3d:disabled { opacity: 0.6; cursor: progress; }
+  /* MapLibre 팝업은 흰 바탕이다 — 화면의 글자색(먹갈색 테마의 옅은 금색)을 물려받지 않게 */
+  .popup3d { color: #1f1409; }
+  .popup3d a { color: #7a4a12; }
+  .popup3d h3 { margin: 0 0 4px; font-size: 13px; color: #3f2712; }
+  .popup3d .label { margin: 0 0 4px; font-weight: 600; }
+  .popup3d table { border-collapse: collapse; font-size: 12px; }
+  .popup3d th { padding: 1px 8px 1px 0; color: #666; font-weight: normal; text-align: left; vertical-align: top; }
+  .popup3d td { padding: 1px 0; }
+</style>
+</head>
+<body>
+<div id="map3d"></div>
+<aside class="panel3d" id="panel3d">
+  {% comment %}판은 접힌다 — 휴대폰에서는 판이 지형을 다 덮어 접힌 채로 연다 (wetherilli 128){% endcomment %}
+  <header class="p3-head">
+    <h1>{% t "대돌여지도" %} 3D</h1>
+    <button type="button" id="fold3d" class="fold3d" aria-controls="p3-body" aria-expanded="true"
+            title="{% t "패널을 접는다" %}"></button>
+  </header>
+  <div id="p3-body">
+  <label>{% t "지질 레이어" %}
+    <select id="layer3d">
+      {% for group in catalog_groups %}<optgroup label="{{ group.name }}" data-region="{{ group.region }}">
+        {% for l in group.layers %}<option value="{{ l.name }}" data-upstream="{{ l.upstream }}"{% if l.attribution %} data-attribution="{{ l.attribution }}"{% endif %}>{{ l.title }}</option>{% endfor %}
+      </optgroup>{% endfor %}
+    </select>
+  </label>
+  {% comment %}남극만 — IBCSO 를 깔고, 지형도 같은 판을 따른다(빙저를 고르면 얼음을 걷어 낸 땅이 선다, 051){% endcomment %}
+  <label class="antarctica-only">{% t "배경" %}
+    <select id="base3d">
+      <option value="ice">{% t "IBCSO 해저·얼음 위 지형" %}</option>
+      <option value="bed">{% t "IBCSO 해저·빙저 지형" %}</option>
+      <option value="">{% t "없음" %}</option>
+    </select>
+  </label>
+  <p id="base3d-hint" class="hint antarctica-only" hidden>{% t "빙저 지형을 고르면 3D 의 땅도 얼음을 걷어 낸 기반암이 된다." %}</p>
+  <label>{% t "투명도" %} <span id="op-num">70%</span>
+    <input type="range" id="opacity3d" min="0" max="100" value="70">
+  </label>
+  <label>{% t "지형 과장" %} <span id="ex-num">×1.5</span>
+    <input type="range" id="exag3d" min="10" max="40" value="15">
+  </label>
+  <label><input type="checkbox" id="shade3d" checked> {% t "음영 보이기" %}</label>
+  <button type="button" id="export3d" class="export3d"
+          title="{% t "그림으로 내려받기 — 지금 보는 3D 화면을 PNG 한 장으로. 레이어·자리·출처를 아래에 적는다" %}">{% t "그림으로 내려받기" %}</button>
+  {% comment %}한반도 지질도·암맥이라 한국·동아시아 밖에서는 숨긴다 (map.css 의 .korea-only){% endcomment %}
+  <h2 id="custom3d-head" class="korea-only" hidden>{% t "커스텀 지질도" %}</h2>
+  <ul id="custom3d" class="ps3d korea-only"></ul>
+  <h2>{% t "내 자료" %}</h2>
+  <ul id="ps3d" class="ps3d"></ul>
+  <p id="ps3d-warn" class="hint" hidden></p>
+  <p class="hint mouse">{% t "오른쪽 단추를 누른 채 끌면(또는 Ctrl+끌기) 기울이고 돌린다." %}</p>
+  <p class="hint touch">{% t "두 손가락을 위아래로 끌면 기울이고, 비틀면 돌린다." %}</p>
+  <p class="hint">{% t "표고: AWS Terrain Tiles (SRTM 등, 약 30 m) · 일본 국토지리원 (10 m) · 극지 PGC ArcticDEM·REMA (2 m) · 남빙양 IBCSO v2 (500 m). 지질도: 한국지질자원연구원 등." %}</p>
+  <p class="hint"><a id="back2d" href="{{ base }}map/">{% t "2D 로 돌아간다" %}</a></p>
+  </div>
+</aside>
+<script id="vworld-key" type="application/json">"{{ vworld_key|escapejs }}"</script>
+<script id="i18n-data" type="application/json">{{ i18n_json|safe }}</script>
+<script id="pointset-data" type="application/json">{{ pointsets|safe }}</script>
+<script id="custom-data" type="application/json">{{ custom_layers|safe }}</script>
+<script id="glyphs-url" type="application/json">"{% static 'viewer/vendor/maplibre/glyphs/' %}"</script>
+<script src="{% static 'viewer/vendor/maplibre/maplibre-gl.js' %}"></script>
+<script src="{% static 'viewer/map3d.js' %}?v={{ stamp|default:version }}"></script>
+</body>
+</html>

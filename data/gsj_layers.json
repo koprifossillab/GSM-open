@@ -1,0 +1,52 @@
+{
+ "_주석": "일본 산업기술종합연구소 지질조사종합센터(GSJ, AIST)의 20만분의 1 일본 심리스 지질도 V2 씨앗이다. GetCapabilities 가 없는 타일 API 라 레이어를 사람이 API 안내(layer=g·l·f·s, type=level2)에서 골랐다. 2026-09-28 에 레이어마다 네 자리(후지산·시코쿠·도쿄 서쪽·히다카)에서 줌 6·11·13 한 장씩 받아 그려짐을 확인했다(devlog 024). 한글 제목과 레이어군은 사람이 붙였다. API 의 layer·type·줌 범위·범례 읽는 법은 web/viewer/gsj.py 에 있다.",
+ "_뽑은날": "2026-09-28",
+ "_출처": "https://gbank.gsj.jp/seamless/v2/api/1.3/",
+ "_지역": "japan",
+ "_상류": "gsj",
+ "레이어군순서": [
+  "심리스 지질도 (GSJ)"
+ ],
+ "레이어": [
+  {
+   "name": "gsj:geology",
+   "title": "20만 심리스 지질도",
+   "group": "심리스 지질도 (GSJ)",
+   "abstract": "20万分の1日本シームレス地質図V2 — 2 416 legend units, updated 2026-05",
+   "bbox": [122.5, 20.0, 154.1, 46.1],
+   "확인한날": "2026-09-28"
+  },
+  {
+   "name": "gsj:geology_level2",
+   "title": "20만 심리스 지질도 — 간략 (14 구분)",
+   "group": "심리스 지질도 (GSJ)",
+   "abstract": "Simplified legend: 4 eras × sedimentary / accretionary / igneous / metamorphic",
+   "bbox": [122.5, 20.0, 154.1, 46.1],
+   "확인한날": "2026-09-28"
+  },
+  {
+   "name": "gsj:boundaries",
+   "title": "지질 경계",
+   "group": "심리스 지질도 (GSJ)",
+   "abstract": "Geological boundaries — zoom 10 and closer",
+   "bbox": [122.5, 20.0, 154.1, 46.1],
+   "확인한날": "2026-09-28"
+  },
+  {
+   "name": "gsj:faults",
+   "title": "단층·요곡",
+   "group": "심리스 지질도 (GSJ)",
+   "abstract": "Faults and flexures — zoom 10 and closer",
+   "bbox": [122.5, 20.0, 154.1, 46.1],
+   "확인한날": "2026-09-28"
+  },
+  {
+   "name": "gsj:symbols",
+   "title": "범례 기호",
+   "group": "심리스 지질도 (GSJ)",
+   "abstract": "Legend symbols printed on the map — zoom 11 and closer",
+   "bbox": [122.5, 20.0, 154.1, 46.1],
+   "확인한날": "2026-09-28"
+  }
+ ]
+}

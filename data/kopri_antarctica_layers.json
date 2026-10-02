@@ -1,0 +1,247 @@
+{
+ "_주석": "극지연구소(KOPRI)의 씨앗이다. 2026-09-29 에 암석 시료 DB·KPDC 목록·KPDC 지도 서버를 받아 보고 넣었다. 한글 제목과 레이어군은 사람이 붙였다. 무엇을 어디서 받는지는 web/viewer/kopri.py 의 LAYERS·WMS 에 있다. 남극에는 시료(암석·운석), KPDC 자료(주제마다 한 레이어), KPDC 기본도(기지·해안선)를 둔다. 레이어군을 GeoMAP·드로닝모드랜드 뒤에 두려고 차례를 20 에서 시작한다.",
+ "_뽑은날": "2026-09-29",
+ "_출처": "https://kpdc.kopri.re.kr/",
+ "_지역": "antarctica",
+ "_상류": "kopri",
+ "_레이어군차례": 20,
+ "레이어군순서": [
+  "극지연구소 시료",
+  "KPDC 자료",
+  "KPDC 기본도",
+  "쇄빙연구선 아라온호"
+ ],
+ "레이어": [
+  {
+   "name": "kopri:rock_antarctica",
+   "title": "암석 시료 (KOPRI)",
+   "group": "극지연구소 시료",
+   "abstract": "KOPRI rock sample DB — sample no., rock type, formation, age",
+   "bbox": [
+    -56.8,
+    -76.15,
+    170.27,
+    -60.58
+   ]
+  },
+  {
+   "name": "kopri:meteorites",
+   "title": "운석 발견 지점 (KoreaMet)",
+   "group": "극지연구소 시료",
+   "abstract": "Korean Antarctic meteorite finds (KPDC KoreaMet)",
+   "bbox": [
+    -180.0,
+    -90.0,
+    180.0,
+    -60.0
+   ]
+  },
+  {
+   "name": "kopri:kpdc_sediment",
+   "title": "해양 퇴적물·코어",
+   "group": "KPDC 자료",
+   "abstract": "KPDC datasets — marine sediments, cores",
+   "bbox": [
+    -180.0,
+    -90.0,
+    180.0,
+    -60.0
+   ]
+  },
+  {
+   "name": "kopri:kpdc_solid",
+   "title": "고체지구",
+   "group": "KPDC 자료",
+   "abstract": "KPDC datasets — solid earth (geology, geophysics)",
+   "bbox": [
+    -180.0,
+    -90.0,
+    180.0,
+    -60.0
+   ]
+  },
+  {
+   "name": "kopri:kpdc_paleo",
+   "title": "고기후",
+   "group": "KPDC 자료",
+   "abstract": "KPDC datasets — paleoclimate",
+   "bbox": [
+    -180.0,
+    -90.0,
+    180.0,
+    -60.0
+   ]
+  },
+  {
+   "name": "kopri:kpdc_cryo",
+   "title": "빙권",
+   "group": "KPDC 자료",
+   "abstract": "KPDC datasets — cryosphere (glaciers, ice sheets, sea ice)",
+   "bbox": [
+    -180.0,
+    -90.0,
+    180.0,
+    -60.0
+   ]
+  },
+  {
+   "name": "kopri:kpdc_ocean",
+   "title": "해양",
+   "group": "KPDC 자료",
+   "abstract": "KPDC datasets — oceans",
+   "bbox": [
+    -180.0,
+    -90.0,
+    180.0,
+    -60.0
+   ]
+  },
+  {
+   "name": "kopri:kpdc_atmo",
+   "title": "대기",
+   "group": "KPDC 자료",
+   "abstract": "KPDC datasets — atmosphere",
+   "bbox": [
+    -180.0,
+    -90.0,
+    180.0,
+    -60.0
+   ]
+  },
+  {
+   "name": "kopri:kpdc_bio",
+   "title": "생물",
+   "group": "KPDC 자료",
+   "abstract": "KPDC datasets — biosphere",
+   "bbox": [
+    -180.0,
+    -90.0,
+    180.0,
+    -60.0
+   ]
+  },
+  {
+   "name": "kopri:kpdc_other",
+   "title": "그 밖",
+   "group": "KPDC 자료",
+   "abstract": "KPDC datasets — other topics",
+   "bbox": [
+    -180.0,
+    -90.0,
+    180.0,
+    -60.0
+   ]
+  },
+  {
+   "name": "kopri:stations",
+   "title": "남극 기지 (COMNAP)",
+   "group": "KPDC 기본도",
+   "abstract": "Antarctic facilities (COMNAP) via the KPDC map server",
+   "bbox": [
+    -180.0,
+    -90.0,
+    180.0,
+    -60.0
+   ]
+  },
+  {
+   "name": "kopri:coast_change",
+   "title": "해안선 변화 (남극반도)",
+   "group": "KPDC 기본도",
+   "abstract": "Antarctic Peninsula coastline change — lines by year and source",
+   "bbox": [
+    -83.57,
+    -75.83,
+    -38.72,
+    -60.54
+   ]
+  },
+  {
+   "name": "kopri:lakes",
+   "title": "호수",
+   "group": "KPDC 기본도",
+   "abstract": "Antarctic lakes",
+   "bbox": [
+    -180.0,
+    -90.0,
+    180.0,
+    -58.58
+   ]
+  },
+  {
+   "name": "kopri:streams",
+   "title": "하천 (남극반도)",
+   "group": "KPDC 기본도",
+   "abstract": "Antarctic Peninsula streams",
+   "bbox": [
+    -74.3,
+    -71.42,
+    -49.69,
+    -61.93
+   ]
+  },
+  {
+   "name": "kopri:moraines",
+   "title": "빙퇴석",
+   "group": "KPDC 기본도",
+   "abstract": "Antarctic moraines",
+   "bbox": [
+    -180.0,
+    -90.0,
+    180.0,
+    -58.67
+   ]
+  },
+  {
+   "name": "kopri:rock_outcrops",
+   "title": "노출암",
+   "group": "KPDC 기본도",
+   "abstract": "SCAR 남극 기본도 — 얼음 밖으로 드러난 암석. 멀리서는 중해상, 가까이서는 고해상 판",
+   "bbox": [
+    -180,
+    -90,
+    180,
+    -52.5
+   ],
+   "확인한날": "2026-09-30"
+  },
+  {
+   "name": "kopri:contours",
+   "title": "등고선",
+   "group": "KPDC 기본도",
+   "abstract": "SCAR 남극 기본도 — 얼음·암석 위 등고선(m). 축척마다 판이 바뀐다",
+   "bbox": [
+    -180,
+    -90,
+    180,
+    -42.3
+   ],
+   "확인한날": "2026-09-30"
+  },
+  {
+   "name": "kopri:historic",
+   "title": "역사 유적·기념물 (HSM)",
+   "group": "KPDC 기본도",
+   "abstract": "남극조약 협의당사국회의가 지정한 역사 유적·기념물 85 곳 — 번호·설명·관리국",
+   "bbox": [
+    -180,
+    -90,
+    180,
+    -58.1
+   ],
+   "확인한날": "2026-09-30"
+  },
+  {
+   "name": "kopri:araon_antarctica",
+   "title": "아라온호 항적",
+   "group": "쇄빙연구선 아라온호",
+   "abstract": "RV Araon track, hourly fixes from KOPRI live position page",
+   "bbox": [
+    -180.0,
+    -90.0,
+    180.0,
+    -50.0
+   ]
+  }
+ ]
+}

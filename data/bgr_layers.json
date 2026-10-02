@@ -1,0 +1,61 @@
+{
+ "_주석": "BGR(독일 연방 지구과학·자원청) 지질도 씨앗이다 — 독일 탭(유럽 묶음에도 든다). 판이 둘(GK1000·GÜK250)이고 ArcGIS 레이어 이름이 번호라 bgr:<판>:<번호> 로 둔다 — 문(web/viewer/bgr.py)이 나눈다. 판마다 그리는 줌이 좁아(GK1000 9–10, GÜK250 10–14, 2026-10-02 에 카셀에서 잰 것) 그보다 멀면 EGDI 1:100만이 밑을 채운다. 한글 제목과 레이어군은 사람이 붙였다 (wetherilli 147).",
+ "_뽑은날": "2026-10-02",
+ "_출처": "https://services.bgr.de/wms/geologie/guek250/?SERVICE=WMS&REQUEST=GetCapabilities",
+ "_지역": "germany",
+ "_상류": "bgr",
+ "_레이어군차례": 1,
+ "레이어군순서": [
+  "독일 지질 (BGR)"
+ ],
+ "레이어": [
+  {
+   "name": "bgr:gk1000:0",
+   "title": "지질도 (1:100만)",
+   "group": "독일 지질 (BGR)",
+   "abstract": "GK1000 — Geologische Schichten. 줌 9–10",
+   "bbox": [
+    5.8,
+    47.2,
+    15.1,
+    55.1
+   ]
+  },
+  {
+   "name": "bgr:guek250:7",
+   "title": "층서 (1:25만)",
+   "group": "독일 지질 (BGR)",
+   "abstract": "GÜK250 — Basislayer Stratigraphie. 깊이 2 m 까지의 지표 지질을 시대로. 줌 10–14",
+   "bbox": [
+    5.8,
+    47.2,
+    15.1,
+    55.1
+   ]
+  },
+  {
+   "name": "bgr:guek250:4",
+   "title": "암상 (1:25만)",
+   "group": "독일 지질 (BGR)",
+   "abstract": "GÜK250 — Basislayer Petrographie. 줌 10–14",
+   "bbox": [
+    5.8,
+    47.2,
+    15.1,
+    55.1
+   ]
+  },
+  {
+   "name": "bgr:guek250:11",
+   "title": "구조선 (1:25만)",
+   "group": "독일 지질 (BGR)",
+   "abstract": "GÜK250 — Tektonik: 단층 따위. 줌 10–14",
+   "bbox": [
+    5.8,
+    47.2,
+    15.1,
+    55.1
+   ]
+  }
+ ]
+}

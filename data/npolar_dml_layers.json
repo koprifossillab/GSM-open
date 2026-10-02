@@ -1,0 +1,61 @@
+{
+ "_주석": "노르웨이 극지연구소(NPI)의 남극 드로닝모드랜드 지질도(G_Geologi_DML, EPSG:3031) 씨앗이다. 2026-09-27 에 타일은 한 장씩, 점은 통째로 받아 보고 넣었다. 점의 범위는 받은 점에서 잰 것이다 — 시료 보관소는 드로닝모드랜드 밖(부베섬·남극반도)까지 있다. 한글 제목과 레이어군은 사람이 붙였다. 서비스·레이어 번호·팝업 이름은 web/viewer/npolar.py 에 있다. 레이어군을 GeoMAP 뒤에 두려고 차례를 10 에서 시작한다.",
+ "_뽑은날": "2026-09-27",
+ "_출처": "https://geodata.npolar.no/arcgis/rest/services/Temadata/G_Geologi_DML/MapServer",
+ "_지역": "antarctica",
+ "_상류": "npolar",
+ "_레이어군차례": 10,
+ "레이어군순서": [
+  "드로닝모드랜드 (NPI)"
+ ],
+ "레이어": [
+  {
+   "name": "npolar:dml_units",
+   "title": "지질 단위 (1:25만·1:500만)",
+   "group": "드로닝모드랜드 (NPI)",
+   "abstract": "Digital geological map of Dronning Maud Land — 1:250 000 units (130) closer than 1:750 000, 1:5 000 000 overview farther out",
+   "bbox": [-20.0, -76.0, 45.0, -68.0],
+   "확인한날": "2026-09-27"
+  },
+  {
+   "name": "npolar:dml_structures",
+   "title": "구조선",
+   "group": "드로닝모드랜드 (NPI)",
+   "abstract": "Structures — faults, folds, shear zones (424)",
+   "bbox": [-20.0, -76.0, 45.0, -68.0],
+   "확인한날": "2026-09-27"
+  },
+  {
+   "name": "npolar:dml_tectonic",
+   "title": "주요 지구조 경계",
+   "group": "드로닝모드랜드 (NPI)",
+   "abstract": "Major tectonic boundaries (53)",
+   "bbox": [-20.0, -76.0, 45.0, -68.0],
+   "확인한날": "2026-09-27"
+  },
+  {
+   "name": "npolar:dml_geochron",
+   "title": "연대측정",
+   "group": "드로닝모드랜드 (NPI)",
+   "abstract": "Geochronology — 389 ages (Ma) with type, method, sample, reference",
+   "bbox": [-12.23, -74.9, 44.54, -67.93],
+   "확인한날": "2026-09-27"
+  },
+  {
+   "name": "npolar:dml_samples",
+   "title": "암석 시료 보관소 (남극)",
+   "group": "드로닝모드랜드 (NPI)",
+   "abstract": "NPI rock sample archive, Antarctica — 730 samples",
+   "bbox": [-84.88, -80.06, 7.76, -54.39],
+   "확인한날": "2026-09-27"
+  },
+  {
+   "name": "npolar:dml_sites",
+   "title": "야외 조사 지점",
+   "group": "드로닝모드랜드 (NPI)",
+   "abstract": "Field sites of Norwegian expeditions (NARE 1969–97, NPI 2018–22) — 1 131",
+   "bbox": [-84.63, -80.06, 7.72, -71.72],
+   "확인한날": "2026-09-27"
+  }
+ ]
+}

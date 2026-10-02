@@ -1,0 +1,54 @@
+{
+ "_주석": "남극 지질도 — SCAR GeoMAP v2022-08 (GNS Science, CC-BY 4.0, doi:10.1594/PANGAEA.951482). 상류의 GetCapabilities 가 아니라 우리가 그리는 레이어라, 이름은 viewer/geomap.py 의 LAYERS 와 같아야 한다. 한글 제목과 레이어군은 사람이 붙였다. 범위는 GeoMAP 이 덮는 남위 60° 남쪽이다.",
+ "_뽑은날": "2026-09-27",
+ "_출처": "https://doi.org/10.1594/PANGAEA.951482",
+ "_지역": "antarctica",
+ "_상류": "geomap",
+ "레이어군순서": [
+  "GeoMAP 지질도"
+ ],
+ "레이어": [
+  {
+   "name": "geomap_simple_geology",
+   "title": "지질도 (간추린 분류)",
+   "group": "GeoMAP 지질도",
+   "abstract": "GeoMAP 지질 단위를 SIMPCODE 21 갈래로 칠했다 (GNS 의 Simple geology 스타일)",
+   "bbox": [-180, -90, 180, -60]
+  },
+  {
+   "name": "geomap_chronostratigraphic",
+   "title": "지질시대",
+   "group": "GeoMAP 지질도",
+   "abstract": "GeoMAP 지질 단위를 지질시대(MAPSYMBOL)로 칠했다 (GNS 의 Chronostratigraphic 스타일)",
+   "bbox": [-180, -90, 180, -60]
+  },
+  {
+   "name": "geomap_simple_lithology",
+   "title": "암상 (간추린 분류)",
+   "group": "GeoMAP 지질도",
+   "abstract": "GeoMAP 지질 단위를 암상(LITHCODE)으로 칠했다 (GNS 의 Simple lithology 스타일)",
+   "bbox": [-180, -90, 180, -60]
+  },
+  {
+   "name": "geomap_lithostratigraphic",
+   "title": "암층",
+   "group": "GeoMAP 지질도",
+   "abstract": "GeoMAP 지질 단위를 지질시대별 암석 갈래(MAPSYMBOL)로 GNS 의 무늬(빗금·점 무늬)를 살려 칠했다 (GNS 의 Lithostratigraphic 스타일)",
+   "bbox": [-180, -90, 180, -60]
+  },
+  {
+   "name": "geomap_faults",
+   "title": "단층",
+   "group": "GeoMAP 지질도",
+   "abstract": "GeoMAP 단층 1 784 개 — 노출·위치 정확성에 따라 선을 달리 그린다 (GNS 의 Mapped faults 스타일)",
+   "bbox": [-180, -90, 180, -60]
+  },
+  {
+   "name": "geomap_quality",
+   "title": "자료 품질",
+   "group": "GeoMAP 지질도",
+   "abstract": "경도 1° × 위도 30′ 칸마다 GNS 가 매긴 자료 품질 1–5",
+   "bbox": [-180, -90, 180, -60]
+  }
+ ]
+}

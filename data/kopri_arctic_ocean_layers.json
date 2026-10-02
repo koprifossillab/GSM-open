@@ -1,0 +1,136 @@
+{
+ "_주석": "극지연구소(KOPRI)의 씨앗 — 북극해 탭. 스발바르·그린란드 탭의 네모를 뺀 북위 50° 너머의 KPDC 자료다(축치해·베링해 항해, 캐나다 북극, 시베리아·스칸디나비아 관측소). 2026-09-30 에 모아 둔 목록(kpdc.json)에서 여덟 주제 모두 자료가 있었다. 무엇을 어디서 받는지는 web/viewer/kopri.py 의 LAYERS 에 있다 (devlog 076).",
+ "_뽑은날": "2026-09-30",
+ "_출처": "https://kpdc.kopri.re.kr/",
+ "_지역": "arctic_ocean",
+ "_상류": "kopri",
+ "_레이어군차례": 20,
+ "레이어군순서": [
+  "KPDC 자료",
+  "KPDC 기본도",
+  "쇄빙연구선 아라온호"
+ ],
+ "레이어": [
+  {
+   "name": "kopri:kpdc_sediment_arctic_ocean",
+   "title": "해양 퇴적물·코어",
+   "group": "KPDC 자료",
+   "abstract": "KPDC datasets — marine sediments, cores",
+   "bbox": [
+    -180,
+    50,
+    180,
+    90
+   ]
+  },
+  {
+   "name": "kopri:kpdc_solid_arctic_ocean",
+   "title": "고체지구",
+   "group": "KPDC 자료",
+   "abstract": "KPDC datasets — solid earth (geology, geophysics)",
+   "bbox": [
+    -180,
+    50,
+    180,
+    90
+   ]
+  },
+  {
+   "name": "kopri:kpdc_paleo_arctic_ocean",
+   "title": "고기후",
+   "group": "KPDC 자료",
+   "abstract": "KPDC datasets — paleoclimate",
+   "bbox": [
+    -180,
+    50,
+    180,
+    90
+   ]
+  },
+  {
+   "name": "kopri:kpdc_cryo_arctic_ocean",
+   "title": "빙권",
+   "group": "KPDC 자료",
+   "abstract": "KPDC datasets — cryosphere (glaciers, ice sheets, sea ice)",
+   "bbox": [
+    -180,
+    50,
+    180,
+    90
+   ]
+  },
+  {
+   "name": "kopri:kpdc_ocean_arctic_ocean",
+   "title": "해양",
+   "group": "KPDC 자료",
+   "abstract": "KPDC datasets — oceans",
+   "bbox": [
+    -180,
+    50,
+    180,
+    90
+   ]
+  },
+  {
+   "name": "kopri:kpdc_atmo_arctic_ocean",
+   "title": "대기",
+   "group": "KPDC 자료",
+   "abstract": "KPDC datasets — atmosphere",
+   "bbox": [
+    -180,
+    50,
+    180,
+    90
+   ]
+  },
+  {
+   "name": "kopri:kpdc_bio_arctic_ocean",
+   "title": "생물",
+   "group": "KPDC 자료",
+   "abstract": "KPDC datasets — biosphere",
+   "bbox": [
+    -180,
+    50,
+    180,
+    90
+   ]
+  },
+  {
+   "name": "kopri:kpdc_other_arctic_ocean",
+   "title": "그 밖",
+   "group": "KPDC 자료",
+   "abstract": "KPDC datasets — other topics",
+   "bbox": [
+    -180,
+    50,
+    180,
+    90
+   ]
+  },
+  {
+   "name": "kopri:arctic_depth_contours",
+   "title": "북극해 등심선",
+   "group": "KPDC 기본도",
+   "abstract": "KPDC 북극 기본도 — 수심 등치선(m)",
+   "bbox": [
+    -180,
+    52.3,
+    180,
+    90
+   ],
+   "확인한날": "2026-09-30"
+  },
+  {
+   "name": "kopri:araon_arctic_ocean",
+   "title": "아라온호 항적",
+   "group": "쇄빙연구선 아라온호",
+   "abstract": "RV Araon track, hourly fixes from KOPRI live position page",
+   "bbox": [
+    -180.0,
+    50.0,
+    180.0,
+    90.0
+   ]
+  }
+ ]
+}

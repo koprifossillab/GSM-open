@@ -1,0 +1,412 @@
+{
+ "about": "USGS 달 지질도 원도 6 장(Lunar Geologic GIS Renovation, 2013)의 단위를 29 갈래로 묶은 색. 묶음과 색은 Eleanor Lutz, 'The Geology of the Moon' (Atlas of Space, 2019, GPL-3.0, github.com/eleanorlutz/moon_geology_atlas_of_space 의 Moon_geologic_unit_colors.csv) 에서 왔다. 갈래 이름은 GSM 이 붙였다 (devlog 039).",
+ "categories": [
+  {
+   "color": "#01abab",
+   "ko": "크레이터 물질",
+   "en": "Crater material"
+  },
+  {
+   "color": "#97922e",
+   "ko": "낡은 크레이터 물질",
+   "en": "Subdued crater material"
+  },
+  {
+   "color": "#c3bc6c",
+   "ko": "크레이터 사슬·무리",
+   "en": "Crater chains and clusters"
+  },
+  {
+   "color": "#9f7992",
+   "ko": "2차 크레이터 물질",
+   "en": "Secondary-crater material"
+  },
+  {
+   "color": "#5475ba",
+   "ko": "불규칙 크레이터 물질",
+   "en": "Irregular-crater material"
+  },
+  {
+   "color": "#acc8b2",
+   "ko": "고랑 난 크레이터 바닥",
+   "en": "Furrowed crater-floor material"
+  },
+  {
+   "color": "#f6b8bb",
+   "ko": "바다 물질",
+   "en": "Mare material"
+  },
+  {
+   "color": "#dc565d",
+   "ko": "돔 물질",
+   "en": "Dome material"
+  },
+  {
+   "color": "#2f8cae",
+   "ko": "고원 물질",
+   "en": "Plateau material"
+  },
+  {
+   "color": "#86593c",
+   "ko": "어두운 덮개 물질",
+   "en": "Dark mantling material"
+  },
+  {
+   "color": "#97c1bf",
+   "ko": "평원 물질",
+   "en": "Plains material"
+  },
+  {
+   "color": "#fdd190",
+   "ko": "고지(테라) 물질",
+   "en": "Terra material"
+  },
+  {
+   "color": "#f68c65",
+   "ko": "구릉·고랑 물질",
+   "en": "Hilly and furrowed material"
+  },
+  {
+   "color": "#773c76",
+   "ko": "고랑·구멍 난 물질",
+   "en": "Furrowed and pitted material"
+  },
+  {
+   "color": "#10112d",
+   "ko": "험한 물질·홈과 둔덕",
+   "en": "Rugged material, grooves and mounds"
+  },
+  {
+   "color": "#ec6e5f",
+   "ko": "선형 물질",
+   "en": "Lineated material"
+  },
+  {
+   "color": "#6c7363",
+   "ko": "분지 물질",
+   "en": "Basin material"
+  },
+  {
+   "color": "#e6dfcf",
+   "ko": "분지 산괴",
+   "en": "Basin massifs"
+  },
+  {
+   "color": "#d3bc93",
+   "ko": "험한 분지 지형",
+   "en": "Rugged basin terrain"
+  },
+  {
+   "color": "#ef9f30",
+   "ko": "선형 분지 물질",
+   "en": "Lineated basin material"
+  },
+  {
+   "color": "#ccce7b",
+   "ko": "헤르츠슈프룽 분지 물질",
+   "en": "Hertzsprung basin material"
+  },
+  {
+   "color": "#c3cf01",
+   "ko": "프라마우로 층",
+   "en": "Fra Mauro Formation"
+  },
+  {
+   "color": "#8f9480",
+   "ko": "알페스 층",
+   "en": "Alpes Formation"
+  },
+  {
+   "color": "#6e6252",
+   "ko": "아펜니노 산맥 물질",
+   "en": "Montes Apenninus material"
+  },
+  {
+   "color": "#d63320",
+   "ko": "헤벨리우스 층 (오리엔탈레)",
+   "en": "Hevelius Formation (Orientale)"
+  },
+  {
+   "color": "#315c93",
+   "ko": "루크 산맥 층 (오리엔탈레)",
+   "en": "Montes Rook Formation (Orientale)"
+  },
+  {
+   "color": "#9f294e",
+   "ko": "마운더 층 (오리엔탈레)",
+   "en": "Maunder Formation (Orientale)"
+  },
+  {
+   "color": "#1f7070",
+   "ko": "얀센 층 (넥타리스)",
+   "en": "Janssen Formation (Nectaris)"
+  },
+  {
+   "color": "#ffffff",
+   "ko": "구분 없음",
+   "en": "Unclassified"
+  }
+ ],
+ "units": {
+  "I-0703/CEch": "#c3bc6c",
+  "I-0703/CEci": "#5475ba",
+  "I-0703/CEd": "#dc565d",
+  "I-0703/CEhf": "#f68c65",
+  "I-0703/CId": "#86593c",
+  "I-0703/Cc": "#01abab",
+  "I-0703/Cc1": "#01abab",
+  "I-0703/Cc2": "#01abab",
+  "I-0703/Cp": "#97c1bf",
+  "I-0703/Ec": "#01abab",
+  "I-0703/Em": "#f6b8bb",
+  "I-0703/Emd": "#dc565d",
+  "I-0703/Emp": "#2f8cae",
+  "I-0703/Ial": "#8f9480",
+  "I-0703/Iap": "#6e6252",
+  "I-0703/Ic": "#01abab",
+  "I-0703/Ic1": "#01abab",
+  "I-0703/Ic2": "#01abab",
+  "I-0703/Icc": "#c3bc6c",
+  "I-0703/Ich": "#c3bc6c",
+  "I-0703/Ici": "#5475ba",
+  "I-0703/Ics": "#01abab",
+  "I-0703/Id": "#dc565d",
+  "I-0703/If": "#c3cf01",
+  "I-0703/Ih": "#f68c65",
+  "I-0703/Ihe": "#d63320",
+  "I-0703/Ihf": "#f68c65",
+  "I-0703/Ihp": "#f68c65",
+  "I-0703/Im": "#f6b8bb",
+  "I-0703/Ip": "#97c1bf",
+  "I-0703/IpIt": "#fdd190",
+  "I-0703/Isc": "#01abab",
+  "I-0703/It": "#fdd190",
+  "I-0703/pIc": "#01abab",
+  "I-0703/pIc1": "#01abab",
+  "I-0703/pIc2": "#01abab",
+  "I-0703/pIc3": "#97922e",
+  "I-0703/pIch": "#c3bc6c",
+  "I-0703/pIci": "#5475ba",
+  "I-0703/pIj": "#1f7070",
+  "I-0703/pIl": "#ec6e5f",
+  "I-0703/pIp": "#97c1bf",
+  "I-0703/pIr": "#10112d",
+  "I-0703/plr": "#10112d",
+  "I-0948/Cc": "#01abab",
+  "I-0948/Ec": "#01abab",
+  "I-0948/Eld": "#86593c",
+  "I-0948/INfp": "#773c76",
+  "I-0948/INp": "#97c1bf",
+  "I-0948/Ic1": "#97922e",
+  "I-0948/Ic2": "#01abab",
+  "I-0948/Icc": "#01abab",
+  "I-0948/Ifc": "#acc8b2",
+  "I-0948/Im1": "#f6b8bb",
+  "I-0948/Im2": "#f6b8bb",
+  "I-0948/Ip": "#97c1bf",
+  "I-0948/Irc": "#01abab",
+  "I-0948/Isc": "#9f7992",
+  "I-0948/It": "#fdd190",
+  "I-0948/Nb": "#6c7363",
+  "I-0948/Nbl": "#ef9f30",
+  "I-0948/Nc": "#97922e",
+  "I-0948/Ncc": "#97922e",
+  "I-0948/Nj": "#1f7070",
+  "I-0948/Np": "#97c1bf",
+  "I-0948/NpNbm": "#e6dfcf",
+  "I-0948/NpNbr": "#d3bc93",
+  "I-0948/NpNt": "#fdd190",
+  "I-0948/Nt": "#fdd190",
+  "I-0948/pNbm": "#e6dfcf",
+  "I-0948/pNbr": "#d3bc93",
+  "I-0948/pNc": "#97922e",
+  "I-0948/pNcc": "#97922e",
+  "I-0948/pNt": "#fdd190",
+  "I-1034/CEd": "#dc565d",
+  "I-1034/Cc": "#01abab",
+  "I-1034/EIm": "#f6b8bb",
+  "I-1034/EIph": "#2f8cae",
+  "I-1034/Ec": "#01abab",
+  "I-1034/INt": "#fdd190",
+  "I-1034/Ic1": "#01abab",
+  "I-1034/Ic2": "#01abab",
+  "I-1034/If": "#c3cf01",
+  "I-1034/Iohi": "#d63320",
+  "I-1034/Ioho": "#d63320",
+  "I-1034/Iohs": "#d63320",
+  "I-1034/Ioht": "#d63320",
+  "I-1034/Iom": "#9f294e",
+  "I-1034/Iork": "#315c93",
+  "I-1034/Iorm": "#315c93",
+  "I-1034/Ip": "#97c1bf",
+  "I-1034/Nc": "#01abab",
+  "I-1034/Nhb": "#ccce7b",
+  "I-1034/Nhsc": "#ccce7b",
+  "I-1034/NpNhf": "#f68c65",
+  "I-1034/pNc": "#01abab",
+  "I-1047/Cc": "#01abab",
+  "I-1047/Ec": "#01abab",
+  "I-1047/INp": "#97c1bf",
+  "I-1047/Ic": "#01abab",
+  "I-1047/Ic1": "#01abab",
+  "I-1047/Ic2": "#01abab",
+  "I-1047/Icc": "#c3bc6c",
+  "I-1047/Ico": "#c3bc6c",
+  "I-1047/Ifc": "#acc8b2",
+  "I-1047/Ig": "#10112d",
+  "I-1047/Im": "#f6b8bb",
+  "I-1047/Ip": "#97c1bf",
+  "I-1047/It": "#fdd190",
+  "I-1047/Nb": "#6c7363",
+  "I-1047/Nbl": "#ef9f30",
+  "I-1047/Nc": "#97922e",
+  "I-1047/Ncc": "#97922e",
+  "I-1047/Np": "#97c1bf",
+  "I-1047/NpNbm": "#e6dfcf",
+  "I-1047/NpNbr": "#d3bc93",
+  "I-1047/NpNt": "#fdd190",
+  "I-1047/Nt": "#fdd190",
+  "I-1047/pNb": "#6c7363",
+  "I-1047/pNbm": "#e6dfcf",
+  "I-1047/pNbr": "#d3bc93",
+  "I-1047/pNc": "#97922e",
+  "I-1047/pNt": "#fdd190",
+  "I-1062/Cc": "#01abab",
+  "I-1062/Ccc": "#c3bc6c",
+  "I-1062/Ec": "#01abab",
+  "I-1062/Ecc": "#c3bc6c",
+  "I-1062/Eld": "#86593c",
+  "I-1062/Em": "#f6b8bb",
+  "I-1062/INbl": "#ef9f30",
+  "I-1062/INt": "#fdd190",
+  "I-1062/Ia": "#8f9480",
+  "I-1062/Ic1": "#97922e",
+  "I-1062/Ic2": "#01abab",
+  "I-1062/Icc1": "#c3bc6c",
+  "I-1062/Icc2": "#c3bc6c",
+  "I-1062/If": "#c3cf01",
+  "I-1062/Im": "#f6b8bb",
+  "I-1062/Ip": "#97c1bf",
+  "I-1062/Ip1": "#97c1bf",
+  "I-1062/Ip2": "#97c1bf",
+  "I-1062/IpNbm": "#e6dfcf",
+  "I-1062/IpNcl": "#01abab",
+  "I-1062/IpNl": "#ef9f30",
+  "I-1062/IpNt": "#fdd190",
+  "I-1062/It": "#fdd190",
+  "I-1062/Nb": "#6c7363",
+  "I-1062/Nbl": "#ef9f30",
+  "I-1062/Nc": "#97922e",
+  "I-1062/Ncc": "#c3bc6c",
+  "I-1062/NpNbm": "#e6dfcf",
+  "I-1062/NpNbr": "#d3bc93",
+  "I-1062/NpNt": "#fdd190",
+  "I-1062/Nt": "#fdd190",
+  "I-1062/cf": "#ffffff",
+  "I-1062/pNc": "#97922e",
+  "I-1062/pNt": "#fdd190",
+  "I-1162/Cc": "#01abab",
+  "I-1162/Csc": "#9f7992",
+  "I-1162/EIm": "#f6b8bb",
+  "I-1162/Ec": "#01abab",
+  "I-1162/Esc": "#9f7992",
+  "I-1162/INt": "#fdd190",
+  "I-1162/Ic1": "#01abab",
+  "I-1162/Ic2": "#01abab",
+  "I-1162/Id": "#86593c",
+  "I-1162/Ifc": "#01abab",
+  "I-1162/Iic": "#9f7992",
+  "I-1162/Im1": "#f6b8bb",
+  "I-1162/Im2": "#f6b8bb",
+  "I-1162/Imd": "#dc565d",
+  "I-1162/Ioc": "#01abab",
+  "I-1162/Iohi": "#d63320",
+  "I-1162/Iohn": "#d63320",
+  "I-1162/Ioho": "#d63320",
+  "I-1162/Ip": "#97c1bf",
+  "I-1162/IpNg": "#10112d",
+  "I-1162/IpNt": "#fdd190",
+  "I-1162/Isc": "#9f7992",
+  "I-1162/Nb": "#6c7363",
+  "I-1162/Nbc": "#01abab",
+  "I-1162/Nbh": "#6c7363",
+  "I-1162/Nbl": "#ef9f30",
+  "I-1162/Nbm": "#e6dfcf",
+  "I-1162/Nc": "#01abab",
+  "I-1162/Nj": "#1f7070",
+  "I-1162/NpNt": "#fdd190",
+  "I-1162/Nsc": "#9f7992",
+  "I-1162/Ntp": "#fdd190",
+  "I-1162/pNb": "#6c7363",
+  "I-1162/pNbm": "#e6dfcf",
+  "I-1162/pNbr": "#d3bc93",
+  "I-1162/pNc": "#01abab",
+  "I-1162/pNt": "#fdd190"
+ },
+ "lines": [
+  {
+   "match": "basin ring structure, inferred|dashed where poorly known",
+   "color": "#da70d6",
+   "width": 1.6,
+   "dash": [
+    6,
+    4
+   ],
+   "ko": "분지 고리 마루 (추정)",
+   "en": "Basin ring crest, inferred"
+  },
+  {
+   "match": "basin ring structure",
+   "color": "#b0e0e6",
+   "width": 2.0,
+   "ko": "분지 고리 마루",
+   "en": "Basin ring crest"
+  },
+  {
+   "match": "crater rim",
+   "color": "#f4a460",
+   "width": 1.2,
+   "dash": [
+    3,
+    3
+   ],
+   "ko": "묻힌 크레이터 테",
+   "en": "Buried crater rim crest"
+  },
+  {
+   "match": "mare ridge|sinuous ridge",
+   "color": "#c879ff",
+   "width": 1.4,
+   "ko": "바다 능선",
+   "en": "Mare ridge"
+  },
+  {
+   "match": "rille",
+   "color": "#ffe14d",
+   "width": 1.4,
+   "ko": "열구",
+   "en": "Rille"
+  },
+  {
+   "match": "fault|graben|trough",
+   "color": "#ff6a3d",
+   "width": 1.6,
+   "ko": "단층·지구대·골",
+   "en": "Fault, graben, trough"
+  },
+  {
+   "match": "scarp|slope",
+   "color": "#20c0c0",
+   "width": 1.4,
+   "ko": "급사면",
+   "en": "Scarp, slope"
+  },
+  {
+   "match": "",
+   "color": "#dddddd",
+   "width": 1.0,
+   "ko": "그 밖의 선",
+   "en": "Other lines"
+  }
+ ]
+}

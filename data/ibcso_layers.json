@@ -1,0 +1,20 @@
+{
+ "_주석": "남극 해저지형 IBCSO v2 의 자료 출처(TID) 씨앗이다. PANGAEA 937574 의 IBCSO_v2_TID.tif 를 manage.py build_ibcso 가 GSM_IBCSO_DIR/tiles-tid 로 잘라 둔다. 파일은 저장소에 없다. 배경(해저·빙저 지형)은 레이어가 아니라 배경 고르개에 있다 — 이것만 레이어다. 갈래 번호와 색은 web/viewer/ibcso.py 의 TID_CLASSES 에 있다. 레이어군을 GeoMAP·드로닝모드랜드 뒤, 극지연구소 앞에 두려고 차례를 15 로 한다 (devlog 071).",
+ "_뽑은날": "2026-09-30",
+ "_출처": "https://doi.org/10.1594/PANGAEA.937574",
+ "_지역": "antarctica",
+ "_상류": "ibcso",
+ "_레이어군차례": 15,
+ "레이어군순서": [
+  "IBCSO 해저지형"
+ ],
+ "레이어": [
+  {
+   "name": "ibcso:tid",
+   "title": "해저지형 자료 출처 (TID)",
+   "group": "IBCSO 해저지형",
+   "abstract": "IBCSO v2 격자 한 칸(500 m)의 수심이 무엇에서 왔나 — 멀티빔·싱글빔처럼 잰 곳과 보간·중력 예측으로 메운 곳을 가른다",
+   "bbox": [-180, -90, 180, -50]
+  }
+ ]
+}

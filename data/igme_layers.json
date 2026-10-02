@@ -1,0 +1,49 @@
+{
+ "_주석": "IGME(스페인 지질광물연구소) 지질도 씨앗이다 — 스페인 탭(유럽 묶음에도 든다). 판이 둘(1:100만·MAGNA 1:5만)이고 레이어 이름이 번호라 igme:<판>:<번호> 로 둔다(web/viewer/igme.py). 1:100만은 3857 을 그려 주지 않아 4326 으로 받는다. MAGNA 는 줌 11 부터 그린다. 범위는 카나리아까지 (wetherilli 147).",
+ "_뽑은날": "2026-10-02",
+ "_출처": "https://mapas.igme.es/gis/services/Cartografia_Geologica/IGME_MAGNA_50/MapServer/WMSServer?request=GetCapabilities&service=WMS",
+ "_지역": "spain",
+ "_상류": "igme",
+ "_레이어군차례": 1,
+ "레이어군순서": [
+  "스페인 지질 (IGME)"
+ ],
+ "레이어": [
+  {
+   "name": "igme:geologico1m:0",
+   "title": "암상 (1:100만)",
+   "group": "스페인 지질 (IGME)",
+   "abstract": "Mapa Geológico de la Península Ibérica, Baleares y Canarias 1:1M — Litologías color",
+   "bbox": [
+    -18.2,
+    27.6,
+    4.4,
+    43.9
+   ]
+  },
+  {
+   "name": "igme:magna50:0",
+   "title": "MAGNA 암상 (1:5만)",
+   "group": "스페인 지질 (IGME)",
+   "abstract": "MAGNA 50 — Litologías color. 1972–2003 의 도폭을 이은 판. 줌 11 부터",
+   "bbox": [
+    -18.2,
+    27.6,
+    4.4,
+    43.9
+   ]
+  },
+  {
+   "name": "igme:magna50:2",
+   "title": "MAGNA 접촉면·단층 (1:5만)",
+   "group": "스페인 지질 (IGME)",
+   "abstract": "MAGNA 50 — Contactos y fallas. 줌 11 부터",
+   "bbox": [
+    -18.2,
+    27.6,
+    4.4,
+    43.9
+   ]
+  }
+ ]
+}

@@ -1,0 +1,34 @@
+{
+ "_주석": "GTK(핀란드 지질조사소) 기반암 지질도 씨앗이다 — 노르웨이·핀란드 탭(북극 묶음에도 든다). 2026-10-02 에 오울루 남쪽(25.5°E, 65°N) 둘레 200 km 에서 레이어마다 3413 으로 한 장씩 받아 그려지는 것만 넣었다. 상류 이름 앞에 gtk: 를 붙였다 — 문(web/viewer/gtk.py)이 뗀다. 20만 판의 상류 이름에는 핀란드 글자와 번호가 붙어 있다(ArcGIS 가 붙인 것) — 상류가 판을 다시 올리면 번호가 바뀔 수 있다. 한글 제목과 레이어군은 사람이 붙였다 (wetherilli 140).",
+ "_뽑은날": "2026-10-02",
+ "_출처": "https://gtkdata.gtk.fi/arcgis/services/Rajapinnat/GTK_Kalliopera_WMS/MapServer/WMSServer?SERVICE=WMS&REQUEST=GetCapabilities",
+ "_지역": "fennoscandia",
+ "_상류": "gtk",
+ "_레이어군차례": 1,
+ "레이어군순서": [
+  "핀란드 기반암 (GTK)"
+ ],
+ "레이어": [
+  {
+   "name": "gtk:kalliopera_1m_kivilajiseurueet",
+   "title": "암석군 (1:100만)",
+   "group": "핀란드 기반암 (GTK)",
+   "abstract": "Kallioperä 1:1 000 000 — kivilajiseurueet. 핀란드 전체를 덮는 넓은 판",
+   "bbox": [19.0, 59.5, 32.0, 70.2]
+  },
+  {
+   "name": "gtk:Litologiset_yksiköt_200k25132",
+   "title": "암석 단위 (1:20만)",
+   "group": "핀란드 기반암 (GTK)",
+   "abstract": "Kallioperä 1:200 000 — litologiset yksiköt",
+   "bbox": [19.0, 59.5, 32.0, 70.2]
+  },
+  {
+   "name": "gtk:kalliopera_1m_siirrosrakenteet",
+   "title": "단층 (1:100만)",
+   "group": "핀란드 기반암 (GTK)",
+   "abstract": "Kallioperä 1:1 000 000 — siirrosrakenteet",
+   "bbox": [19.0, 59.5, 32.0, 70.2]
+  }
+ ]
+}

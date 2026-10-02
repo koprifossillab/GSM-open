@@ -1,0 +1,11 @@
+# 대돌여지도(GSM) — KIGAM 오픈API 지도뷰어
+#
+# 호스트 venv 하나에 전부 까는 입구다. 컨테이너는 requirements-web.txt 만 쓴다.
+#
+# 설치:
+#   python -m venv ~/venv/GSM && . ~/venv/GSM/bin/activate
+#   pip install -r requirements.txt
+#
+# 이 저장소의 venv 는 ~/venv/GSM 이다.
+
+-r requirements-web.txt

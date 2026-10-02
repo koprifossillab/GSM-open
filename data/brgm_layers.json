@@ -1,0 +1,61 @@
+{
+ "_주석": "BRGM(프랑스 지질광물조사소) 지질도 씨앗이다 — 프랑스 탭(유럽 묶음에도 든다). 지질도는 스캔이라 누를 것이 없고, 1:100만 단순 암상도만 속성을 준다. 판마다 그리는 줌이 정해져 있다(2026-10-02 에 파리에서 잰 것, web/viewer/brgm.py 의 ZOOMS). 상류 이름 앞에 brgm: 를 붙였다 (wetherilli 143).",
+ "_뽑은날": "2026-10-02",
+ "_출처": "https://geoservices.brgm.fr/geologie?SERVICE=WMS&REQUEST=GetCapabilities",
+ "_지역": "france",
+ "_상류": "brgm",
+ "_레이어군차례": 1,
+ "레이어군순서": [
+  "프랑스 지질 (BRGM)"
+ ],
+ "레이어": [
+  {
+   "name": "brgm:SCAN_F_GEOL1M",
+   "title": "지질도 1:100만 (스캔)",
+   "group": "프랑스 지질 (BRGM)",
+   "abstract": "Carte géologique image de la France au million — 줌 6–11",
+   "bbox": [
+    -5.3,
+    41.3,
+    9.7,
+    51.2
+   ]
+  },
+  {
+   "name": "brgm:SCAN_F_GEOL250",
+   "title": "지질도 1:25만 (스캔)",
+   "group": "프랑스 지질 (BRGM)",
+   "abstract": "Carte géologique image de la France au 1/250 000 — 줌 11–12",
+   "bbox": [
+    -5.3,
+    41.3,
+    9.7,
+    51.2
+   ]
+  },
+  {
+   "name": "brgm:SCAN_H_GEOL50",
+   "title": "지질도 1:5만 통합판 (스캔)",
+   "group": "프랑스 지질 (BRGM)",
+   "abstract": "Carte géologique 50 000e — harmonisé. 도폭을 이어 붙인 판, 줌 12 부터",
+   "bbox": [
+    -5.3,
+    41.3,
+    9.7,
+    51.2
+   ]
+  },
+  {
+   "name": "brgm:LITHO_1M_SIMPLIFIEE",
+   "title": "단순 암상도 (1:100만)",
+   "group": "프랑스 지질 (BRGM)",
+   "abstract": "Carte lithologique simplifiée au 1/1 000 000 — 누르면 암상이 뜬다. 줌 6–14",
+   "bbox": [
+    -5.3,
+    41.3,
+    9.7,
+    51.2
+   ]
+  }
+ ]
+}

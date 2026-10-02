@@ -1,0 +1,37 @@
+{
+ "_주석": "연구실의 phyloserver(dikesync)에서 받는 암맥 기록의 씨앗이다. 상류에 카탈로그가 없어 사람이 적었다. 범위는 2026-09-28 에 받은 9 천 건의 끝점을 두른 것이다. 받는 열과 팝업 이름은 web/viewer/phyloserver.py 에 있다 (devlog 026).",
+ "_뽑은날": "2026-09-28",
+ "_출처": "http://172.16.116.98/dikesync/dike-records/?format=json",
+ "_지역": "korea",
+ "_상류": "phyloserver",
+ "_레이어군차례": 90,
+ "레이어군순서": [
+  "커스텀 지질도"
+ ],
+ "레이어": [
+  {
+   "name": "phyloserver:dikes",
+   "title": "암맥 기록",
+   "group": "커스텀 지질도",
+   "abstract": "phyloserver 의 암맥 기록 — 끝점 둘이면 선, 하나면 점. 멀리서는 도폭마다 로즈",
+   "bbox": [
+    125.3,
+    34.0,
+    129.6,
+    38.4
+   ]
+  },
+  {
+   "name": "phyloserver:peninsula",
+   "title": "한반도 지질도 (스캔)",
+   "group": "커스텀 지질도",
+   "abstract": "phyloserver 가 들고 있는 한반도(북한 포함) 지질도 한 장 — 카카오맵 격자(EPSG:5181) 타일을 옮겨 그린다",
+   "bbox": [
+    124.0,
+    33.0,
+    131.0,
+    43.1
+   ]
+  }
+ ]
+}

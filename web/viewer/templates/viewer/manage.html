@@ -1,0 +1,164 @@
+{% load static gsm_i18n %}<!DOCTYPE html>
+<html lang="{{ lang }}">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{% t "대돌여지도 관리" %}</title>
+<meta name="theme-color" content="#2b1d10">
+<link rel="icon" type="image/svg+xml" href="{% static 'viewer/emblem.svg' %}?v={{ stamp|default:version }}">
+{% comment %}색·단추·상자는 지도의 것을 빌린다(map.css). 테마·글꼴은 지도에서 고른 것(gsm.theme 등)을 따른다{% endcomment %}
+<link rel="stylesheet" href="{% static 'viewer/map.css' %}?v={{ stamp|default:version }}">
+<link rel="stylesheet" href="{% static 'viewer/manage.css' %}?v={{ stamp|default:version }}">
+</head>
+<body class="manage" data-linked-proxy="{{ linked_proxy|yesno:"1,0" }}">
+<form id="csrf-form" hidden>{% csrf_token %}</form>
+
+<header class="mg-head">
+  <a class="mg-brand" href="{{ base }}map/" title="{% t "지도로 돌아간다" %}">
+    <img class="emblem" src="{% static 'viewer/emblem.svg' %}?v={{ stamp|default:version }}" alt="" width="36" height="36">
+    <span>
+      <b>{% t "대돌여지도" %}</b> <span class="ver">v{{ version }}</span>
+      <small>{% t "관리" %}</small>
+    </span>
+  </a>
+  <nav class="mg-tabs" id="mg-tabs">
+    <button type="button" class="mg-tab on" data-tab="import">{% t "개인 레이어 반입" %}</button>
+    <button type="button" class="mg-tab" data-tab="stored">{% t "저장 자료 관리" %}</button>
+  </nav>
+  <a class="btn quiet mg-back" href="{{ base }}map/">
+    <svg viewBox="0 0 24 24" aria-hidden="true"><path class="stroke" d="M15 5l-7 7 7 7"/></svg>
+    {% t "지도" %}
+  </a>
+</header>
+
+<main class="mg-main">
+
+  <section class="mg-body on" id="tab-import">
+    <div class="box">
+      <h2 class="box-head">{% t "개인 레이어 반입" %} <span class="hint">{% t "이 브라우저에만 남는다 — 서버로 보내지 않는다" %}</span></h2>
+      <div class="box-body">
+        <label class="mg-drop" id="mg-drop">
+          <input type="file" id="mg-file" accept=".json,.geojson,.csv,application/json,text/csv">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path class="stroke" d="M12 16V4m0 0L8 8m4-4 4 4"/><path class="stroke" d="M4 16v3a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-3"/></svg>
+          <span>{% t "JSON·CSV 파일을 끌어 놓거나 눌러서 고른다" %}</span>
+        </label>
+        <p class="hint mg-format">
+          {% t "양식은 <b>개인 레이어 양식 v1</b> 이다 — GeoJSON 에 <code>gsm</code> 머리를 더한 JSON, 또는 맨 위 <code>#</code> 줄에 머리를 적은 CSV. 점·선·면은 좌표 값의 꼴이 정한다 — <code>lon</code>·<code>lat</code> 이나 Point 면 점, LineString 이면 선, Polygon 이면 면. 섞여 오면 모양마다 레이어로 나눈다. 아래 예시를 본다." %}
+        </p>
+        <p id="mg-read-msg" class="msg"></p>
+      </div>
+    </div>
+
+    <div class="box" id="mg-example-box">
+      <h2 class="box-head">{% t "양식 예시" %} <span class="hint">{% t "이대로 적어 저장하면 반입된다" %}</span></h2>
+      <div class="box-body">
+        <div class="mg-example-bar">
+          <div class="seg" id="mg-ex-kind">
+            <button type="button" data-kind="point" class="on">{% t "점" %}</button>
+            <button type="button" data-kind="line">{% t "선" %}</button>
+            <button type="button" data-kind="polygon">{% t "면" %}</button>
+          </div>
+          <div class="seg" id="mg-ex-format">
+            <button type="button" data-format="csv" class="on">CSV</button>
+            <button type="button" data-format="json">JSON</button>
+            <button type="button" data-format="api">API</button>
+          </div>
+          <span class="mg-right"></span>
+          <button type="button" class="btn quiet" id="mg-ex-copy">{% t "복사" %}</button>
+          <button type="button" class="btn quiet" id="mg-ex-download">{% t "내려받기" %}</button>
+          <button type="button" class="btn quiet" id="mg-ex-try">{% t "이 예시로 읽어 본다" %}</button>
+        </div>
+        <pre class="mg-example" id="mg-ex-text"></pre>
+        <ul class="mg-example-notes" id="mg-ex-notes"></ul>
+      </div>
+    </div>
+
+    <div class="box" id="mg-link-box">
+      <h2 class="box-head">{% t "API 로 잇기" %} <span class="hint">{% t "지도를 열 때마다 새로 받는다 — 주소와 인증키는 이 브라우저에만" %}</span></h2>
+      <div class="box-body">
+        <p class="hint mg-format">
+          {% t "상대 사이트가 이 양식(JSON·CSV)으로 내주는 주소와 인증키를 넣는다. 브라우저가 곧장 받고, 상대가 CORS 를 열지 않아 막히면 우리 서버를 거친다 — 서버는 받은 것을 넘겨줄 뿐 주소·키를 적지 않는다." %}
+        </p>
+        <div class="mg-form mg-link-form">
+          <label class="wide"><span>{% t "API 주소" %}</span><input type="url" id="mg-link-url" placeholder="https://example.org/api/layer.json" autocomplete="off"></label>
+          <label><span>{% t "인증 방식" %}</span>
+            <select id="mg-link-mode">
+              <option value="none">{% t "없음" %}</option>
+              <option value="bearer">Authorization: Bearer</option>
+              <option value="header">{% t "머리(이름을 적는다)" %}</option>
+              <option value="query">{% t "주소 뒤 ?이름=키" %}</option>
+            </select>
+          </label>
+          <label id="mg-link-name-wrap" hidden><span>{% t "싣는 이름" %}</span><input type="text" id="mg-link-name" placeholder="X-API-Key" autocomplete="off"></label>
+          <label id="mg-link-key-wrap" hidden><span>{% t "인증키" %}</span><input type="password" id="mg-link-key" autocomplete="off"></label>
+        </div>
+        <div class="mg-acts">
+          <button type="button" class="btn" id="mg-link-try">{% t "받아 본다" %}</button>
+          <button type="button" class="btn quiet" id="mg-link-example">{% t "API 양식 예시" %}</button>
+          <span class="hint" id="mg-link-editing"></span>
+        </div>
+        <p id="mg-link-msg" class="msg"></p>
+      </div>
+    </div>
+
+    <div class="box" id="mg-preview" hidden>
+      <h2 class="box-head">{% t "읽은 것" %} <span class="hint" id="mg-file-name"></span></h2>
+      <div class="box-body">
+        <div class="mg-form">
+          <label><span>{% t "이름" %}</span><input type="text" id="mg-name" maxlength="120"></label>
+          <label><span>{% t "색" %}</span><input type="color" id="mg-color"></label>
+          <label><span>{% t "이름표 열" %}</span><select id="mg-label"></select></label>
+        </div>
+        <dl class="kv mg-stats" id="mg-stats"></dl>
+        <div id="mg-notes"></div>
+        <h3 class="sub-head">{% t "열" %} <span class="count" id="mg-col-count">0</span></h3>
+        <div class="mg-scroll"><table class="mg-table" id="mg-columns"></table></div>
+        <h3 class="sub-head">{% t "앞의 몇 행" %}</h3>
+        <div class="mg-scroll"><table class="mg-table" id="mg-rows"></table></div>
+        <div class="mg-acts">
+          <button type="button" class="btn primary" id="mg-save">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path class="stroke" d="M5 5h11l3 3v11a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1V5Z"/><path class="stroke" d="M8 5v5h7V5M8 19v-5h8v5"/></svg>
+            {% t "이 브라우저에 저장한다" %}
+          </button>
+          <button type="button" class="btn quiet" id="mg-discard">{% t "버린다" %}</button>
+        </div>
+        <div id="mg-size-check" class="mg-size-check"></div>
+        <p id="mg-save-msg" class="msg"></p>
+      </div>
+    </div>
+  </section>
+
+  <section class="mg-body" id="tab-stored">
+    <div class="box">
+      <h2 class="box-head">{% t "개인 레이어" %} <span class="count" id="mg-count">0</span>
+        <span class="hint" id="mg-usage"></span></h2>
+      <div class="box-body">
+        <div class="mg-scroll"><table class="mg-table mg-layers" id="mg-layers"></table></div>
+        <div class="mg-acts">
+          <button type="button" class="btn" id="mg-persist">{% t "브라우저가 지우지 않게 청한다" %}</button>
+          <span class="hint" id="mg-persist-state"></span>
+          <button type="button" class="btn quiet danger mg-right" id="mg-clear">{% t "개인 레이어를 모두 지운다" %}</button>
+        </div>
+        <div id="mg-capacity" class="mg-capacity"></div>
+        <p id="mg-stored-msg" class="msg"></p>
+      </div>
+    </div>
+
+    <div class="box">
+      <h2 class="box-head">{% t "이 브라우저의 설정" %} <span class="hint">{% t "지역·켠 레이어·보던 자리·모양 고르기" %}</span></h2>
+      <div class="box-body">
+        <div class="mg-scroll"><table class="mg-table" id="mg-prefs"></table></div>
+        <div class="mg-acts">
+          <button type="button" class="btn quiet danger mg-right" id="mg-prefs-clear">{% t "설정을 모두 지운다" %}</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<script id="i18n-data" type="application/json">{{ i18n_json|safe }}</script>
+<script src="{% static 'viewer/personal.js' %}?v={{ stamp|default:version }}"></script>
+<script src="{% static 'viewer/manage.js' %}?v={{ stamp|default:version }}"></script>
+</body>
+</html>
