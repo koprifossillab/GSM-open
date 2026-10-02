@@ -549,6 +549,15 @@
     });
   }
 
+  /** 국토지리원 주제 타일 (wetherilli 172). 주소·줌·출처는 카탈로그 행이 준다 — 지리원 주소 그대로라 `BASE` 를 붙이지 않는다 */
+  function gsiTileSource(name) {
+    var row = byName[name] || {};
+    return new ol.source.XYZ({
+      url: row.tiles, crossOrigin: "anonymous", maxZoom: row.maxZoom || 16, transition: 0,
+      attributions: row.attribution || undefined,
+    });
+  }
+
   /** 한반도 지질도 — phyloserver 가 카카오맵 격자로 잘라 둔 타일 (devlog 026).
    *  격자(`phyloserver.py` 의 SCAN_*)를 그대로 받고 OpenLayers 가 옮겨 그린다.
    *  카카오 레벨 L 의 한 픽셀은 2^(L-3) m 이고 13 이 가장 거칠다. 타일 번호는 아래에서
@@ -622,6 +631,8 @@
     // PGC 경사·등고선(wetherilli 099) — NPI 처럼 지역의 투영으로 곧장 받는다. 누르면 그 자리의 값
     pgc: { source: npolarSource, info: wmsInfoUrl },
     gsj: { source: gsjSource, info: gsjInfoUrl },
+    // 국토지리원 주제 타일(wetherilli 172) — 카탈로그가 준 지리원 주소를 브라우저가 곧장 부른다(서버를 거치지 않는다)
+    gsitile: { source: gsiTileSource, info: null },
     // CCOP 200만 지질도(wetherilli 108) — 여느 WMS 다. 속성의 4326 풀이는 서버의 문(gsj.py)이 한다
     ccop: { source: wmsSource, info: wmsInfoUrl },
     // 대만 지질도(wetherilli 136) — 4326 WMS. 속성은 서버의 문(gsmma.py)이 지질운 API 로 바꿔 묻는다
@@ -2097,12 +2108,12 @@
   //: 상류의 짧은 이름 — 기관 이름이라 옮기지 않는다
   var UPSTREAM_TAGS = {
     kigam: "KIGAM", vworld: "VWorld", geus: "GEUS", grportal: "GRL", npolar: "NPI", janmayen: "NPI",
-    gsj: "GSJ", ccop: "CCOP", gsmma: "GSMMA", emodnet: "EMOD", ngu: "NGU", gtk: "GTK", bgs: "BGS", brgm: "BRGM", egdi: "EGDI", bgr: "BGR", igme: "IGME", gsi: "GSI", gsni: "GSNI", geomap: "GeoMAP", geo3al: "USGS", kopri: "KOPRI", pgc: "PGC", ibcso: "IBCSO",
+    gsj: "GSJ", gsitile: "GSIJ", ccop: "CCOP", gsmma: "GSMMA", emodnet: "EMOD", ngu: "NGU", gtk: "GTK", bgs: "BGS", brgm: "BRGM", egdi: "EGDI", bgr: "BGR", igme: "IGME", gsi: "GSI", gsni: "GSNI", geomap: "GeoMAP", geo3al: "USGS", kopri: "KOPRI", pgc: "PGC", ibcso: "IBCSO",
     phyloserver: "LAB", peninsula: "LAB",
   };
   var UPSTREAM_NAMES = {
     kigam: T("한국지질자원연구원"), vworld: T("브이월드(국토교통부)"), geus: T("덴마크·그린란드 지질조사소"), grportal: T("그린란드 정부 포털"),
-    npolar: T("노르웨이 극지연구소"), janmayen: T("노르웨이 극지연구소"), gsj: T("일본 지질조사종합센터"), ccop: "CCOP",
+    npolar: T("노르웨이 극지연구소"), janmayen: T("노르웨이 극지연구소"), gsj: T("일본 지질조사종합센터"), gsitile: T("일본 국토지리원"), ccop: "CCOP",
     gsmma: T("대만 지질조사·광업관리중심"),
     emodnet: "EMODnet Geology",
     ngu: T("노르웨이 지질조사소"), gtk: T("핀란드 지질조사소"),
@@ -2349,6 +2360,9 @@
       } else if (entry.legendOpen && byName[entry.name] && byName[entry.name].legend) {
         entry.legendBox = gsjLegend(entry);
         li.appendChild(entry.legendBox);
+      } else if (entry.legendOpen && STATIC && layerKind(entry.name).legend) {
+        // 정적 판의 극지 상류는 범례도 상류에서 곧장 — 그림·줄·링크 셋 가운데 하나로 온다 (wetherilli 161)
+        li.appendChild(staticLegend(entry));
       } else if (entry.legendOpen) {
         var img = document.createElement("img");
         img.className = "legend-img";
@@ -2367,6 +2381,51 @@
       }
       host.appendChild(li);
     });
+  }
+
+  /** 정적 판의 극지 범례 (`GSM_STATIC_KINDS[상류].legend`, wetherilli 161). 받은 것은 그 레이어 항목에 담아 두어 범례 칸을
+   *  다시 그릴 때마다 상류에 묻지 않는다. `{img}` 는 그림 한 장(EMODnet·KPDC), `{rows}` 는 칸마다 그림과 이름(NPI 의
+   *  `legend?f=json`), `{link}` 는 그림이 아니라 쪽(GEUS 는 HTML 범례로 넘긴다) */
+  function staticLegend(entry) {
+    var box = document.createElement("div");
+    box.className = "vector-legend";
+    if (!entry.staticLegend) entry.staticLegend = layerKind(entry.name).legend(entry.name, byName[entry.name] || {});
+    entry.staticLegend.then(function (got) {
+      if (!got) {
+        box.appendChild(note(T("범례가 없는 레이어다")));
+      } else if (got.img) {
+        var img = document.createElement("img");
+        img.className = "legend-img";
+        img.alt = T("{title} 범례", { title: entry.title });
+        img.src = got.img;
+        img.addEventListener("error", function () { img.replaceWith(note(T("범례를 받지 못했다"))); });
+        box.appendChild(img);
+      } else if (got.rows) {
+        got.rows.forEach(function (r) {
+          var line = document.createElement("div");
+          line.className = "vector-legend-row";
+          var swatch = document.createElement("img");
+          swatch.src = r.src;
+          swatch.alt = "";
+          var label = document.createElement("span");
+          label.textContent = r.label;
+          line.appendChild(swatch);
+          line.appendChild(label);
+          box.appendChild(line);
+        });
+      } else if (got.link) {
+        var a = document.createElement("a");
+        a.href = got.link;
+        a.target = "_blank";
+        a.rel = "noopener";
+        a.textContent = T("범례 열기");
+        box.appendChild(a);
+      }
+    }).catch(function () {
+      entry.staticLegend = null;                  // 다음에 다시 묻는다
+      box.appendChild(note(T("범례를 받지 못했다")));
+    });
+    return box;
   }
 
   /** 레이어의 범위(`Layer.bbox`, 위경도)로 지도를 옮긴다.
@@ -3243,7 +3302,9 @@
       loader: function (extent, resolution, projection, success, failure) {
         // 잘라 주는 레이어(전암 화학, wetherilli 163)는 고른 원소의 점만 받는다. 정적 판은 구운 덩이 하나라 자르지 않는다
         var slice = row.slice && !STATIC ? "&value=" + encodeURIComponent(storedValue()) : "";
-        fetch(pointsUrl(row.name) + slice)
+        // 정적 판에서 구워 싣지 않은 극지 점은 상류(ArcGIS)에서 곧장 받는다 — 서버의 `/points/` 와 같은 덩이로 온다 (wetherilli 161)
+        var live = STATIC && !Object.prototype.hasOwnProperty.call(staticBaked("points"), row.name) && layerKind(row.name).points;
+        (live ? layerKind(row.name).points(row.name, row) : fetch(pointsUrl(row.name) + slice)
           .then(function (r) {
             if (r.ok) return r.json();
             // 서버가 까닭을 적어 보낸다 — "자료가 서버에 없다" 따위. 패널에 띄운다
@@ -3251,7 +3312,7 @@
               layer.set("gsmError", d.error || "");
               throw new Error(String(r.status));
             });
-          })
+          }))
           .then(function (data) {
             var features = new ol.format.GeoJSON().readFeatures(data, {
               dataProjection: "EPSG:4326",

@@ -134,6 +134,19 @@ class Build(SimpleTestCase):
         self.assertNotIn("janmayen:lines", names)             # 굽지 않은 것
         self.assertFalse({n for n in names if n.startswith(("geo3al:", "phyloserver:", "peninsula:"))})
 
+    def test_극지는_곧장_부르는_상류로_선다(self):
+        # wetherilli 161 — 굽지 않아도 NPI·EMODnet·KPDC 지도 서버가 선다. KPDC 의 모아 둔 점은 구운 것이 있어야
+        groups = json.loads(re.search(r'id="catalog-data" type="application/json">(.*?)</script>',
+                                      self.html, re.S).group(1))
+        names = {l["name"] for g in groups for l in g["layers"]}
+        self.assertIn("npolar:svalbard_units", names)
+        self.assertIn("emodnet:cp_wp4_pre_quaternary_geology_lithology", names)
+        self.assertIn("kopri:rock_outcrops", names)
+        self.assertNotIn("kopri:rock_samples", names)
+        tables = json.loads(re.search(r'id="static-tables" type="application/json">(.*?)</script>',
+                                      self.html, re.S).group(1))
+        self.assertIn("G_Geologi_Svalbard_S250_S750", json.dumps(tables["npolar"]["tiles"]))
+
 
 class _Quiet(http.server.SimpleHTTPRequestHandler):
     def log_message(self, *args):
@@ -172,7 +185,7 @@ class Browser(SimpleTestCase):
         cls.httpd.shutdown()
         super().tearDownClass()
 
-    def open(self, region, settle=2500):
+    def open(self, region, settle=2500, asked=None):
         ctx = self.browser.new_context(viewport={"width": 1280, "height": 800})
         self.addCleanup(ctx.close)
         ctx.add_init_script("try { localStorage.setItem('gsm.region', %s); } catch (e) {}" % json.dumps(region))
@@ -180,7 +193,13 @@ class Browser(SimpleTestCase):
         errors = []
         page.on("pageerror", lambda e: errors.append(str(e)))
         # 이 판 밖(상류·배경)은 끊는다 — 시험이 망에 기대지 않게
-        page.route("**/*", lambda r: r.continue_() if r.request.url.startswith(self.base) else r.abort())
+        def route(r):
+            if r.request.url.startswith(self.base):
+                return r.continue_()
+            if asked is not None:
+                asked.append(r.request.url)
+            return r.abort()
+        page.route("**/*", route)
         page.goto(self.base + "map/?region=" + region, wait_until="load")
         page.wait_for_timeout(settle)
         return page, errors
@@ -195,6 +214,21 @@ class Browser(SimpleTestCase):
         page, errors = self.open("antarctica")
         self.assertEqual(errors, [])
         self.assertIn("geomap_simple_geology", page.content())
+
+    def test_스발바르는_NPI_를_곧장_부른다(self):
+        # wetherilli 161 — 첫 레이어(NPI 지질 단위)의 그림을 서버가 아니라 NPI 지도 서버의 `export` 에 묻는다
+        asked = []
+        page, errors = self.open("svalbard", settle=4000, asked=asked)
+        self.assertEqual(errors, [])
+        self.assertTrue(any("/MapServer/export" in url for url in asked), asked[:5])
+
+    def test_극지_범례를_열어도_멈추지_않는다(self):
+        page, errors = self.open("svalbard", settle=3000)
+        button = page.query_selector('#panel button[title="범례를 펼친다"]')
+        self.assertIsNotNone(button)
+        button.click()
+        page.wait_for_timeout(1500)
+        self.assertEqual(errors, [])
 
     @unittest.skipUnless(HAS_PLACENAMES, "정적 판의 지명 색인(#142, wetherilli 166)이 아직 없다")
     def test_지명을_구운_색인에서_찾는다(self):

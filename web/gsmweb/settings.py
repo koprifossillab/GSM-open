@@ -364,6 +364,8 @@ NPOLAR_CATALOG_SEED = REPO_DIR / "data" / "npolar_layers.json"
 NPOLAR_DML_CATALOG_SEED = REPO_DIR / "data" / "npolar_dml_layers.json"
 #: 일본 — GSJ 심리스 지질도 (devlog 024)
 GSJ_CATALOG_SEED = REPO_DIR / "data" / "gsj_layers.json"
+#: 일본 — 국토지리원 주제 타일 가운데 겹치는 것(활단층도·화산토지조건도, wetherilli 172)
+GSITILE_CATALOG_SEED = REPO_DIR / "data" / "gsi_tiles_layers.json"
 CCOP_CATALOG_SEED = REPO_DIR / "data" / "ccop_layers.json"
 #: 대만 — GSMMA 지질도 (wetherilli 136)
 GSMMA_CATALOG_SEED = REPO_DIR / "data" / "gsmma_layers.json"

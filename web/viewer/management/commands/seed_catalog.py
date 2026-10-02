@@ -59,6 +59,8 @@ class Command(BaseCommand):
                 (settings.NPOLAR_DML_CATALOG_SEED, "드로닝모드랜드 (NPI)", "antarctica", "npolar"),
                 # 일본 — GSJ 심리스 지질도 (024)
                 (settings.GSJ_CATALOG_SEED, "일본 (GSJ)", "japan", "gsj"),
+                # 일본 — 국토지리원 주제 타일(활단층도·화산토지조건도). 브라우저가 곧장 부른다 (wetherilli 172)
+                (settings.GSITILE_CATALOG_SEED, "일본 (국토지리원)", "japan", "gsitile"),
                 # 동·동남아시아 — CCOP 200만 지질도, GSJ 새 호스트의 WMS (wetherilli 108)
                 (settings.CCOP_CATALOG_SEED, "동아시아 (CCOP)", "china", "ccop"),
                 # 대만 — 경제부 지질조사·광업관리중심(GSMMA) 지질도 (wetherilli 136)

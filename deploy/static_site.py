@@ -29,10 +29,13 @@ import tempfile
 
 ROOT = pathlib.Path(__file__).resolve().parent.parent
 
-#: 정적 판에 실을 지역 — 상류가 붙는 대로 늘린다(P11 §3)
-REGIONS = ["korea"]
-#: 정적 판에 실을 상류 — kigam 은 각자 키로 곧장(map.js 의 STATIC_KIGAM), vworld 는 공개 판용 키로 곧장(STATIC_VWORLD)
-UPSTREAMS = ["kigam", "vworld"]
+#: 정적 판에 실을 지역 — 상류가 붙는 대로 늘린다(P11 §3). 극지는 브라우저가 곧장 부르는 상류(`static-kinds.js`, wetherilli 161)로
+#: 굽지 않아도 선다 — 얀마옌만 구운 것이 있어야 한다(아래 `BAKED_REGIONS`)
+REGIONS = ["korea", "greenland", "svalbard", "arctic_ocean", "antarctica"]
+#: 정적 판에 실을 상류 — kigam 은 각자 키로 곧장(map.js 의 STATIC_KIGAM), vworld 는 공개 판용 키로 곧장(STATIC_VWORLD).
+#: 극지 여섯은 `static-kinds.js` 가 곧장 부른다(wetherilli 161) — GEUS·NPI·PGC·EMODnet·극지연구소 KPDC 의 지도 서버·그린란드 포털 점.
+#: 극지연구소의 모아 둔 점(시료·운석·KPDC 목록)은 구운 것이 있어야 선다(`views._static_catalog`)
+UPSTREAMS = ["kigam", "vworld", "geus", "npolar", "pgc", "emodnet", "kopri", "grportal"]
 #: 구운 것(`--baked`)이 있으면 더 서는 극지 — 남극 GeoMAP·IBCSO·NPI 점, 얀마옌, 그린란드 포털 점, 스발바르 NPI 점,
 #: 극지연구소 KPDC 점 (wetherilli 160·165). 브라우저가 곧장 부르는 극지 상류(`static-kinds.js`)가 오면 그 레이어도 함께 선다
 BAKED_REGIONS = ["antarctica", "greenland", "svalbard", "jan_mayen", "arctic_ocean"]

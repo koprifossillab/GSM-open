@@ -347,9 +347,10 @@ LAYERS = {
         "item": "74f3199421cb4568b012adb9d8070c04",
         "style": "class",
         "classes": {"by": "", "table": (
-            ("g10d", "G10D 가 있다 (다이아몬드 안정역)", "#b71c1c", "dot", lambda p: (p.get("g10d") or 0) > 0),
-            ("g10", "G10 이 있다", "#ef6c00", "dot", lambda p: (p.get("g10") or 0) > 0),
-            ("g9", "G9 만 (러졸라이트질)", "#43a047", "dot", lambda p: (p.get("g9") or 0) > 0),
+            # `{"gt0": 열}` — 그 열의 값이 0 보다 크다. 함수가 아니라 글자로 적어 정적 판(JS)도 같은 표로 가른다 (wetherilli 161)
+            ("g10d", "G10D 가 있다 (다이아몬드 안정역)", "#b71c1c", "dot", {"gt0": "g10d"}),
+            ("g10", "G10 이 있다", "#ef6c00", "dot", {"gt0": "g10"}),
+            ("g9", "G9 만 (러졸라이트질)", "#43a047", "dot", {"gt0": "g9"}),
         ), "else": ("other", "그 밖의 석류석", "#b0bec5", "dot")},
         "fields": {
             "sample": _field("SOUSAMPNA", "시료"),
@@ -513,8 +514,11 @@ def class_of(spec: dict, props: dict) -> tuple:
     raw = props.get(classes["by"]) if classes["by"] else None
     value = str(raw if raw is not None else "")
     for code, label, color, shape, heads in classes["table"]:
-        if callable(heads):
-            # 열 여럿을 보고 가른다 — 석류석 갈래 (wetherilli 157)
+        if isinstance(heads, dict):
+            # 다른 열을 보고 가른다 — 석류석 갈래 (wetherilli 157). `gt0` 는 그 열의 값이 0 보다 큰 것
+            if (props.get(heads["gt0"]) or 0) > 0:
+                return code, label, color, shape
+        elif callable(heads):
             if heads(props):
                 return code, label, color, shape
         elif classes.get("numeric"):

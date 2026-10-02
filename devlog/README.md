@@ -211,6 +211,9 @@
 | wetherilli 166 | 2026-10-02 | [정적 판의 극지 지명 찾기 — 구운 지명에서 색인을, 화면이 뒤진다](20261002_wetherilli_166_static_placenames.md) |
 | wetherilli 168 | 2026-10-02 | [정적 판의 시험 — 작은 판을 굽고 `/GSM-open/` 꼴로 띄운다](20261002_wetherilli_168_static_tests.md) |
 | wetherilli 167 | 2026-10-02 | [정적 판의 영어판과 소개 — 말마다 따로 굽고, 뿌리는 소개로](20261002_wetherilli_167_static_lang_intro.md) |
+| wetherilli 161 | 2026-10-02 | [정적 판의 극지 — 상류를 브라우저가 곧장 부르는 `static-kinds.js`](20261002_wetherilli_161_static_polar.md) |
+| wetherilli 170 | 2026-10-02 | [시료 고도를 국가기준점과 견준다 — 24 점 모두 ±15 m 안](20261002_wetherilli_170_elevation_check.md) |
+| wetherilli 172 | 2026-10-02 | [일본 — 국토지리원 활단층도·화산토지조건도를 겹치는 레이어로](20261002_wetherilli_172_japan_afm.md) |
 | koprifossillab P01 | 2026-09-30 | [백업 — WegenersDream 의 틀로, 바뀌는 빠르기에 따라 넷으로 (계획)](20260930_koprifossillab_P01_backup_plan.md) |
 | koprifossillab 001 | 2026-09-30 | [매주 월요일 새벽: 운영 자료 백업과 KPDC 목록 갱신](20260930_koprifossillab_001_weekly_backup.md) |
 | koprifossillab 002 | 2026-09-30 | [`/healthz/` — 판·DB·백업 상태를 한 장으로](20260930_koprifossillab_002_healthz.md) |

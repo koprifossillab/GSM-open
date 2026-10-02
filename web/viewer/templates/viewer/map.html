@@ -398,7 +398,8 @@
 <script id="i18n-data" type="application/json">{{ i18n_json|safe }}</script>
 <script id="vworld-key" type="application/json">"{{ vworld_key|escapejs }}"</script>
 <script id="catalog-data" type="application/json">{{ catalog|safe }}</script>
-{% if static_site %}<script id="static-config" type="application/json">{{ static_site|safe }}</script>{% endif %}
+{% if static_site %}<script id="static-config" type="application/json">{{ static_site|safe }}</script>
+<script id="static-tables" type="application/json">{{ static_tables|safe }}</script>{% endif %}
 <script id="pointset-data" type="application/json">{{ pointsets|safe }}</script>
 <script src="{% static 'viewer/vendor/ol.js' %}"></script>
 <script src="{% static 'viewer/vendor/proj4.js' %}"></script>
