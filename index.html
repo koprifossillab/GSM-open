@@ -1,0 +1,347 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>대돌여지도</title>
+<meta name="description" content="지질도를 겹쳐 보고, 눌러 속성을 읽고, 내 좌표를 얹는 지도 — 한국·극지·일본, 그리고 달과 화성까지.">
+<meta name="theme-color" content="#0b0906">
+<link rel="icon" type="image/svg+xml" href="/GSM-open/static/viewer/emblem.svg?v=273bfa5f6c">
+<link rel="stylesheet" href="/GSM-open/static/viewer/intro.css?v=273bfa5f6c">
+</head>
+
+<body data-theme="title">
+
+<header class="bar">
+  <a class="brand" href="/GSM-open/">
+    <img src="/GSM-open/static/viewer/emblem.svg?v=273bfa5f6c" alt="" width="34" height="34">
+    <span><b>대돌여지도</b><small>GREAT STONE MAP</small></span>
+  </a>
+  <div class="bar-r">
+    <nav class="langs" aria-label="언어">
+      <button type="button" data-lang="ko" aria-current="true">한국어</button>
+      <button type="button" data-lang="en" >English</button>
+    </nav>
+    <a class="skip" id="skip" href="/GSM-open/map/?region=korea">
+      <b>지도로 바로 가기 <span aria-hidden="true">→</span></b>
+      <span class="skip-to" id="skip-to">한국 지도</span>
+    </a>
+  </div>
+</header>
+
+
+<button type="button" class="play" id="play" aria-pressed="true"
+        data-play="자동 재생" data-pause="멈춤">
+  <span class="play-icon" aria-hidden="true"></span><span class="play-label">멈춤</span>
+  <i class="play-bar" aria-hidden="true"></i>
+</button>
+
+<nav class="chapters" id="chapters" aria-label="장면">
+  <a href="#title" data-for="title">처음</a>
+  <a href="#hook" data-for="hook">불편</a>
+  <a href="#polar" data-for="polar polartitle antarctica greenland svalbard polarsum">극지</a>
+  
+  <a href="#tools" data-for="tools">도구</a>
+  <a href="#sources" data-for="sources">출처</a>
+  
+  <a href="#doors" data-for="doors">시작</a>
+</nav>
+
+<main>
+
+
+<section class="scene title" id="title" data-steps="1" data-stops="0" data-dwell="3200" data-theme="title"
+         data-go="map/?region=korea" data-go-label="한국 지도">
+  <div class="stage">
+    <canvas class="stars" aria-hidden="true"></canvas>
+    <canvas class="globes" data-scene="title" role="img" aria-label="둥근 지구와 달, 화성, 수성"
+            data-earth="/GSM-open/static/viewer/intro/globe-earth.webp"
+            data-moon="/GSM-open/static/viewer/intro/globe-moon.webp"
+            data-mars="/GSM-open/static/viewer/intro/globe-mars.webp"
+            data-mercury="/GSM-open/static/viewer/intro/globe-mercury.webp"></canvas>
+    <div class="title-text">
+      <p class="kicker"><img class="kicker-icon" src="/GSM-open/static/viewer/emblem-polar.png" alt="" width="22" height="22">극지연구소 고생물진화연구실</p>
+      <h1>대돌여지도<span>GREAT STONE MAP</span></h1>
+      <p class="lead">지질도를 겹쳐 보고, 눌러 속성을 읽고, 내 좌표를 얹는 지도.</p>
+      <ul class="chips regions" aria-label="다루는 곳">
+        <li>한국</li><li>일본</li><li>동아시아</li>
+        <li class="polar">남극</li><li class="polar">그린란드</li><li class="polar">스발바르</li><li class="polar">얀마옌</li><li class="polar">북극해</li>
+        <li>온 지구</li><li class="moon">달</li><li class="mars">화성</li><li class="mercury">수성</li>
+      </ul>
+      <ul class="chips feats" aria-label="할 수 있는 것">
+        <li>지질도 겹쳐 보기</li><li>눌러 속성 읽기</li><li>극 평사도법</li>
+        <li>3D 지형</li><li>거리·넓이·단면</li><li>그림으로 내려받기</li><li>CSV·GeoJSON 올리기</li>
+      </ul>
+      <a class="tour" href="#hook" id="tour">둘러보기 <span aria-hidden="true">↓</span></a>
+    </div>
+  </div>
+</section>
+
+
+<section class="scene hook" id="hook" data-steps="3" data-stops="0 0.2 0.62 1" data-durs="0 1300 2600 1400" data-holds="- - 0 -" data-theme="korea"
+         data-go="map/?region=korea" data-go-label="한국 지도">
+  <div class="stage">
+    <div class="papers" aria-hidden="true" data-flood="/GSM-open/static/viewer/intro/ko/thumb/"
+         data-names="src_kigam src_gsj antarctica svalbard greenland antarctica_close antarctica_dml antarctica_ibcso greenland_geochem greenland_portal svalbard_paper svalbard_glacier jan_mayen korea3d korea3d_wide svalbard3d measure exported korea_geochem korea_marine src_vworld eastasia moon mars mercury earth">
+      <figure class="paper lead" style="--x:-34vw;--y:-14vh;--r:-9deg;--t:.03">
+        <img src="/GSM-open/static/viewer/intro/ko/src_kigam.webp" alt="" style="object-position:62% 40%">
+        <figcaption>도폭은 PDF 한 장씩 — 경계를 넘으면 다른 파일을 엽니다</figcaption>
+      </figure>
+      <figure class="paper lead" style="--x:31vw;--y:-16vh;--r:7deg;--t:.065">
+        <img src="/GSM-open/static/viewer/intro/ko/src_gsj.webp" alt="" style="object-position:70% 50%">
+        <figcaption>기관마다 사이트도, 쓰는 법도 다릅니다</figcaption>
+      </figure>
+      <figure class="paper lead" style="--x:-30vw;--y:24vh;--r:6deg;--t:.1">
+        <img src="/GSM-open/static/viewer/intro/ko/antarctica.webp" alt="" style="object-position:60% 40%">
+        <figcaption>좌표계와 투영이 제각각이라 내 좌표부터 바꿔야 합니다</figcaption>
+      </figure>
+      <figure class="paper lead" style="--x:33vw;--y:22vh;--r:-6deg;--t:.135">
+        <img src="/GSM-open/static/viewer/intro/ko/svalbard.webp" alt="" style="object-position:70% 50%">
+        <figcaption>이 색이 무슨 지층인지, 범례를 따로 찾아야 합니다</figcaption>
+      </figure>
+      <figure class="paper lead" style="--x:0vw;--y:32vh;--r:2deg;--t:.17">
+        <img src="/GSM-open/static/viewer/intro/ko/greenland.webp" alt="" style="object-position:65% 45%">
+        <figcaption>극지 자료는 어디에 있는지부터 모릅니다</figcaption>
+      </figure>
+      
+    </div>
+    <div class="hook-text">
+      <h1>지질도를 볼 때,<br>불편한 점이 많지 않았나요?</h1>
+    </div>
+    <div class="resolve">
+      <h2>그래서 한 화면에 모았습니다.</h2>
+      <p>지질도를 겹쳐 보고, 눌러 속성을 읽고, 내 좌표를 얹는 지도 — 대돌여지도입니다.</p>
+      <figure class="one-frame"><img src="/GSM-open/static/viewer/intro/ko/src_kigam.webp" alt="대돌여지도의 한국 지역 화면"></figure>
+    </div>
+  </div>
+</section>
+
+
+<section class="scene who" id="polar" data-steps="1" data-dwell="5500" data-theme="antarctica"
+         data-go="map/?region=antarctica" data-go-label="남극 지도">
+  <div class="stage">
+    <div class="who-text">
+      <p class="kicker">그래서</p>
+      <div class="kopri"><img src="/GSM-open/static/viewer/intro/kopri-ci-ko.svg" alt="극지연구소"></div>
+      <h2><em>극지연구소 고생물진화연구실</em><span>에서 만들었습니다.</span></h2>
+      <p class="makers">만든 이 — 극지연구소 이승찬 · 극지연구소 정직한</p>
+      <p>우리가 일하는 <b>극지</b>부터 보여 드립니다.</p>
+      <ol class="route" aria-label="가는 길">
+        <li>남극</li><li>그린란드</li><li>스발바르</li>
+      </ol>
+    </div>
+  </div>
+</section>
+
+
+<section class="scene polartitle" id="polartitle" data-steps="1" data-dwell="3400" data-theme="polar"
+         data-go="map/?region=antarctica" data-go-label="남극 지도">
+  <div class="stage">
+    <img class="replay" src="/GSM-open/static/viewer/splash-polar.gif" alt="대돌여지도 · 극지" width="760" height="360">
+  </div>
+</section>
+
+
+<section class="scene shot" id="antarctica" data-steps="4" data-theme="antarctica"
+         data-go="map/?region=antarctica" data-go-label="남극 지도">
+  <div class="stage">
+    <div class="copy">
+      <p class="kicker"><img class="kicker-icon" src="/GSM-open/static/viewer/emblem-polar.png" alt="" width="22" height="22">남극 · EPSG:3031</p>
+      <h2>남극은 남극점을 가운데 두고 봅니다.</h2>
+      <p class="step-text" data-step="0">메르카토르에서 찢어지던 대륙이 <b>제 모양</b>으로 섭니다. SCAR GeoMAP 지질도는 <b>우리 서버가 직접</b> 그립니다.</p>
+      <p class="step-text" data-step="1">가까이 가면 <b>극지연구소가 모은 암석 시료</b>의 자리가 뜹니다. 장보고기지가 있는 빅토리아랜드입니다.</p>
+      <p class="step-text" data-step="2">드로닝모드랜드는 노르웨이 극지연구소의 <b>1:25만 지질도</b>와 구조선으로.</p>
+      <p class="step-text" data-step="3"><b>빙상 밑의 땅</b>(IBCSO)을 배경으로 깔고, 남극의 <b>기지와 운석 발견 지점</b>을 얹습니다.</p>
+      <p class="src">지질도 SCAR GeoMAP·NPI · 시료·기지·운석 위치 극지연구소 KPDC · 배경 PGC REMA·IBCSO</p>
+    </div>
+    <figure class="frame">
+      <img data-step="0" src="/GSM-open/static/viewer/intro/ko/antarctica.webp" alt="남극 지역 화면 — 남극 평사도법의 대륙 전체에 GeoMAP 지질도와 암석 시료">
+      <img data-step="1" loading="lazy" src="/GSM-open/static/viewer/intro/ko/antarctica_close.webp" alt="빅토리아랜드를 가까이 본 화면 — 지질도 위의 극지연구소 암석 시료 점">
+      <img data-step="2" loading="lazy" src="/GSM-open/static/viewer/intro/ko/antarctica_dml.webp" alt="드로닝모드랜드 — NPI 지질 단위와 구조선">
+      <img data-step="3" loading="lazy" src="/GSM-open/static/viewer/intro/ko/antarctica_ibcso.webp" alt="IBCSO 빙저 지형 위의 남극 기지와 운석 발견 지점">
+    </figure>
+  </div>
+</section>
+
+
+<section class="scene shot" id="greenland" data-steps="3" data-theme="greenland"
+         data-go="map/?region=greenland" data-go-label="그린란드 지도">
+  <div class="stage">
+    <div class="copy">
+      <p class="kicker"><img class="kicker-icon" src="/GSM-open/static/viewer/emblem-polar.png" alt="" width="22" height="22">그린란드 · EPSG:3413</p>
+      <h2>그린란드는 GEUS의 50만 지질도로.</h2>
+      <p class="step-text" data-step="0">덴마크·그린란드 지질조사소(GEUS)의 지질도. 동그린란드의 <b>퇴적분지</b>가 색으로 드러납니다.</p>
+      <p class="step-text" data-step="1">GEUS의 <b>하천 퇴적물 지화학도</b>도 같은 화면에서 켭니다.</p>
+      <p class="step-text" data-step="2">그린란드 정부 포털의 <b>연대측정 지점</b>과 극지연구소 시료를 겹쳐 봅니다.</p>
+      <p class="src">지질도·지화학 GEUS · 연대측정 그린란드 정부 포털 · 시료 위치 극지연구소 KPDC · 배경 PGC ArcticDEM</p>
+    </div>
+    <figure class="frame">
+      <img data-step="0" loading="lazy" src="/GSM-open/static/viewer/intro/ko/greenland.webp" alt="동그린란드 화면 — GEUS 50만 지질도">
+      <img data-step="1" loading="lazy" src="/GSM-open/static/viewer/intro/ko/greenland_geochem.webp" alt="남서 그린란드 — 하천 퇴적물 지화학도">
+      <img data-step="2" loading="lazy" src="/GSM-open/static/viewer/intro/ko/greenland_portal.webp" alt="그린란드 전체 — 정부 포털의 연대측정 지점">
+    </figure>
+  </div>
+</section>
+
+
+<section class="scene shot" id="svalbard" data-steps="4" data-theme="svalbard"
+         data-go="map/?region=svalbard" data-go-label="스발바르 지도">
+  <div class="stage">
+    <div class="copy">
+      <p class="kicker"><img class="kicker-icon" src="/GSM-open/static/viewer/emblem-polar.png" alt="" width="22" height="22">스발바르 · 다산기지가 있는 곳</p>
+      <h2>스발바르는 노르웨이 극지연구소의 지질도로.</h2>
+      <p class="step-text" data-step="0">NPI의 지질 단위·단층을 그대로 받아 오고, <b>극지연구소 암석 시료</b>를 함께 얹습니다.</p>
+      <p class="step-text" data-step="1"><b>종이로 찍었던 지질도</b>도 음영째 그대로 볼 수 있습니다.</p>
+      <p class="step-text" data-step="2">다산기지가 있는 뉘올레순 — <b>1936년부터 2025년까지</b> 빙하 전면이 물러난 자리.</p>
+      <p class="step-text" data-step="3" data-go="map/?region=jan_mayen" data-go-label="얀마옌 지도">얀마옌 — 북대서양의 화산섬. NPI 지질도를 모양째 받아 <b>우리가 그립니다</b>.</p>
+      <p class="src">지질도·빙하 NPI · 시료 위치 극지연구소 KPDC · 배경 NPI Sentinel-2·PGC ArcticDEM</p>
+    </div>
+    <figure class="frame">
+      <img data-step="0" loading="lazy" src="/GSM-open/static/viewer/intro/ko/svalbard.webp" alt="스발바르 화면 — NPI 지질 단위와 단층, 극지연구소 암석 시료">
+      <img data-step="1" loading="lazy" src="/GSM-open/static/viewer/intro/ko/svalbard_paper.webp" alt="롱위에아르뷔엔 둘레의 NPI 종이 지질도(음영)">
+      <img data-step="2" loading="lazy" src="/GSM-open/static/viewer/intro/ko/svalbard_glacier.webp" alt="뉘올레순 둘레의 빙하 전면 변화 선">
+      <img data-step="3" loading="lazy" src="/GSM-open/static/viewer/intro/ko/jan_mayen.webp" alt="얀마옌 지질도 — 지질 단위와 분화구">
+    </figure>
+  </div>
+</section>
+
+
+<section class="scene shot polarsum" id="polarsum" data-steps="1" data-theme="greenland"
+         data-go="map/?region=arctic" data-go-label="북극 지도">
+  <div class="stage">
+    <div class="copy">
+      <p class="kicker"><img class="kicker-icon" src="/GSM-open/static/viewer/emblem-polar.png" alt="" width="22" height="22">극지 정리</p>
+      <h2>흩어진 극지 자료를 한 자리에</h2>
+      <ul class="summary-list">
+        <li><b>남극</b> — SCAR GeoMAP, IBCSO 해저지형, 드로닝모드랜드(NPI), 기지·운석 발견 지점</li>
+        <li><b>그린란드</b> — GEUS 지질도·지화학, 정부 포털의 시료·광물 산출지</li>
+        <li><b>스발바르·얀마옌</b> — NPI 지질도·도폭·빙하 전면 변화</li>
+        <li><b>북극해</b> — KPDC 관측 자료</li>
+      </ul>
+      <p>기관마다 다른 투영과 서버를 <b>극 평사도법(3031·3413) 하나</b>로 맞췄습니다.</p>
+    </div>
+    <figure class="mosaic" aria-label="극지 화면 여섯 장">
+      <img loading="lazy" src="/GSM-open/static/viewer/intro/ko/thumb/antarctica_close.webp" alt="">
+      <img loading="lazy" src="/GSM-open/static/viewer/intro/ko/thumb/antarctica_ibcso.webp" alt="">
+      <img loading="lazy" src="/GSM-open/static/viewer/intro/ko/thumb/greenland.webp" alt="">
+      <img loading="lazy" src="/GSM-open/static/viewer/intro/ko/thumb/svalbard.webp" alt="">
+      <img loading="lazy" src="/GSM-open/static/viewer/intro/ko/thumb/svalbard_glacier.webp" alt="">
+      <img loading="lazy" src="/GSM-open/static/viewer/intro/ko/thumb/jan_mayen.webp" alt="">
+    </figure>
+  </div>
+</section>
+
+
+
+
+<section class="scene shot tools" id="tools" data-steps="4" data-theme="korea"
+         data-go="map/?region=korea" data-go-label="한국 지도">
+  <div class="stage">
+    <div class="copy">
+      <p class="kicker">야외에서 쓰는 도구</p>
+      <h2>찍고, 재고, 남깁니다.</h2>
+      <ol class="steps">
+        <li data-step="0"><b>점 찍기</b> — 누른 자리의 위경도를 적고, 목록으로 저장합니다.</li>
+        <li data-step="1"><b>거리와 높이</b> — 선을 그으면 거리와 함께 높이 그래프가 뜹니다.</li>
+        <li data-step="2"><b>넓이</b> — 면을 두르면 넓이가 km²와 ha로 뜹니다.</li>
+        <li data-step="3"><b>그림으로 내려받기</b> — 지금 보는 지도를 축척·좌표·출처가 붙은 PNG 한 장으로 받습니다.</li>
+      </ol>
+      <p class="src">내 CSV·GeoJSON을 올리면 <b>점묶음</b>으로 지도에 얹힙니다.</p>
+    </div>
+    <figure class="frame">
+      <img data-step="0" class="zoom-point" loading="lazy" src="/GSM-open/static/viewer/intro/ko/measure.webp" alt="점을 찍은 화면 — 번호가 붙은 점 둘">
+      <img data-step="1" loading="lazy" src="/GSM-open/static/viewer/intro/ko/measure.webp" alt="거리를 잰 화면 — 선 아래에 높이 그래프">
+      <img data-step="2" loading="lazy" src="/GSM-open/static/viewer/intro/ko/exported.webp" alt="넓이를 잰 화면 — 두른 면에 넓이가 적혀 있다">
+      <img data-step="3" class="paper-out" loading="lazy" src="/GSM-open/static/viewer/intro/ko/exported_file.webp" alt="내려받은 PNG — 지도 아래에 레이어·가운데 좌표·출처·축척 막대">
+    </figure>
+  </div>
+</section>
+
+
+<section class="scene shot" id="sources" data-steps="6" data-theme="korea"
+         data-go="map/?region=korea" data-go-label="한국 지도">
+  <div class="stage">
+    <div class="copy">
+      <p class="kicker">여러 출처, 한 화면</p>
+      <h2>기관마다 다른 지도를 한 화면에서.</h2>
+      <ol class="steps">
+        <li data-step="0 1 2"><b>한국지질자원연구원</b> — 5만·25만·100만 지질도부터 지화학도·해저지질도까지, 지오빅데이터 오픈플랫폼의 주제도.</li>
+        <li data-step="3"><b>국토교통부 VWorld</b> — 단층·수문지질·보호구역·행정경계. 국가 공간정보를 같은 자리에 겹칩니다.</li>
+        <li data-step="4" data-theme="japan" data-go="map/?region=japan" data-go-label="일본 지도"><b>일본 지질조사종합센터(GSJ)</b> — 20만 심리스 지질도.</li>
+        <li data-step="5" data-theme="japan" data-go="map/?region=eastasia" data-go-label="동아시아 지도"><b>동아시아</b> — 한국과 일본의 지질도가 한 화면에 이어집니다.</li>
+      </ol>
+      <p class="src">그 밖에 GEUS · NPI · SCAR · USGS · NASA · Macrostrat …</p>
+    </div>
+    <figure class="frame">
+      <img data-step="0" loading="lazy" src="/GSM-open/static/viewer/intro/ko/src_kigam.webp" alt="한국 지역 화면 — 설악산 둘레의 KIGAM 5만 지질도">
+      <img data-step="1" loading="lazy" src="/GSM-open/static/viewer/intro/ko/korea_geochem.webp" alt="KIGAM 지화학도 — 하천 퇴적물의 구리">
+      <img data-step="2" loading="lazy" src="/GSM-open/static/viewer/intro/ko/korea_marine.webp" alt="KIGAM 해저지질도 — 표층퇴적물 유형">
+      <img data-step="3" loading="lazy" src="/GSM-open/static/viewer/intro/ko/src_vworld.webp" alt="같은 자리에 VWorld 위성 배경과 단층·수문지질단위">
+      <img data-step="4" loading="lazy" src="/GSM-open/static/viewer/intro/ko/src_gsj.webp" alt="일본 지역 화면 — 후지산 둘레의 GSJ 20만 심리스 지질도">
+      <img data-step="5" loading="lazy" src="/GSM-open/static/viewer/intro/ko/eastasia.webp" alt="동아시아 화면 — 한반도 남부의 KIGAM 25만과 규슈의 GSJ 지질도">
+      <figcaption class="badge">
+        <span data-step="0 1 2">KIGAM</span><span data-step="3">VWorld</span><span data-step="4">GSJ</span><span data-step="5">KIGAM + GSJ</span>
+      </figcaption>
+    </figure>
+  </div>
+</section>
+
+
+
+
+<section class="doors-wrap" id="doors" data-theme="title"
+         data-go="map/?region=korea" data-go-label="한국 지도">
+  <p class="kicker">이제 직접 볼 차례입니다</p>
+  <h2>어디부터 볼까요?</h2>
+
+  
+  <div class="cats-earth">
+    <div class="cat earth">
+      <h3><img src="/GSM-open/static/viewer/emblem.svg?v=273bfa5f6c" alt="" width="40" height="40">지구</h3>
+      <div class="doors">
+        <a class="door" href="/GSM-open/map/?region=korea">
+          <img loading="lazy" src="/GSM-open/static/viewer/intro/ko/thumb/src_kigam.webp" alt="">
+          <b>한국</b><span>KIGAM 지질도와 VWorld</span>
+        </a>
+        <a class="door" href="/GSM-open/map/?region=japan">
+          <img loading="lazy" src="/GSM-open/static/viewer/intro/ko/thumb/src_gsj.webp" alt="">
+          <b>일본</b><span>GSJ 심리스 지질도</span>
+        </a>
+        <a class="door" href="/GSM-open/map/?region=eastasia">
+          <img loading="lazy" src="/GSM-open/static/viewer/intro/ko/thumb/eastasia.webp" alt="">
+          <b>동아시아</b><span>한국과 일본을 한 화면에</span>
+        </a>
+        
+      </div>
+    </div>
+
+    <div class="cat polar">
+      <h3><img src="/GSM-open/static/viewer/emblem-polar.png" alt="" width="40" height="40">극지</h3>
+      <div class="doors">
+        <a class="door" href="/GSM-open/map/?region=antarctica">
+          <img loading="lazy" src="/GSM-open/static/viewer/intro/ko/thumb/antarctica_close.webp" alt="">
+          <b>남극</b><span>남극점을 가운데 둔 GeoMAP</span>
+        </a>
+        <a class="door" href="/GSM-open/map/?region=arctic">
+          <img loading="lazy" src="/GSM-open/static/viewer/intro/ko/thumb/svalbard.webp" alt="">
+          <b>북극</b><span>그린란드·스발바르·얀마옌을 한 화면에</span>
+        </a>
+      </div>
+    </div>
+  </div>
+
+  
+
+  <footer class="credit">
+    <p>자료의 주인은 저마다의 기관입니다 — 한국지질자원연구원, 국토교통부(VWorld), GEUS, 노르웨이 극지연구소, SCAR GeoMAP, 일본 산업기술종합연구소, USGS, NASA, 극지연구소 KPDC 등. 이 쪽의 그림은 대돌여지도 화면을 찍은 것입니다.</p>
+    <p>만든 곳 — 극지연구소 고생물진화연구실 · 만든 이 — 극지연구소 이승찬 · 극지연구소 정직한</p>
+    <p>코드는 AGPL-3.0 · <a href="https://github.com/koprifossillab/GSM-open">소스</a> · GSM v0.44.0</p>
+  </footer>
+</section>
+
+</main>
+
+<script id="static-config" type="application/json">{"regions": ["korea", "greenland", "svalbard", "arctic_ocean", "antarctica", "jan_mayen"], "upstreams": ["kigam", "vworld", "geus", "npolar", "pgc", "emodnet", "kopri", "grportal", "geomap", "ibcso"], "baked": {"geomap": {"geomap_simple_geology": 10, "geomap_simple_lithology": 9, "geomap_chronostratigraphic": 9, "geomap_lithostratigraphic": 9, "geomap_faults": 9, "geomap_quality": 8}, "points": {"grportal:geochron": false, "grportal:mineral_occurrences": false, "grportal:intrusions": false, "grportal:samples": false, "grportal:place_names": false, "grportal:mineral_tracts": false, "grportal:unstable_slopes": false, "grportal:mass_movements": false, "grportal:diamond_occurrences": false, "grportal:diamond_drillholes": false, "grportal:diamond_indicators": false, "grportal:diamond_per_kg": false, "grportal:garnet_classes": false, "grportal:diamond_explored": false, "grportal:diamond_unexplored": false, "grportal:geochem_soil": false, "grportal:geochem_heavy": false, "grportal:geochem_scree": false, "grportal:whole_rock": false, "npolar:rock_archive": false, "npolar:dml_geochron": false, "npolar:dml_samples": false, "npolar:dml_sites": false, "npolar:svalbard_sheet_index": false, "npolar:place_names": false, "npolar:dml_place_names": false, "janmayen:units": true, "janmayen:lines": true, "janmayen:vents": true, "kopri:rock_antarctica": true, "kopri:rock_svalbard": true, "kopri:rock_greenland": true, "kopri:meteorites": true, "kopri:kpdc_sediment": true, "kopri:kpdc_sediment_svalbard": true, "kopri:kpdc_sediment_greenland": true, "kopri:kpdc_sediment_arctic_ocean": true, "kopri:kpdc_solid": true, "kopri:kpdc_solid_svalbard": true, "kopri:kpdc_solid_greenland": true, "kopri:kpdc_solid_arctic_ocean": true, "kopri:kpdc_paleo": true, "kopri:kpdc_paleo_svalbard": true, "kopri:kpdc_paleo_greenland": true, "kopri:kpdc_paleo_arctic_ocean": true, "kopri:kpdc_cryo": true, "kopri:kpdc_cryo_svalbard": true, "kopri:kpdc_cryo_greenland": true, "kopri:kpdc_cryo_arctic_ocean": true, "kopri:kpdc_ocean": true, "kopri:kpdc_ocean_svalbard": true, "kopri:kpdc_ocean_greenland": true, "kopri:kpdc_ocean_arctic_ocean": true, "kopri:kpdc_atmo": true, "kopri:kpdc_atmo_svalbard": true, "kopri:kpdc_atmo_greenland": true, "kopri:kpdc_atmo_arctic_ocean": true, "kopri:kpdc_bio": true, "kopri:kpdc_bio_svalbard": true, "kopri:kpdc_bio_greenland": true, "kopri:kpdc_bio_arctic_ocean": true, "kopri:kpdc_other": true, "kopri:kpdc_other_svalbard": true, "kopri:kpdc_other_greenland": true, "kopri:kpdc_other_arctic_ocean": true}, "ibcso": true, "placenames": {"svalbard": ["placenames/npolar/place_names.json"], "greenland": ["placenames/grportal/place_names.json"], "antarctica": ["placenames/npolar/dml_place_names.json"]}}}</script>
+<script src="/GSM-open/static/viewer/intro.js?v=273bfa5f6c"></script>
+</body>
+</html>

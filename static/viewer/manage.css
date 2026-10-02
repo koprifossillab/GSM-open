@@ -1,0 +1,149 @@
+/* 관리 화면 (wetherilli P08·118). 색·단추·상자는 map.css 의 것을 쓰고 자리만 여기서 잡는다.
+ * 지도와 달리 페이지가 구른다 — map.css 의 html·body 고정을 푼다. */
+html { overflow: auto; }
+body.manage { display: block; height: auto; min-height: 100vh; overflow: visible; }
+
+.mg-head {
+  position: sticky;
+  top: 0;
+  z-index: 5;
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  padding: 10px 20px;
+  background: var(--panel-tint);
+  border-bottom: 1px solid var(--line);
+}
+.mg-brand { display: flex; align-items: center; gap: 10px; color: var(--ink); text-decoration: none; }
+.mg-brand b { color: var(--gold-bright); letter-spacing: .08em; }
+.mg-brand small { display: block; font-size: 11.5px; letter-spacing: .2em; color: var(--ink-faint); }
+.mg-tabs { display: flex; gap: 4px; flex-wrap: wrap; }
+.mg-tab {
+  height: 32px;
+  padding: 0 14px;
+  font: inherit;
+  font-size: 13px;
+  color: var(--ink-soft);
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 999px;
+  cursor: pointer;
+}
+.mg-tab:hover { border-color: var(--gold-edge); }
+.mg-tab.on { color: var(--on-hi); background: var(--hi); font-weight: 600; }
+.mg-back { margin-left: auto; text-decoration: none; }
+
+.mg-main { max-width: 1100px; margin: 0 auto; padding: 20px 16px 60px; }
+.mg-body { display: none; }
+.mg-body.on { display: block; }
+
+.mg-drop {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 140px;
+  padding: 20px;
+  color: var(--ink-soft);
+  text-align: center;
+  background: var(--panel-tint);
+  border: 1.5px dashed var(--line);
+  border-radius: 10px;
+  cursor: pointer;
+  transition: border-color .14s, background .14s;
+}
+.mg-drop:hover, .mg-drop.over { border-color: var(--gold); background: var(--gold-wash); }
+.mg-drop input { position: absolute; width: 1px; height: 1px; opacity: 0; }
+.mg-drop svg { width: 30px; height: 30px; color: var(--gold); }
+.mg-format { display: block; margin: 12px 0 0; line-height: 1.7; }
+.mg-format code, .mg-table .mono, .mg-val { font-family: var(--font-mono); font-size: 11.5px; }
+.mg-samples { display: flex; flex-wrap: wrap; align-items: center; gap: 4px; margin-top: 8px; }
+
+.mg-form { display: flex; flex-wrap: wrap; gap: 12px; margin-bottom: 12px; }
+.mg-form label { display: flex; flex-direction: column; gap: 4px; font-size: 12px; color: var(--ink-soft); }
+.mg-form label:first-child { flex: 1 1 280px; }
+.mg-form input[type="text"], .mg-form select, .mg-name-cell input[type="text"] {
+  height: 32px;
+  padding: 0 10px;
+  font: inherit;
+  color: var(--ink);
+  background: var(--panel-tint);
+  border: 1px solid var(--line);
+  border-radius: 6px;
+}
+.mg-form input[type="color"], .mg-name-cell input[type="color"] {
+  width: 40px; height: 32px; padding: 2px; background: var(--panel-tint); border: 1px solid var(--line); border-radius: 6px;
+}
+.mg-stats { margin-bottom: 10px; }
+
+.mg-note { margin: 10px 0; padding: 8px 12px; font-size: 12.5px; border-radius: 8px; }
+.mg-note ul { margin: 4px 0 0; padding-left: 18px; list-style: disc; }
+.mg-note li.more { list-style: none; color: var(--ink-faint); }
+.warn-list { color: var(--warn-ink); background: var(--warn-bg); border: 1px solid var(--warn-line); }
+.bad-list { color: var(--bad); background: var(--panel-tint); border: 1px solid var(--bad); }
+
+.mg-scroll { overflow-x: auto; margin-bottom: 10px; border: 1px solid var(--line-soft); border-radius: 8px; }
+.mg-table { width: 100%; border-collapse: collapse; font-size: 12.5px; }
+.mg-table th, .mg-table td { padding: 6px 10px; text-align: left; vertical-align: middle; border-bottom: 1px solid var(--line-soft); white-space: nowrap; }
+.mg-table th { font-weight: 600; color: var(--ink-soft); background: var(--raise); }
+.mg-table tr:last-child td { border-bottom: 0; }
+.mg-table td.empty { color: var(--ink-faint); white-space: normal; }
+.mg-val { max-width: 360px; overflow: hidden; text-overflow: ellipsis; }
+.mg-name-cell { display: flex; gap: 6px; align-items: center; }
+.mg-name-cell input[type="text"] { min-width: 150px; width: 100%; }
+.mg-row-acts { text-align: right; }
+.mg-row-acts .btn { height: 28px; }
+
+.mg-acts { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-top: 12px; }
+.mg-right { margin-left: auto; }
+
+@media (max-width: 640px) {
+  .mg-head { flex-wrap: wrap; gap: 8px; padding: 10px 16px; }
+  .mg-back { margin-left: 0; }
+  .mg-main { padding: 14px 16px 40px; }
+}
+
+/* API 로 잇기 (wetherilli P09·122) */
+.mg-link-form label.wide { flex: 1 1 100%; }
+.mg-link-form input[type="url"], .mg-link-form input[type="password"] {
+  height: 32px; padding: 0 10px; font: inherit; color: var(--ink);
+  background: var(--panel-tint); border: 1px solid var(--line); border-radius: 6px;
+}
+.mg-link-cell { white-space: normal; min-width: 220px; }
+.mg-link-cell small { display: block; color: var(--ink-faint); font-size: 11px; }
+.mg-link-cell small.bad { color: var(--bad); }
+.mg-link-badge {
+  display: inline-block; padding: 0 6px; font-size: 10.5px; font-weight: 700; letter-spacing: .05em;
+  color: var(--on-hi); background: var(--gold-muted); border-radius: 4px;
+}
+
+/* 양식 예시 (wetherilli 130) */
+.mg-example-bar { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-bottom: 10px; }
+.mg-example-bar .seg { display: inline-flex; border: 1px solid var(--line); border-radius: 999px; overflow: hidden; }
+.mg-example-bar .seg button {
+  height: 28px; padding: 0 12px; font: inherit; font-size: 12.5px; color: var(--ink-soft);
+  background: transparent; border: 0; cursor: pointer;
+}
+.mg-example-bar .seg button.on { color: var(--on-hi); background: var(--hi); font-weight: 600; }
+.mg-example {
+  margin: 0; padding: 12px 14px; max-height: 360px; overflow: auto;
+  font-family: var(--font-mono); font-size: 11.5px; line-height: 1.6; white-space: pre; color: var(--ink);
+  background: var(--panel-tint); border: 1px solid var(--line-soft); border-radius: 8px;
+}
+.mg-example-notes { margin: 10px 0 0; padding-left: 18px; list-style: disc; font-size: 12.5px; line-height: 1.7; color: var(--ink-soft); }
+.mg-example-notes code { font-family: var(--font-mono); font-size: 11.5px; color: var(--ink); }
+
+/* 용량 (wetherilli 131) */
+.mg-capacity { margin-top: 12px; font-size: 12.5px; }
+.mg-cap-head { display: flex; flex-wrap: wrap; gap: 10px; align-items: baseline; color: var(--ink-soft); }
+.mg-cap-head b { color: var(--ink); }
+.mg-cap-bar { height: 8px; margin: 8px 0; background: var(--panel-tint); border: 1px solid var(--line-soft); border-radius: 999px; overflow: hidden; }
+.mg-cap-bar span { display: block; height: 100%; background: var(--good); }
+.mg-cap-bar span.warn { background: var(--gold); }
+.mg-cap-bar span.bad { background: var(--bad); }
+.mg-cap-warn { margin-top: 6px; padding: 6px 10px; border-radius: 6px; font-size: 12.5px; }
+.mg-cap-warn.warn { color: var(--warn-ink); background: var(--warn-bg); border: 1px solid var(--warn-line); }
+.mg-cap-warn.bad { color: var(--bad); background: var(--panel-tint); border: 1px solid var(--bad); }
+.mg-table td.mg-big { color: var(--bad); font-weight: 600; }
+.mg-size-check { margin-top: 10px; font-size: 12.5px; color: var(--ink-soft); }

@@ -1,0 +1,347 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Great Stone Map</title>
+<meta name="description" content="Overlay geological maps, click to read attributes, drop your own coordinates on top — Korea, the poles, Japan, and on to the Moon and Mars.">
+<meta name="theme-color" content="#0b0906">
+<link rel="icon" type="image/svg+xml" href="/GSM-open/static/viewer/emblem.svg?v=273bfa5f6c">
+<link rel="stylesheet" href="/GSM-open/static/viewer/intro.css?v=273bfa5f6c">
+</head>
+
+<body data-theme="title">
+
+<header class="bar">
+  <a class="brand" href="/GSM-open/en/">
+    <img src="/GSM-open/static/viewer/emblem.svg?v=273bfa5f6c" alt="" width="34" height="34">
+    <span><b>Great Stone Map</b><small>대돌여지도</small></span>
+  </a>
+  <div class="bar-r">
+    <nav class="langs" aria-label="Language">
+      <button type="button" data-lang="ko" >한국어</button>
+      <button type="button" data-lang="en" aria-current="true">English</button>
+    </nav>
+    <a class="skip" id="skip" href="/GSM-open/en/map/?region=korea">
+      <b>Go to the map <span aria-hidden="true">→</span></b>
+      <span class="skip-to" id="skip-to">Korea map</span>
+    </a>
+  </div>
+</header>
+
+
+<button type="button" class="play" id="play" aria-pressed="true"
+        data-play="Autoplay" data-pause="Pause">
+  <span class="play-icon" aria-hidden="true"></span><span class="play-label">Pause</span>
+  <i class="play-bar" aria-hidden="true"></i>
+</button>
+
+<nav class="chapters" id="chapters" aria-label="Scenes">
+  <a href="#title" data-for="title">Home</a>
+  <a href="#hook" data-for="hook">The problem</a>
+  <a href="#polar" data-for="polar polartitle antarctica greenland svalbard polarsum">Polar</a>
+  
+  <a href="#tools" data-for="tools">Tools</a>
+  <a href="#sources" data-for="sources">Source</a>
+  
+  <a href="#doors" data-for="doors">Start</a>
+</nav>
+
+<main>
+
+
+<section class="scene title" id="title" data-steps="1" data-stops="0" data-dwell="3200" data-theme="title"
+         data-go="map/?region=korea" data-go-label="Korea map">
+  <div class="stage">
+    <canvas class="stars" aria-hidden="true"></canvas>
+    <canvas class="globes" data-scene="title" role="img" aria-label="The Earth, the Moon, Mars and Mercury as globes"
+            data-earth="/GSM-open/static/viewer/intro/globe-earth.webp"
+            data-moon="/GSM-open/static/viewer/intro/globe-moon.webp"
+            data-mars="/GSM-open/static/viewer/intro/globe-mars.webp"
+            data-mercury="/GSM-open/static/viewer/intro/globe-mercury.webp"></canvas>
+    <div class="title-text">
+      <p class="kicker"><img class="kicker-icon" src="/GSM-open/static/viewer/emblem-polar.png" alt="" width="22" height="22">Lab. of Paleontology &amp; Evolution in KOPRI</p>
+      <h1>Great Stone Map<span>대돌여지도</span></h1>
+      <p class="lead">A map for overlaying geological maps, clicking to read attributes and adding your own coordinates.</p>
+      <ul class="chips regions" aria-label="Where it covers">
+        <li>Korea</li><li>Japan</li><li>East Asia</li>
+        <li class="polar">Antarctica</li><li class="polar">Greenland</li><li class="polar">Svalbard</li><li class="polar">Jan Mayen</li><li class="polar">Arctic Ocean</li>
+        <li>Whole Earth</li><li class="moon">Moon</li><li class="mars">Mars</li><li class="mercury">Mercury</li>
+      </ul>
+      <ul class="chips feats" aria-label="What it does">
+        <li>Overlay geological maps</li><li>Click to read attributes</li><li>Polar stereographic</li>
+        <li>3D terrain</li><li>Distance, area, profile</li><li>Download as image</li><li>Upload CSV and GeoJSON</li>
+      </ul>
+      <a class="tour" href="#hook" id="tour">Take the tour <span aria-hidden="true">↓</span></a>
+    </div>
+  </div>
+</section>
+
+
+<section class="scene hook" id="hook" data-steps="3" data-stops="0 0.2 0.62 1" data-durs="0 1300 2600 1400" data-holds="- - 0 -" data-theme="korea"
+         data-go="map/?region=korea" data-go-label="Korea map">
+  <div class="stage">
+    <div class="papers" aria-hidden="true" data-flood="/GSM-open/static/viewer/intro/en/thumb/"
+         data-names="src_kigam src_gsj antarctica svalbard greenland antarctica_close antarctica_dml antarctica_ibcso greenland_geochem greenland_portal svalbard_paper svalbard_glacier jan_mayen korea3d korea3d_wide svalbard3d measure exported korea_geochem korea_marine src_vworld eastasia moon mars mercury earth">
+      <figure class="paper lead" style="--x:-34vw;--y:-14vh;--r:-9deg;--t:.03">
+        <img src="/GSM-open/static/viewer/intro/en/src_kigam.webp" alt="" style="object-position:62% 40%">
+        <figcaption>One PDF per map sheet — cross the edge and you open another file</figcaption>
+      </figure>
+      <figure class="paper lead" style="--x:31vw;--y:-16vh;--r:7deg;--t:.065">
+        <img src="/GSM-open/static/viewer/intro/en/src_gsj.webp" alt="" style="object-position:70% 50%">
+        <figcaption>Every agency has its own site, and its own way of using it</figcaption>
+      </figure>
+      <figure class="paper lead" style="--x:-30vw;--y:24vh;--r:6deg;--t:.1">
+        <img src="/GSM-open/static/viewer/intro/en/antarctica.webp" alt="" style="object-position:60% 40%">
+        <figcaption>Datums and projections all differ, so you convert your own coordinates first</figcaption>
+      </figure>
+      <figure class="paper lead" style="--x:33vw;--y:22vh;--r:-6deg;--t:.135">
+        <img src="/GSM-open/static/viewer/intro/en/svalbard.webp" alt="" style="object-position:70% 50%">
+        <figcaption>Which formation is this colour? You go hunting for the legend</figcaption>
+      </figure>
+      <figure class="paper lead" style="--x:0vw;--y:32vh;--r:2deg;--t:.17">
+        <img src="/GSM-open/static/viewer/intro/en/greenland.webp" alt="" style="object-position:65% 45%">
+        <figcaption>Polar data — you don't even know where it lives</figcaption>
+      </figure>
+      
+    </div>
+    <div class="hook-text">
+      <h1>Reading geological maps —<br>hasn't it been a hassle?</h1>
+    </div>
+    <div class="resolve">
+      <h2>So we put it all on one screen.</h2>
+      <p>A map for overlaying geological maps, clicking to read attributes and adding your own coordinates — Great Stone Map.</p>
+      <figure class="one-frame"><img src="/GSM-open/static/viewer/intro/en/src_kigam.webp" alt="Great Stone Map's Korea tab"></figure>
+    </div>
+  </div>
+</section>
+
+
+<section class="scene who" id="polar" data-steps="1" data-dwell="5500" data-theme="antarctica"
+         data-go="map/?region=antarctica" data-go-label="Antarctica map">
+  <div class="stage">
+    <div class="who-text">
+      <p class="kicker">So</p>
+      <div class="kopri"><img src="/GSM-open/static/viewer/intro/kopri-ci-en.svg" alt="Korea Polar Research Institute (KOPRI)"></div>
+      <h2><em>Lab. of Paleontology &amp; Evolution in KOPRI</em><span>made this map.</span></h2>
+      <p class="makers">Made by Seungchan Lee (KOPRI) · Jikhan Jung (KOPRI)</p>
+      <p>We start where we work — <b>the poles</b>.</p>
+      <ol class="route" aria-label="Route">
+        <li>Antarctica</li><li>Greenland</li><li>Svalbard</li>
+      </ol>
+    </div>
+  </div>
+</section>
+
+
+<section class="scene polartitle" id="polartitle" data-steps="1" data-dwell="3400" data-theme="polar"
+         data-go="map/?region=antarctica" data-go-label="Antarctica map">
+  <div class="stage">
+    <img class="replay" src="/GSM-open/static/viewer/splash-polar.gif" alt="Great Stone Map · Polar" width="760" height="360">
+  </div>
+</section>
+
+
+<section class="scene shot" id="antarctica" data-steps="4" data-theme="antarctica"
+         data-go="map/?region=antarctica" data-go-label="Antarctica map">
+  <div class="stage">
+    <div class="copy">
+      <p class="kicker"><img class="kicker-icon" src="/GSM-open/static/viewer/emblem-polar.png" alt="" width="22" height="22">Antarctica · EPSG:3031</p>
+      <h2>Antarctica, seen with the South Pole at the centre.</h2>
+      <p class="step-text" data-step="0">The continent that Mercator tears apart stands in its <b>true shape</b>. <b>Our server draws</b> the SCAR GeoMAP geology itself.</p>
+      <p class="step-text" data-step="1">Zoom in and the locations of <b>KOPRI's rock samples</b> appear. This is Victoria Land, home of Jang Bogo Station.</p>
+      <p class="step-text" data-step="2">Dronning Maud Land, with the Norwegian Polar Institute's <b>1:250,000 geology</b> and structural lines.</p>
+      <p class="step-text" data-step="3">With <b>the land beneath the ice sheet</b> (IBCSO) as the basemap, add <b>Antarctic stations and meteorite finds</b>.</p>
+      <p class="src">Geology SCAR GeoMAP · NPI · Sample, station and meteorite locations KOPRI KPDC · Basemap PGC REMA · IBCSO</p>
+    </div>
+    <figure class="frame">
+      <img data-step="0" src="/GSM-open/static/viewer/intro/en/antarctica.webp" alt="Antarctica tab — GeoMAP geology and rock samples over the whole continent in polar stereographic">
+      <img data-step="1" loading="lazy" src="/GSM-open/static/viewer/intro/en/antarctica_close.webp" alt="Close-up of Victoria Land — KOPRI rock sample points over the geology">
+      <img data-step="2" loading="lazy" src="/GSM-open/static/viewer/intro/en/antarctica_dml.webp" alt="Dronning Maud Land — NPI geological units and structural lines">
+      <img data-step="3" loading="lazy" src="/GSM-open/static/viewer/intro/en/antarctica_ibcso.webp" alt="Antarctic stations and meteorite finds over IBCSO bed topography">
+    </figure>
+  </div>
+</section>
+
+
+<section class="scene shot" id="greenland" data-steps="3" data-theme="greenland"
+         data-go="map/?region=greenland" data-go-label="Greenland map">
+  <div class="stage">
+    <div class="copy">
+      <p class="kicker"><img class="kicker-icon" src="/GSM-open/static/viewer/emblem-polar.png" alt="" width="22" height="22">Greenland · EPSG:3413</p>
+      <h2>Greenland, with the GEUS 1:500,000 geological map.</h2>
+      <p class="step-text" data-step="0">The Geological Survey of Denmark and Greenland (GEUS) map — East Greenland's <b>sedimentary basins</b> stand out in colour.</p>
+      <p class="step-text" data-step="1">GEUS <b>stream-sediment geochemistry</b> switches on in the same view.</p>
+      <p class="step-text" data-step="2">Overlay <b>dating sites</b> from the Greenland government portal and KOPRI's samples.</p>
+      <p class="src">Geology and geochemistry GEUS · Dating Greenland government portal · Sample locations KOPRI KPDC · Basemap PGC ArcticDEM</p>
+    </div>
+    <figure class="frame">
+      <img data-step="0" loading="lazy" src="/GSM-open/static/viewer/intro/en/greenland.webp" alt="East Greenland — GEUS 1:500,000 geology">
+      <img data-step="1" loading="lazy" src="/GSM-open/static/viewer/intro/en/greenland_geochem.webp" alt="Southwest Greenland — stream-sediment geochemistry">
+      <img data-step="2" loading="lazy" src="/GSM-open/static/viewer/intro/en/greenland_portal.webp" alt="All of Greenland — dating sites from the government portal">
+    </figure>
+  </div>
+</section>
+
+
+<section class="scene shot" id="svalbard" data-steps="4" data-theme="svalbard"
+         data-go="map/?region=svalbard" data-go-label="Svalbard map">
+  <div class="stage">
+    <div class="copy">
+      <p class="kicker"><img class="kicker-icon" src="/GSM-open/static/viewer/emblem-polar.png" alt="" width="22" height="22">Svalbard · home of Dasan Station</p>
+      <h2>Svalbard, with the Norwegian Polar Institute's geological maps.</h2>
+      <p class="step-text" data-step="0">NPI's geological units and faults come straight through, with <b>KOPRI's rock samples</b> on top.</p>
+      <p class="step-text" data-step="1"><b>The printed paper maps</b> are there too, hill shading and all.</p>
+      <p class="step-text" data-step="2">Ny-Ålesund, home of Dasan Station — where the glacier fronts retreated <b>from 1936 to 2025</b>.</p>
+      <p class="step-text" data-step="3" data-go="map/?region=jan_mayen" data-go-label="Jan Mayen map">Jan Mayen — a volcanic island in the North Atlantic. We take NPI's geology as shapes and <b>draw it ourselves</b>.</p>
+      <p class="src">Geology and glaciers NPI · Sample locations KOPRI KPDC · Basemap NPI Sentinel-2 · PGC ArcticDEM</p>
+    </div>
+    <figure class="frame">
+      <img data-step="0" loading="lazy" src="/GSM-open/static/viewer/intro/en/svalbard.webp" alt="Svalbard tab — NPI geological units and faults, KOPRI rock samples">
+      <img data-step="1" loading="lazy" src="/GSM-open/static/viewer/intro/en/svalbard_paper.webp" alt="NPI paper geological map (shaded) around Longyearbyen">
+      <img data-step="2" loading="lazy" src="/GSM-open/static/viewer/intro/en/svalbard_glacier.webp" alt="Glacier front change lines around Ny-Ålesund">
+      <img data-step="3" loading="lazy" src="/GSM-open/static/viewer/intro/en/jan_mayen.webp" alt="Jan Mayen geology — units and vents">
+    </figure>
+  </div>
+</section>
+
+
+<section class="scene shot polarsum" id="polarsum" data-steps="1" data-theme="greenland"
+         data-go="map/?region=arctic" data-go-label="Arctic map">
+  <div class="stage">
+    <div class="copy">
+      <p class="kicker"><img class="kicker-icon" src="/GSM-open/static/viewer/emblem-polar.png" alt="" width="22" height="22">The poles, together</p>
+      <h2>Scattered polar data, in one place</h2>
+      <ul class="summary-list">
+        <li><b>Antarctica</b> — SCAR GeoMAP, IBCSO bathymetry, Dronning Maud Land (NPI), stations and meteorite finds</li>
+        <li><b>Greenland</b> — GEUS geology and geochemistry, samples and mineral occurrences from the government portal</li>
+        <li><b>Svalbard &amp; Jan Mayen</b> — NPI geology, map sheets and glacier front changes</li>
+        <li><b>Arctic Ocean</b> — KPDC observation data</li>
+      </ul>
+      <p>Each agency's projection and server, aligned into <b>one polar stereographic</b> (3031 · 3413).</p>
+    </div>
+    <figure class="mosaic" aria-label="Six polar views">
+      <img loading="lazy" src="/GSM-open/static/viewer/intro/en/thumb/antarctica_close.webp" alt="">
+      <img loading="lazy" src="/GSM-open/static/viewer/intro/en/thumb/antarctica_ibcso.webp" alt="">
+      <img loading="lazy" src="/GSM-open/static/viewer/intro/en/thumb/greenland.webp" alt="">
+      <img loading="lazy" src="/GSM-open/static/viewer/intro/en/thumb/svalbard.webp" alt="">
+      <img loading="lazy" src="/GSM-open/static/viewer/intro/en/thumb/svalbard_glacier.webp" alt="">
+      <img loading="lazy" src="/GSM-open/static/viewer/intro/en/thumb/jan_mayen.webp" alt="">
+    </figure>
+  </div>
+</section>
+
+
+
+
+<section class="scene shot tools" id="tools" data-steps="4" data-theme="korea"
+         data-go="map/?region=korea" data-go-label="Korea map">
+  <div class="stage">
+    <div class="copy">
+      <p class="kicker">Tools for the field</p>
+      <h2>Mark, measure, keep.</h2>
+      <ol class="steps">
+        <li data-step="0"><b>Points</b> — note the latitude and longitude where you click, and save them as a list.</li>
+        <li data-step="1"><b>Distance and elevation</b> — draw a line and an elevation graph appears with the distance.</li>
+        <li data-step="2"><b>Area</b> — outline a polygon and its area appears in km² and ha.</li>
+        <li data-step="3"><b>Save as image</b> — download the current map as a PNG with scale bar, coordinates and sources.</li>
+      </ol>
+      <p class="src">Upload your CSV or GeoJSON and it lands on the map as a <b>point set</b>.</p>
+    </div>
+    <figure class="frame">
+      <img data-step="0" class="zoom-point" loading="lazy" src="/GSM-open/static/viewer/intro/en/measure.webp" alt="Marked points — two numbered points">
+      <img data-step="1" loading="lazy" src="/GSM-open/static/viewer/intro/en/measure.webp" alt="Measured distance — an elevation graph beneath the line">
+      <img data-step="2" loading="lazy" src="/GSM-open/static/viewer/intro/en/exported.webp" alt="Measured area — the area written on the outlined polygon">
+      <img data-step="3" class="paper-out" loading="lazy" src="/GSM-open/static/viewer/intro/en/exported_file.webp" alt="Downloaded PNG — layers, centre coordinates, sources and scale bar beneath the map">
+    </figure>
+  </div>
+</section>
+
+
+<section class="scene shot" id="sources" data-steps="6" data-theme="korea"
+         data-go="map/?region=korea" data-go-label="Korea map">
+  <div class="stage">
+    <div class="copy">
+      <p class="kicker">Many sources, one screen</p>
+      <h2>Different agencies' maps, on a single screen.</h2>
+      <ol class="steps">
+        <li data-step="0 1 2"><b>KIGAM</b> — from 1:50,000, 1:250,000 and 1:1,000,000 geology to geochemical and marine geology maps, the thematic maps of the Geo Big Data Open Platform.</li>
+        <li data-step="3"><b>VWorld (Ministry of Land, Infrastructure and Transport)</b> — faults, hydrogeology, protected areas, boundaries: national spatial data in the same place.</li>
+        <li data-step="4" data-theme="japan" data-go="map/?region=japan" data-go-label="Japan map"><b>Geological Survey of Japan (GSJ)</b> — the 1:200,000 seamless geological map.</li>
+        <li data-step="5" data-theme="japan" data-go="map/?region=eastasia" data-go-label="East Asia map"><b>East Asia</b> — Korean and Japanese geology join on one screen.</li>
+      </ol>
+      <p class="src">Plus GEUS · NPI · SCAR · USGS · NASA · Macrostrat …</p>
+    </div>
+    <figure class="frame">
+      <img data-step="0" loading="lazy" src="/GSM-open/static/viewer/intro/en/src_kigam.webp" alt="Korea tab — KIGAM 1:50,000 geology around Seoraksan">
+      <img data-step="1" loading="lazy" src="/GSM-open/static/viewer/intro/en/korea_geochem.webp" alt="KIGAM geochemical map — copper in stream sediments">
+      <img data-step="2" loading="lazy" src="/GSM-open/static/viewer/intro/en/korea_marine.webp" alt="KIGAM marine geology — surface sediment types">
+      <img data-step="3" loading="lazy" src="/GSM-open/static/viewer/intro/en/src_vworld.webp" alt="The same place with the VWorld satellite basemap, faults and hydrogeological units">
+      <img data-step="4" loading="lazy" src="/GSM-open/static/viewer/intro/en/src_gsj.webp" alt="Japan tab — GSJ 1:200,000 seamless geology around Mount Fuji">
+      <img data-step="5" loading="lazy" src="/GSM-open/static/viewer/intro/en/eastasia.webp" alt="East Asia tab — KIGAM 1:250,000 in southern Korea and GSJ geology in Kyushu">
+      <figcaption class="badge">
+        <span data-step="0 1 2">KIGAM</span><span data-step="3">VWorld</span><span data-step="4">GSJ</span><span data-step="5">KIGAM + GSJ</span>
+      </figcaption>
+    </figure>
+  </div>
+</section>
+
+
+
+
+<section class="doors-wrap" id="doors" data-theme="title"
+         data-go="map/?region=korea" data-go-label="Korea map">
+  <p class="kicker">Your turn</p>
+  <h2>Where would you like to start?</h2>
+
+  
+  <div class="cats-earth">
+    <div class="cat earth">
+      <h3><img src="/GSM-open/static/viewer/emblem.svg?v=273bfa5f6c" alt="" width="40" height="40">Earth</h3>
+      <div class="doors">
+        <a class="door" href="/GSM-open/en/map/?region=korea">
+          <img loading="lazy" src="/GSM-open/static/viewer/intro/en/thumb/src_kigam.webp" alt="">
+          <b>Korea</b><span>KIGAM geology and VWorld</span>
+        </a>
+        <a class="door" href="/GSM-open/en/map/?region=japan">
+          <img loading="lazy" src="/GSM-open/static/viewer/intro/en/thumb/src_gsj.webp" alt="">
+          <b>Japan</b><span>GSJ seamless geology</span>
+        </a>
+        <a class="door" href="/GSM-open/en/map/?region=eastasia">
+          <img loading="lazy" src="/GSM-open/static/viewer/intro/en/thumb/eastasia.webp" alt="">
+          <b>East Asia</b><span>Korea and Japan on one screen</span>
+        </a>
+        
+      </div>
+    </div>
+
+    <div class="cat polar">
+      <h3><img src="/GSM-open/static/viewer/emblem-polar.png" alt="" width="40" height="40">Polar</h3>
+      <div class="doors">
+        <a class="door" href="/GSM-open/en/map/?region=antarctica">
+          <img loading="lazy" src="/GSM-open/static/viewer/intro/en/thumb/antarctica_close.webp" alt="">
+          <b>Antarctica</b><span>GeoMAP centred on the South Pole</span>
+        </a>
+        <a class="door" href="/GSM-open/en/map/?region=arctic">
+          <img loading="lazy" src="/GSM-open/static/viewer/intro/en/thumb/svalbard.webp" alt="">
+          <b>Arctic</b><span>Greenland, Svalbard and Jan Mayen on one screen</span>
+        </a>
+      </div>
+    </div>
+  </div>
+
+  
+
+  <footer class="credit">
+    <p>The data belong to their agencies — KIGAM, the Ministry of Land, Infrastructure and Transport (VWorld), GEUS, the Norwegian Polar Institute, SCAR GeoMAP, AIST, USGS, NASA, KOPRI KPDC and others. The pictures on this page are screenshots of Great Stone Map.</p>
+    <p>Made by the Lab. of Paleontology &amp; Evolution in KOPRI · Made by Seungchan Lee (KOPRI) · Jikhan Jung (KOPRI)</p>
+    <p>Code under AGPL-3.0 · <a href="https://github.com/koprifossillab/GSM-open">Source</a> · GSM v0.44.0</p>
+  </footer>
+</section>
+
+</main>
+
+<script id="static-config" type="application/json">{"regions": ["korea", "greenland", "svalbard", "arctic_ocean", "antarctica", "jan_mayen"], "upstreams": ["kigam", "vworld", "geus", "npolar", "pgc", "emodnet", "kopri", "grportal", "geomap", "ibcso"], "baked": {"geomap": {"geomap_simple_geology": 10, "geomap_simple_lithology": 9, "geomap_chronostratigraphic": 9, "geomap_lithostratigraphic": 9, "geomap_faults": 9, "geomap_quality": 8}, "points": {"grportal:geochron": false, "grportal:mineral_occurrences": false, "grportal:intrusions": false, "grportal:samples": false, "grportal:place_names": false, "grportal:mineral_tracts": false, "grportal:unstable_slopes": false, "grportal:mass_movements": false, "grportal:diamond_occurrences": false, "grportal:diamond_drillholes": false, "grportal:diamond_indicators": false, "grportal:diamond_per_kg": false, "grportal:garnet_classes": false, "grportal:diamond_explored": false, "grportal:diamond_unexplored": false, "grportal:geochem_soil": false, "grportal:geochem_heavy": false, "grportal:geochem_scree": false, "grportal:whole_rock": false, "npolar:rock_archive": false, "npolar:dml_geochron": false, "npolar:dml_samples": false, "npolar:dml_sites": false, "npolar:svalbard_sheet_index": false, "npolar:place_names": false, "npolar:dml_place_names": false, "janmayen:units": true, "janmayen:lines": true, "janmayen:vents": true, "kopri:rock_antarctica": true, "kopri:rock_svalbard": true, "kopri:rock_greenland": true, "kopri:meteorites": true, "kopri:kpdc_sediment": true, "kopri:kpdc_sediment_svalbard": true, "kopri:kpdc_sediment_greenland": true, "kopri:kpdc_sediment_arctic_ocean": true, "kopri:kpdc_solid": true, "kopri:kpdc_solid_svalbard": true, "kopri:kpdc_solid_greenland": true, "kopri:kpdc_solid_arctic_ocean": true, "kopri:kpdc_paleo": true, "kopri:kpdc_paleo_svalbard": true, "kopri:kpdc_paleo_greenland": true, "kopri:kpdc_paleo_arctic_ocean": true, "kopri:kpdc_cryo": true, "kopri:kpdc_cryo_svalbard": true, "kopri:kpdc_cryo_greenland": true, "kopri:kpdc_cryo_arctic_ocean": true, "kopri:kpdc_ocean": true, "kopri:kpdc_ocean_svalbard": true, "kopri:kpdc_ocean_greenland": true, "kopri:kpdc_ocean_arctic_ocean": true, "kopri:kpdc_atmo": true, "kopri:kpdc_atmo_svalbard": true, "kopri:kpdc_atmo_greenland": true, "kopri:kpdc_atmo_arctic_ocean": true, "kopri:kpdc_bio": true, "kopri:kpdc_bio_svalbard": true, "kopri:kpdc_bio_greenland": true, "kopri:kpdc_bio_arctic_ocean": true, "kopri:kpdc_other": true, "kopri:kpdc_other_svalbard": true, "kopri:kpdc_other_greenland": true, "kopri:kpdc_other_arctic_ocean": true}, "ibcso": true, "placenames": {"svalbard": ["placenames/npolar/place_names.json"], "greenland": ["placenames/grportal/place_names.json"], "antarctica": ["placenames/npolar/dml_place_names.json"]}}}</script>
+<script src="/GSM-open/static/viewer/intro.js?v=273bfa5f6c"></script>
+</body>
+</html>
