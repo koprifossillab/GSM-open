@@ -110,17 +110,29 @@ def compact(feature: dict, fields: dict, oid: str = "FID", *, areal: bool = Fals
     return {"type": "Feature", "id": fid, "geometry": geometry, "properties": props}
 
 
+#: 검출 한계 밑인데 한계를 모르는 값의 표지 (wetherilli 163) — 아주 작은 음수. 화면은 음수를 "검출 한계 밑" 으로 칠하고
+#: 이것만큼 작으면 한계를 적지 않는다(`map.js` 의 `VALUE_UNKNOWN_BELOW`)
+BELOW_UNKNOWN = -1e-9
+#: 전암 화학의 값 갈래 → 원소 무게 퍼센트에 곱할 수 (wetherilli 163)
+PCT_SCALE = {"pct_wt": 1, "pct_ppm": 1e4, "pct_ppb": 1e7}
+
+
 def clean(value, kind):
     """값 하나. 고치지 않는다 — 앞뒤 빈칸만 떼고, 빈 값은 뺀다."""
     if value is None:
         return None
-    if kind in ("number", "measure"):
+    if kind in PCT_SCALE:
+        return pct(value, PCT_SCALE[kind])
+    if kind in ("number", "measure", "assay"):
         try:
             number = round(float(value), 3)
         except (TypeError, ValueError):
             return None
         # `measure` — GEUS 의 다이아몬드 자료처럼 모르는 값을 -999 로 적는 열
-        return None if kind == "measure" and number <= -999 else number
+        if kind == "measure" and number <= -999:
+            return None
+        # `assay` — 그린란드 지화학(wetherilli 159): 0 은 분석하지 않은 것, 음수는 검출 한계 밑이라 그대로 둔다
+        return None if kind == "assay" and number == 0 else number
     text = " ".join(str(value).split())       # 앞뒤 빈칸·줄바꿈("\r\n")을 한 칸으로
     if not text:
         return None
@@ -203,3 +215,20 @@ def match_index(index: list, query: str, limit: int = 20) -> list:
         title = main if i == 0 else f"{main} ({shown[i]})"
         out.append({"kind": "name", "title": title, "sub": side, "lat": lat, "lon": lon})
     return out
+
+
+def pct(value, scale: float):
+    """그린란드 전암 화학의 값(wetherilli 163) — 쉼표 소수의 글(`'0,0044'`), 원소 무게 퍼센트. `'NULL'`·빈 칸은 분석하지 않은 것.
+    음수는 검출 한계 밑(절댓값이 한계). **0 과 −1 은 한계를 모르는 검출 한계 밑**으로 본다 — 분석하지 않은 것은 따로
+    `'NULL'` 로 적혀 있고, −1 % 는 미량원소의 한계로 말이 안 되는 값이라 표지로 보인다. 곱해서 화면 단위로 옮긴다"""
+    text = str(value).strip().replace(",", ".")
+    if not text or text.upper() == "NULL":
+        return None
+    try:
+        number = float(text)
+    except ValueError:
+        return None
+    if number == 0 or number == -1:
+        return BELOW_UNKNOWN
+    return float(f"{number * scale:.6g}")
+

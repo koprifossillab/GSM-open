@@ -13,6 +13,41 @@
   "use strict";
 
   var BASE = location.pathname.replace(/\/*$/, "/");
+  // ── 정적 판 (wetherilli 167) ──
+  // 서버 없이 도는 판이면 실린 지역(`static-config`)으로 가는 길만 남긴다 — 실리지 않은 지역의 문은 감추고, "지도로 바로
+  // 가기" 는 한국 지도로 돌린다. 말은 쿠키가 아니라 구운 자리(뿌리·`en/`)로 가린다. 처음 오는 사람이 한국어를 받지 않으면 영어 쪽으로
+  var STATIC = JSON.parse((document.getElementById("static-config") || {}).textContent || "null");
+  var SITE_ROOT = BASE.replace(/\/en\/$/, "/");   // `/GSM-open/` 도 끝이 en/ 이다 — 앞의 / 까지 본다
+  if (STATIC) {
+    var saved = "";
+    try { saved = localStorage.getItem("gsm.lang") || ""; } catch (e) { /* 사생활 모드 */ }
+    var langs = (navigator.languages || [navigator.language || ""]).map(function (l) { return String(l).toLowerCase(); });
+    if (BASE === SITE_ROOT && !saved && !langs.some(function (l) { return l.indexOf("ko") === 0; }) &&
+        langs.some(function (l) { return l.indexOf("en") === 0; })) {
+      location.replace(SITE_ROOT + "en/");
+    }
+    // 묶음(map.js 의 `REGIONS.*.includes`)은 품은 지역이 둘 이상 실려야 문을 세운다 — 하나뿐이면 그 지역의 지도와 같다
+    var BUNDLES = { arctic: ["greenland", "svalbard", "jan_mayen", "arctic_ocean", "fennoscandia"],
+                    eastasia: ["korea", "japan", "china", "taiwan"] };
+    var loaded = function (key) {
+      return STATIC.regions.indexOf(key) >= 0 ||
+        (BUNDLES[key] || []).filter(function (k) { return STATIC.regions.indexOf(k) >= 0; }).length >= 2;
+    };
+    var shown = function (href) {
+      var m = /[?&]region=([\w-]+)/.exec(href || "");
+      return !m || loaded(m[1]);
+    };
+    var korea = document.querySelector('[data-go="map/?region=korea"]');
+    document.querySelectorAll("[data-go]").forEach(function (el) {
+      if (shown(el.dataset.go)) return;
+      el.dataset.go = "map/?region=korea";
+      if (korea) el.dataset.goLabel = korea.dataset.goLabel;
+    });
+    document.querySelectorAll(".door").forEach(function (a) { if (!shown(a.getAttribute("href"))) a.hidden = true; });
+    document.querySelectorAll(".cat").forEach(function (cat) {
+      if (!cat.querySelector(".door:not([hidden])")) cat.hidden = true;
+    });
+  }
   var scenes = Array.prototype.slice.call(document.querySelectorAll(".scene, .doors-wrap"));
   var skip = document.getElementById("skip");
   var skipTo = document.getElementById("skip-to");
@@ -472,9 +507,14 @@
     if (!playing) setPlaying(true);
   });
 
-  // 언어 — 지도 화면과 같은 쿠키다(`gsm_lang`)
+  // 언어 — 지도 화면과 같은 쿠키다(`gsm_lang`). 정적 판은 말마다 따로 구운 쪽으로 간다(뿌리·`en/`, wetherilli 167)
   document.querySelectorAll(".langs button").forEach(function (b) {
     b.addEventListener("click", function () {
+      if (STATIC) {
+        try { localStorage.setItem("gsm.lang", b.dataset.lang); } catch (e) { /* 사생활 모드 */ }
+        location.href = SITE_ROOT + (b.dataset.lang === "en" ? "en/" : "");
+        return;
+      }
       document.cookie = "gsm_lang=" + b.dataset.lang + "; path=/; max-age=31536000; SameSite=Lax";
       location.reload();
     });

@@ -21,6 +21,11 @@ LON_KEYS = ("lon", "lng", "long", "longitude", "경도", "x", "lon_dd", "dd_lon"
 #: 이름표로 쓸 열. 없으면 이름표 없이 둔다.
 LABEL_KEYS = ("label", "name", "이름", "이름표", "지점", "지점명", "site", "station", "id",
               "시료", "시료번호", "시료명", "sample", "sample_id", "sample_no")
+#: 주소로 읽는 열 (wetherilli 152). 위경도 열이 없고 이것이 있으면 화면이 VWorld 로 주소를 찾아 좌표를 붙인다
+ADDRESS_KEYS = ("주소", "address", "addr", "도로명주소", "지번주소", "소재지", "소재지주소", "도로명", "지번",
+                "채취지", "채취지 주소", "location")
+#: 한 번에 주소로 찾는 줄의 한도 — 화면이 50 줄씩 나눠 묻는다. VWorld 지오코더는 하루 호출 수가 정해져 있다
+MAX_ADDRESS_ROWS = 2000
 #: 평면 좌표계일 때 읽는 열. **열 이름을 먼저 믿는다** — 중부원점에서는 동·북을
 #: 뒤바꿔도 둘 다 한반도 안(부산 앞바다 같은 곳)에 떨어지는 일이 있어, 값만
 #: 보고는 가를 수 없다.
@@ -47,6 +52,16 @@ MAX_VERTICES_TOTAL = 300_000
 
 class UploadError(ValueError):
     """올린 것을 점묶음으로 읽지 못했을 때. 메시지는 사람에게 그대로 보인다."""
+
+
+class NeedsAddresses(Exception):
+    """위경도 열은 없고 주소 열이 있다 (wetherilli 152). 뷰가 줄들을 화면에 돌려주고, 화면이 주소를 찾아 좌표를 붙여 다시 올린다.
+
+    `fields` 는 열 이름 차례, `column` 은 주소 열, `rows` 는 `{"line", "address", "values"}`, `blank` 는 주소가 빈 줄 번호다."""
+
+    def __init__(self, fields, column, rows, blank):
+        super().__init__(column)
+        self.fields, self.column, self.rows, self.blank = list(fields), column, rows, blank
 
 
 def parse(filename: str, raw: bytes, crs_code: str = "4326", *, lunar: bool = False):
@@ -98,6 +113,19 @@ def _from_csv(text: str):
 
     lat_col = _pick(reader.fieldnames, LAT_KEYS)
     lon_col = _pick(reader.fieldnames, LON_KEYS)
+    address_col = _pick(reader.fieldnames, ADDRESS_KEYS)
+    if (not lat_col or not lon_col) and address_col:
+        rows, blank = [], []
+        for lineno, row in enumerate(reader, start=2):
+            address = " ".join(str(row.get(address_col) or "").split())
+            if address:
+                rows.append({"line": lineno, "address": address,
+                             "values": {k: v for k, v in row.items() if k is not None}})
+            else:
+                blank.append(lineno)
+        if not rows:
+            raise UploadError(msg("주소 열({col})이 모두 비어 있다.", col=address_col))
+        raise NeedsAddresses(reader.fieldnames, address_col, rows, blank)
     if not lat_col or not lon_col:
         raise UploadError(msg(
             "위경도 열을 찾지 못했다. 열 이름을 {lat} / {lon} 가운데 하나로 두고 "

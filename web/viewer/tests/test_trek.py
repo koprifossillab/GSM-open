@@ -437,3 +437,59 @@ class Values(TestCase):
         self.assertEqual(ko["rows"][0], ["지각 두께", "10.8 km"])
         self.assertEqual(en["rows"][0], ["Crustal thickness", "10.8 km"])
         self.assertEqual(self.client.get(url, {"lon": "0", "lat": "0", "key": "nope"}).status_code, 400)
+
+
+class MoonTrekMore(SimpleTestCase):
+    """색인 밖의 판·남은 고운 지형 (wetherilli 150)."""
+
+    def samples(self, value):
+        body = {"samples": [{"locationId": 0, "value": value}]}
+        return mock.Mock(status_code=200, url="…", headers={"content-type": "application/json"},
+                         content=json.dumps(body).encode(), json=lambda: body)
+
+    def test_KGRS_는_단위_없이_상대값(self):
+        self.assertEqual(trek.value_key("moon", "KPLO_KGRS_Potassium_2ppd"), "kgrs_k")
+        self.assertEqual(trek.value_key("moon", "KGRS_Th_LG_smooth"), "kgrs_th")
+        with mock.patch("viewer.trek.requests.get", return_value=self.samples("2.595001459")) as get:
+            got = trek.value_at("kgrs_k", -15.6, 33.0)
+        self.assertEqual(got["rows"][0], ["칼륨 상대값 (단위 미확인)", "2.60"])
+        self.assertIn("trekarcgis3/rest/services/KPLO_KGRS_Potassium_2ppd/ImageServer/getSamples", get.call_args[0][0])
+
+    def test_북극_판은_그_위도_밑을_묻지_않는다(self):
+        with mock.patch("viewer.trek.requests.get") as get:
+            self.assertEqual(trek.value_at("ice_today", 0, 60), {"rows": []})
+            self.assertEqual(trek.value_at("np_feo", 0, -88), {"rows": []})
+        get.assert_not_called()
+        with mock.patch("viewer.trek.requests.get", return_value=self.samples("1.186290026")):
+            self.assertEqual(trek.value_at("ice_today", 90, 85)["rows"][0], ["얼음이 버틸 깊이 — 오늘의 자전축", "1.19 m"])
+        with mock.patch("viewer.trek.requests.get", return_value=self.samples("-1")):     # 버틸 깊이가 없다
+            self.assertEqual(trek.value_at("ice_paleo", 90, 85), {"rows": []})
+
+    def test_색인_밖의_판이_목록에_든다(self):
+        docs = [{"itemType": "product", "productLabel": "LP_GRS_Th_Global_2ppd", "title": "LP GRS Th"}]
+        with mock.patch("viewer.trek.requests.get", return_value=response({"response": {"docs": docs}})):
+            items = trek.catalog_items("moon")
+        ids = [i["id"] for i in items]
+        self.assertIn("KPLO_KGRS_Uranium_2ppd", ids)
+        self.assertIn("np_ice_depth_new_240m_mat_today_27_Oct_2016", ids)
+        self.assertNotIn("image", items[-1])
+        with mock.patch("viewer.trek.requests.get") as get:
+            path = trek.find_mapserver("moon", "", "np_feo_mlemelin_031417")
+        get.assert_not_called()
+        self.assertEqual(path, "trekarcgis/rest/services/np_feo_mlemelin_031417/ImageServer")
+
+    def test_ImageServer_판은_exportImage(self):
+        with mock.patch("viewer.trek.requests.get", return_value=response(ctype="image/png", content=b"png")) as get:
+            trek.map_tile("moon", "trekarcgis/rest/services/np_feo_mlemelin_031417/ImageServer", 3, 1, 0)
+            trek.map_tile("moon", "trekarcgis3/rest/services/X/MapServer", 3, 1, 0)
+        self.assertTrue(get.call_args_list[0][0][0].endswith("/ImageServer/exportImage"))
+        self.assertTrue(get.call_args_list[1][0][0].endswith("/MapServer/export"))
+
+    def test_남은_NAC_셋은_가까이서만(self):
+        # 02N085E 한가운데 줌 12 — 그 판이다. 줌 9 는 늘 온 달 판
+        x, y = int((85.25 + 180) / (180 / 2 ** 12)), int((90 - 2.1) / (180 / 2 ** 12))
+        self.assertEqual(trek.dem_part(12, x, y)[0], "LRO_NAC_DEM_02N085E_150cmp")
+        self.assertIsNone(trek.dem_part(9, x >> 3, y >> 3))
+        names = [p[0] for p in trek.DEM_PARTS]
+        self.assertIn("LRO_NAC_DEM_86S356E_3mp", names)
+        self.assertNotIn("Apollo17_MetricCam_DEM_Global_1024ppd", names)

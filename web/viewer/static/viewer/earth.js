@@ -2647,7 +2647,7 @@
     $("age-now").disabled = !age;
     $("timebar").classList.toggle("paleo", p);
     var note = !age ? "" : p
-      ? T("PALEOMAP 2016 판 회전으로 셈한 그때의 지구다 — 관측이 아니다. 오늘의 영상·지형·지질도는 오늘에만 뜬다")
+      ? T("PALEOMAP 2016 판 회전으로 셈한 그때의 지구다 — 관측이 아니다. 다른 판 모델과는 100 Ma 에 1 000 km 안팎 다르다. 오늘의 영상·지형·지질도는 오늘에만 뜬다")
       : T("오늘의 지구다 — 1 Ma 안에서 판이 움직인 것은 수십 km 안이다");
     if (!p && age > 0 && isOn("icemargins")) {
       var ice = iceStops(age), bits = [];

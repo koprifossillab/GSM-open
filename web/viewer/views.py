@@ -20,6 +20,7 @@ from django.contrib.staticfiles import finders
 from django.db import transaction
 from django.db.models import Q
 from django.http import Http404, HttpResponse, JsonResponse
+from django.utils.cache import patch_vary_headers
 from django.shortcuts import get_object_or_404, render
 from django.views.decorators.gzip import gzip_page
 from django.views.decorators.http import require_GET, require_POST
@@ -30,7 +31,7 @@ from . import (coords, crs, geo3al, geomap, geus, grportal, gsj, gsmma, i18n, ib
                patchnotes, elevation, moonmap, peninsula, phyloserver, pointsets, tilecache, tiles, trek, vworld, warp,
                marscraters, marsmap, mercurymap, zhurong)
 from . import arcpoints, crust, fossils, gvp, icemargins, kigam50k, macrostrat, mantle, naturalearth, neotoma, paleo, paleoeco, paleocoast, pbdb, quakes, spamap, ocean, usgs, volcanoes, wind
-from . import bgr, bgs, brgm, egdi, emodnet, gsi, gtk, igme, linked, ngu
+from . import bgr, bgs, brgm, egdi, emodnet, gsi, gtk, igme, linked, ngu, usage
 from .i18n import msg
 from .models import Layer, LayerGroup, Point, PointSet, PointSetDeletion, Shape
 
@@ -277,6 +278,10 @@ def intro_view(request):
         "base": request.path,
         "shots": f"viewer/intro/{lang}/",
         "version": VERSION,
+        # AGPL 13조의 소스 길 — 공개용 저장소(GSM-open)의 판마다 사본 (wetherilli 149)
+        "source_url": settings.SOURCE_URL,
+        # 정적 판(wetherilli 167) — 서버 화면으로 가는 장면·문을 빼고, 실린 지역만 화면이 남긴다
+        "static_site": _script_json(settings.STATIC_SITE) if settings.STATIC_SITE else "",
         "stamp": "" if settings.DEBUG else asset_stamp(),
     })
 
@@ -331,8 +336,11 @@ def map_view(request):
         "lang": lang,
         "i18n_json": json.dumps(i18n.client_table(lang), ensure_ascii=False),
         "crs_options": [(code, i18n.t(spec[0], lang)) for code, spec in crs.SYSTEMS.items()],
-        "catalog": json.dumps(_catalog(lang), ensure_ascii=False),
-        "pointsets": _script_json(_pointset_list()),
+        "catalog": json.dumps(_static_catalog(_catalog(lang)) if settings.STATIC_SITE else _catalog(lang),
+                              ensure_ascii=False),
+        # 정적 판(wetherilli P11·162) — 서버가 없으니 점묶음은 비우고, 화면이 쓸 약속을 싣는다
+        "pointsets": "[]" if settings.STATIC_SITE else _script_json(_pointset_list()),
+        "static_site": _script_json(settings.STATIC_SITE) if settings.STATIC_SITE else "",
         "has_key": kigam.has_key(),
         "dev_direct": settings.DEV_DIRECT_WMS,
         # 브라우저가 직접 VWorld 를 부른다. 까닭은 settings.VWORLD_KEY.
@@ -397,6 +405,20 @@ def moon_view(request):
     })
 
 
+def browser_cached(view):
+    """속성·범례 JSON 도 브라우저가 하루 들고 있게 한다 (wetherilli 158). 타일과 같은 하루(`TILE_CACHE_SECONDS`)이고,
+    지나면 ETag 로 되묻는다(151). 한국어판·영어판이 같은 주소에서 다른 답을 주므로 `Vary` 로 언어(쿠키·Accept-Language)를
+    가린다 — 안 가리면 언어를 바꿔도 옛 언어의 팝업이 뜬다. 200 만, 뷰가 스스로 적은 것은 건드리지 않는다"""
+    @functools.wraps(view)
+    def wrapped(request, *args, **kwargs):
+        response = view(request, *args, **kwargs)
+        if response.status_code == 200 and not response.has_header("Cache-Control") and settings.TILE_CACHE_SECONDS > 0:
+            response["Cache-Control"] = f"public, max-age={settings.TILE_CACHE_SECONDS}"
+        patch_vary_headers(response, ("Cookie", "Accept-Language"))
+        return response
+    return wrapped
+
+
 # ── 달 (devlog 036, P05) ───────────────────────────────────────────────
 #
 # 문은 `trek.py` 다. 지질도·표고·속성·범례를 캐시에 담는다(007) — 영상 배경만 브라우저가
@@ -404,6 +426,19 @@ def moon_view(request):
 
 def moon_tile_key(layer, z, x, y):
     return tilecache.key_text("trek", f"{layer}/{z}/{x}/{y}")
+
+
+def moon_dem_key(z, x, y):
+    """달 표고 격자의 캐시 열쇠 — 판(고운 판·256 ppd)이 든다. `manage.py prewarm` 도 이것으로 담는다"""
+    return tilecache.key_text("trek-dem", f"{trek.dem_source(z, x, y)[0]}/{z}/{x}/{y}")
+
+
+def mars_tile_key(layer, z, x, y):
+    return tilecache.key_text("trek-mars", f"{layer}/{z}/{x}/{y}")
+
+
+def mars_dem_key(z, x, y):
+    return tilecache.key_text("trek-mars-dem", f"{z}/{x}/{y}")
 
 
 @require_GET
@@ -503,7 +538,7 @@ def moon_dem(request, z, x, y):
     part = trek.dem_part(z, x, y) if trek.valid_tile(z, x, y, trek.DEM_FINE_MAX) else None
     if not trek.valid_tile(z, x, y, trek.DEM_MAX_ZOOM) and part is None:
         return JsonResponse({"error": i18n.t(msg("그런 타일은 없다"), i18n.lang_of(request))}, status=404)
-    key = tilecache.key_text("trek-dem", f"{trek.dem_source(z, x, y)[0]}/{z}/{x}/{y}")
+    key = moon_dem_key(z, x, y)
     hit = tilecache.get(key)
     if hit is not None:
         return _tile(hit, cached=True)
@@ -622,6 +657,7 @@ def moon_values(request):
 
 
 @require_GET
+@browser_cached
 def moon_info(request):
     """`?lon=-15&lat=20` — 누른 자리의 지질 단위. `{"rows": [[이름, 값], …]}`.
 
@@ -699,6 +735,7 @@ def _moon_spa_info(lang, lon, lat):
 
 
 @require_GET
+@browser_cached
 def moon_legend(request):
     """달 지질 단위 49 가지의 범례. 이름은 상류의 것 그대로다(값이라 옮기지 않는다).
 
@@ -799,6 +836,7 @@ def trek_map_polar_tile(request, body, label, pole, z, x, y):
 
 
 @require_GET
+@browser_cached
 def trek_map_info(request, body, label):
     """`?lon=&lat=&z=` — 누른 자리의 것. `{"hits": [{"layer", "rows": [[열, 값], …]}]}`. 옮기지 않는다."""
     lang = i18n.lang_of(request)
@@ -823,6 +861,7 @@ def trek_map_info(request, body, label):
 
 
 @require_GET
+@browser_cached
 def trek_map_legend(request, body, label):
     """MapServer 판의 범례 — `{"items": [{"label", "image"}]}`. 이름은 상류의 것 그대로다."""
     entry, error = _trek_map(request, body, label)
@@ -924,7 +963,7 @@ def mars_tile(request, layer, z, x, y):
         return _mars_crater_tile(lambda: marscraters.render_tile(z, x, y))
     if marsmap.knows(layer):
         return _mars_original_tile(f"{layer}/{z}/{x}/{y}", lambda: marsmap.render_tile(layer, z, x, y))
-    key = tilecache.key_text("trek-mars", f"{layer}/{z}/{x}/{y}")
+    key = mars_tile_key(layer, z, x, y)
     hit = tilecache.get(key)
     if hit is not None:
         return _tile(hit, cached=True)
@@ -1011,7 +1050,7 @@ def mars_dem(request, z, x, y):
     z, x, y = int(z), int(x), int(y)
     if not trek.valid_tile(z, x, y, trek.MARS_DEM_MAX_ZOOM):
         return JsonResponse({"error": i18n.t(msg("그런 타일은 없다"), i18n.lang_of(request))}, status=404)
-    key = tilecache.key_text("trek-mars-dem", f"{z}/{x}/{y}")
+    key = mars_dem_key(z, x, y)
     hit = tilecache.get(key)
     if hit is not None:
         return _tile(hit, cached=True)
@@ -1030,6 +1069,7 @@ def mars_dem(request, z, x, y):
 
 
 @require_GET
+@browser_cached
 def mars_info(request):
     """`?lon=137.4&lat=-4.6` — 누른 자리의 지질 단위. 값은 옮기지 않고 시대만 한국어판에서 옮긴다."""
     lang = i18n.lang_of(request)
@@ -1105,6 +1145,7 @@ def _mars_crater_info(lon, lat, lang):
 
 
 @require_GET
+@browser_cached
 def mars_legend(request):
     """화성 지질 단위의 범례. 이름은 상류의 것 그대로, 묶는 머리(시대)만 한국어판에서 옮긴다."""
     if request.GET.get("layer") == "orig":
@@ -1256,6 +1297,7 @@ def mercury_tile(request, layer, z, x, y):
 
 
 @require_GET
+@browser_cached
 def mercury_info(request):
     """`?lon=-31.5&lat=-11.3` — 누른 자리의 지질 단위. 값(기호·무리·설명)은 원도의 것이라 옮기지 않는다."""
     lang = i18n.lang_of(request)
@@ -1283,6 +1325,7 @@ def mercury_info(request):
 
 
 @require_GET
+@browser_cached
 def mercury_legend(request):
     """수성 지질 단위(갈래로 묶은 것)와 구조선 갈래."""
     return JsonResponse(mercurymap.legend(i18n.lang_of(request)))
@@ -1380,6 +1423,7 @@ def _macrostrat_raw(z, x, y) -> bytes:
 
 
 @require_GET
+@browser_cached
 def earth_info(request):
     """`?lon=126.98&lat=37.57&z=6` — 누른 자리의 지질 단위. 그 줌의 판으로 읽는다(`macrostrat.identify`).
 
@@ -1938,6 +1982,7 @@ def _age_span(oldest, youngest) -> str:
 
 
 @require_GET
+@browser_cached
 def earth_legend(request):
     """온 지구 지질도의 범례 — 기(period)의 색 (`macrostrat.legend`). 한 번 받아 담는다."""
     lang = i18n.lang_of(request)
@@ -1960,8 +2005,8 @@ def earth_legend(request):
 
 #: 연구실 안에서만 보는 상류. 밖에 열면(`settings.PUBLIC`) 목록에서 빠지고 길도
 #: 닫힌다. 레이어 이름이 `<상류>:…` 꼴이라 이름만 보고 가른다.
-#: 극지연구소(`kopri`, 053–057)는 KPDC 의 공개 정책을 사람이 읽기 전까지 여기 둔다
-LAB_ONLY = ("geo3al", "phyloserver", "peninsula", "kopri")
+#: 극지연구소(`kopri`)는 KPDC 공개 자료라 싣는다 — 사용자가 정했다(2026-10-02, wetherilli P11)
+LAB_ONLY = ("geo3al", "phyloserver", "peninsula")
 
 
 def _lab_only(name: str) -> bool:
@@ -2019,8 +2064,14 @@ def _point_fields(layer) -> dict:
                 "source": geo3al.SOURCE_URL, "attribution": geo3al.ATTRIBUTION,
                 "opacity": spec["opacity"]}
     if layer.upstream == "grportal" and grportal.knows(layer.name):
-        return {"kind": "points", "queryable": False, "style": grportal.LAYERS[layer.name]["style"],
-                "source": grportal.source_url(layer.name), "portal": grportal.WEBMAP}
+        spec = {"kind": "points", "queryable": False, "style": grportal.LAYERS[layer.name]["style"],
+                "source": grportal.source_url(layer.name), "portal": grportal.WEBMAP,
+                # 고른 원소만 받는 레이어 — 전암 화학 (wetherilli 163)
+                **({"slice": True} if grportal.LAYERS[layer.name].get("slice") else {})}
+        if grportal.license_of(layer.name):
+            # 다이아몬드 탐사 자료(DED)는 항목에 CC BY 4.0 이 적혀 있다 (wetherilli 157)
+            spec["license"] = grportal.license_of(layer.name)
+        return spec
     if layer.upstream == "phyloserver" and phyloserver.knows(layer.name):
         # 연구실의 암맥 기록(026) — 같은 서버의 phyloserver 에서 통째로 받는다
         return {"kind": "points", "queryable": False, "style": phyloserver.LAYERS[layer.name]["style"],
@@ -2039,6 +2090,27 @@ def _point_fields(layer) -> dict:
                 "source": npolar.source_url(layer.name), "portal": npolar.DATA_URL,
                 "attribution": npolar.ATTRIBUTION, "license": "CC BY 4.0"}
     return {}
+
+
+def _static_catalog(groups: list) -> list:
+    """정적 판(wetherilli P11·162)의 카탈로그 — 정적 판이 실을 지역·상류만. 엮은 KIGAM 레이어(`kigam.COMPOSED`)는
+    문서에 없는 GeoServer 를 타므로 뺀다. 무엇을 싣는지는 `settings.STATIC_SITE` 가 정한다(`deploy/static_site.py`)."""
+    spec = settings.STATIC_SITE or {}
+    regions, upstreams = set(spec.get("regions") or ()), set(spec.get("upstreams") or ())
+    # 구워 실은 점 레이어(`bake_static`)는 이름으로 싣는다 — 같은 상류(NPI·극지연구소)에 서버를 타는 지도 레이어가 섞여 있어
+    # 상류 하나를 통째로 켤 수 없다 (wetherilli 165)
+    baked = set((spec.get("baked") or {}).get("points") or ())
+    out = []
+    for group in groups:
+        if group.get("region") not in regions:
+            continue
+        layers = [l for l in group["layers"] if (l.get("upstream") in upstreams or l["name"] in baked)
+                  and not (l.get("upstream") == "kigam" and l["name"] in kigam.COMPOSED)
+                  # VWorld 의 벡터(단층 따위)는 WFS 라 CORS 가 없어 정적 판에서 받을 수 없다 (wetherilli 164)
+                  and not (l.get("upstream") == "vworld" and l.get("kind") == "vector")]
+        if layers:
+            out.append(dict(group, layers=layers))
+    return out
 
 
 def _layer_extra(layer, lang: str = "ko") -> dict:
@@ -2493,6 +2565,7 @@ def ibcso_depth(request):
 
 
 @require_GET
+@browser_cached
 def ibcso_info(request):
     """TID 레이어의 속성 — `ibcso/info/?lat=&lon=` (071). `/featureinfo/` 의 꼴(`features[].props`)로 낸다."""
     lang = i18n.lang_of(request)
@@ -2559,12 +2632,41 @@ def warp_tile(request, upstream, layer, z, x, y, retina=None):
         grid = warp.ibcso_grid(sheet)
     else:
         return JsonResponse({"error": i18n.t(msg("그런 타일은 없다"), lang)}, status=404)
+    # 편 것을 담는다 — 원본의 판이 열쇠에 든다(음영판·IBCSO 는 잘라 둔 폴더의 때, GeoMAP 은 자료의 판과 RENDERER).
+    # 스캔판(phyloserver)은 담지 않는다 — 원본을 하루만 믿는 같은 서버의 연구실 자료라(026) 편 것만 오래 남으면 어긋난다
+    key = _warp_key(name, upstream, z, x, y, size)
+    if key:
+        hit = tilecache.get(key)
+        if hit is not None:
+            return _tile(hit, cached=True)
     try:
         png = warp.render(grid, z, x, y, size)
     except (phyloserver.PhyloserverError, geomap.GeomapError, OSError, ValueError) as exc:
         log.warning("다시 펴지 못했다 (%s %s/%s/%s): %s", name, z, x, y, exc)
         return _tile(tiles.notice_tile(size, size, tiles.NO_MAP), store=False)
-    return _tile(png or tiles.blank_tile(size, size))
+    png = png or tiles.blank_tile(size, size)
+    if key:
+        tilecache.put(key, png)
+    return _tile(png)
+
+
+#: 다시 펴는 법(`warp.py`)을 고치면 올린다 — 담아 둔 편 것을 버리고 새로 편다
+WARP_RENDERER = "1"
+
+
+def _warp_key(name, upstream, z, x, y, size):
+    """편 타일의 캐시 열쇠. 원본의 판을 모르면(스캔판, 파일 없음) None — 담지 않는다."""
+    if name in peninsula.SHEETS:
+        version = _dir_version(peninsula.SHEETS[name].tiles_dir())
+    elif upstream == "geomap":
+        version = geomap_version()
+    elif upstream == "ibcso" and name in ibcso.SHEETS:
+        version = _dir_version(ibcso.SHEETS[name].wide_dir())
+    else:
+        return None
+    if not version:
+        return None
+    return tilecache.key_text("warp", f"{name}/{version}/r{WARP_RENDERER}/{z}/{x}/{y}/{size}")
 
 
 def _float(value):
@@ -2575,6 +2677,7 @@ def _float(value):
 
 
 @require_GET
+@browser_cached
 def gsj_info(request):
     """`?layer=gsj:geology&lat=35.36&lon=138.73` — 누른 자리의 속성. 팝업이 받는
     꼴(`features`)은 `/featureinfo/` 와 같다."""
@@ -2630,6 +2733,7 @@ def kigam50k_attitudes(request):
 
 
 @require_GET
+@browser_cached
 def gsj_legend(request):
     """`?layer=gsj:geology&bbox=서,남,동,북&z=9` — 보는 범위의 범례 칸들.
 
@@ -2666,6 +2770,7 @@ def gsj_legend(request):
 
 
 @require_GET
+@browser_cached
 def gsmma_legend(request):
     """`?layer=gsmma:geology_50k&bbox=서,남,동,북` — 대만 지질도의 보는 범위 범례 (wetherilli 142).
 
@@ -2748,6 +2853,7 @@ def _tile(png: bytes, *, cached: bool = False, store: bool = True, content_type:
 
 
 @require_GET
+@browser_cached
 def feature_info(request):
     """`GetFeatureInfo` 중계. 팝업이 쓸 만큼만 추려 돌려준다.
 
@@ -2891,6 +2997,8 @@ def legend(request):
         if old is not None:
             response = HttpResponse(old, content_type="image/png")
             response["X-GSM-Cache"] = "stale"
+            # 상류가 못 줘 낸 옛것이다 — 한 시간만 들고 있게 해 곧 다시 묻는다 (wetherilli 158)
+            response["Cache-Control"] = "public, max-age=3600"
             return response
         log.info("범례를 받지 못했다 (%s): %s", layer, exc)
         return JsonResponse({"error": str(exc)},
@@ -3084,7 +3192,12 @@ def point_layer(request):
     except POINT_ERRORS as exc:
         log.warning("점 레이어를 받지 못했다 (%s): %s", name, exc)
         return JsonResponse({"error": i18n.t(msg("상류에서 받지 못했다"), lang)}, status=502)
-    response = HttpResponse(module.body(name, features), content_type="application/geo+json")
+    if module is grportal and grportal.LAYERS[name].get("slice"):
+        # 전암 화학 3 만 점 — 고른 원소만 잘라 준다 (wetherilli 163)
+        body = grportal.value_slice(name, features, request.GET.get("value", ""))
+    else:
+        body = module.body(name, features)
+    response = HttpResponse(body, content_type="application/geo+json")
     if settings.TILE_CACHE_SECONDS > 0:
         response["Cache-Control"] = f"public, max-age={settings.TILE_CACHE_SECONDS}"
     return response
@@ -3263,6 +3376,8 @@ def pointset_upload(request):
                                         lunar=body != "earth")
     except pointsets.UploadError as exc:
         return JsonResponse({"error": i18n.t(exc.args[0], lang)}, status=400)
+    except pointsets.NeedsAddresses as need:
+        return _needs_addresses(need, body, lang)
 
     name = (request.POST.get("name") or "").strip() or upload.name.rsplit(".", 1)[0]
     color = (request.POST.get("color") or "").strip() or "#e4572e"
@@ -3289,6 +3404,65 @@ def pointset_upload(request):
         "pointset": summary,
         "notes": [i18n.t(note, lang) for note in notes],
     })
+
+
+def _needs_addresses(need, body: str, lang: str):
+    """위경도가 없고 주소만 있는 CSV (wetherilli 152). 점묶음을 만들지 않고 줄들을 화면에 돌려준다 — 화면이
+    `pointsets/geocode/` 로 50 줄씩 나눠 좌표를 받아, 위도·경도 열을 붙인 CSV 를 다시 올린다. 올리기 한 번이 60 초에
+    묶여(gunicorn) 서버가 한 번에 다 찾으면 150 줄쯤에서 끊긴다."""
+    if body != "earth":
+        return JsonResponse({"error": i18n.t(msg("주소로 찾는 것은 지구의 점묶음뿐이다."), lang)}, status=400)
+    if not vworld.enabled():
+        return JsonResponse({"error": i18n.t(msg("VWorld 열쇠가 없어 주소로 좌표를 찾지 못한다. 위경도 열을 넣어 올린다."),
+                                             lang)}, status=400)
+    if len(need.rows) > pointsets.MAX_ADDRESS_ROWS:
+        return JsonResponse({"error": i18n.t(msg("주소로 찾는 것은 한 번에 {n}줄까지다. 나눠 올린다.",
+                                                 n=pointsets.MAX_ADDRESS_ROWS), lang)}, status=400)
+    return JsonResponse({"geocode": {"fields": need.fields, "column": need.column, "rows": need.rows,
+                                     "blank": need.blank, "chunk": GEOCODE_CHUNK}})
+
+
+#: 화면이 한 번에 보내는 주소 수. 하나에 0.1–0.2 초(2026-10-02)라 50 이면 한 요청이 10 초 안쪽이다 — 60 초 제한에서 넉넉하다
+GEOCODE_CHUNK = 50
+
+
+@require_POST
+def pointset_geocode(request):
+    """주소 몇 줄 → 좌표 (wetherilli 152). 받는 것: `{"addresses": ["…", …]}` (한 번에 `GEOCODE_CHUNK` 줄까지).
+    주는 것: 같은 차례의 `{"lat", "lon", "kind", "matched"}` 또는 null(못 찾음).
+
+    **차례로 묻는다** — 한꺼번에 묻지 않는다. VWorld 지오코더는 하루 호출 수가 정해져 있고, 같은 주소는 캐시에서 꺼낸다.
+    못 찾은 것(null)도 담는다 — 같은 표를 다시 올려도 다시 묻지 않는다. VWorld 가 거절하면 거기서 멈추고 까닭을 준다"""
+    lang = i18n.lang_of(request)
+    try:
+        payload = json.loads(request.body.decode("utf-8"))
+    except (ValueError, UnicodeDecodeError):
+        return JsonResponse({"error": i18n.t(msg("읽지 못했다"), lang)}, status=400)
+    addresses = payload.get("addresses") if isinstance(payload, dict) else None
+    if not isinstance(addresses, list) or not addresses or len(addresses) > GEOCODE_CHUNK:
+        return JsonResponse({"error": i18n.t(msg("주소는 한 번에 {n}줄까지 보낸다", n=GEOCODE_CHUNK), lang)}, status=400)
+    if not vworld.enabled():
+        return JsonResponse({"error": i18n.t(msg("VWorld 열쇠가 없다"), lang)}, status=503)
+    results = []
+    for address in addresses:
+        address = " ".join(str(address or "").split())[:200]
+        key = tilecache.key_text("geocode", address)
+        hit = _cached_json(key)
+        if hit is not None:
+            results.append(hit.get("point"))
+            continue
+        if usage.paused():
+            return JsonResponse({"error": i18n.t(msg("상류가 바빠 잠시 멈췄다. 조금 뒤에 다시 올린다."), lang),
+                                 "results": results}, status=503)
+        try:
+            point = vworld.geocode(address)
+        except vworld.VWorldError as exc:
+            log.warning("주소로 좌표를 찾지 못했다: %s", exc)
+            error = str(exc) if lang == "ko" else i18n.t(msg("상류에서 받지 못했다"), lang)
+            return JsonResponse({"error": error, "results": results}, status=502)
+        tilecache.put(key, json.dumps({"point": point}, ensure_ascii=False).encode("utf-8"), ".json")
+        results.append(point)
+    return JsonResponse({"results": results})
 
 
 @require_POST
@@ -3656,6 +3830,9 @@ def dem_tile(request, z, x, y, kind="ice"):
     if png is None:
         response = HttpResponse(status=302)
         response["Location"] = elevation.TERRARIUM_URL.format(z=z, x=x, y=y)
+        # 넘기는 자리는 바뀌지 않는다 — 브라우저가 하루 기억하면 다시 묻지 않고 AWS 로 간다 (wetherilli 158)
+        if settings.TILE_CACHE_SECONDS > 0:
+            response["Cache-Control"] = f"public, max-age={settings.TILE_CACHE_SECONDS}"
         return response
     return _tile(png)
 

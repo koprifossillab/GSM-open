@@ -459,6 +459,8 @@ input[type=checkbox], input[type=range] { accent-color: var(--hi); }
 /* 5만 지질도 카드 밑 — 층리·엽리·편리·절리를 늘 그릴지 (jikhanjung 005) */
 /* 아라온호 항적의 기간 (koprifossillab 017) */
 .period-row { display: flex; align-items: center; gap: 8px; margin-top: 6px; font-size: 11.5px; font-weight: 600; }
+/* 연속값 범례의 머리 — 고른 원소와 단위 (wetherilli 159) */
+.vector-legend .value-head { font-size: 11.5px; font-weight: 600; margin-bottom: 4px; }
 .attitude-toggles { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 12px; margin-top: 6px; font-size: 11.5px; font-weight: 600; }
 .attitude-toggles label { display: inline-flex; align-items: center; gap: 4px; cursor: pointer; }
 .attitude-toggles input { margin: 0; }
@@ -2187,3 +2189,9 @@ a.tool { text-decoration: none; }                /* 3D 단추는 링크다 */
 .render-failed button + button { color: var(--ink); background: var(--raise); }
 /* 지역 탭의 높이 그래프(wetherilli 109) — 축척 막대(왼쪽 아래)를 덮지 않게 조금 올린다 */
 :root:not([data-region="moon"]):not([data-region="mars"]):not([data-region="earth"]):not([data-region="mercury"]) .profile-dock { bottom: 108px; }
+
+/* ── 정적 판 (wetherilli P11·162) — 서버가 있어야 도는 것은 숨긴다 ── */
+.static-site .server-only { display: none !important; }
+.static-key { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+.static-key input { flex: 1 1 12em; min-width: 0; font: inherit; padding: 4px 6px; }
+.static-key label { display: flex; gap: 4px; align-items: center; font-size: 12px; }

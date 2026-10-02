@@ -83,3 +83,9 @@ class IntroTests(TestCase):
         intro = self.get("viewer:intro")
         self.assertIn('id="polartitle"', intro)
         self.assertIn('class="cat polar"', intro)
+
+    def test_소스_링크는_공개용_저장소로(self):
+        """AGPL 13조의 소스 길 — 개발 저장소가 아니라 판마다 사본을 미는 GSM-open (wetherilli 149)."""
+        intro = self.get("viewer:intro")
+        self.assertIn('href="https://github.com/koprifossillab/GSM-open"', intro)
+        self.assertNotIn('href="https://github.com/koprifossillab/GSM"', intro)

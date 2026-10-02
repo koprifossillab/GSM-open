@@ -42,6 +42,57 @@ class PortalError(RuntimeError):
 
 _field = arcpoints.field
 
+#: 다이아몬드 탐사 자료(DED)의 이용 조건 — 항목마다 같은 글이 적혀 있다(2026-10-02 확인)
+DED_LICENSE = "CC BY 4.0 · Hutchison (2020) Greenland diamond exploration data package, Government of Greenland"
+
+
+# ── 지화학 원소 (wetherilli 159) ──────────────────────────────────
+#
+# 토양·중광물 농축·회사 자료·애추 넷이 같은 열 77 개를 갖는다(셰이프파일에서 옮겨 열 이름이 10 자로 잘렸다). 원소마다
+# `_num` 이 붙은 수 열을 받는다 — 회사 자료에는 `_num` 없는 글 열도 있는데 그것은 받지 않는다.
+# **값의 관례**(2026-10-02 에 토양 2 000 점을 받아 보았다): 양수는 측정값, **음수는 검출 한계 밑**(절댓값이 한계),
+# **0 은 분석하지 않은 것**이다. 그래서 `assay` 로 받는다 — 0 은 빼고 음수는 그대로 둔다(화면이 "검출 한계 밑" 으로 칠한다).
+#: (우리 열쇠, 상류 열, 이름, 단위). 차례가 고르개의 차례다 — 주성분 산화물, 그다음 원자 번호
+ELEMENTS = tuple(
+    [(k, f, n, "wt%") for k, f, n in (
+        ("sio2", "sio2_wt_pc", "SiO₂"), ("tio2", "tio2_wt_pc", "TiO₂"), ("al2o3", "al2o3_wt_p", "Al₂O₃"),
+        ("fe2o3t", "fe2o3_tot_", "Fe₂O₃ (전철)"), ("fe2o3", "fe2o3_wt_p", "Fe₂O₃"), ("feo", "feo_wt_pct", "FeO"),
+        ("mno", "mno_wt_pct", "MnO"), ("mgo", "mgo_wt_pct", "MgO"), ("cao", "cao_wt_pct", "CaO"),
+        ("na2o", "na2o_wt_pc", "Na₂O"), ("k2o", "k2o_wt_pct", "K₂O"), ("p2o5", "p2o5_wt_pc", "P₂O₅"),
+        ("loi", "loi_wt_pct", "강열 감량"), ("cl", "cl_wt_pct_", "Cl"))]
+    + [(sym, f"{sym}_{unit}_num", sym.capitalize(), unit) for sym, unit in (
+        ("be", "ppm"), ("b", "ppm"), ("s", "ppm"), ("sc", "ppm"), ("v", "ppm"), ("cr", "ppm"), ("co", "ppm"),
+        ("ni", "ppm"), ("cu", "ppm"), ("zn", "ppm"), ("ga", "ppm"), ("ge", "ppm"), ("as", "ppm"), ("se", "ppm"),
+        ("br", "ppm"), ("rb", "ppm"), ("sr", "ppm"), ("y", "ppm"), ("zr", "ppm"), ("nb", "ppm"), ("mo", "ppm"),
+        ("ru", "ppb"), ("rh", "ppb"), ("pd", "ppb"), ("ag", "ppm"), ("cd", "ppm"), ("in", "ppm"), ("sn", "ppm"),
+        ("sb", "ppm"), ("te", "ppm"), ("i", "ppm"), ("cs", "ppm"), ("ba", "ppm"), ("la", "ppm"), ("ce", "ppm"),
+        ("pr", "ppm"), ("nd", "ppm"), ("sm", "ppm"), ("eu", "ppm"), ("gd", "ppm"), ("tb", "ppm"), ("dy", "ppm"),
+        ("ho", "ppm"), ("er", "ppm"), ("tm", "ppm"), ("yb", "ppm"), ("lu", "ppm"), ("hf", "ppm"), ("ta", "ppm"),
+        ("w", "ppm"), ("re", "ppb"), ("os", "ppb"), ("ir", "ppb"), ("pt", "ppb"), ("au", "ppb"), ("hg", "ppm"),
+        ("tl", "ppm"), ("pb", "ppm"), ("bi", "ppm"), ("th", "ppm"), ("u", "ppm"))])
+#: 처음 켤 때의 원소 — 사람이 골랐다(구리, 토양 2 000 점 가운데 1 295 점에 값이 있다)
+DEFAULT_ELEMENT = "cu"
+
+
+# ── 전암 화학 (wetherilli 163) ────────────────────────────────────
+#
+# `Rock_Chemical_Analysis_from_Greenland` 31 769 점. 값이 모두 **쉼표 소수의 글**이고 **원소 무게 퍼센트**다(규소 중앙값 22.9 %,
+# 구리 0.0087 % = 87 ppm, 금 3e-6 % = 30 ppb — 2026-10-02 에 다 받아 보았다). 포털 항목에 설명이 없어 분포로 가렸다.
+# 받을 때 화면 단위로 옮긴다 — 주성분 wt%, 미량 ppm, 귀금속 ppb(`arcpoints.pct`). 시료 번호 말고 다른 속성(암석명·지점)이 없다.
+# 비활성 기체·짧게 사는 방사성 원소(H·He·N·O·Ne·Ar·Kr·Xe·Rn·Fr·Ra·Ac·Po·At·Pa)는 값이 거의 없거나 뜻이 없어 뺐다
+#: (우리 열쇠, 상류 열, 이름, 단위)
+WHOLE_ROCK = tuple(
+    [(c.lower(), c, n, "wt%") for c, n in (
+        ("SI", "Si"), ("TI", "Ti"), ("AL", "Al"), ("FE", "Fe (전철)"), ("FE2", "Fe²⁺"), ("FE3", "Fe³⁺"), ("MN", "Mn"),
+        ("MG", "Mg"), ("CA", "Ca"), ("NA", "Na"), ("K", "K"), ("P", "P"), ("C", "C"), ("S", "S"),
+        ("LOI", "강열 감량"), ("VOL", "휘발분"))]
+    + [({"GER": "ge", "ARS": "as", "IND": "in"}.get(c, c.lower()), c,
+        {"GER": "Ge", "ARS": "As", "IND": "In"}.get(c, c.capitalize()), "ppm") for c in (
+        "LI", "BE", "B", "F", "CL", "SC", "V", "CR", "CO", "NI", "CU", "ZN", "GA", "GER", "ARS", "SE", "BR", "RB", "SR",
+        "Y", "ZR", "NB", "MO", "AG", "CD", "IND", "SN", "SB", "TE", "I", "CS", "BA", "LA", "CE", "PR", "ND", "SM", "EU",
+        "GD", "TB", "DY", "HO", "ER", "TM", "YB", "LU", "HF", "TA", "W", "HG", "TL", "PB", "BI", "TH", "U")]
+    + [(c.lower(), c, c.capitalize(), "ppb") for c in ("RU", "RH", "PD", "RE", "OS", "IR", "PT", "AU")])
+
 
 #: 레이어명 → 상류 서비스와 받는 열. **열쇠가 짧은 까닭** — 2 만 점마다 되풀이되는
 #: 이름이라 짧을수록 덜 싣는다. 팝업의 이름(`label`)은 한 번만 따로 보낸다.
@@ -198,9 +249,9 @@ LAYERS = {
         },
     },
     # 다이아몬드 탐사 자료(DED)의 산출지 3 029 — 킴벌라이트·램프로파이어·카보나타이트 따위의 암맥·관입체.
-    # 모르는 값을 -999 로 적어 `measure` 로 받는다. 시추공·지시광물 화학은 받지 않았다
+    # 모르는 값을 -999 로 적어 `measure` 로 받는다. 시추공·지시광물·탐사 구역은 아래에 (wetherilli 157)
     "grportal:diamond_occurrences": {
-        "service": "DED_GL_OCCURRENCES",
+        "service": "DED_GL_OCCURRENCES", "license": DED_LICENSE,
         "item": "2f2965291cb84ba996a5754cfeddc111",
         "style": "class",
         "classes": {"by": "rock", "table": (
@@ -227,6 +278,135 @@ LAYERS = {
             "year": _field("DATE", "연도"),
         },
     },
+    # ── 다이아몬드 탐사 자료(DED)의 나머지 (wetherilli 157) ──
+    # 시추공 202 — 이상대(자력·전자탐사)를 뚫어 킴벌라이트를 만났는가
+    "grportal:diamond_drillholes": {
+        "service": "DED_GL_DRILLHOLES", "license": DED_LICENSE,
+        "item": "92f7e8d418dc4ea49a90138005198195",
+        "style": "class",
+        "classes": {"by": "kim", "table": (
+            ("yes", "킴벌라이트를 만났다", "#6a1b9a", "square", ("Yes",)),
+            # `Not_Reported` 도 `No` 로 시작한다 — 먼저 가른다
+            ("nr", "보고 없음", "#cfd8dc", "square", ("Not_",)),
+            ("no", "만나지 못했다", "#90a4ae", "square", ("No",)),
+        ), "else": ("other", "그 밖", "#cfd8dc", "square")},
+        "fields": {
+            "hole": _field("COMPHOLEID", "시추공"),
+            "prospect": _field("PROSPECT", "탐사지"),
+            "loc": _field("LOCALITY", "지점"),
+            "anom": _field("ANOMALY", "이상대"),
+            "anomt": _field("ANOM_TYPE", "이상대 갈래"),
+            "kim": _field("KPRESENT", "킴벌라이트"),
+            "kthick": _field("KTOTTHICK", "킴벌라이트 두께 (m)", "measure"),
+            "eoh": _field("EOH", "시추 길이 (m)", "measure"),
+            "az": _field("AZIMUTH", "방위 (°)", "measure"),
+            "dip": _field("DIP", "경사 (°)", "measure"),
+            "lith": _field("LITH_DESCN", "암상"),
+            "geol": _field("GEOLASSOC", "주변 지질"),
+            "op": _field("OPERATOR", "시추한 곳"),
+            "year": _field("PUBYEAR", "보고 연도", "number"),
+            "desc": _field("COMMENTS1", "기재"),
+        },
+    },
+    # 지시광물 농도 1 048 — 시료 1 kg 에서 나온 지시광물(석류석·단사휘석·티탄철석 …) 낟알 수. 가운데값 3, 위 1% 는 8 천
+    "grportal:diamond_indicators": {
+        "service": "DED_GL_thm_BA_ind_inds_per_kg", "license": DED_LICENSE,
+        "item": "3ed631e3ab304d5280ce0f4eb816b4e3",
+        "style": "class",
+        "classes": {"by": "pkg", "numeric": True, "table": (
+            ("c100", "100 낟알/kg 넘게", "#b71c1c", "dot", (100, None)),
+            ("c10", "10–100 낟알/kg", "#ef6c00", "dot", (10, 100)),
+            ("c1", "1–10 낟알/kg", "#fbc02d", "dot", (1, 10)),
+        ), "else": ("c0", "1 낟알/kg 밑", "#b0bec5", "dot")},
+        "fields": {
+            "sample": _field("SOUSAMPNA", "시료"),
+            "sub": _field("SOUSUBSAMP", "나눈 시료"),
+            "pkg": _field("INDIC_PKG", "지시광물 (낟알/kg)", "number"),
+        },
+    },
+    # 다이아몬드 농도 178 — 시료 1 kg 에서 나온 다이아몬드 수. 가운데값 0.09, 위 10% 는 1 넘게
+    "grportal:diamond_per_kg": {
+        "service": "DED_GL_thm_BA_ind_dia_per_kg", "license": DED_LICENSE,
+        "item": "4b4be03654de44a9867f83827177c28c",
+        "style": "class",
+        "classes": {"by": "pkg", "numeric": True, "table": (
+            ("d1", "1 개/kg 넘게", "#4a148c", "diamond", (1, None)),
+            ("d025", "0.25–1 개/kg", "#8e24aa", "diamond", (0.25, 1)),
+            ("d005", "0.05–0.25 개/kg", "#ce93d8", "diamond", (0.05, 0.25)),
+        ), "else": ("d0", "0.05 개/kg 밑", "#e1bee7", "diamond")},
+        "fields": {
+            "sample": _field("SOUSAMPNA", "시료"),
+            "sub": _field("SOUSUBSAMP", "나눈 시료"),
+            "pkg": _field("DIAM_PKG", "다이아몬드 (개/kg)", "number"),
+        },
+    },
+    # 석류석 분류 2 468 — 낟알마다 화학으로 가른 갈래(Grütter 외 2004 의 G1–G12)를 시료마다 센 것.
+    # G10 은 하즈버자이트질(다이아몬드 지시), G10D 는 그 가운데 다이아몬드 안정역의 것, G9 는 러졸라이트질
+    "grportal:garnet_classes": {
+        "service": "DED_GL_thm_BA_ind_chemGT", "license": DED_LICENSE,
+        "item": "74f3199421cb4568b012adb9d8070c04",
+        "style": "class",
+        "classes": {"by": "", "table": (
+            ("g10d", "G10D 가 있다 (다이아몬드 안정역)", "#b71c1c", "dot", lambda p: (p.get("g10d") or 0) > 0),
+            ("g10", "G10 이 있다", "#ef6c00", "dot", lambda p: (p.get("g10") or 0) > 0),
+            ("g9", "G9 만 (러졸라이트질)", "#43a047", "dot", lambda p: (p.get("g9") or 0) > 0),
+        ), "else": ("other", "그 밖의 석류석", "#b0bec5", "dot")},
+        "fields": {
+            "sample": _field("SOUSAMPNA", "시료"),
+            "g10d": _field("GT_G10D", "G10D 낟알", "number"),
+            "g10": _field("GT_G10", "G10 낟알", "number"),
+            "g9": _field("GT_G9", "G9 낟알", "number"),
+            "g11": _field("GT_G11", "G11 낟알", "number"),
+            "g12": _field("GT_G12", "G12 낟알", "number"),
+            "g1": _field("GT_G1", "G1 낟알", "number"),
+            "g3": _field("GT_G3", "G3 낟알", "number"),
+            "g4": _field("GT_G4", "G4 낟알", "number"),
+            "g5": _field("GT_G5", "G5 낟알", "number"),
+        },
+    },
+    # 탐사 구역 — 탐사된 곳(시료 둘레)과 다이아몬드 가능성이 있으나 탐사되지 않은 곳. 둘 다 조각 수천의 면 하나다.
+    # 속성은 면을 만든 흔적(첫 시료의 값·원본 셰이프 경로)이라 받지 않는다
+    "grportal:diamond_explored": {
+        "service": "DED_GL_Explored_Polygons", "license": DED_LICENSE,
+        "item": "d175bd2708e5425780af72123bde181d",
+        "style": "class", "areal": True, "generalize": 0.02,
+        "classes": {"by": "", "table": (), "else": ("explored", "탐사된 곳", "#1e88e5", "square")},
+        "fields": {},
+    },
+    "grportal:diamond_unexplored": {
+        "service": "DED_GL_Unexplored_Polygons", "license": DED_LICENSE,
+        "item": "0606178fa0b646ab818c5eab92c865a4",
+        "style": "class", "areal": True, "generalize": 0.02,
+        "classes": {"by": "", "table": (), "else": ("unexplored", "탐사되지 않은 곳 (가능성 있음)", "#fb8c00", "square")},
+        "fields": {},
+    },
+    **{f"grportal:geochem_{key}": {
+        "service": service, "item": item, "style": "value",
+        "fields": {
+            "sample": _field("sampleno", "시료 번호"),
+            "type": _field("sample_typ", "시료 갈래"),
+            "year": _field("year", "해"),
+            "sheet": _field("map_sheet", "도폭"),
+            "who": _field("fullname", "채취·보고"),
+            "link": _field(link, "GEUS 상세", "link"),
+            **{k: _field(f, "", "assay") for k, f, _, _ in ELEMENTS},
+        },
+    } for key, service, item, link in (
+        ("soil", "geochemistry_soil", "8724682f88e548288870bdd1611e52a1", "link"),
+        ("heavy", "geochemistry_heavy_minerals_conc", "a4ae0f04bd84410d8a696ca3fc097d24", "link"),
+        ("companies", "geochemistry_companies", "ae1c3db86cfe4767a0d7f4e0fa54c25a", "link"),
+        ("scree", "geochemistry_scree", "ae10729f316549fbbfe68f6f32204d16", "details"),
+    )},
+    # 전암 화학 3 만 점 — 원소 열을 다 실으면 덩이가 수십 MB 라 **고른 원소만 잘라 준다**(`slice`, `value_slice`)
+    "grportal:whole_rock": {
+        "service": "Rock_Chemical_Analysis_from_Greenland", "item": "57e5bb29a3f044ca986fa9c22e5ab659",
+        "style": "value", "slice": True,
+        "fields": {
+            "sample": _field("ORIGINALSA", "시료 번호"),
+            "anal": _field("SAMPLETREA", "분석 번호"),
+            **{k: _field(f, "", {"wt%": "pct_wt", "ppm": "pct_ppm", "ppb": "pct_ppb"}[u]) for k, f, _, u in WHOLE_ROCK},
+        },
+    },
 }
 
 #: 지도 귀퉁이에 적는 출처. 항목 주소가 있으면 그리로, 없으면 웹지도로 잇는다.
@@ -235,6 +415,11 @@ WEBMAP = "https://asiaq.maps.arcgis.com/apps/webappviewer/index.html?id=4f800688
 
 def knows(name: str) -> bool:
     return name in LAYERS
+
+
+def license_of(name: str) -> str:
+    """항목에 적힌 이용 조건. 적혀 있지 않으면 빈 글 (019)."""
+    return LAYERS.get(name, {}).get("license", "")
 
 
 def source_url(name: str) -> str:
@@ -325,17 +510,75 @@ def class_of(spec: dict, props: dict) -> tuple:
     """feature 하나의 갈래 (code, label, color, shape). 받은 값이 표의 머리말로 시작하면 그 갈래다 —
     위에서부터 먼저 맞는 것. 캐시에는 넣지 않고 내보낼 때 가른다 — 색을 고쳐도 다시 받지 않는다."""
     classes = spec["classes"]
-    value = str(props.get(classes["by"], "")) if classes["by"] else ""
+    raw = props.get(classes["by"]) if classes["by"] else None
+    value = str(raw if raw is not None else "")
     for code, label, color, shape, heads in classes["table"]:
-        if value.startswith(heads):
+        if callable(heads):
+            # 열 여럿을 보고 가른다 — 석류석 갈래 (wetherilli 157)
+            if heads(props):
+                return code, label, color, shape
+        elif classes.get("numeric"):
+            # 값의 구간 `(이상, 미만)` — 미만이 None 이면 끝이 없다
+            low, high = heads
+            if isinstance(raw, (int, float)) and raw >= low and (high is None or raw < high):
+                return code, label, color, shape
+        elif value.startswith(heads):
             return code, label, color, shape
     return classes["else"]
+
+
+def _value_body(spec: dict, features_json: bytes) -> bytes:
+    """연속값 레이어(지화학, wetherilli 159)의 덩이 — `values`([{key, label, unit, n, below}])에 이 레이어에서 값이 하나라도
+    있는 원소만 싣는다(`n` 은 측정값의 수, `below` 는 검출 한계 밑의 수). 색은 화면이 고른 원소의 분위수로 칠한다."""
+    features = json.loads(features_json)
+    keys, counts = {k for k, *_ in _table(spec)}, {}
+    for feature in features:
+        for key, value in feature["properties"].items():
+            if isinstance(value, (int, float)) and key in keys:
+                n, below = counts.get(key, (0, 0))
+                counts[key] = (n + (value > 0), below + (value < 0))
+    values = [{"key": k, "label": label, "unit": unit, "n": counts[k][0], "below": counts[k][1]}
+              for k, _, label, unit in _table(spec) if counts.get(k, (0, 0))[0]]
+    return json.dumps({"type": "FeatureCollection", "labels": arcpoints.labels(spec), "links": arcpoints.links(spec),
+                       "style": "value", "values": values, "default": DEFAULT_ELEMENT,
+                       "features": features}, ensure_ascii=False, separators=(",", ":")).encode("utf-8")
+
+
+def _table(spec: dict) -> tuple:
+    return WHOLE_ROCK if spec.get("slice") else ELEMENTS
+
+
+_SLICES = {}
+
+
+def value_slice(name: str, features_json: bytes, key: str) -> bytes:
+    """잘라 주는 연속값 레이어(전암 화학, wetherilli 163)의 덩이 — **고른 원소의 값이 있는 점만**, 그 원소와 시료 번호만
+    싣는다. `values` 는 원소마다의 수(덩이 전체를 한 번 세어 기억한다). 모르는 원소면 처음 원소(구리)로."""
+    spec = LAYERS[name]
+    memo = _SLICES.get(name)
+    if not memo or memo[0] != len(features_json):
+        features = json.loads(features_json)
+        meta = json.loads(_value_body(spec, json.dumps(features).encode()))["values"]
+        memo = _SLICES[name] = (len(features_json), features, meta)
+    _, features, values = memo
+    known = {v["key"] for v in values}
+    key = key if key in known else (DEFAULT_ELEMENT if DEFAULT_ELEMENT in known else next(iter(known), ""))
+    base = [k for k, f in spec["fields"].items() if f["label"]]
+    out = [{"type": "Feature", "id": f.get("id"), "geometry": f["geometry"],
+            "properties": {**{b: f["properties"][b] for b in base if b in f["properties"]}, key: f["properties"][key]}}
+           for f in features if key in f["properties"]]
+    return json.dumps({"type": "FeatureCollection", "labels": arcpoints.labels(spec), "links": arcpoints.links(spec),
+                       "style": "value", "values": values, "default": DEFAULT_ELEMENT, "slice": key,
+                       "total": len(features), "features": out},
+                      ensure_ascii=False, separators=(",", ":")).encode("utf-8")
 
 
 def body(name: str, features_json: bytes) -> bytes:
     """브라우저에 보내는 한 덩이 (`arcpoints.body`). 갈래가 있는 레이어는 feature 마다 `code`,
     덩이에 `legend`([{code, label, color, shape, count}])를 싣는다 — 극지연구소와 같은 꼴이다."""
     spec = LAYERS[name]
+    if spec["style"] == "value":
+        return _value_body(spec, features_json)
     if "classes" not in spec:
         return arcpoints.body(spec, features_json)
     features = json.loads(features_json)

@@ -189,11 +189,11 @@ class View(TestCase):
         self.assertEqual(rows["kopri:greenland_ice_contours"]["projection"], "EPSG:3413")
         self.assertEqual(rows["kopri:historic"]["projection"], "EPSG:3031")
 
-    def test_밖에_열면_내린다(self):
+    def test_밖에_열어도_싣는다(self):
+        """KPDC 공개 자료는 밖에 열어도 싣는다 — 사용자가 정했다(2026-10-02, wetherilli P11)."""
         with override_settings(PUBLIC=True):
             names = [l["name"] for g in self.client.get("/GSM/catalog/").json()["groups"] for l in g["layers"]]
-            self.assertNotIn("kopri:rock_antarctica", names)
-            self.assertEqual(self.client.get("/GSM/points/?layer=kopri:rock_antarctica").status_code, 404)
+            self.assertIn("kopri:rock_antarctica", names)
 
     def test_WMS_는_레이어명만_바꿔_넘긴다(self):
         sent = {}
@@ -386,12 +386,13 @@ class AraonViewTests(TestCase):
         self.assertEqual(r.status_code, 200)
         self.assertEqual(r["Cache-Control"], f"public, max-age={kopri.ARAON_MAX_AGE}")
 
-    def test_public_closes(self):
+    def test_밖에_열어도_싣는다(self):
+        """KPDC 공개 자료는 밖에 열어도 싣는다 — 사용자가 정했다(2026-10-02, wetherilli P11)."""
         with tempfile.TemporaryDirectory() as tmp, override_settings(KOPRI_DIR=tmp, PUBLIC=True):
             kopri.append_araon({"time": "2026-10-01T04:00Z", "lat": -74.6, "lon": 164.2})
-            self.assertEqual(self.client.get("/GSM/points/", {"layer": "kopri:araon"}).status_code, 404)
+            self.assertEqual(self.client.get("/GSM/points/", {"layer": "kopri:araon"}).status_code, 200)
             page = self.client.get("/GSM/earth/").content.decode()
-        self.assertIn('"araon": false', page)
+        self.assertNotIn('"araon": false', page)
 
 
 class AraonPastTests(SimpleTestCase):

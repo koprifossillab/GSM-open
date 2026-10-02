@@ -13,6 +13,21 @@
 상류에 묻지 않으니 빠르고, 상류 부담도 그만큼 준다
 (`manage.py prune_tiles` 가 나이와 크기로 줄인다).
 
+## 어디서 쓰나
+
+| 자리 | 주소 | 무엇이 되나 |
+|---|---|---|
+| 연구소 안 | **http://paleolab/GSM/** | 전부 — 모든 지역·온 지구·달·화성·수성·3D, 점묶음 올리기, 서버 캐시 |
+| 연구소 밖 | **https://koprifossillab.github.io/GSM-open/** | 정적 판 — 서버 없이 GitHub Pages 에서 돈다. 지금은 **한국 지질도**(KIGAM). 극지 탭을 붙이는 중 |
+
+**연구소 밖 판은 각자의 KIGAM 인증키로 본다.** [지오빅데이터 오픈플랫폼](https://data.kigam.re.kr/)에서 받은 키를
+화면 맨 위 칸에 넣는다. 키는 그 브라우저에만 남고(30 일, "이 PC 에 기억하지 않기" 면 탭 동안만) KIGAM 에만 간다 —
+우리 키는 그 판에 없다. 정적 판에서는 점묶음 올리기·3D·달·화성처럼 서버가 있어야 하는 것이 빠지고, KIGAM 지질도를
+눌러 속성을 읽는 것도 아직 없다(KIGAM 이 브라우저에 속성을 열어 두지 않았다). 계획은 devlog wetherilli P11,
+검토는 [docs/정적_밖_경로.md](docs/정적_밖_경로.md). 굽기·밀기는 `deploy/static_site.py`·`deploy/publish_pages.sh`.
+
+소스는 공개용 저장소 **https://github.com/koprifossillab/GSM-open** 에 판마다 미는 사본이다(아래 "라이선스").
+
 ## 세우기
 
 ```bash
@@ -59,7 +74,8 @@ python manage.py runserver
 
 **코드는 GNU Affero General Public License v3.0(AGPL-3.0)을 따른다** — 전문은 [LICENSE](LICENSE).
 AGPL 이라 **고친 판을 네트워크로 남에게 쓰게 하면 그 사람에게 소스를 내줄 길을 열어 두어야 한다**(13조).
-이 저장소는 공개(https://github.com/koprifossillab/GSM)다.
+밖에서 쓰는 사람이 받는 소스는 **공개용 저장소 https://github.com/koprifossillab/GSM-open** 이다 — 판마다 그 판의 소스를
+한 커밋으로 민다(`deploy/publish_open.sh`). 소개 화면의 "소스" 링크가 거기를 가리킨다.
 
 - 옮겨 온 남의 코드는 제 라이선스를 지닌다 — EarthThruTime3D 의 옛 위치 셈(MIT, [docs/licenses/](docs/licenses/))
 - **라이선스는 코드에만 걸린다. 지도 자료는 저마다 주인의 조건을 따른다.** KIGAM 자료의 저작권은

@@ -1,5 +1,5 @@
 {% load static gsm_i18n %}<!DOCTYPE html>
-<html lang="{{ lang }}">
+<html lang="{{ lang }}"{% if static_site %} class="static-site"{% endif %}>
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -50,10 +50,10 @@
       <img class="emblem" src="{% static 'viewer/emblem.svg' %}?v={{ stamp|default:version }}" alt="" width="46" height="46">
     </button>
     <nav class="hidden-menu" id="hidden-menu" role="menu" hidden>
-      <a role="menuitem" href="{{ base }}earth/"><span class="moon-dot whole-dot" aria-hidden="true"></span>{% t "온 지구" %}</a>
-      <a role="menuitem" href="{{ base }}moon/"><span class="moon-dot" aria-hidden="true"></span>{% t "달" %}</a>
-      <a role="menuitem" href="{{ base }}mars/"><span class="moon-dot mars-dot" aria-hidden="true"></span>{% t "화성" %}</a>
-      <a role="menuitem" href="{{ base }}mercury/"><span class="moon-dot mercury-dot" aria-hidden="true"></span>{% t "수성" %}</a>
+      <a role="menuitem" class="server-only" href="{{ base }}earth/"><span class="moon-dot whole-dot" aria-hidden="true"></span>{% t "온 지구" %}</a>
+      <a role="menuitem" class="server-only" href="{{ base }}moon/"><span class="moon-dot" aria-hidden="true"></span>{% t "달" %}</a>
+      <a role="menuitem" class="server-only" href="{{ base }}mars/"><span class="moon-dot mars-dot" aria-hidden="true"></span>{% t "화성" %}</a>
+      <a role="menuitem" class="server-only" href="{{ base }}mercury/"><span class="moon-dot mercury-dot" aria-hidden="true"></span>{% t "수성" %}</a>
       <a role="menuitem" class="intro-link" href="{{ base }}"><span class="moon-dot intro-dot" aria-hidden="true"></span>{% t "대돌여지도 소개" %}</a>
     </nav>
     <div>
@@ -66,7 +66,10 @@
     {% t "<b>남극 지질도는 준비 중이다.</b> 남극점을 가운데 둔 평사도법 화면과 배경지도를 먼저 띄워 둔다. GeoMAP 레이어는 곧 붙인다." %}
   </p>
 
-  {% if dev_direct %}
+  {% if static_site %}
+  {% comment %}정적 판(wetherilli P11·162) — 키는 각자 넣는다. 알림 줄은 map.js 가 그린다(#static-key){% endcomment %}
+  <div id="static-key" class="warn korea-only static-key"></div>
+  {% elif dev_direct %}
   <p class="warn direct korea-only">
     {% t "<b>임시 경로로 받고 있다.</b> 인증키가 아직 없어 문서에 없는 주소 (<code>/mgeo/geoserver/wms</code>)로 지도를 받는다. 키가 들어오면 <code>dev_direct_wms</code> 를 지우고 다시 띄운다 — 그때부터 문서화된 <code>/openapi/wms</code> 로 간다." %}
   </p>
@@ -124,7 +127,7 @@
       <div class="box-body">
         <ul id="personal-list"></ul>
         <p id="personal-warn" class="personal-warn" hidden></p>
-        <a class="btn quiet wide personal-manage" href="{{ base }}manage/">{% t "반입·관리" %}</a>
+        <a class="btn quiet wide personal-manage server-only" href="{{ base }}manage/">{% t "반입·관리" %}</a>
       </div>
     </div>
 
@@ -169,7 +172,7 @@
     <div class="box">
       <h2 class="box-head">{% t "불러오기" %} <span class="hint">{% t "바깥 자료를 지도에" %}</span></h2>
       <div class="box-body">
-    <form id="upload-form">
+    <form id="upload-form" class="server-only">
       {% csrf_token %}
       <label class="filebox">
         <input type="file" id="upload-file" name="file" accept=".csv,.tsv,.txt,.geojson,.json" required>
@@ -202,7 +205,7 @@
 
   <footer id="panel-foot">
     <span class="foot-name">GSM <span class="ver">v{{ version }}</span></span>
-    <a id="manage-btn" class="gear manage-btn" href="{{ base }}manage/" title="{% t "관리 화면 — 개인 레이어 반입, 저장 자료 관리" %}">
+    <a id="manage-btn" class="gear manage-btn server-only" href="{{ base }}manage/" title="{% t "관리 화면 — 개인 레이어 반입, 저장 자료 관리" %}">
       <svg viewBox="0 0 24 24" aria-hidden="true"><rect class="stroke" x="4" y="4" width="16" height="16" rx="2"/><path class="stroke" d="M8 9h8M8 12h8M8 15h5"/></svg>
       <span>{% t "관리" %}</span>
     </a>
@@ -331,7 +334,7 @@
         <svg viewBox="0 0 24 24" aria-hidden="true"><rect class="stroke" x="4" y="4" width="16" height="13" rx="1.5"/><path class="stroke" d="m6.5 14 3.5-4 3 3 2-2 2.5 3"/><path class="stroke" d="M12 17v4M9.5 19l2.5 2 2.5-2"/></svg>
         <span>{% t "그림" %}</span>
       </button>
-      <a class="tool" id="tool-3d" href="{{ base }}3d/" title="{% t "3D 로 본다 — 지금 보던 자리를 연다" %}">
+      <a class="tool server-only" id="tool-3d" href="{{ base }}3d/" title="{% t "3D 로 본다 — 지금 보던 자리를 연다" %}">
         <svg viewBox="0 0 24 24" aria-hidden="true"><path class="stroke" d="M3 18 9 8l4 6 3-4 5 8H3Z"/><path class="stroke" d="M12 4v2M17 5.5l-1 1.6"/></svg>
         <span>3D</span>
       </a>
@@ -395,10 +398,13 @@
 <script id="i18n-data" type="application/json">{{ i18n_json|safe }}</script>
 <script id="vworld-key" type="application/json">"{{ vworld_key|escapejs }}"</script>
 <script id="catalog-data" type="application/json">{{ catalog|safe }}</script>
+{% if static_site %}<script id="static-config" type="application/json">{{ static_site|safe }}</script>{% endif %}
 <script id="pointset-data" type="application/json">{{ pointsets|safe }}</script>
 <script src="{% static 'viewer/vendor/ol.js' %}"></script>
 <script src="{% static 'viewer/vendor/proj4.js' %}"></script>
 <script src="{% static 'viewer/personal.js' %}?v={{ stamp|default:version }}"></script>
+{% if static_site %}{% comment %}정적 판의 상류를 브라우저가 곧장 부르는 소스(wetherilli P11·161) — map.js 보다 먼저{% endcomment %}
+<script src="{% static 'viewer/static-kinds.js' %}?v={{ stamp|default:version }}"></script>{% endif %}
 <script src="{% static 'viewer/map.js' %}?v={{ stamp|default:version }}"></script>
 </body>
 </html>

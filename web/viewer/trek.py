@@ -323,7 +323,15 @@ DEM_PARTS = (
     ("LRO_NAC_DEM_60S200E_150cmp", (-160.6817, -60.6431, -159.4890, -59.3179), 15, 1.0),
     ("LRO_NAC_DEM_61N099E_150cmp", (98.7326, 60.4580, 100.1981, 61.7296), 15, 1.0),
     ("LRO_NAC_DEM_73N350E_150cmp", (-9.4369, 73.3188, -8.2911, 73.7132), 15, 1.0),
+    # 경위도 판이 아닌 셋(wetherilli 150) — ImageServer 가 우리 경위도로 옮겨 준다(`bboxSR`·`imageSR`). 256 ppd 와 맞대니
+    # 평균 −1.2·−2.9·−1.2 m 였다. 극 평사도법 판의 범위는 네 귀를 경위도로 옮긴 네모라 빈 곳이 넓다 — 256 ppd 로 메운다
+    ("LRO_NAC_DEM_86S356E_3mp", (-15.38, -87.2, 0.44, -84.59), 15, 1.0),
+    ("LRO_NAC_DEM_02N085E_150cmp", (84.812, 1.3778, 85.702, 2.8148), 15, 1.0),
+    ("LRO_NAC_DEM_07N022E_150cmp", (21.4617, 6.2719, 22.0539, 7.2299), 15, 1.0),
 )
+#: 넣지 않은 판 (wetherilli 150) — 아폴로 15 PanCam DEM 셋은 256 ppd 와의 차이가 평균 ±15 m·흩어짐 23–52 m 로 NAC(10–14 m)보다
+#: 커 자리가 어긋난 판으로 보인다. 메트릭 카메라 1024 ppd 둘(`Apollo17_…`·`ApolloZone_…`)은 256 ppd 보다 120 m 남짓 낮다 —
+#: 기준면이 다른 까닭을 모른 채 맞추지 않았다
 DEM_FINE_MAX = max(part[2] for part in DEM_PARTS)
 
 
@@ -525,10 +533,27 @@ VALUES = {
     "ti": ("trekarcgis2", "LP_GRS_TitaniumAbundance_2ppd", "티타늄", "wt%", 1, 0, 15, 2, "Lunar Prospector GRS"),
     **{f"thick{n}": ("trekarcgis", f"Model{n}_thick_eq", "지각 두께", "km", 1, 0, 200, 1, f"GRAIL · Wieczorek et al. 2013, model {n}")
        for n in range(1, 5)},
+    # 다누리 KGRS (wetherilli 150) — **단위를 모른다.** Trek 색인에 없고 서비스 설명도 비었다. 값이 함량이 아니라 계수율로
+    # 보인다(칼륨 1.6–3.3, 토륨이 LP 의 1/10 남짓, 2026-10-02). 사람이 "상대값(단위 미확인)" 으로 내자고 했다
+    "kgrs_k": ("trekarcgis3", "KPLO_KGRS_Potassium_2ppd", "칼륨 상대값 (단위 미확인)", "", 1, 0, 1000, 2, "KPLO(다누리) KGRS"),
+    "kgrs_u": ("trekarcgis3", "KPLO_KGRS_Uranium_2ppd", "우라늄 상대값 (단위 미확인)", "", 1, 0, 1000, 2, "KPLO(다누리) KGRS"),
+    "kgrs_th": ("trekarcgis3", "KGRS_Th_LG_smooth", "토륨 상대값 (단위 미확인)", "", 1, 0, 1000, 3, "KPLO(다누리) KGRS"),
+    "kgrs_tn": ("trekarcgis3", "KPLO_KGRS_Thermal_Neutron_2ppd", "열중성자 상대값 (단위 미확인)", "", 1, 0, 1000, 2,
+                "KPLO(다누리) KGRS"),
+    "kgrs_tn_lg": ("trekarcgis3", "KGRS_Thermal_Neutron_LG", "열중성자 상대값 (단위 미확인)", "", 1, 0, 1000, 4,
+                   "KPLO(다누리) KGRS"),
+    # 북극 (wetherilli 150) — 극 평사도법 ImageServer 도 경위도 점으로 묻는다. 남극 짝(`sp_*`)은 2026-09-30·10-02 둘 다 답이 없다
+    "np_feo": ("trekarcgis", "np_feo_mlemelin_031417", "FeO (북극)", "wt%", 1, 0, 40, 1, "NASA Moon Trek (M. Lemelin)"),
+    "ice_today": ("trekarcgis", "np_ice_depth_new_240m_mat_today_27_Oct_2016", "얼음이 버틸 깊이 — 오늘의 자전축", "m", 1, 0, 2.5, 2,
+                  "NASA Moon Trek"),
+    "ice_paleo": ("trekarcgis", "np_ice_depth_new_240m_mat_paleo_27_Oct_2016", "얼음이 버틸 깊이 — 옛 자전축", "m", 1, 0, 2.5, 2,
+                  "NASA Moon Trek"),
 }
 
 #: 판이 덮는 위도 끝 — 없으면 온 달
 VALUE_LAT = {key: 50 for key in ("feo", "olivine", "cpx", "opx", "plag")}
+#: 북극 판이 덮는 위도 밑 — 그 밑은 묻지 않는다. 극 평사도법 네모의 가장 먼 귀(FeO ±1 266 km, 얼음 ±300 km)보다 조금 안쪽
+VALUE_NORTH = {"np_feo": 50, "ice_today": 80, "ice_paleo": 80}
 
 #: 씨앗의 판 이름 → 갈래. 색 판과 회색 판이 같은 값을 가리킨다. 극지 짝(`_NP`·`_SP`)은 씨앗에 없다
 _VALUE_IDS = (
@@ -540,6 +565,14 @@ _VALUE_IDS = (
     (re.compile(r"^LP_GRS_Th_(Clr_)?Global_2ppd$"), "th"),
     (re.compile(r"^LP_GRS_(Clr)?TitaniumAbundance_2ppd$"), "ti"),
     (re.compile(r"^Model([1-4])_thick\.eq$"), "thick"),
+    (re.compile(r"^KPLO_KGRS_Potassium_2ppd$"), "kgrs_k"),
+    (re.compile(r"^KPLO_KGRS_Uranium_2ppd$"), "kgrs_u"),
+    (re.compile(r"^KGRS_Th_LG_smooth$"), "kgrs_th"),
+    (re.compile(r"^KPLO_KGRS_Thermal_Neutron_2ppd$"), "kgrs_tn"),
+    (re.compile(r"^KGRS_Thermal_Neutron_LG$"), "kgrs_tn_lg"),
+    (re.compile(r"^np_feo_mlemelin_031417$"), "np_feo"),
+    (re.compile(r"^np_ice_depth_new_240m_mat_today_27_Oct_2016$"), "ice_today"),
+    (re.compile(r"^np_ice_depth_new_240m_mat_paleo_27_Oct_2016$"), "ice_paleo"),
 )
 
 
@@ -558,7 +591,7 @@ def value_at(key: str, lon: float, lat: float) -> dict:
     """`{"rows": [[이름, "16.7 wt%"], ["출처", …]]}` — 자료 밖이면 rows 가 빈다. 이름은 한국어 원문이다."""
     root, service, label, unit, scale, lo, hi, digits, source = VALUES[key]
     # Kaguya MI 는 남북위 50° 안뿐이다. 밖을 물으면 빈 값이 아니라 "Invalid … parameters" 오류가 온다(2026-09-30)
-    if abs(lat) > VALUE_LAT.get(key, 90):
+    if abs(lat) > VALUE_LAT.get(key, 90) or lat < VALUE_NORTH.get(key, -90):
         return {"rows": []}
     geometry = {"points": [[round(lon, 6), round(lat, 6)]], "spatialReference": {"wkid": SR}}
     data = _json(_get(f"{root}/rest/services/{service}/ImageServer/getSamples", {
@@ -571,7 +604,7 @@ def value_at(key: str, lon: float, lat: float) -> dict:
         except (TypeError, ValueError):
             continue
         if lo <= value <= hi and not math.isnan(value):
-            return {"rows": [[label, f"{value:.{digits}f} {unit}"], ["출처", source]]}
+            return {"rows": [[label, f"{value:.{digits}f} {unit}".strip()], ["출처", source]]}
     return {"rows": []}
 
 
@@ -1166,7 +1199,33 @@ def catalog_items(body: str) -> list:
                     "cat": doc.get("productCat1") or "", "cat2": doc.get("productCat2") or "",
                     "mission": doc.get("mission") or "", "instrument": doc.get("instrument") or "",
                     "coverage": doc.get("coverage") or "", "bbox": _bbox(doc.get("bbox"))})
+    for item in EXTRA_ITEMS.get(body, ()):
+        if item["id"] not in seen:
+            out.append({k: v for k, v in item.items() if k != "image"})
     return out
+
+
+#: 색인(`searchItems`)에 없는 판 (wetherilli 150) — 서비스 목록에서 찾았다. 씨앗 뽑기가 색인의 판처럼 WMTS 를 묻는다.
+#: `image` 는 WMTS 가 없는 판의 ImageServer — 우리 문이 `exportImage` 로 굽는다(`map_tile`). `pole` 은 그 ImageServer 가 제
+#: 투영으로 극 평사도법인 판 — 극 평면에서는 극 격자로 곧장 받는다(`map_polar_tile`). 경위도 타일을 극으로 다시 옮기면 극
+#: 둘레가 바퀴살처럼 찢어진다(2026-10-02)
+EXTRA_ITEMS = {"moon": [
+    *({"id": label, "uuid": "", "title": title, "cat": "Spectrometer", "cat2": "Abundance", "mission": "KPLO",
+       "instrument": "KGRS", "coverage": "Global", "bbox": [-180.0, -90.0, 180.0, 90.0]}
+      for label, title in (("KPLO_KGRS_Potassium_2ppd", "KPLO KGRS Potassium"),
+                           ("KPLO_KGRS_Uranium_2ppd", "KPLO KGRS Uranium"),
+                           ("KGRS_Th_LG_smooth", "KPLO KGRS Thorium (LG, smoothed)"),
+                           ("KPLO_KGRS_Thermal_Neutron_2ppd", "KPLO KGRS Thermal Neutron"),
+                           ("KGRS_Thermal_Neutron_LG", "KPLO KGRS Thermal Neutron (LG)"))),
+    {"id": "np_feo_mlemelin_031417", "uuid": "", "title": "North Pole FeO (Lemelin)", "cat": "Mineralogy",
+     "cat2": "Abundance", "mission": "LRO", "instrument": "", "coverage": "Regional", "bbox": [-180.0, 50.0, 180.0, 90.0],
+     "image": "trekarcgis/rest/services/np_feo_mlemelin_031417/ImageServer", "pole": "n"},
+    *({"id": label, "uuid": "", "title": title, "cat": "Temperature", "cat2": "Ice stability depth", "mission": "LRO",
+       "instrument": "Diviner", "coverage": "Regional", "bbox": [-180.0, 80.0, 180.0, 90.0],
+       "image": f"trekarcgis/rest/services/{label}/ImageServer", "pole": "n"}
+      for label, title in (("np_ice_depth_new_240m_mat_today_27_Oct_2016", "North Pole Ice Stability Depth (today)"),
+                           ("np_ice_depth_new_240m_mat_paleo_27_Oct_2016", "North Pole Ice Stability Depth (paleo spin axis)"))),
+]}
 
 
 def tiles_root(body: str) -> str:
@@ -1335,9 +1394,10 @@ def load_catalog(body: str) -> list:
 SAME_AS = {"moon": {"Unified_Geologic_Map_of_the_Moon_RASTER": "units", "SPA_GeoMap_lqbal_et_al": "spa"}}
 
 
-def _client_polar(polar) -> dict:
-    """씨앗의 극지 짝 → 화면이 쓰는 것. 타일이면 이름·포맷·줌 끝·범위(m), MapServer 면 갈래만(우리 문이 굽는다)."""
-    out = {}
+def _client_polar(polar, pole: str = "") -> dict:
+    """씨앗의 극지 짝 → 화면이 쓰는 것. 타일이면 이름·포맷·줌 끝·범위(m), MapServer 면 갈래만(우리 문이 굽는다).
+    `pole` 은 판 자신이 그 극의 극 평사도법 ImageServer 인 것 (wetherilli 150)."""
+    out = {pole: {"kind": "map"}} if pole else {}
     for pole, p in (polar or {}).items():
         if p.get("kind") == "tile":
             out[pole] = {"kind": "tile", "name": p["name"], "ext": p.get("ext") or "png", "max": p.get("max") or 0,
@@ -1370,7 +1430,7 @@ def client_catalog(body: str) -> dict:
                             "ext": e.get("ext") or "png",
                             "max": e.get("max") or 0, "z0": e.get("z0") or 0, "bbox": bbox, "src": src,
                             "legend": legend, "same": SAME_AS.get(body, {}).get(e["id"], ""),
-                            "polar": _client_polar(e.get("polar")), "value": value_key(body, e["id"])})
+                            "polar": _client_polar(e.get("polar"), e.get("pole") or ""), "value": value_key(body, e["id"])})
     out = sorted(groups.values(), key=lambda g: g["order"])
     for g in out:
         del g["order"]
@@ -1396,7 +1456,11 @@ def _body_base(body: str) -> str:
 
 
 def find_mapserver(body: str, uuid: str, label: str) -> str:
-    """판의 MapServer 경로(`trekarcgis2/rest/services/X/MapServer`) — 없으면 빈 칸."""
+    """판의 MapServer 경로(`trekarcgis2/rest/services/X/MapServer`) — 없으면 빈 칸. 색인 밖의 판이 ImageServer 를 적었으면
+    그것이다 (wetherilli 150)."""
+    for item in EXTRA_ITEMS.get(body, ()):
+        if item["id"] == label and item.get("image"):
+            return item["image"]
     base = _body_base(body)
     if uuid:
         docs = (_json(_get("TrekServices/ws/index/getLayerServices", {"uuid": uuid}, base=base))
@@ -1422,6 +1486,8 @@ def polar_map(body: str, label: str, pole: str) -> str:
     """씨앗에 적힌 극지 MapServer 짝의 경로 — 없으면 빈 칸. 씨앗에 없는 것은 부르지 않는다."""
     for e in _catalog_index(body):
         if e["id"] == label:
+            if e.get("pole") == pole and e.get("kind") == "map":
+                return e.get("ms") or ""                       # 판 자신이 극 평사도법 (wetherilli 150)
             p = (e.get("polar") or {}).get(pole) or {}
             return p.get("ms", "") if p.get("kind") == "map" else ""
     return ""
@@ -1430,7 +1496,8 @@ def polar_map(body: str, label: str, pole: str) -> str:
 def map_polar_tile(body: str, ms: str, pole: str, z: int, x: int, y: int) -> bytes:
     """극지 MapServer 짝의 타일 한 장 — 극 격자(`polar_tile_bbox`). 서비스가 제 투영(WKT)으로 읽는다(052)."""
     w, s, e, n = polar_tile_bbox(z, x, y)
-    return _image(_get(f"{ms}/export", {
+    op = "exportImage" if ms.endswith("/ImageServer") else "export"
+    return _image(_get(f"{ms}/{op}", {
         "bbox": f"{w},{s},{e},{n}", "size": f"{TILE},{TILE}",
         "format": "png32", "transparent": "true", "f": "image",
     }, base=_body_base(body)))
@@ -1459,10 +1526,12 @@ def _catalog_index(body: str) -> list:
 
 
 def map_tile(body: str, ms: str, z: int, x: int, y: int) -> bytes:
-    """MapServer 판의 타일 한 장 (256 px PNG). 경위도 격자는 지질도와 같다."""
+    """MapServer 판의 타일 한 장 (256 px PNG). 경위도 격자는 지질도와 같다. ImageServer 판(색인 밖의 북극 판, wetherilli 150)은
+    `exportImage` 로 — 서비스가 늘인 회색으로 칠하고 극 평사도법을 우리 경위도로 옮겨 준다."""
     w, s, e, n = tile_bbox(z, x, y)
     sr = BODIES[body][1]
-    return _image(_get(f"{ms}/export", {
+    op = "exportImage" if ms.endswith("/ImageServer") else "export"
+    return _image(_get(f"{ms}/{op}", {
         "bbox": f"{w},{s},{e},{n}", "bboxSR": sr, "imageSR": sr, "size": f"{TILE},{TILE}",
         "format": "png32", "transparent": "true", "f": "image",
     }, base=_body_base(body)))

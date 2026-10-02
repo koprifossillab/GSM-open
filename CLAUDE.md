@@ -78,7 +78,9 @@ Docker Hub 이미지(`koprifossillab/gsm`), 브라우저 `localStorage` 키.
 라이선스는 코드에만 걸리고 지도 자료는 상류마다 제 조건을 따른다(아래 "지역"). 남의 코드를 옮겨 오면
 그 라이선스 전문을 `docs/licenses/` 에 두고 README "라이선스와 자료의 출처" 에 한 줄 적는다 — AGPL 과
 어울리지 않는 것(비상업 조건이 붙은 코드 따위)은 옮기지 않는다. 고친 판을 밖에 열 때는 쓰는 사람이
-소스로 갈 길이 있어야 한다(AGPL 13조).
+소스로 갈 길이 있어야 한다(AGPL 13조). **그 길은 공개용 저장소 `koprifossillab/GSM-open` 이다**(2026-10-02, wetherilli 149) —
+판마다 그 태그의 소스를 한 커밋으로 민다(`deploy/publish_open.sh <태그>`, `.claude`·`.github` 은 뺀다). 소개 화면의 "소스" 링크(`settings.SOURCE_URL`)가
+거기를 가리킨다. 개발 저장소(`koprifossillab/GSM`)는 나중에 비공개로 돌릴 수 있게 링크에서 떼어 두었다
 
 ## 인증키
 
@@ -92,6 +94,11 @@ Docker Hub 이미지(`koprifossillab/gsm`), 브라우저 `localStorage` 키.
 - 키가 없어도 뷰어는 **돈다** — 타일 자리에 "인증키가 없다" 안내 타일이 뜨고
   레이어 패널·좌표 표시·점묶음은 그대로 쓸 수 있다. 키 신청이 심사 중인
   동안 나머지를 만들려고 그렇게 했다
+
+**연구소 밖 정적 판(https://koprifossillab.github.io/GSM-open/)은 예외가 아니다 — 거기에는 우리 키가 없다.** 보는 사람이 각자
+KIGAM 키를 넣고(그 브라우저 localStorage, 30 일), 브라우저가 `/openapi/wms` 를 곧장 부른다(`map.js` 의 `STATIC_KIGAM`).
+서버 없이 돌므로 위의 "서버가 키를 붙인다" 가 없다. 판 세션이 판마다 `deploy/publish_pages.sh` 로 굽고 민다
+(wetherilli P11·162). 실을 지역·상류는 `deploy/static_site.py` 의 `REGIONS`·`UPSTREAMS`.
 
 ## 상류의 함정 — 문서를 믿지 않는다
 
@@ -201,6 +208,8 @@ WMS·z/x/y·우리가 굽는 것) 계획을 따로 둔다 (029).
 **브라우저 캐시** (wetherilli 151) — 응답마다 ETag 가 붙어 하루(`TILE_CACHE_SECONDS`)가 지나면 304 로 되묻는다
 (`ConditionalGetMiddleware`). 주소에 판(`?v=`)이 든 우리 타일만 1 년 `immutable` 이다(`views._immutable`) — 판이 바뀌면 주소가
 바뀌기 때문이다. 상류에서 받은 것에는 판이 없으니 길게 두지 않는다. 그리는 법을 고쳐 `RENDERER` 를 올리면 주소의 판도 따라 오른다.
+속성·범례 JSON 도 하루이고 언어(쿠키)로 가른다(`views.browser_cached`, wetherilli 158). 3D 의 `warp/` 는 원본의 판을 열쇠에 넣어
+디스크에 담는다 — 스캔판(phyloserver)만 빼고. 다시 펴는 법을 고치면 `views.WARP_RENDERER` 를 올린다.
 
 캐시는 여전히 **덤이지 자료가 아니다.** 통째로 지워도 뷰어는 그대로 돌고,
 줄이고 싶으면 사람이 `manage.py prune_tiles` 를 부른다. 자료의 주인은
@@ -285,7 +294,9 @@ WMS·z/x/y·우리가 굽는 것) 계획을 따로 둔다 (029).
 - 레이어는 그리는 법도 갖는다 — 타일(WMS)이 거의 전부이고, `kind: vector` 는 단층
   선을 1° 칸으로 받아 우리가 그리고(020), `kind: points` 는 점·모양을 한 덩이로
   받아 우리가 그린다(019·022·025). 면이 만 개를 넘는 중국은 `render: image`
-  (`ol.layer.VectorImage`)로 한 장씩 굽는다
+  (`ol.layer.VectorImage`)로 한 장씩 굽는다. 점의 `style: value` 는 **연속값 색**이다 — 서버가 고를 열(`values`)을 싣고
+  화면이 고른 열의 분위수 일곱 칸을 viridis 로 칠한다(`map.js` 의 `valueStyle`, 그린란드 지화학, wetherilli 159). 점이 많아
+  열을 다 실을 수 없는 레이어(`slice`, 그린란드 전암 화학 3 만 점)는 서버가 **고른 열의 점만 잘라** 준다(`?value=`, wetherilli 163)
 - **WMS 는 대개 3857 로 받고 OpenLayers 가 옮겨 그린다** — 캐시 열쇠가 앞 판과
   같다. **NPI 만은 지역의 투영으로 곧장 받는다** — 3857 로 물으면 축척이 부풀어
   1:25만 대신 1:75만을 준다 (021). **일본(GSJ)은 WMS 가 아니라 z/x/y 타일**이다 —
@@ -304,7 +315,8 @@ WMS·z/x/y·우리가 굽는 것) 계획을 따로 둔다 (029).
   남극의 "세종·장보고 기지 위성"(VWorld 테마 영상 2013, 두 기지 둘레만) 배경 (wetherilli 093)
 - 극지 배경(EOX·NASA GIBS·PGC·NPI 타일·Esri 남극 위성)과 일본 배경(국토지리원 지리원 타일), 대만 배경(국토측회중심 WMTS, wetherilli 141), 모든 지역의 해저 지형 배경(GEBCO,
   공공 도메인 — 극 평사도법 탭은 4326 을 옮겨 그린다, wetherilli 135)은 VWorld 처럼
-  브라우저가 곧장 부른다.
+  브라우저가 곧장 부른다. 일본의 찾기 칸(국토지리원 주소·지명 검색, 지리원 지도가 쓰는 것)도 브라우저가 곧장 부른다 —
+  열쇠가 없고 CORS 가 열려 있다. 지리원 지도를 위한 것이라 예고 없이 바뀔 수 있다 (wetherilli 155).
   EOX Sentinel-2 는 **비상업(CC BY-NC-SA)** 조건이고 Esri 남극 위성은 **Esri 이용 조건**이다 — 밖에 열 때 다시 본다 (040)
 - **중국 geo3al 은 연구실 내부용이다** — USGS 메타데이터의 이용 조건이 "내부 용도만,
   가공물 포함 제3자 재배포 금지" 다(UNESCO·CGMW·ESRI 지적재산). 화면에 보이는 것 자체가
@@ -378,7 +390,7 @@ WMS·z/x/y·우리가 굽는 것) 계획을 따로 둔다 (029).
 web/gsmweb/       Django 설정
 web/viewer/       뷰어 앱 하나뿐이다. 앱을 더 가르지 않는다
   kigam.py        KIGAM 으로 나가는 문 (지질도 타일·속성·범례)
-  vworld.py       VWorld 로 나가는 문 (주소·장소 검색, 좌표→주소, 지질 참고 WMS·WFS)
+  vworld.py       VWorld 로 나가는 문 (주소·장소 검색, 좌표→주소, 주소→좌표, 지질 참고 WMS·WFS)
   geus.py         GEUS 로 나가는 문 (그린란드 지질도)
   grportal.py     그린란드 정부 포털(ArcGIS)로 나가는 문 (시료·연대 점을 통째로)
   npolar.py       노르웨이 극지연구소(NPI)로 나가는 문 (스발바르·드로닝모드랜드)
@@ -475,7 +487,7 @@ WegenersDream 의 규약을 따른다(2026-09-30 부터).
 만든다**(`gh pr create --base main`) — CI(`시험`)를 통과해야 하고, **`main` 병합은 사람이 정한다.**
 판을 올리는 것은 그 PR 안에서 한다(`CHANGELOG.md`·`web/gsmweb/version.py`·HANDOFF). 병합하고 판이 올랐으면
 CHANGELOG 의 그 절로 GitHub 릴리스(`v<판>`)를 만든다 — 태그마다 CI 가 Docker Hub(`koprifossillab/gsm:<태그>`)에
-이미지를 올린다. 2026-09-30 전에는 `main` 에 곧장 커밋하고 한 세션이 판을 모아 붙였다.
+이미지를 올린다. 그리고 `sh deploy/publish_open.sh v<판>` 으로 그 판의 소스를 GSM-open 에 민다(위 "라이선스"). 2026-09-30 전에는 `main` 에 곧장 커밋하고 한 세션이 판을 모아 붙였다.
 
 **휴대폰 화면은 손으로 찍어 보지 않는다** — CI 의 "휴대폰 화면" job(`viewer/tests/test_mobile.py`)이 390×844 터치로
 화면마다 가로 넘침·페이지 오류·손잡이 자리를 본다(wetherilli 132). 그 job 이 통과하면 확인한 것이다. 휴대폰에서 새로

@@ -190,9 +190,27 @@
 | wetherilli 147 | 2026-10-02 | [유럽 2단계 — 독일 BGR·스페인 IGME·아일랜드 GSI·북아일랜드 GSNI](20261002_wetherilli_147_europe_more.md) |
 | wetherilli 146 | 2026-10-02 | [수성 더 — 소개 화면에 수성, 도폭 경계는 우리가 긋는다](20261002_wetherilli_146_mercury_more.md) |
 | wetherilli 148 | 2026-10-02 | [화성·수성의 높이 그래프](20261002_wetherilli_148_planet_profiles.md) |
+| wetherilli 150 | 2026-10-02 | [달 — 남은 값과 고운 지형 (다누리 KGRS·북극 판·NAC 셋)](20261002_wetherilli_150_moon_trek_more.md) |
 | wetherilli 151 | 2026-10-02 | [브라우저 캐시 — 모든 응답에 ETag·304, 판이 든 주소만 길게](20261002_wetherilli_151_cache_headers.md) |
 | wetherilli 153 | 2026-10-02 | [온 지구 아이콘과 대기 화면](20261002_wetherilli_153_earth_emblem.md) |
+| wetherilli 154 | 2026-10-02 | [그때의 자리 — GPlates 와 견준 회귀 시험, 캡션 한 줄](20261002_wetherilli_154_paleo_gws_check.md) |
+| wetherilli 152 | 2026-10-02 | [주소만 적힌 CSV 를 점묶음으로 — 화면이 50 줄씩 나눠 VWorld 에 묻는다](20261002_wetherilli_152_address_csv.md) |
+| wetherilli 149 | 2026-10-02 | [공개용 저장소 GSM-open — 소스 링크를 개발 저장소에서 떼어 둔다](20261002_wetherilli_149_open_source_repo.md) |
+| wetherilli 158 | 2026-10-02 | [캐시의 빈 곳 — 3D 편 것을 담고, 속성 JSON 에 헤더, prewarm 이 KOPRI·Trek 을](20261002_wetherilli_158_cache_more.md) |
+| wetherilli 157 | 2026-10-02 | [그린란드 — 다이아몬드 탐사 자료의 시추공·지시광물·석류석·탐사 구역](20261002_wetherilli_157_greenland_diamonds.md) |
+| wetherilli 156 | 2026-10-02 | [VWorld 측정망 점을 벡터로, AWS 음영·경사와 국토지리원 주제 타일을 배경으로](20261002_wetherilli_156_vworld_points_basemaps.md) |
+| wetherilli 155 | 2026-10-02 | [일본의 찾기 칸 — 국토지리원 주소·지명 검색을 브라우저가 곧장](20261002_wetherilli_155_japan_search.md) |
+| wetherilli 160 | 2026-10-02 | [정적 판 굽기 — `manage.py bake_static`](20261002_wetherilli_160_static_bake.md) |
+| wetherilli 159 | 2026-10-02 | [연속값 색 — 그린란드 지화학 넷을 원소 하나로 칠한다](20261002_wetherilli_159_value_colors.md) |
+| wetherilli 163 | 2026-10-02 | [그린란드 전암 화학 3 만 점 — 서버가 고른 원소만 잘라 준다](20261002_wetherilli_163_greenland_whole_rock.md) |
 | wetherilli P10 | 2026-10-02 | [수성 — 화성 화면을 옮겨 짓는다 (계획)](20261002_wetherilli_P10_mercury.md) |
+| wetherilli P11 | 2026-10-02 | [연구소 밖 정적 판 — GitHub Pages 의 GSM-open (계획)](20261002_wetherilli_P11_static_site.md) |
+| wetherilli 162 | 2026-10-02 | [연구소 밖 정적 판의 뼈대 — 한국 지질도를 각자 키로](20261002_wetherilli_162_static_site_skeleton.md) |
+| wetherilli 164 | 2026-10-02 | [정적 판의 VWorld — 공개 판용 키 하나로 배경·찾기·좌표→주소·레이어 그림](20261002_wetherilli_164_static_vworld.md) |
+| wetherilli 165 | 2026-10-02 | [정적 판에 구운 것 잇기 — 남극·얀마옌·극지의 점이 서버 없이](20261002_wetherilli_165_static_wire.md) |
+| wetherilli 166 | 2026-10-02 | [정적 판의 극지 지명 찾기 — 구운 지명에서 색인을, 화면이 뒤진다](20261002_wetherilli_166_static_placenames.md) |
+| wetherilli 168 | 2026-10-02 | [정적 판의 시험 — 작은 판을 굽고 `/GSM-open/` 꼴로 띄운다](20261002_wetherilli_168_static_tests.md) |
+| wetherilli 167 | 2026-10-02 | [정적 판의 영어판과 소개 — 말마다 따로 굽고, 뿌리는 소개로](20261002_wetherilli_167_static_lang_intro.md) |
 | koprifossillab P01 | 2026-09-30 | [백업 — WegenersDream 의 틀로, 바뀌는 빠르기에 따라 넷으로 (계획)](20260930_koprifossillab_P01_backup_plan.md) |
 | koprifossillab 001 | 2026-09-30 | [매주 월요일 새벽: 운영 자료 백업과 KPDC 목록 갱신](20260930_koprifossillab_001_weekly_backup.md) |
 | koprifossillab 002 | 2026-09-30 | [`/healthz/` — 판·DB·백업 상태를 한 장으로](20260930_koprifossillab_002_healthz.md) |

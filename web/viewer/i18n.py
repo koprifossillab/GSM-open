@@ -265,6 +265,18 @@ EN = {
     "화성": "Mars",
     "화성 위도": "Mars lat", "화성 경도": "Mars lon",
     "화성 위도 {lat}° · 경도 {lon}°": "Mars lat {lat}° · lon {lon}°",
+    "VWorld 가 거절했다": "VWorld refused the request",
+    # 연속값 색 — 그린란드 지화학 (wetherilli 159)
+    "칠할 원소": "Colour by",
+    "분위수로 나눈 칸": "quantile classes",
+    "검출 한계 밑": "Below detection limit",
+    "검출 한계 밑 (< {n})": "Below detection limit (< {n})",
+    "분석하지 않음": "Not analysed",
+    "분석하지 않은 {n}점은 그리지 않았다": "{n} points not analysed are not drawn",
+    "Fe₂O₃ (전철)": "Fe₂O₃ (total)",
+    "강열 감량": "LOI",
+    "Fe (전철)": "Fe (total)",
+    "휘발분": "Volatiles",
     # 수성 화면 (wetherilli P10)
     "수성": "Mercury",
     "수성 위도": "Mercury lat", "수성 경도": "Mercury lon",
@@ -346,8 +358,9 @@ EN = {
     "판 조각 (PALEOMAP 2016)": "Plate pieces (PALEOMAP 2016)",
     "판 조각 경계": "Plate piece outlines",
     "PALEOMAP 2016 판 회전으로 셈한 그때의 지구": "The Earth then, computed with the PALEOMAP 2016 plate rotations",
-    "PALEOMAP 2016 판 회전으로 셈한 그때의 지구다 — 관측이 아니다. 오늘의 영상·지형·지질도는 오늘에만 뜬다":
+    "PALEOMAP 2016 판 회전으로 셈한 그때의 지구다 — 관측이 아니다. 다른 판 모델과는 100 Ma 에 1 000 km 안팎 다르다. 오늘의 영상·지형·지질도는 오늘에만 뜬다":
         "The Earth then, computed with the PALEOMAP 2016 plate rotations — not an observation. "
+        "Other plate models differ by around 1,000 km at 100 Ma. "
         "Today's imagery, terrain and geology appear only at the present",
     "오늘의 지구다 — 1 Ma 안에서 판이 움직인 것은 수십 km 안이다":
         "Today's Earth — within 1 Ma the plates moved a few tens of kilometres at most",
@@ -632,6 +645,22 @@ EN = {
     "VWorld · 2013 년 위성영상. 두 기지 둘레 10 km 남짓에만 있고 그 밖은 REMA 음영이다":
         "VWorld · 2013 satellite imagery. Only about 10 km around the two stations; REMA hillshade elsewhere",
     "GEBCO 해저 지형": "GEBCO bathymetry",
+    # 국토지리원 주제 타일·AWS 법선 음영 (wetherilli 156)
+    "일본 경사량도 (국토지리원)": "Japan slope map (GSI)",
+    "일본 국토지리원. 기울기를 색으로 — 단층애·산사태 지형을 지질도와 견줄 때. 줌 15 까지":
+        "GSI Japan. Slope in colour — compare fault scarps and landslides with the geology. Up to zoom 15",
+    "일본 토지조건도 (국토지리원)": "Japan land condition map (GSI)",
+    "일본 국토지리원. 산지·대지·저지·인공 지형을 가른 1:2만 5천 — 평야와 도시 둘레만 있다. 줌 16 까지":
+        "GSI Japan. 1:25,000 landform classes (mountain, terrace, lowland, artificial) — plains and cities only. Up to zoom 16",
+    "일본 화산기본도 (국토지리원)": "Japan volcano base map (GSI)",
+    "일본 국토지리원. 활화산 둘레만 있는 정밀 지형도 — 그 밖은 빈다. 줌 17 까지":
+        "GSI Japan. Detailed topography around active volcanoes only — blank elsewhere. Up to zoom 17",
+    "지형 음영 (AWS)": "Hillshade (AWS)",
+    "AWS 표고 타일의 법선으로 그린 음영 — 북서에서 비춘다. 줌 15 까지":
+        "Hillshade from AWS terrain-tile normals, lit from the northwest. Up to zoom 15",
+    "경사 (AWS)": "Slope (AWS)",
+    "AWS 표고 타일의 법선으로 칠한 기울기 — 흰 평지에서 붉은 낭떠러지까지. 줌 15 까지":
+        "Slope from AWS terrain-tile normals — white flats to red cliffs. Up to zoom 15",
     "GEBCO — 해저 지형": "GEBCO — bathymetry",
     "GEBCO 2026 (약 450 m). 바다의 수심과 땅의 높이를 음영으로. 공공 도메인. 항해에 쓰지 않는다":
         "GEBCO 2026 (about 450 m). Ocean depth and land height as shaded relief. Public domain. Not for navigation",
@@ -813,6 +842,20 @@ EN = {
     "선 {n}": "{n} lines",
     "면 {n}": "{n} polygons",
     "올리지 못했다": "Upload failed",
+    # 주소만 적힌 CSV (wetherilli 152)
+    "주소로 좌표를 찾는 중… {done} / {all}줄": "Finding coordinates from addresses… {done} / {all} rows",
+    "찾은 주소": "Matched address",
+    "주소로 좌표를 하나도 찾지 못했다 — 도로명·지번 주소인지 본다.":
+        "No address could be located — check that they are Korean road or parcel addresses.",
+    "주소를 못 찾은 줄 {n}개 — {lines}": "{n} rows not located — {lines}",
+    "주소 열({col})이 모두 비어 있다.": "The address column ({col}) is empty.",
+    "주소로 찾는 것은 지구의 점묶음뿐이다.": "Addresses can only be located for Earth point sets.",
+    "VWorld 열쇠가 없어 주소로 좌표를 찾지 못한다. 위경도 열을 넣어 올린다.":
+        "No VWorld key, so addresses cannot be located. Add latitude/longitude columns and upload again.",
+    "주소로 찾는 것은 한 번에 {n}줄까지다. 나눠 올린다.": "Up to {n} address rows at a time. Split the file and upload again.",
+    "주소는 한 번에 {n}줄까지 보낸다": "Send up to {n} addresses at a time",
+    "VWorld 열쇠가 없다": "No VWorld key",
+    "상류가 바빠 잠시 멈췄다. 조금 뒤에 다시 올린다.": "The source is busy, so we paused. Upload again shortly.",
 
     # 좌표 막대
     "좌표·주소·장소로 이동 — 36.378, 127.362 · 과학로 124 · 가정동":
@@ -947,6 +990,7 @@ EN = {
     "그런 점 레이어가 없다": "No such point layer",
     "그린란드 정부 광물자원 포털": "Government of Greenland mineral portal",
     "포털의 원본 항목 — 이용 조건 표시 없음": "Source item on the portal — no licence stated",
+    "포털의 원본 항목 — CC BY 4.0, Hutchison (2020)": "Source item on the portal — CC BY 4.0, Hutchison (2020)",
     "이용 조건 표시 없음": "no licence stated",
     "색은 포털이 시료 갈래마다 매긴 것이다": "Colours are the portal's, one per sample type",
     "점을 받지 못했다": "Could not load the points",
@@ -974,9 +1018,13 @@ EN = {
         "Norwegian Polar Institute · Copernicus Sentinel-2. CC BY 4.0",
     "스발바르 지형도 (NPI)": "Svalbard topographic map (NPI)",
     "노르웨이 극지연구소. CC BY 4.0": "Norwegian Polar Institute. CC BY 4.0",
-    "이 지역에서는 좌표로 간다 — 주소·장소는 한국, 지명은 스발바르·그린란드·북극·남극 탭에서 찾는다":
-        "Coordinates only here — addresses and places in Korea, place names in the Svalbard, Greenland, Arctic and Antarctica tabs",
+    "이 지역에서는 좌표로 간다 — 주소·장소는 한국·일본, 지명은 스발바르·그린란드·북극·남극 탭에서 찾는다":
+        "Coordinates only here — addresses and places in Korea and Japan, place names in the Svalbard, Greenland, Arctic and Antarctica tabs",
     "좌표·지명으로 이동 — {example}": "Go to coordinates or a place name — {example}",
+    # 일본 찾기 칸 — 국토지리원 (wetherilli 155)
+    "좌표·주소·지명으로 이동 — {example}": "Go to coordinates, an address or a place name — {example}",
+    "주소·지명": "Address/place",
+    "주소·지명 검색: 국토지리원 (지리원 지도)": "Address & place search: GSI Japan (GSI Maps)",
     "좌표로 이동 — 위도, 경도 (예: {example})": "Go to coordinates — latitude, longitude (e.g. {example})",
     "지명 검색: 노르웨이 극지연구소 (스발바르)": "Place names: Norwegian Polar Institute (Svalbard)",
     "찾은 것이 없다 — 이 지역의 지명을 넣어 본다": "Nothing found — try a place name in this region",
@@ -998,6 +1046,15 @@ EN = {
         "Geospatial Information Authority of Japan. For comparing terrain with geology",
     # 대만 — 국토측회중심 배경 (map.js, wetherilli 141)
     "범위가 넓다 — 더 들어오면 범례가 뜬다": "The extent is too wide — zoom in to see the legend",
+    # 정적 판 — 각자 넣는 KIGAM 키 (map.js, wetherilli P11·162)
+    "KIGAM 인증키를 넣었다 — 이 브라우저에만 있다": "KIGAM API key set — kept only in this browser",
+    "키 지우기": "Clear key",
+    "<b>한국 지질도는 각자의 KIGAM 인증키로 본다.</b> 지오빅데이터 오픈플랫폼에서 받은 키를 넣는다 — 이 브라우저에만 남고 KIGAM 에만 간다.":
+        "<b>Korean geological maps use your own KIGAM API key.</b> Enter the key issued by the Geo Big Data Open Platform — it stays in this browser and goes only to KIGAM.",
+    "인증키": "API key",
+    "이 PC 에 기억하지 않기": "Don't remember on this computer",
+    "넣기": "Save",
+    "키 받기": "Get a key",
     "대만 회색 지도 (국토측회중심)": "Taiwan grey map (NLSC)",
     "대만 내정부 국토측회중심. 지질도 밑에 깔기 좋다": "National Land Surveying and Mapping Center, Taiwan. Good under a geological map",
     "대만 전자지도 (국토측회중심)": "Taiwan e-Map (NLSC)",
@@ -1542,6 +1599,14 @@ PROP_EN = {
     "사방휘석": "Orthopyroxene",
     "사장석": "Plagioclase",
     "토륨": "Thorium",
+    # 다누리 KGRS·북극 판 (wetherilli 150)
+    "칼륨 상대값 (단위 미확인)": "Potassium, relative (unit unconfirmed)",
+    "우라늄 상대값 (단위 미확인)": "Uranium, relative (unit unconfirmed)",
+    "토륨 상대값 (단위 미확인)": "Thorium, relative (unit unconfirmed)",
+    "열중성자 상대값 (단위 미확인)": "Thermal neutrons, relative (unit unconfirmed)",
+    "FeO (북극)": "FeO (north pole)",
+    "얼음이 버틸 깊이 — 오늘의 자전축": "Ice stability depth — today's spin axis",
+    "얼음이 버틸 깊이 — 옛 자전축": "Ice stability depth — paleo spin axis",
     "티타늄": "Titanium",
     "지각 두께": "Crustal thickness",
     # 화석 산지 (wetherilli 098)
@@ -1741,6 +1806,47 @@ PROP_EN = {
     "다이아몬드 품위": "Diamond grade",
     "출처 갈래": "Source type",
     "보고한 곳": "Reported by",
+    # 다이아몬드 탐사 자료 — 시추공·지시광물·석류석·탐사 구역 (wetherilli 157)
+    "시추공": "Drill hole",
+    "탐사지": "Prospect",
+    "이상대": "Anomaly",
+    "이상대 갈래": "Anomaly type",
+    "킴벌라이트": "Kimberlite",
+    "킴벌라이트 두께 (m)": "Kimberlite thickness (m)",
+    "시추 길이 (m)": "End of hole (m)",
+    "방위 (°)": "Azimuth (°)",
+    "주변 지질": "Host geology",
+    "시추한 곳": "Operator",
+    "보고 연도": "Report year",
+    "나눈 시료": "Sub-sample",
+    "지시광물 (낟알/kg)": "Indicator minerals (grains/kg)",
+    "다이아몬드 (개/kg)": "Diamonds (stones/kg)",
+    "G10D 낟알": "G10D grains",
+    "G10 낟알": "G10 grains",
+    "G9 낟알": "G9 grains",
+    "G11 낟알": "G11 grains",
+    "G12 낟알": "G12 grains",
+    "G1 낟알": "G1 grains",
+    "G3 낟알": "G3 grains",
+    "G4 낟알": "G4 grains",
+    "G5 낟알": "G5 grains",
+    "킴벌라이트를 만났다": "Kimberlite intersected",
+    "만나지 못했다": "Not intersected",
+    "보고 없음": "Not reported",
+    "100 낟알/kg 넘게": "Over 100 grains/kg",
+    "10–100 낟알/kg": "10–100 grains/kg",
+    "1–10 낟알/kg": "1–10 grains/kg",
+    "1 낟알/kg 밑": "Under 1 grain/kg",
+    "1 개/kg 넘게": "Over 1 stone/kg",
+    "0.25–1 개/kg": "0.25–1 stones/kg",
+    "0.05–0.25 개/kg": "0.05–0.25 stones/kg",
+    "0.05 개/kg 밑": "Under 0.05 stones/kg",
+    "G10D 가 있다 (다이아몬드 안정역)": "G10D present (diamond stability field)",
+    "G10 이 있다": "G10 present",
+    "G9 만 (러졸라이트질)": "G9 only (lherzolitic)",
+    "그 밖의 석류석": "Other garnets",
+    "탐사된 곳": "Explored",
+    "탐사되지 않은 곳 (가능성 있음)": "Unexplored (with potential)",
     # 그린란드 지명 (wetherilli 096)
     "옛 철자": "Old spelling",
     "덴마크어 이름": "Danish name",
@@ -1807,6 +1913,9 @@ PROP_EN = {
     "경제성": "Economic status",
     "보고서": "Report",
     "시료 갈래": "Sample type",
+    "해": "Year",
+    "분석 번호": "Analysis no.",
+    "채취·보고": "Collected / reported by",
     "시료 기재": "Sample description",
     "채취 지점": "Locality",
     "채취자": "Collector",
@@ -1881,6 +1990,19 @@ PROP_EN = {
     "가운데": "Centre",
     "지은이": "Authors",
     "지형구": "Province",
+    # VWorld 수질·지하수 측정망 (wetherilli 156)
+    "측정소": "Station",
+    "수계": "River system",
+    "단위유역": "Unit watershed",
+    "환경 기준": "Environmental standard",
+    "용도": "Use",
+    "측정 기관": "Monitoring agency",
+    "설치 연도": "Year installed",
+    "폐쇄 연도": "Year closed",
+    "측정소 코드": "Station code",
+    "주소": "Address",
+    "음용": "Drinking",
+    "관정 번호": "Well number",
     # 독일 BGR·스페인 IGME (wetherilli 147)
     "대": "Era",
     "성인": "Genesis",
@@ -2348,6 +2470,7 @@ GROUP_EN = {
     "동위원소 연대지도": "Isotope age maps",
     "그 밖": "Other",
     "지질 참고": "Geological reference",
+    "수질·지하수 측정망": "Water quality & groundwater monitoring",
     "보호구역": "Protected areas",
     "토양·산림": "Soils & forests",
     "재해·공역": "Hazards & airspace",
@@ -2358,6 +2481,7 @@ GROUP_EN = {
     # 그린란드 정부 포털
     "시료·연대 (정부 포털)": "Samples & ages (government portal)",
     "광물 자원 (정부 포털)": "Mineral resources (government portal)",
+    "지화학 (정부 포털)": "Geochemistry (government portal)",
     "사면 재해 (정부 포털)": "Slope hazards (government portal)",
     # 남극 (GeoMAP)
     "GeoMAP 지질도": "GeoMAP geological maps",
@@ -2390,6 +2514,13 @@ GROUP_EN = {
 }
 
 LAYER_EN = {
+    # VWorld 수질·지하수 측정망 (wetherilli 156)
+    "lt_p_weissitema": "Water quality network — rivers",
+    "lt_p_weissitemb": "Water quality network — lakes & reservoirs",
+    "lt_p_weissitemd": "Water quality network — agricultural water",
+    "lt_p_weissiteme": "Water quality network — industrial discharge",
+    "lt_p_weissitemf": "Water quality network — urban streams",
+    "lt_p_sgisgwchg": "Groundwater network — contamination-risk areas",
     # 영국·프랑스·유럽 (wetherilli 143)
     "bgs:BGS.50k.Bedrock": "Bedrock (1:50k)",
     "bgs:BGS.50k.Superficial.deposits": "Superficial deposits (1:50k)",
@@ -2572,8 +2703,19 @@ LAYER_EN = {
     "grportal:samples": "Rock & sediment samples",
     "grportal:mineral_tracts": "Mineral potential tracts",
     "grportal:diamond_occurrences": "Diamond-related occurrences (kimberlite etc.)",
+    "grportal:diamond_drillholes": "Diamond exploration drill holes",
+    "grportal:diamond_indicators": "Indicator mineral concentration (grains/kg)",
+    "grportal:diamond_per_kg": "Diamond concentration (stones/kg)",
+    "grportal:garnet_classes": "Garnet classes (G10·G9)",
+    "grportal:diamond_explored": "Diamond exploration — explored",
+    "grportal:diamond_unexplored": "Diamond exploration — unexplored",
     "grportal:unstable_slopes": "Unstable slopes",
     "grportal:mass_movements": "Registered mass movements",
+    "grportal:geochem_soil": "Soil geochemistry",
+    "grportal:geochem_heavy": "Heavy-mineral concentrate geochemistry",
+    "grportal:geochem_companies": "Company exploration geochemistry",
+    "grportal:geochem_scree": "Scree geochemistry",
+    "grportal:whole_rock": "Whole-rock chemistry",
     # 남극 (SCAR GeoMAP)
     "geomap_simple_geology": "Geology (simplified)",
     "geomap_chronostratigraphic": "Chronostratigraphy",

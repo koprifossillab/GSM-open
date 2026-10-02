@@ -227,7 +227,7 @@ class Seed(TestCase):
         self.assertEqual(fault.group.region, "korea")
         # KIGAM 의 레이어군과 차례가 겹치지 않는다 — 한국 목록의 맨 뒤
         korea = [g.name for g in LayerGroup.objects.filter(region="korea")]
-        self.assertEqual(korea[-4:], ["지질 참고", "보호구역", "토양·산림", "재해·공역"])
+        self.assertEqual(korea[-5:], ["지질 참고", "수질·지하수 측정망", "보호구역", "토양·산림", "재해·공역"])
         self.assertEqual(Layer.objects.get(name="L_50K_Geology_Map").kind, "wms")
 
     def test_씨앗의_레이어는_모두_영어_제목이_있다(self):

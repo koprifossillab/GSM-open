@@ -47,10 +47,10 @@
   <a href="#title" data-for="title">{% t "처음" %}</a>
   <a href="#hook" data-for="hook">{% t "불편" %}</a>
   <a href="#polar" data-for="polar polartitle antarctica greenland svalbard polarsum">{% t "극지" %}</a>
-  <a href="#korea3d" data-for="korea3d">3D</a>
+  {% if not static_site %}<a href="#korea3d" data-for="korea3d">3D</a>{% endif %}
   <a href="#tools" data-for="tools">{% t "도구" %}</a>
   <a href="#sources" data-for="sources">{% t "출처" %}</a>
-  <a href="#space" data-for="space">{% t "우주" %}</a>
+  {% if not static_site %}<a href="#space" data-for="space">{% t "우주" %}</a>{% endif %}
   <a href="#doors" data-for="doors">{% t "시작" %}</a>
 </nav>
 
@@ -238,6 +238,7 @@
   </div>
 </section>
 
+{% if not static_site %}{# 정적 판에는 3D 가 없다 (wetherilli 167) #}
 {# ── 한국 3D ── #}
 <section class="scene shot" id="korea3d" data-steps="3" data-theme="korea"
          data-go="3d/" data-go-label="3D">
@@ -257,6 +258,8 @@
     </figure>
   </div>
 </section>
+
+{% endif %}
 
 {# ── 도구 ── #}
 <section class="scene shot tools" id="tools" data-steps="4" data-theme="korea"
@@ -311,6 +314,7 @@
   </div>
 </section>
 
+{% if not static_site %}{# 정적 판에는 달·화성·수성 화면이 없다 (wetherilli 167) #}
 {# ── 우주 — 지구가 물러나고 달·화성·수성이 다가온다 ── #}
 <section class="scene space" id="space" data-steps="4" data-theme="space"
          data-go="moon/" data-go-label="{% t "달" %}">
@@ -356,6 +360,8 @@
   </div>
 </section>
 
+{% endif %}
+
 {# ── 갈래 — 지구·극지, 그리고 달·화성·수성이 한 줄에 같은 카드로 (wetherilli 146) ── #}
 <section class="doors-wrap" id="doors" data-theme="title"
          data-go="map/?region=korea" data-go-label="{% t "한국 지도" %}">
@@ -379,14 +385,14 @@
           <img loading="lazy" src="{% static shots|add:'thumb/eastasia.webp' %}" alt="">
           <b>{% t "동아시아" %}</b><span>{% t "한국과 일본을 한 화면에" %}</span>
         </a>
-        <a class="door" href="{{ base }}3d/">
+        {% if not static_site %}<a class="door" href="{{ base }}3d/">
           <img loading="lazy" src="{% static shots|add:'thumb/korea3d.webp' %}" alt="">
           <b>3D</b><span>{% t "지형 위의 지질도" %}</span>
         </a>
         <a class="door" href="{{ base }}earth/">
           <img loading="lazy" src="{% static shots|add:'thumb/earth.webp' %}" alt="">
           <b><img class="door-icon" src="{% static 'viewer/emblem-earth.png' %}" alt="" width="22" height="22">{% t "온 지구" %}</b><span>{% t "Macrostrat 지질도와 판의 옛 자리" %}</span>
-        </a>
+        </a>{% endif %}
       </div>
     </div>
 
@@ -405,6 +411,7 @@
     </div>
   </div>
 
+  {% if not static_site %}
   <div class="cats-space">
     <div class="cat moon">
       <h3><img src="{% static 'viewer/emblem-moon.png' %}" alt="" width="40" height="40">{% t "달" %}</h3>
@@ -429,15 +436,18 @@
     </div>
   </div>
 
+  {% endif %}
+
   <footer class="credit">
     <p>{% t "자료의 주인은 저마다의 기관입니다 — 한국지질자원연구원, 국토교통부(VWorld), GEUS, 노르웨이 극지연구소, SCAR GeoMAP, 일본 산업기술종합연구소, USGS, NASA, 극지연구소 KPDC 등. 이 쪽의 그림은 대돌여지도 화면을 찍은 것입니다." %}</p>
     <p>{% t "만든 곳 — 극지연구소 고생물진화연구실" %} · {% t "만든 이 — 극지연구소 이승찬 · 극지연구소 정직한" %}</p>
-    <p>{% t "코드는 AGPL-3.0" %} · <a href="https://github.com/koprifossillab/GSM">{% t "소스" %}</a> · GSM v{{ version }}</p>
+    <p>{% t "코드는 AGPL-3.0" %} · <a href="{{ source_url }}">{% t "소스" %}</a> · GSM v{{ version }}</p>
   </footer>
 </section>
 
 </main>
 
+{% if static_site %}<script id="static-config" type="application/json">{{ static_site|safe }}</script>{% endif %}
 <script src="{% static 'viewer/intro.js' %}?v={{ stamp|default:version }}"></script>
 </body>
 </html>

@@ -28,6 +28,13 @@
 | GSJ | z/x/y, 256 px, 줌 13 까지 (024) | 안 된다 — 한 장씩 |
 | GeoMAP | 우리가 굽는다, 3031, 256 px (018) | 안 된다. 상류가 없어 쉬지 않는다 |
 | 3D 극지 표고(`dem`) | PGC 를 3857 Terrarium 으로 편다, 줌 11–15 (032) | 4×4 네모째 (034) |
+| 극지연구소(KOPRI) WMS | NPI 와 같다 — 지역의 투영(3031·3413), 512 px (057) | 된다 |
+| 달·화성 Trek(`moon:units`·`moon:dem`·`mars:units`·`mars:dem` …) | 그 몸의 경위도 격자, z/x/y (036·058) | 안 된다 — 한 장씩 |
+
+**달·화성은 레이어가 아니라 이름으로 부른다** — `--bbox` 는 그 몸의 경위도다(wetherilli 158).
+
+    manage.py prewarm --bbox 20,0,40,30 --zooms 3-7 --layers moon:units,moon:dem     # 고요의 바다 둘레
+    manage.py prewarm --bbox -90,-20,-60,10 --zooms 3-6 --layers mars:units          # 마리네리스 협곡
 
     manage.py prewarm --bbox 10,76,30,81 --zooms 3-8 --layers npolar:svalbard_units
     manage.py prewarm --bbox -180,-90,180,-60 --zooms 0-5 --layers geomap_simple_geology
@@ -50,7 +57,7 @@ from PIL import Image
 
 from django.core.management.base import BaseCommand, CommandError
 
-from viewer import elevation, geomap, gsj, kigam, npolar, tilecache, tilegrid, usage, views
+from viewer import elevation, geomap, gsj, kigam, kopri, npolar, tilecache, tilegrid, trek, usage, views
 from viewer.models import Layer
 
 DEFAULT_LAYERS = ["L_50K_Geology_Map"]
@@ -168,7 +175,7 @@ class Command(BaseCommand):
 
 # ── 상류마다 받는 꼴 ────────────────────────────────────────────────
 
-PREWARM_ERRORS = views.UPSTREAM_ERRORS + (gsj.GsjError, elevation.ElevationError, OSError, ValueError)
+PREWARM_ERRORS = views.UPSTREAM_ERRORS + (gsj.GsjError, elevation.ElevationError, trek.TrekError, OSError, ValueError)
 
 
 def _crop(content, nx, ny, size):
@@ -324,8 +331,54 @@ class DemPlan:
         return elevation.polar_block(z, bx * block, by * block)
 
 
-#: 카탈로그의 레이어가 아닌데 미리 받을 수 있는 것
-NOT_LAYERS = {"dem": DemPlan}
+class TrekPlan:
+    """달·화성 — NASA Trek 의 지질도·표고를 그 몸의 경위도 격자로 한 장씩 (`views.moon_tile`·`moon_dem`·`mars_tile`·
+    `mars_dem`, wetherilli 158). 격자는 줌 0 이 가로 2 장·세로 1 장, y 는 북쪽부터(`trek.valid_tile`). 열쇠는 뷰와 같은 함수다"""
+    remote = True
+    upstream = "trek"
+
+    def __init__(self, key, fetch, max_zoom):
+        self.key, self._fetch, self.max_zoom = key, fetch, max_zoom
+
+    def block(self, meta):
+        return 1
+
+    def seconds(self, rate, meta):
+        return 1 / rate
+
+    def tiles_for(self, bbox, z):
+        if z > self.max_zoom:
+            return
+        west, south, east, north = bbox
+        span = 180.0 / 2 ** z
+        # 끝이 칸 경계에 딱 걸리면 그 너머 칸은 넣지 않는다
+        x0, x1 = max(0, int((west + 180) // span)), min(2 ** (z + 1) - 1, math.ceil((east + 180) / span) - 1)
+        y0, y1 = max(0, int((90 - north) // span)), min(2 ** z - 1, math.ceil((90 - south) / span) - 1)
+        for x in range(x0, x1 + 1):
+            for y in range(y0, y1 + 1):
+                yield z, x, y
+
+    def fetch_block(self, z, x, y, meta):
+        tilecache.put(self.key(z, x, y), self._fetch(z, x, y))
+        return 1
+
+
+def _moon_layer(layer):
+    return lambda: TrekPlan(lambda z, x, y: views.moon_tile_key(layer, z, x, y),
+                            lambda z, x, y: trek.get_tile(layer, z, x, y), trek.MAX_ZOOM)
+
+
+#: 카탈로그의 레이어가 아닌데 미리 받을 수 있는 것. 달·화성은 Trek 을 거치는 것만 — 원도·크레이터는 우리 파일이라 받을 것이 없다
+NOT_LAYERS = {
+    "dem": DemPlan,
+    **{f"moon:{layer}": _moon_layer(layer) for layer in trek.LAYERS},
+    # 받는 함수는 부를 때 찾는다(`lambda`) — 미리 붙잡아 두면 시험이 바꿔 끼운 것을 못 보고 상류를 탄다
+    "moon:dem": lambda: TrekPlan(views.moon_dem_key, lambda z, x, y: trek.dem_tile(z, x, y), trek.DEM_MAX_ZOOM),
+    "mars:units": lambda: TrekPlan(lambda z, x, y: views.mars_tile_key("units", z, x, y),
+                                   lambda z, x, y: trek.mars_tile(z, x, y), trek.MARS_MAX_ZOOM),
+    "mars:dem": lambda: TrekPlan(views.mars_dem_key, lambda z, x, y: trek.mars_dem_tile(z, x, y),
+                                 trek.MARS_DEM_MAX_ZOOM),
+}
 
 
 def plan_for(name, upstream):
@@ -335,6 +388,9 @@ def plan_for(name, upstream):
         return None if row in ("vector", "points") else WmsPlan(name, upstream)
     if upstream == "npolar" and npolar.knows(name):
         return WmsPlan(name, upstream, tilegrid.PolarGrid(npolar.TILES[name]["projection"]))
+    if upstream == "kopri" and kopri.knows_wms(name):
+        # KPDC 지도 서버(057) — NPI 처럼 지역의 투영으로 받는다(`views._layer_extra` 의 `kopri.wms_projection`) (wetherilli 158)
+        return WmsPlan(name, upstream, tilegrid.PolarGrid(kopri.wms_projection(name)))
     if upstream == "gsj" and gsj.knows(name):
         return GsjPlan(name)
     if upstream == "geomap" and name in geomap.LAYERS:

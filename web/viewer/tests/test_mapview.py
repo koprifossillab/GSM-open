@@ -169,3 +169,88 @@ class Map3dRegions(TestCase):
         html = self.client.get(reverse("viewer:map3d"), {"region": "antarctica"}).content.decode()
         self.assertIn('data-region="korea"', html)
         self.assertIn('data-region="antarctica"', html)
+
+
+class StaticSiteTests(TestCase):
+    """연구소 밖 정적 판 (wetherilli P11·162) — 지도 화면을 서버 없이 도는 꼴로 그린다."""
+
+    def setUp(self):
+        from django.core.management import call_command
+        import io
+        call_command("seed_catalog", stdout=io.StringIO())
+
+    def test_정적_판의_소개는_서버_화면으로_가는_문이_없다(self):
+        """wetherilli 167 — 3D·온 지구·달·화성·수성은 서버가 있어야 한다. 영어로도 그린다."""
+        from django.test import override_settings
+        for lang in ("ko", "en"):
+            self.client.cookies["gsm_lang"] = lang
+            with override_settings(STATIC_SITE={"regions": ["korea"], "upstreams": ["kigam"]}):
+                html = self.client.get("/GSM/").content.decode()
+            self.assertIn('id="static-config"', html)
+            self.assertIn('href="/GSM/map/?region=korea"', html)
+            for door in ("3d/", "earth/", "moon/", "mars/", "mercury/"):
+                self.assertNotIn(f'href="/GSM/{door}"', html, door)
+                self.assertNotIn(f'data-go="{door}"', html, door)
+            self.assertNotIn('id="space"', html)
+        self.assertIn("Great Stone Map", html)
+        html = self.client.get("/GSM/").content.decode()                 # 서버 판은 그대로
+        self.assertNotIn('id="static-config"', html)
+        self.assertIn('href="/GSM/moon/"', html)
+        self.assertIn('id="space"', html)
+
+    def test_정적_판은_실을_것만_싣고_키는_없다(self):
+        from django.test import override_settings
+        import json as _json
+        import re as _re
+        with override_settings(STATIC_SITE={"regions": ["korea"], "upstreams": ["kigam"]}, KIGAM_KEY="비밀"):
+            html = self.client.get("/GSM/map/").content.decode()
+        self.assertIn('class="static-site"', html)
+        self.assertIn('id="static-config"', html)
+        self.assertIn("static-kinds.js", html)
+        self.assertNotIn("비밀", html)
+        groups = _json.loads(_re.search(r'id="catalog-data" type="application/json">(.*?)</script>', html, _re.S).group(1))
+        ups = {l["upstream"] for g in groups for l in g["layers"]}
+        self.assertEqual(ups, {"kigam"})
+        self.assertEqual({g["region"] for g in groups}, {"korea"})
+        names = {l["name"] for g in groups for l in g["layers"]}
+        self.assertNotIn("L_50K_Geology_Map_NoAttitude", names)          # 문서에 없는 GeoServer 를 탄다
+
+    def test_정적_판의_VWorld_는_공개_판용_키와_그림만(self):
+        """wetherilli 164 — 공개 판용 키를 싣고, WFS 벡터(단층 따위)는 CORS 가 없어 뺀다."""
+        from django.test import override_settings
+        import json as _json
+        import re as _re
+        with override_settings(STATIC_SITE={"regions": ["korea"], "upstreams": ["kigam", "vworld"]},
+                               KIGAM_KEY="비밀", VWORLD_KEY="공개판열쇠"):
+            html = self.client.get("/GSM/map/").content.decode()
+        self.assertIn('"공개판열쇠"', html)
+        self.assertNotIn("비밀", html)
+        groups = _json.loads(_re.search(r'id="catalog-data" type="application/json">(.*?)</script>', html, _re.S).group(1))
+        vworld = [l for g in groups for l in g["layers"] if l["upstream"] == "vworld"]
+        self.assertTrue(vworld)
+        self.assertFalse([l["name"] for l in vworld if l.get("kind") == "vector"])
+        self.assertNotIn("lt_l_gimsfault", {l["name"] for l in vworld})
+
+    def test_구운_점_레이어는_이름으로_싣는다(self):
+        # NPI·극지연구소에는 서버를 타는 지도 레이어가 섞여 있다 — 구운 점만 이름으로 (wetherilli 165)
+        from django.test import override_settings
+        import json as _json
+        import re as _re
+        spec = {"regions": ["antarctica", "jan_mayen"], "upstreams": ["geomap"],
+                "baked": {"geomap": {"geomap_simple_geology": 10}, "points": {"npolar:dml_samples": False,
+                                                                                "janmayen:units": True}}}
+        with override_settings(STATIC_SITE=spec):
+            html = self.client.get("/GSM/map/").content.decode()
+        groups = _json.loads(_re.search(r'id="catalog-data" type="application/json">(.*?)</script>', html, _re.S).group(1))
+        names = {l["name"] for g in groups for l in g["layers"]}
+        self.assertIn("geomap_simple_geology", names)
+        self.assertIn("npolar:dml_samples", names)
+        self.assertIn("janmayen:units", names)
+        self.assertNotIn("janmayen:lines", names)                             # 굽지 않은 것은 없다
+        self.assertFalse({n for n in names if n.startswith("npolar:") and n != "npolar:dml_samples"})
+        self.assertIn('"baked"', html)
+
+    def test_운영_판은_그대로(self):
+        html = self.client.get("/GSM/map/").content.decode()
+        self.assertNotIn('class="static-site"', html)
+        self.assertNotIn("static-config", html)

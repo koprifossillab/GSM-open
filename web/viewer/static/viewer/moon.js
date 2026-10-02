@@ -91,7 +91,8 @@
       return { name: "trek:" + l.id, kind: "trek", id: l.id, ms: l.kind === "map", ext: l.ext, max: l.max, z0: l.z0,
                bbox: l.bbox, polar: l.polar || {}, legend: l.same || (l.legend ? "trek:" + l.id : undefined),
                // 값을 칠한 판은 누른 자리의 값을 ImageServer 에서 읽는다 (wetherilli 103). 색·회색 판이 같은 갈래다
-               info: l.same || (l.kind === "map" ? "trek" : l.value ? "value:" + l.value : undefined),
+               // 값이 있으면 값이 먼저다 — 우리 문이 굽는 ImageServer 판(북극 FeO·얼음 깊이, wetherilli 150)도 값으로 읽는다
+               info: l.same || (l.value ? "value:" + l.value : l.kind === "map" ? "trek" : undefined),
                title: LANG === "en" ? l.title : (l.ko || l.title), en: l.title,
                src: (l.src ? l.src + " · " : "") + "NASA Moon Trek" };
     }) };
