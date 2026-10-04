@@ -76,6 +76,38 @@ def client_table(lang: str) -> dict:
 # ── 화면·메시지 ──────────────────────────────────────────────────────
 
 EN = {
+    # KIGAM 5만 단층·습곡·광종·변질대 (wetherilli 202)
+    "드러스트": "Thrust", "추정 드러스트": "Inferred thrust", "정단층": "Normal fault", "추정 정단층": "Inferred normal fault",
+    "주향이동단층": "Strike-slip fault", "추정 주향이동단층": "Inferred strike-slip fault", "추정 단층": "Inferred fault",
+    "단층": "Fault",
+    "배사": "Anticline", "향사": "Syncline", "역전 등사 배사": "Overturned isoclinal anticline",
+    "역전 등사 향사": "Overturned isoclinal syncline", "침강 배사": "Plunging anticline", "침강 향사": "Plunging syncline",
+    "그 밖의 습곡": "Other folds",
+    "금·은": "Gold and silver", "석탄": "Coal", "철": "Iron", "동·연·아연 따위": "Copper, lead, zinc and others",
+    "비금속·그 밖": "Non-metallic and other",
+    "열변성대": "Thermal metamorphic zone", "접촉변질대": "Contact alteration zone", "변질대": "Alteration zone",
+    "열수광화대": "Hydrothermal mineralized zone", "접촉변성대": "Contact metamorphic zone",
+    "그 밖의 변질·변성대": "Other alteration or metamorphic zones",
+    # KIGAM 5만 구조 요소 레이어 (wetherilli 199)
+    "유공충": "Foraminifera", "식물화석": "Plant fossils", "화석산지": "Fossil locality",
+    "SHRIMP 연대": "SHRIMP dating", "K-Ar 연대": "K-Ar dating", "연대측정": "Dating", "지구화학 분석": "Geochemistry",
+    "그 밖의 시료": "Other samples", "광산·채굴지": "Mines and workings", "갱도·갱구": "Adits and shafts",
+    "폐광·휴광": "Closed or idle mines", "5만 도폭": "1:50k map sheet",
+    "5만 구조 요소를 아직 받지 않았다 (fetch_kigam50k)": "The 1:50k structural data have not been fetched yet (fetch_kigam50k)",
+    "원본 자료 — KIGAM 5만 수치지질도, CC BY-NC": "Source — KIGAM 1:50k digital geological map, CC BY-NC",
+    "한국지질자원연구원 5만 수치지질도": "KIGAM 1:50k digital geological map",
+    # 층리·엽리 장미도 (wetherilli 197)
+    "이 범위의 층리·엽리 장미도": "Rose diagram of bedding and foliation in this extent",
+    "이 도폭의 층리·엽리 장미도": "Rose diagram of bedding and foliation on this map sheet",
+    "장미도를 받지 못했다": "Could not load the rose diagram",
+    "{name} 도폭 ({no}) — 자세 기호": "{name} sheet ({no}) — attitude symbols",
+    "잡은 범위 — 자세 기호": "Selected extent — attitude symbols",
+    "이 자리에는 받아 둔 층리·엽리·절리가 없다": "No stored bedding, foliation or joints here",
+    "받은 날 {date}": "Fetched {date}",
+    "경사 미상 {n}": "Dip unknown {n}",
+    "주향은 경사 방향 − 90° (오른손 법칙)": "Strike = dip direction − 90° (right-hand rule)",
+    "5만 지질도의 자세 기호 파일이 없다": "The 1:50k attitude symbol files are not on the server",
+    "주향": "Strike", "경사 방향": "Dip direction", "경사": "Dip",
     # 지역 탭의 지구 자료 점 (wetherilli 185)
     "제4기": "Quaternary", "신진기": "Neogene", "고진기": "Paleogene", "백악기": "Cretaceous", "쥐라기": "Jurassic",
     "트라이아스기": "Triassic", "페름기": "Permian", "석탄기": "Carboniferous", "데본기": "Devonian",
@@ -416,6 +448,9 @@ EN = {
     # 홀로세 화산 (wetherilli 134)
     "화산 (GVP)": "Volcanoes (GVP)",
     "홀로세 화산": "Holocene volcanoes",
+    "플라이스토세 화산": "Pleistocene volcanoes",   # wetherilli 194
+    "플라이스토세 화산 — 분화 기록이 없다": "Pleistocene volcano — no eruption on record",   # wetherilli 194
+    "플라이스토세": "Pleistocene",   # wetherilli 194
     "세모의 색은 마지막 분화": "Triangle colour is the last eruption",
     "화산 {n} 곳 가운데 가까운 것부터": "Nearest of {n} volcanoes",
     "GVP 에서 보기": "Open in GVP",
@@ -646,6 +681,21 @@ EN = {
     # 남미 (wetherilli 188)
     "남미": "South America",
     "콜롬비아 지질조사소": "Colombian Geological Survey (SGC)",
+    # 남미의 나라 탭 (wetherilli 191)
+    "콜롬비아": "Colombia",
+    "브라질": "Brazil",
+    "브라질 지질조사소": "Geological Survey of Brazil (SGB)",
+    # 페루 (wetherilli 195)
+    "페루": "Peru",
+    "페루 지질광업야금연구소": "INGEMMET (Geological, Mining and Metallurgical Institute of Peru)",
+    # 아르헨티나·우루과이 (wetherilli 196)
+    "아르헨티나": "Argentina",
+    "우루과이": "Uruguay",
+    "아르헨티나 지질광업조사소": "Argentine Geological-Mining Survey (SEGEMAR)",
+    "우루과이 광업지질국": "Uruguay National Directorate of Mining and Geology (DINAMIGE)",
+    # 에콰도르 (wetherilli 198)
+    "에콰도르": "Ecuador",
+    "에콰도르 지질·에너지 연구소": "IIGE (Geological and Energy Research Institute of Ecuador)",
     "북아일랜드 지질조사소": "Geological Survey of Northern Ireland",
     "영국 지질조사소": "British Geological Survey",
     "프랑스 지질광물조사소": "BRGM (French Geological Survey)",
@@ -1665,7 +1715,11 @@ EN = {
 # 모았다. 영문 열(`symnum`·`GRAY_INDEX` …)은 그대로 둔다.
 
 PROP_EN = {
+    "광종 기호": "Commodity symbol", "지층 기호": "Unit symbol", "대표 암상": "Representative lithology",
+    "조사연도": "Survey year",
     "암석 분류": "Rock classification",   # 남미 1:500만 (wetherilli 188)
+    "경제적 쓰임": "Economic interest",    # 에콰도르 IIGE (wetherilli 198)
+    "위계": "Rank",                        # 브라질 SGB — 층군·층·암상 따위 (wetherilli 191)
     # 지역 탭의 지구 자료 점 — 링크 열 (wetherilli 185)
     "PBDB 산지 페이지": "PBDB collection page", "GVP 화산 페이지": "GVP volcano page",
     "USGS 지진 페이지": "USGS event page", "Neotoma 산지 페이지": "Neotoma site page",
@@ -1700,6 +1754,7 @@ PROP_EN = {
     "얼음이 버틸 깊이 — 오늘의 자전축": "Ice stability depth — today's spin axis",
     "얼음이 버틸 깊이 — 옛 자전축": "Ice stability depth — paleo spin axis",
     "높이 — 화성 기준면(아레오이드)": "Elevation — above the Mars areoid",   # 화성 표고 판의 값 (wetherilli 192)
+    "높이 — 수성 기준구 2439.4 km": "Elevation — above the 2,439.4 km Mercury sphere",   # 수성 (wetherilli 194)
     "티타늄": "Titanium",
     "지각 두께": "Crustal thickness",
     # 화석 산지 (wetherilli 098)
@@ -2595,6 +2650,7 @@ def props_en(props: dict) -> dict:
 # 레이어 이름을 열쇠로 여기 둔다. 없으면 한국어 제목이 뜬다.
 
 GROUP_EN = {
+    "지질 구조 (5만)": "Geological structures (1:50k)",
     "화석·화산·지진": "Fossils, volcanoes, earthquakes",
     "국토지리원 주제도": "GSI thematic maps",
     "쇄빙연구선 아라온호": "Icebreaker RV Araon",
@@ -2658,12 +2714,27 @@ GROUP_EN = {
     "아일랜드 기반암 (GSI·GSNI)": "Ireland bedrock (GSI · GSNI)",
     "남미 지질도 (CGMW 1:500만)": "South America geology (CGMW 1:5M)",
     "콜롬비아 지질도 (SGC 1:50만)": "Colombia geology (SGC 1:500k)",
+    "브라질 지질도 (SGB 1:250만, 2025)": "Brazil geology (SGB 1:2.5M, 2025)",
+    "브라질 지질도 (SGB 1:100만·1:25만)": "Brazil geology (SGB 1:1M · 1:250k)",
+    "페루 지질도 (INGEMMET)": "Peru geology (INGEMMET)",
+    "아르헨티나 지질도 (SEGEMAR 1:250만)": "Argentina geology (SEGEMAR 1:2.5M)",
+    "아르헨티나 지질도 (SEGEMAR 1:25만, 간행 도폭)": "Argentina geology (SEGEMAR 1:250k, published sheets)",
+    "우루과이 지질도 (DINAMIGE 1:50만)": "Uruguay geology (DINAMIGE 1:500k)",
+    "에콰도르 지질도 (IIGE)": "Ecuador geology (IIGE)",
 }
 
 LAYER_EN = {
-    # 지구 자료 점 (wetherilli 185)
-    "화석 산지 (PBDB)": "Fossil collections (PBDB)", "홀로세 화산 (GVP)": "Holocene volcanoes (GVP)",
-    "지진 M5 이상 (USGS)": "Earthquakes M5+ (USGS)", "제4기 고생태 산지 (Neotoma)": "Quaternary paleoecology sites (Neotoma)",
+    # KIGAM 5만 단층·습곡·광종·변질대 (wetherilli 202)
+    "kigam50k:fault": "Faults (1:50k)", "kigam50k:fold": "Folds (1:50k)",
+    "kigam50k:zones": "Alteration and metamorphic zones (1:50k)", "kigam50k:oretype": "Ore commodities (1:50k)",
+    # KIGAM 5만 구조 요소 (wetherilli 199). 열쇠는 레이어 이름이다
+    "kigam50k:frame": "1:50k map sheet frames", "kigam50k:fossil": "Fossil localities (1:50k)",
+    "kigam50k:sample": "Dating and geochemistry samples (1:50k)", "kigam50k:mine": "Mines (1:50k)",
+    # 지구 자료 점 (wetherilli 185) — 처음에 제목을 열쇠로 적어 영어판에 한국어가 나왔다(199 에서 이름으로 고쳤다)
+    "earth:pbdb_korea": "Fossil collections (PBDB)", "earth:pbdb_antarctica": "Fossil collections (PBDB)", "earth:pbdb_arctic": "Fossil collections (PBDB)",
+    "earth:gvp_korea": "Holocene volcanoes (GVP)", "earth:gvp_antarctica": "Holocene volcanoes (GVP)", "earth:gvp_arctic": "Holocene volcanoes (GVP)",
+    "earth:quakes_korea": "Earthquakes M5+ (USGS)", "earth:quakes_antarctica": "Earthquakes M5+ (USGS)", "earth:quakes_arctic": "Earthquakes M5+ (USGS)",
+    "earth:neotoma_korea": "Quaternary paleoecology sites (Neotoma)", "earth:neotoma_antarctica": "Quaternary paleoecology sites (Neotoma)", "earth:neotoma_arctic": "Quaternary paleoecology sites (Neotoma)",
     # 국토지리원 주제 타일 (wetherilli 172)
     "gsitile:afm": "Active fault map (urban areas)",
     "gsitile:vlcd": "Volcanic land condition map",
@@ -2709,6 +2780,24 @@ LAYER_EN = {
     "sgc:co:61": "Folds (1:500k)",
     "sgc:co:66": "Volcanoes (Colombia)",
     "sgc:co:65": "Mud volcanoes",
+    # 브라질 (wetherilli 191)
+    "sgb:2500k": "Lithostratigraphic units (1:2.5M, 2025)",
+    "sgb:2500k_structures": "Structures (1:2.5M, 2025)",
+    "sgb:1m": "Lithostratigraphic units (1:1M)",
+    "sgb:250k": "Lithostratigraphic units (1:250k, published sheets)",
+    # 페루 (wetherilli 195)
+    "ingemmet:50k": "Geological map 1:50k (integrated)",
+    "ingemmet:100k": "Geological map 1:100k (integrated)",
+    # 아르헨티나·우루과이 (wetherilli 196)
+    "segemar:e2.5M.UnidadesGeologicas": "Geological units (1:2.5M)",
+    "segemar:e2.5M.Estructuras": "Structures (1:2.5M)",
+    "segemar:e2.5M.VolcanesInventario": "Volcano inventory",
+    "segemar:e250K_UnidadGeologica": "Geological units (1:250k sheets)",
+    "segemar:e250K.Fallas": "Faults (1:250k sheets)",
+    "dinamige:0": "Geological units (1:500k)",
+    "dinamige:1": "Faults, contacts and lineaments (1:500k)",
+    "dinamige:2": "Dykes (1:500k)",
+    "iige:geologia_general": "General geological map",
     # 노르웨이·핀란드 기반암 (wetherilli 140)
     "ngu:Berggrunn_nasjonal_bergartsenheter": "Rock units (1:1.35M)",
     "ngu:Berggrunn_regional_hovedbergarter": "Main rock types (1:250k)",
@@ -2989,3 +3078,10 @@ LAYER_EN = {
     "kopri:arctic_depth_contours": "Arctic Ocean depth contours",
     "kopri:greenland_ice_contours": "Ice sheet contours",
 }
+# 지역 탭의 화석·화산·지진·고생태 점 (wetherilli 185) — 지역마다 이름이 갈려 열둘이다. 열쇠가 레이어 이름이라 제목으로는 찾지 못했다
+# (영어판에 한국어 제목이 뜨던 것, wetherilli 203)
+LAYER_EN.update({f"earth:{kind}_{region}": title
+                 for region in ("korea", "antarctica", "arctic")
+                 for kind, title in (("pbdb", "Fossil collections (PBDB)"), ("gvp", "Holocene volcanoes (GVP)"),
+                                     ("quakes", "Earthquakes M5+ (USGS)"),
+                                     ("neotoma", "Quaternary palaeoecology sites (Neotoma)"))})

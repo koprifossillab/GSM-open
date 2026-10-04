@@ -25,6 +25,7 @@ urlpatterns = [
     path("profile/band/", views.profile_band, name="profile-band"),
     path("moon/values/", views.moon_values, name="moon-values"),
     path("mars/values/", views.mars_values_at, name="mars-values"),
+    path("mercury/values/", views.mercury_values_at, name="mercury-values"),
     path("moon/legend/", views.moon_legend, name="moon-legend"),
     path("moon/places/", views.moon_places, name="moon-places"),
     path("moon/landings/", views.moon_landings, name="moon-landings"),
@@ -71,6 +72,8 @@ urlpatterns = [
     path("earth/fossils/at/", views.earth_fossil_at, name="earth-fossil-at"),
     re_path(r"^earth/volcanoes/tiles/(?P<z>\d{1,2})/(?P<x>\d{1,4})/(?P<y>\d{1,4})\.png$", views.earth_volcano_tile,
             name="earth-volcano-tile"),
+    re_path(r"^earth/volcanoes/pleistocene/tiles/(?P<z>\d{1,2})/(?P<x>\d{1,4})/(?P<y>\d{1,4})\.png$", views.earth_volcano_tile,
+            {"kind": "pleistocene"}, name="earth-pleistocene-tile"),
     path("earth/volcanoes/at/", views.earth_volcano_at, name="earth-volcano-at"),
     re_path(r"^earth/quakes/tiles/(?P<band>quake\d{1,2})/(?P<z>\d{1,2})/(?P<x>\d{1,4})/(?P<y>\d{1,4})\.png$",
             views.earth_quake_tile, name="earth-quake-tile"),
@@ -140,7 +143,20 @@ urlpatterns = [
     re_path(r"^gibs/(?P<epsg>4326|3413|3031)/(?P<layer>\w+)/(?P<z>\d{1,2})/(?P<y>\d{1,5})/(?P<x>\d{1,5})\.jpeg$",
             views.gibs_tile, name="gibs-tile"),
     path("gibs/wms/", views.gibs_wms, name="gibs-wms"),
+    # NPI 스발바르 배경 타일 — 서버가 담는다 (basemaps.py, wetherilli 200)
+    re_path(r"^npi/(?P<service>NP_\w+)/(?P<z>\d{1,2})/(?P<y>\d{1,6})/(?P<x>\d{1,6})$", views.npi_tile, name="npi-tile"),
     path("gebco/wms/", views.gebco_wms, name="gebco-wms"),
+    # 브라질 — 보는 범위의 범례 (sgb.py, wetherilli 191)
+    path("sgb/legend/", views.sgb_legend, name="sgb-legend"),
+    # 페루 — REST 타일 캐시 중계·누른 자리·보는 범위의 범례 (ingemmet.py, wetherilli 195)
+    re_path(r"^ingemmet/(?P<sheet>50k|100k)/(?P<z>\d{1,2})/(?P<x>\d{1,6})/(?P<y>\d{1,6})\.png$",
+            views.ingemmet_tile, name="ingemmet-tile"),
+    path("ingemmet/info/", views.ingemmet_info, name="ingemmet-info"),
+    path("ingemmet/legend/", views.ingemmet_legend, name="ingemmet-legend"),
+    # 우루과이 — REST 범례를 목록으로 (dinamige.py, wetherilli 196)
+    path("dinamige/legend/", views.dinamige_legend, name="dinamige-legend"),
+    # 에콰도르 — 보는 범위의 범례 (iige.py, wetherilli 198)
+    path("iige/legend/", views.iige_legend, name="iige-legend"),
     path("gsj/info/", views.gsj_info, name="gsj-info"),
     path("gsj/legend/", views.gsj_legend, name="gsj-legend"),
     # 지질도Navi 판 목록 (wetherilli 171) — 일본 탭이 판 목록을 펼 때 받는다
@@ -148,6 +164,7 @@ urlpatterns = [
     path("gsmma/legend/", views.gsmma_legend, name="gsmma-legend"),
     # 5만 지질도의 층리·엽리·절리 자리 — 커서와 팝업 (jikhanjung 004)
     path("kigam50k/attitudes/", views.kigam50k_attitudes, name="kigam50k-attitudes"),
+    path("kigam50k/rose/", views.kigam50k_rose, name="kigam50k-rose"),
 
     path("catalog/", views.catalog_json, name="catalog"),
     path("patchnotes/", views.patch_notes, name="patchnotes"),

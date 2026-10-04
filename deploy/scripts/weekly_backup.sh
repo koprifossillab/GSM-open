@@ -22,7 +22,7 @@
 # **받기 전에 백업한다** — fetch_kopri 는 목록에서 사라진 자료를 파일에서도 뺀다. 받기는 컨테이너 안에서 부른다
 # (KPDC 의 extra_hosts 가 거기 있다, wetherilli 095). 받기가 실패해도 지난 파일이 그대로다.
 #   ⑤ fetch_kopri       매주 — 목록 여덟 장과 새 상세만, 수 분
-#   ⑥ fetch_kigam50k    그달의 첫 월요일 — 명령이 이미지에 있을 때만 (jikhanjung P01)
+#   ⑥ (뺐다) fetch_kigam50k — 사람이 가끔 부른다. 문서에 없는 KIGAM GeoServer 로 정기적으로 나가지 않는다 (사용자, 2026-10-04, wetherilli 208)
 #   ⑦ fetch_pbdb        그달의 첫 월요일 — db/earth/ 가 운영에 섰을 때만 (WegenersDream 이 매주 받으므로 여기는 매달)
 #
 # NAS 가 안 붙었거나 실패해도 로컬 백업과 받기는 한다 — 결과의 "nas" 에 남는다. 결과는 logs/last_backup.json.
@@ -205,9 +205,6 @@ run() {   # run <명령> <timeout> — 컨테이너 안의 manage.py <명령>
 
 run fetch_kopri 10800
 if [ "$FIRST_MONDAY" = 1 ]; then
-    if timeout 120 "${MANAGE[@]}" help fetch_kigam50k >/dev/null 2>&1; then
-        run fetch_kigam50k 1800
-    fi
     if [ -d "$DB/earth" ]; then
         run fetch_pbdb 3600
     fi

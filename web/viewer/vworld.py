@@ -440,6 +440,15 @@ IMAGE_URL = "https://api.vworld.kr/req/image"
 #: WFS 한 번에 받는 모양 수의 상한. 1° 칸 하나에 단층이 많아야 수백 개다
 #: (대전 둘레 1° 칸이 167 개). 이만큼 차면 잘린 것이라 로그를 남긴다.
 MAX_FEATURES = 1000
+#: 가까이서만 그려 주는 WMS 레이어 → 그려지는 첫 줌 (wetherilli 084 에서 재고 설명에만 적었던 것, 193).
+#: 화면이 그보다 멀면 레이어를 숨겨 빈 타일을 묻지 않는다(`views._layer_extra` 의 `minZoom`)
+MIN_ZOOM = {
+    "lt_c_asitsoildep": 12, "lt_c_asitsurston": 12, "lt_c_asitdeepsoil": 12, "lt_c_asitsoildra": 12,   # 정밀토양도
+    "lt_c_fsdifrsts": 12,                                                                                 # 산림입지도
+    "lt_c_uo301": 10,                                                                                     # 국가유산 구역
+    "lt_l_gimslinea": 12,                                                                                 # 지질구조선 (020)
+    "lt_p_nsnmssitenm": 14,                                                                               # 국가지명 (020)
+}
 
 
 def _redact(text: str) -> str:

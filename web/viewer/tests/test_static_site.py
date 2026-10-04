@@ -202,8 +202,10 @@ class Browser(SimpleTestCase):
         cls.httpd.shutdown()
         super().tearDownClass()
 
-    def open(self, region, settle=2500, asked=None, ask_keys=False, kigam=None, preset=None):
-        ctx = self.browser.new_context(viewport={"width": 1280, "height": 800})
+    def open(self, region, settle=2500, asked=None, ask_keys=False, kigam=None, preset=None, phone=False):
+        # 휴대폰(390×844 터치)으로도 연다 — 179 는 휴대폰에서 키 창을 손으로만 보았다 (wetherilli 203)
+        ctx = self.browser.new_context(**({"viewport": {"width": 390, "height": 844}, "is_mobile": True, "has_touch": True}
+                                          if phone else {"viewport": {"width": 1280, "height": 800}}))
         self.addCleanup(ctx.close)
         ctx.add_init_script("try { localStorage.setItem('gsm.region', %s); } catch (e) {}" % json.dumps(region))
         if preset:
@@ -269,6 +271,20 @@ class Browser(SimpleTestCase):
         self.assertEqual(page.inner_text("#key-dialog .key-buttons .btn:not(.quiet)"), "그래도 연다")
         held = json.loads(page.evaluate("localStorage.getItem('gsm.key.kigam')"))
         self.assertEqual(held["key"], "kigam-key")                              # 빈칸·폭 없는 문자는 지운다
+
+    def test_휴대폰에서도_키_창과_까닭이_화면_안에(self):
+        """정적 판을 휴대폰으로 처음 열면 키 창이 화면 안에 서고, 거절의 까닭과 단추가 보인다 (wetherilli 179·203)"""
+        page, errors = self.open("korea", ask_keys=True, kigam="refused", phone=True)
+        page.query_selector_all("#key-dialog input[type=password]")[0].fill("kigam-key")
+        page.tap("#key-dialog .key-buttons .btn:not(.quiet)")
+        page.wait_for_selector("#key-dialog .key-check.bad", timeout=10000)
+        self.assertEqual(errors, [])
+        width = page.evaluate("innerWidth")
+        self.assertLessEqual(page.evaluate("document.documentElement.scrollWidth"), width, "가로로 넘친다")
+        for sel in ("#key-dialog .key-check", "#key-dialog .key-buttons .btn:not(.quiet)"):
+            box = page.locator(sel).bounding_box()
+            self.assertTrue(box and box["x"] >= -1 and box["x"] + box["width"] <= width + 1, f"{sel} 가 화면 밖이다")
+        self.assertIn("주지 않았다", page.inner_text("#key-dialog .key-check"))
 
     def test_KIGAM_에_닿지_못하면_망을_말한다(self):
         page = self._save_kigam(None)

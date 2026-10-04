@@ -22,6 +22,9 @@ log = logging.getLogger(__name__)
 
 WFS = "https://webservices.volcano.si.edu/geoserver/GVP-VOTW/ows"
 LAYER = "GVP-VOTW:Smithsonian_VOTW_Holocene_Volcanoes"
+#: 갈래 → WFS 레이어. 플라이스토세 화산(1 452 곳, 2026-10-04)은 따로 받아 따로 그린다 — 마지막 분화 열이 없어 홀로세와
+#: 섞으면 세모의 색이 뜻을 잃는다 (wetherilli 134·194)
+LAYERS = {"holocene": LAYER, "pleistocene": "GVP-VOTW:Smithsonian_VOTW_Pleistocene_Volcanoes"}
 CREDIT = "Global Volcanism Program, Smithsonian Institution · Volcanoes of the World · volcano.si.edu"
 #: 담는 속성 — WFS 의 이름 그대로. 줄인 파일의 열쇠는 오른쪽
 FIELDS = {
@@ -55,12 +58,13 @@ def shrink(collection: dict) -> list:
     return out
 
 
-def download(dest: Path) -> int:
-    """홀로세 화산을 모두 받아 줄여 `dest` 에 적는다. 화산 수."""
+def download(dest: Path, kind: str = "holocene") -> int:
+    """`kind`(홀로세·플라이스토세)의 화산을 모두 받아 줄여 `dest` 에 적는다. 화산 수."""
+    layer = LAYERS[kind]
     left = usage.paused()
     if left:
         raise GvpError(f"차단 조짐이 있어 {int(left)}초 동안 상류에 묻지 않는다")
-    params = {"service": "WFS", "version": "2.0.0", "request": "GetFeature", "typeName": LAYER,
+    params = {"service": "WFS", "version": "2.0.0", "request": "GetFeature", "typeName": layer,
               "outputFormat": "application/json"}
     try:
         r = requests.get(WFS, params=params, timeout=(settings.UPSTREAM_TIMEOUT, 300),
@@ -81,7 +85,7 @@ def download(dest: Path) -> int:
     if not rows:
         raise GvpError("GVP 가 빈 목록을 주었다")
     tmp = Path(str(dest) + ".part")
-    tmp.write_text(json.dumps({"source": LAYER, "fetched": time.strftime("%Y-%m-%d"), "volcanoes": rows}, ensure_ascii=False, separators=(",", ":")),
+    tmp.write_text(json.dumps({"source": layer, "fetched": time.strftime("%Y-%m-%d"), "volcanoes": rows}, ensure_ascii=False, separators=(",", ":")),
                    encoding="utf-8")
     tmp.replace(dest)
     return len(rows)

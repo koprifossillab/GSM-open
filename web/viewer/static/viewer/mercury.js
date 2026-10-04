@@ -103,7 +103,9 @@
   var TREK_GROUPS = (TREK_DATA.groups || []).map(function (g) {
     return { group: LANG === "en" ? g.en : g.ko, layers: g.layers.map(function (l) {
       return { name: "trek:" + l.id, kind: "trek", id: l.id, ms: l.kind === "map", ext: l.ext, max: l.max, z0: l.z0,
-               bbox: l.bbox, legend: l.legend ? "trek:" + l.id : undefined, info: l.kind === "map" ? "trek" : undefined,
+               bbox: l.bbox, legend: l.legend ? "trek:" + l.id : undefined,
+               // 표고를 그린 판은 누른 자리의 높이를 읽는다 — 화성의 것(wetherilli 192)을 옮겼다 (wetherilli 194)
+               info: l.value ? "value:" + l.value : l.kind === "map" ? "trek" : undefined,
                title: LANG === "en" ? l.title : (l.ko || l.title), en: l.title,
                src: (l.src ? l.src + " · " : "") + "NASA Mercury Trek" };
     }) };
@@ -1167,6 +1169,13 @@
             var hits = data.hits || [];
             return { rows: [].concat.apply([], hits.map(function (h) { return h.rows; })),
                      note: T("여기에는 속성이 없다") };
+          }).catch(function () { return { error: true }; });
+      }
+      if (l.info.indexOf("value:") === 0) {
+        return fetch(BASE + "mercury/values/" + at + "&key=" + l.info.slice(6))
+          .then(function (r) { return r.json(); }).then(function (data) {
+            if (data.error) return data;
+            return { rows: data.rows, note: T("여기에는 값이 없다") };
           }).catch(function () { return { error: true }; });
       }
       var url = BASE + "mercury/info/" + at + (l.info === "units" ? "" : "&layer=" + l.info);

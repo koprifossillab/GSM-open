@@ -82,9 +82,20 @@ class Command(BaseCommand):
                 (settings.GSI_CATALOG_SEED, "아일랜드 (GSI)", "ireland", "gsi"),
                 (settings.GSNI_CATALOG_SEED, "북아일랜드 (GSNI)", "ireland", "gsni"),
                 # 남미 — SGC 남미 1:500만·콜롬비아 1:50만 (wetherilli 188)
-                (settings.SGC_CATALOG_SEED, "남미 (SGC)", "south_america", "sgc"),
+                (settings.SGC_CATALOG_SEED, "남미 (SGC)", "colombia", "sgc"),
+                # 브라질 — SGB 1:250만(2025)·1:100만·1:25만 (wetherilli 191)
+                (settings.SGB_CATALOG_SEED, "브라질 (SGB)", "brazil", "sgb"),
+                # 페루 — INGEMMET 1:5만·1:10만 통합판 (wetherilli 195)
+                (settings.INGEMMET_CATALOG_SEED, "페루 (INGEMMET)", "peru", "ingemmet"),
+                # 아르헨티나 SEGEMAR 1:250만·1:25만, 우루과이 DINAMIGE 1:50만 (wetherilli 196)
+                (settings.SEGEMAR_CATALOG_SEED, "아르헨티나 (SEGEMAR)", "argentina", "segemar"),
+                (settings.DINAMIGE_CATALOG_SEED, "우루과이 (DINAMIGE)", "uruguay", "dinamige"),
+                # 에콰도르 — IIGE 일반 지질도 (wetherilli 198)
+                (settings.IIGE_CATALOG_SEED, "에콰도르 (IIGE)", "ecuador", "iige"),
                 # 중국 — USGS geo3al, 우리 디스크의 셰이프파일 (025)
                 (settings.GEO3AL_CATALOG_SEED, "중국 (USGS)", "china", "geo3al"),
+                # KIGAM 5만 구조 요소 — 받아 둔 WFS 파일의 화석산지·시료·광산·도폭 틀 (wetherilli 199, jikhanjung P01)
+                (settings.KIGAM50K_CATALOG_SEED, "KIGAM 5만 구조 요소", "korea", "kigam50k"),
                 # 연구실의 암맥 기록 — phyloserver (026)
                 (settings.PHYLOSERVER_CATALOG_SEED, "암맥 (phyloserver)", "korea", "phyloserver"),
                 # 한반도 지질도 음영판 — 우리 디스크의 PDF 를 잘라 둔 타일 (027)

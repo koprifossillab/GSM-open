@@ -12,7 +12,7 @@ from pathlib import Path
 
 from django.test import SimpleTestCase
 
-from viewer import emodnet, geus, grportal, i18n, kopri, npolar, static_tables, views
+from viewer import emodnet, geus, grportal, i18n, kopri, npolar, sgc, static_tables, views
 
 JS = Path(__file__).resolve().parents[1] / "static" / "viewer" / "static-kinds.js"
 
@@ -56,7 +56,7 @@ class Script(SimpleTestCase):
 
     def test_꼴(self):
         self.assertIn("window.GSM_STATIC_KINDS = KINDS", self.js)
-        for up in ("geus", "npolar", "grportal", "pgc", "emodnet", "kopri"):
+        for up in ("geus", "npolar", "grportal", "pgc", "emodnet", "kopri", "sgc"):
             self.assertIn(f"KINDS.{up} =", self.js)
 
     def test_서버를_부르지_않는다(self):
@@ -65,7 +65,7 @@ class Script(SimpleTestCase):
 
     def test_상류_주소를_박지_않는다(self):
         # 주소는 빌드가 서버의 문에서 떠 싣는 표에서 읽는다 — 상류가 바뀌면 문 하나만 고친다
-        for host in ("geodata.npolar.no", "data.geus.dk", "arcgis.com", "emodnet-geology", "kpdcgeo"):
+        for host in ("geodata.npolar.no", "data.geus.dk", "arcgis.com", "emodnet-geology", "kpdcgeo", "sgc.gov.co"):
             self.assertNotIn(host, self.code)
 
     def test_GEUS_는_정사각이_아닌_타일로(self):
@@ -112,7 +112,12 @@ class SameAsPython(SimpleTestCase):
                 else:
                     samples.append({c["by"]: (heads[0] if isinstance(heads, tuple) else heads) + "x"})
             classes.append([name, samples, [grportal.class_of(spec, p)[0] for p in samples]])
+        # 콜롬비아 1:50만(wetherilli 201) — 에스파냐어 값은 그대로, "Null" 은 뺀다
+        sgc_props = [{"OBJECTID": "5241", "Símbolo UC": "Q-ca", "Descripción": "Abanicos aluviales y depósitos coluviales",
+                      "Edad": "Cuaternario", "Comentarios": "Null", "Codigo UC": "187"},
+                     {"Símbolo UC": "  ", "Edad": "null", "Nombre": "Falla de Romeral", "Tipo": "Inversa"}]
         expected = {"ages": [i18n.age_ko(a) for a in ages], "npi": [npolar.friendly(p, "ko") for p in npi],
+                    "sgc": [sgc.friendly(p, "ko") for p in sgc_props],
                     "emo": [emodnet.friendly(p, "ko") for p in emo],
                     "plain": [geus.friendly(f["properties"]) for f in geus.parse_plain(plain)],
                     "classes": classes}
@@ -123,12 +128,14 @@ global.localStorage = {getItem: () => null}; global.sessionStorage = {getItem: (
 eval(fs.readFileSync(process.argv[3], 'utf8')); const H = window.GSM_STATIC_HELPERS;
 const P = inp.tables.grportal.points;
 console.log(JSON.stringify({ages: inp.ages.map(H.ageKo), npi: inp.npi.map(H.npiFriendly), emo: inp.emo.map(H.emodFriendly),
+  sgc: inp.sgc.map(H.sgcFriendly),
   plain: H.parsePlain(inp.plain).map(f => H.geusFriendly(f.properties)),
   classes: inp.classes.map(([n, samples]) => [n, samples, samples.map(p => H.classOf(P[n].classes, p)[0])])}));
 """
         with tempfile.TemporaryDirectory() as tmp:
             Path(tmp, "in.json").write_text(json.dumps({"tables": static_tables.tables(), "ages": ages, "npi": npi,
-                                                        "emo": emo, "plain": plain, "classes": classes},
+                                                        "emo": emo, "plain": plain, "classes": classes,
+                                                        "sgc": sgc_props},
                                                        ensure_ascii=False), "utf-8")
             Path(tmp, "h.js").write_text(harness, "utf-8")
             out = subprocess.run([node, str(Path(tmp, "h.js")), str(Path(tmp, "in.json")), str(JS)],

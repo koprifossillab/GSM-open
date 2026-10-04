@@ -140,12 +140,19 @@
       { name: "ocean", title: "해류", ocean: true, legend: "ocean", src: "ECCO2 cube92 (NASA JPL·MIT) · Menemenlis et al. 2008" });
   }
   // 홀로세 화산 — GVP 의 1 200 여 곳. 받아 둔 것이 있을 때만. 오늘의 레이어라 1 Ma 부터는 꺼진다 (wetherilli 134)
-  if (THEN.volcanoes && THEN.volcanoes.length) {
+  // 플라이스토세 화산은 따로 받아 따로 켠다 — 마지막 분화 열이 없어 한 색이다 (wetherilli 194)
+  if ((THEN.volcanoes && THEN.volcanoes.length) || (THEN.pleistocene && THEN.pleistocene.length)) {
+    var VOLCANO_LAYERS = [];
+    if (THEN.volcanoes && THEN.volcanoes.length) {
+      VOLCANO_LAYERS.push({ name: "volcanoes", title: "홀로세 화산", grid: "ll", legend: "volcano",
+                            src: "Global Volcanism Program, Smithsonian Institution" });
+    }
+    if (THEN.pleistocene && THEN.pleistocene.length) {
+      VOLCANO_LAYERS.push({ name: "pleistocene", title: "플라이스토세 화산", grid: "ll", legend: "pleistocene",
+                            src: "Global Volcanism Program, Smithsonian Institution" });
+    }
     CATALOG.splice(CATALOG.findIndex(function (g) { return g.layers[0].name === "fossils"; }) + 1, 0,
-      { group: "화산 (GVP)", layers: [
-        { name: "volcanoes", title: "홀로세 화산", grid: "ll", legend: "volcano",
-          src: "Global Volcanism Program, Smithsonian Institution" },
-      ] });
+      { group: "화산 (GVP)", layers: VOLCANO_LAYERS });
   }
   // 지진 — USGS 의 M5 이상, 1900 년부터. 규모의 칸 셋을 따로 켠다. 오늘의 레이어다 (wetherilli 138)
   //   quake  타일 주소의 칸(`earth/quakes/tiles/<칸>/…`)이자 누를 때 묻는 칸
@@ -185,6 +192,7 @@
     if (name === "water" || name === "ice") return BASE + "earth/ne/tiles/" + name + "/{z}/{x}/{y}.png" + vq("ne");
     if (name === "fossils") return BASE + "earth/fossils/tiles/" + Math.round(age * 1000) + "/{z}/{x}/{y}.png" + vq("fossils");
     if (name === "volcanoes") return BASE + "earth/volcanoes/tiles/{z}/{x}/{y}.png" + vq("volcanoes");
+    if (name === "pleistocene") return BASE + "earth/volcanoes/pleistocene/tiles/{z}/{x}/{y}.png" + vq("pleistocene");
     if (LAYER[name].neo) return BASE + "earth/neotoma/tiles/" + name + "/" + Math.min(999, Math.round(age * 1000)) + "/{z}/{x}/{y}.png" + vq("neotoma");
     if (LAYER[name].quake) return BASE + "earth/quakes/tiles/" + name + "/{z}/{x}/{y}.png" + vq("quakes");
     return BASE + "earth/tiles/" + name + "/{z}/{x}/{y}.png";
@@ -202,7 +210,7 @@
   var MANTLE_CREDIT = "Müller et al. (2022) OPT1, Solid Earth (CC BY 4.0)";
   function creditOf(name) {
     if (LAYER[name] && LAYER[name].neo) return NEO_CREDIT;
-    return { geology: GEO_CREDIT, plates: PALEO_CREDIT, coast: COAST_CREDIT, fossils: PBDB_CREDIT, volcanoes: GVP_CREDIT, quake6: QUAKE_CREDIT, quake55: QUAKE_CREDIT, quake5: QUAKE_CREDIT, crust: CRUST_CREDIT,
+    return { geology: GEO_CREDIT, plates: PALEO_CREDIT, coast: COAST_CREDIT, fossils: PBDB_CREDIT, volcanoes: GVP_CREDIT, pleistocene: GVP_CREDIT, quake6: QUAKE_CREDIT, quake55: QUAKE_CREDIT, quake5: QUAKE_CREDIT, crust: CRUST_CREDIT,
              names: NE_CREDIT, water: NE_CREDIT, ice: NE_CREDIT, icemargins: ICE_CREDIT, mantle: MANTLE_CREDIT }[name];
   }
   // 판 조각 타일 — 서버가 연대마다 돌려 그린다(`paleo.render_tile`). 경위도 격자, 줌 0 이 180° 두 장이다
@@ -2274,6 +2282,12 @@
         }).join("");
       return Promise.resolve(legends[kind]);
     }
+    if (kind === "pleistocene") {
+      legends[kind] = THEN.pleistocene.map(function (row) {
+        return '<li><span class="chip" style="background:' + esc(row.color) + '"></span>' + esc(row.name) + "</li>";
+      }).join("");
+      return Promise.resolve(legends[kind]);
+    }
     if (kind === "crust") {
       legends[kind] = '<li class="empty">' + esc(T("2° 칸의 모형이다 — 관측이 아니다")) + "</li>" +
         (THEN.crust || []).map(function (row) {
@@ -2797,10 +2811,13 @@
   function askAt(ll, pixel) {
     var perPx = (mode === "flat" ? groundRes() : heightToRes(hereHeight())) / 111320;
     // 화산이 켜져 있고 보이면 그것부터 — 없으면 화석 산지, 그다음 그 자리 (wetherilli 134)
-    if (isOn("volcanoes") && LAYER.volcanoes && visibleNow("volcanoes")) {
+    var kinds = [["volcanoes", "holocene"], ["pleistocene", "pleistocene"]].filter(function (k) {
+      return isOn(k[0]) && LAYER[k[0]] && visibleNow(k[0]);
+    }).map(function (k) { return k[1]; });
+    if (kinds.length) {
       var mineV = ++asked;
       fetch(BASE + "earth/volcanoes/at/?lon=" + ll[0].toFixed(4) + "&lat=" + ll[1].toFixed(4) +
-            "&r=" + Math.max(0.002, perPx * 8).toFixed(4))
+            "&r=" + Math.max(0.002, perPx * 8).toFixed(4) + "&kinds=" + kinds.join(","))
         .then(function (r) { return r.json(); })
         .then(function (d) {
           if (mineV !== asked) return;
@@ -2929,25 +2946,89 @@
   form.addEventListener("submit", function (e) {
     e.preventDefault();
     if (!fileInput.files.length) return;
-    var data = new FormData(form);
+    var data = new FormData(form), file = fileInput.files[0];
     data.set("body", "earth");
     msgBox.className = "msg";
     msgBox.textContent = T("올리는 중");
-    post(BASE + "pointsets/upload/", data).then(function (d) {
-      pointsets.unshift(d.pointset);
-      setOff(d.pointset.id, false);
-      renderSets();
-      flyToSet(d.pointset);
-      form.reset();
-      fileInput.dispatchEvent(new Event("change"));
-      $("upload-color").value = PALETTE[pointsets.length % PALETTE.length];
-      msgBox.className = "msg good";
-      msgBox.textContent = [T("{n}점을 올렸다", { n: d.pointset.count })].concat(d.notes || []).join(" ");
-    }).catch(function (err) {
+    var upload = function (body, extra) {
+      return post(BASE + "pointsets/upload/", body).then(function (d) {
+        // 위경도 없이 주소만 적힌 CSV — 지역 탭의 길(wetherilli 152)을 옮겼다: 화면이 나눠 묻고 다시 올린다 (wetherilli 194)
+        if (d.geocode) return geocodeRows(d.geocode).then(function (job) {
+          if (!job) return;
+          var again = new FormData(form);
+          again.set("body", "earth");
+          again.set("file", new File([job.csv], file.name.replace(/\.[^.]*$/, "") + ".csv", { type: "text/csv" }));
+          if (!again.get("name")) again.set("name", file.name.replace(/\.[^.]*$/, ""));
+          again.set("crs", "4326");
+          return upload(again, job.note);
+        });
+        pointsets.unshift(d.pointset);
+        setOff(d.pointset.id, false);
+        renderSets();
+        flyToSet(d.pointset);
+        form.reset();
+        fileInput.dispatchEvent(new Event("change"));
+        $("upload-color").value = PALETTE[pointsets.length % PALETTE.length];
+        msgBox.className = "msg good";
+        msgBox.textContent = [T("{n}점을 올렸다", { n: d.pointset.count })].concat(d.notes || [], extra ? [extra] : []).join(" ");
+      });
+    };
+    upload(data).catch(function (err) {
       msgBox.className = "msg bad";
       msgBox.textContent = (err && err.message) || T("올리지 못했다");
     });
   });
+  /** 주소 줄들을 `chunk` 줄씩 서버(`pointsets/geocode/`)로 찾아, 위도·경도·찾은 주소 열을 붙인 CSV 를 짓는다 — `map.js` 의 것과
+   *  같다 (wetherilli 152·194). 서버가 VWorld 지오코더로 찾으므로 **한국 주소만** 붙는다. 못 찾은 줄은 빼고 줄 번호를 알린다.
+   *  하나도 못 찾았거나 상류가 거절하면 null */
+  function geocodeRows(job) {
+    var rows = job.rows, chunk = job.chunk || 50, points = [], i = 0;
+    var step = function () {
+      if (i >= rows.length) return Promise.resolve();
+      msgBox.className = "msg";
+      msgBox.textContent = T("주소로 좌표를 찾는 중… {done} / {all}줄", { done: i, all: rows.length });
+      var part = rows.slice(i, i + chunk);
+      return fetch(BASE + "pointsets/geocode/", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", "X-CSRFToken": csrf() },
+        body: JSON.stringify({ addresses: part.map(function (r) { return r.address; }) }),
+      }).then(function (r) { return r.json().then(function (d) { return { ok: r.ok, d: d }; }); })
+        .then(function (res) {
+          if (!res.ok) throw new Error(res.d.error || T("올리지 못했다"));
+          res.d.results.forEach(function (p, k) { points[i + k] = p; });
+          i += chunk;
+          return step();
+        });
+    };
+    return step().then(function () {
+      var missed = job.blank.slice();
+      var cols = job.fields.concat([T("위도"), T("경도"), T("찾은 주소")]);
+      var lines = [cols.map(csvCell).join(",")];
+      rows.forEach(function (row, k) {
+        var p = points[k];
+        if (!p) { missed.push(row.line); return; }
+        lines.push(job.fields.map(function (f) { return csvCell(row.values[f]); })
+          .concat([p.lat, p.lon, csvCell(p.matched)]).join(","));
+      });
+      if (lines.length < 2) {
+        msgBox.className = "msg bad";
+        msgBox.textContent = T("주소로 좌표를 하나도 찾지 못했다 — 도로명·지번 주소인지 본다.");
+        return null;
+      }
+      missed.sort(function (a, b) { return a - b; });
+      var shown = missed.slice(0, 20).join(", ") + (missed.length > 20 ? " …" : "");
+      return { csv: lines.join("\n"),
+               note: missed.length ? T("주소를 못 찾은 줄 {n}개 — {lines}", { n: missed.length, lines: shown }) : "" };
+    }).catch(function (err) {
+      msgBox.className = "msg bad";
+      msgBox.textContent = (err && err.message) || T("올리지 못했다");
+      return null;
+    });
+  }
+  function csvCell(value) {
+    var text = value == null ? "" : String(value);
+    return /[",\n\r]/.test(text) ? '"' + text.replace(/"/g, '""') + '"' : text;
+  }
 
   // ══ 좌표·지명으로 이동 — 좌표 막대 ══════════════════════════════
   //

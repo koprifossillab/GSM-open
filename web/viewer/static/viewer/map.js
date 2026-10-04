@@ -232,14 +232,59 @@
                       "gsni:5"],
                first: "gsi:1m:IE_GSI_GSNI_Bedrock_Geology_1M_IE32_ITM",
                borrow: { uk: ["egdi", "emodnet"], arctic_ocean: ["emodnet"] } },
-    // ── 남미 (wetherilli 188) ──
-    // SGC 가 내는 남미 1:500만(CGMW 2019)이 대륙 바탕이고 콜롬비아 1:50만(2023)을 얹는다. 나라 판(브라질·페루 …)이 늘면
-    // 나라 탭과 묶음으로 가른다 — 유럽처럼
+    // ── 남미 (wetherilli 188·191) ──
+    // 나라 탭 둘(콜롬비아·브라질)과 묶음 "남미". SGC 가 내는 남미 1:500만(CGMW 2019)이 대륙 바탕이다 — 콜롬비아 지역에 두고
+    // 브라질이 그 레이어군만 빌린다(`borrow` 의 `sgc:sa:` — 이름 앞머리로). 칠레·페루처럼 나라 판이 없는 곳은 묶음에서 1:500만이 메운다
+    colombia: { title: "콜롬비아", proj: "EPSG:3857", center: [-73.5, 4.5], zoom: 6, vworld: false,
+                home: [-8850000, -479000, -7436000, 1414000],
+                basemap: "eox_terrain", example: "4.711, -74.072 · Bogotá",
+                base: ["sgc:sa:8", "sgc:co:3"],
+                first: "sgc:co:3" },
+    brazil: { title: "브라질", proj: "EPSG:3857", center: [-52.0, -14.0], zoom: 4, vworld: false,
+              home: [-8260000, -4029000, -3852000, 602000],
+              basemap: "eox_terrain", example: "-15.79, -47.88 · Brasília",
+              base: ["sgc:sa:8", "sgb:2500k", "sgb:1m", "sgb:250k"],
+              first: "sgb:2500k",
+              borrow: { colombia: ["sgc:sa:"] } },
+    // 페루(wetherilli 195) — INGEMMET 1:5만·1:10만 통합판을 REST 타일 캐시로. 남미 1:500만은 브라질처럼 빌린다
+    peru: { title: "페루", proj: "EPSG:3857", center: [-75.0, -9.5], zoom: 6, vworld: false,
+            home: [-9084000, -2108000, -7637000, 0],
+            basemap: "eox_terrain", example: "-12.046, -77.043 · Lima",
+            base: ["sgc:sa:8", "ingemmet:100k", "ingemmet:50k"],
+            first: "ingemmet:50k",
+            borrow: { colombia: ["sgc:sa:"] } },
+    // 아르헨티나 SEGEMAR·우루과이 DINAMIGE (wetherilli 196) — 브라질처럼 남미 1:500만만 콜롬비아에서 빌린다
+    argentina: { title: "아르헨티나", proj: "EPSG:3857", center: [-65.0, -38.0], zoom: 4, vworld: false,
+                 home: [-8250000, -7400000, -5900000, -2450000],
+                 basemap: "eox_terrain", example: "-34.60, -58.38 · Buenos Aires",
+                 base: ["sgc:sa:8", "segemar:e2.5M.UnidadesGeologicas", "segemar:e250K_UnidadGeologica"],
+                 first: "segemar:e2.5M.UnidadesGeologicas",
+                 borrow: { colombia: ["sgc:sa:"] } },
+    uruguay: { title: "우루과이", proj: "EPSG:3857", center: [-56.0, -32.6], zoom: 7, vworld: false,
+               home: [-6510000, -4170000, -5920000, -3500000],
+               basemap: "eox_terrain", example: "-34.90, -56.19 · Montevideo",
+               base: ["sgc:sa:8", "dinamige:0"],
+               first: "dinamige:0",
+               borrow: { colombia: ["sgc:sa:"] } },
+    // 에콰도르(wetherilli 198) — IIGE 일반 지질도. 남부는 거의 다, 북부는 도폭 조각만이라 1:500만이 밑을 채운다
+    ecuador: { title: "에콰도르", proj: "EPSG:3857", center: [-78.5, -1.6], zoom: 7, vworld: false,
+               home: [-9039000, -568000, -8360000, 167000],
+               basemap: "eox_terrain", example: "-0.180, -78.468 · Quito",
+               base: ["sgc:sa:8", "iige:geologia_general"],
+               first: ["sgc:sa:8", "iige:geologia_general"],
+               borrow: { colombia: ["sgc:sa:"] } },
+    // 남미 묶음 — 레이어군은 북에서 남으로(콜롬비아·에콰도르·페루·브라질·우루과이·아르헨티나) 선다. **처음 켜는 것**은 대륙 바탕
+    // 1:500만을 맨 밑에 두고, 나라마다 넓게 봐도 빨리 그려지는 판 하나씩을 그 위에 얹는다 — 브라질 1:250만(1:100만은 줌 6 부터)·
+    // 아르헨티나 1:250만·페루 1:5만(타일 캐시)·콜롬비아 1:50만·우루과이 1:50만. 나라 판끼리는 국경에서만 겹친다. 에콰도르는 넓은 줌의
+    // 한 장이 7 초를 넘고 북부가 비어 처음에는 켜지 않는다 (wetherilli 198)
     south_america: { title: "남미", proj: "EPSG:3857", center: [-60.0, -15.0], zoom: 3, vworld: false,
+                     includes: ["colombia", "ecuador", "peru", "brazil", "uruguay", "argentina"],
                      home: [-9128198, -7558416, -3784863, 1516914],
                      basemap: "eox_terrain", example: "4.711, -74.072 · Bogotá",
-                     base: ["sgc:sa:8", "sgc:co:3"],
-                     first: "sgc:sa:8" },
+                     base: ["sgc:sa:8", "sgc:co:3", "iige:geologia_general", "ingemmet:50k", "sgb:2500k", "dinamige:0",
+                            "segemar:e2.5M.UnidadesGeologicas"],
+                     first: ["sgc:sa:8", "sgb:2500k", "segemar:e2.5M.UnidadesGeologicas", "ingemmet:50k", "sgc:co:3",
+                             "dinamige:0"] },
     europe: { title: "유럽", proj: "EPSG:3857", center: [0.0, 50.0], zoom: 5, vworld: false,
               includes: ["uk", "ireland", "france", "germany", "spain"],
               home: [-1225000, 4232000, 1781000, 8626000],
@@ -303,7 +348,7 @@
     return g.region === "antarctica" && g.layers.length;
   });
   //: 스발바르·북극·일본·중국도 카탈로그에 레이어군이 하나도 없으면 "준비 중" 이다 (씨앗을 안 넣은 DB)
-  ["svalbard", "arctic", "arctic_ocean", "fennoscandia", "japan", "china", "taiwan", "uk", "france", "germany", "spain", "ireland", "europe", "south_america"].forEach(function (key) {
+  ["svalbard", "arctic", "arctic_ocean", "fennoscandia", "japan", "china", "taiwan", "uk", "france", "germany", "spain", "ireland", "europe", "colombia", "brazil", "peru", "argentina", "uruguay", "ecuador", "south_america"].forEach(function (key) {
     if (!REGIONS[key]) return;            // 정적 판이 싣지 않은 지역
     var keys = REGIONS[key].includes || [key];
     REGIONS[key].pending = !catalog.some(function (g) {
@@ -393,6 +438,14 @@
     return REGIONS[key || region].includes || [key || region];
   }
 
+  /** 빌려 오는 목록(`borrow` 의 한 칸)에 이 레이어가 드나 — 상류 이름(`egdi`)이거나, `:` 로 끝나는 레이어 이름의 앞머리(`sgc:sa:`)다.
+   *  앞머리는 한 상류의 판 하나만 빌릴 때 쓴다 — 브라질이 콜롬비아 지역의 SGC 가운데 남미 1:500만만 빌린다 (wetherilli 191) */
+  function borrows(from, upstream, name) {
+    return !!from && from.some(function (f) {
+      return f === upstream || (f.slice(-1) === ":" && String(name || "").indexOf(f) === 0);
+    });
+  }
+
   /** 지금 지역의 레이어군. 묶음 지역이면 `includes` 차례로 모은다. */
   function regionCatalog() {
     var keys = regionKeys();
@@ -402,7 +455,7 @@
     return catalog.filter(function (g) {
       if (keys.indexOf(g.region || "korea") >= 0) return true;
       var from = borrow[g.region];
-      return !!from && g.layers.some(function (l) { return from.indexOf(l.upstream) >= 0; });
+      return g.layers.some(function (l) { return borrows(from, l.upstream, l.name); });
     }).sort(function (a, b) { return rank(a) - rank(b); });
   }
   var pointsets = JSON.parse(document.getElementById("pointset-data").textContent || "[]");
@@ -455,17 +508,17 @@
   /** 묶음 지역(북극)에서는 레이어 이름 앞에 지역을 적는다 — 그린란드에도 스발바르에도
    *  "지질 단위" 가 있다. 제 지역 탭에서는 이름만. */
   function regionPrefix(name) {
-    return wherePrefix(regionOfLayer[name], byName[name] && byName[name].upstream);
+    return wherePrefix(regionOfLayer[name], byName[name] && byName[name].upstream, name);
   }
 
   /** 묶음 탭에서 레이어(군) 앞에 붙일 지역. 묶음의 다른 지역이 빌려 쓰는 상류(`borrow`)면 붙이지 않는다 —
    *  유럽의 EGDI 는 영국 지역에 두었을 뿐 프랑스도 쓰는 판이다 (wetherilli 143) */
-  function wherePrefix(where, upstream) {
+  function wherePrefix(where, upstream, name) {
     var keys = REGIONS[region].includes;
     if (!keys || !where || !REGIONS[where]) return "";
     var shared = keys.some(function (k) {
       var from = k !== where && (REGIONS[k].borrow || {})[where];
-      return !!from && from.indexOf(upstream) >= 0;
+      return borrows(from || null, upstream, name);
     });
     return shared ? "" : T(REGIONS[where].title) + " · ";
   }
@@ -680,6 +733,14 @@
     });
   }
 
+  /** 페루 지질도의 속성 주소 (wetherilli 195) — 그림이 타일 캐시라 일본처럼 누른 자리의 위경도로 묻는다(`ingemmet/info/`). */
+  function ingemmetInfoUrl(source, coordinate) {
+    var ll = toLL(coordinate);
+    return BASE + "ingemmet/info/?" + new URLSearchParams({
+      layer: source.get("gsmName"), lat: ll[1].toFixed(6), lon: ll[0].toFixed(6),
+    }).toString();
+  }
+
   /** 일본 지질도의 속성 주소 — WMS 가 아니라 누른 자리의 위경도로 묻는다(`gsj/info/`). */
   function gsjInfoUrl(source, coordinate) {
     var ll = toLL(coordinate);
@@ -701,6 +762,8 @@
     janmayen: { source: null, info: null },
     // 지구 자료 점(wetherilli 185) — 화석 산지·화산·지진·고생태 산지. 점을 한 덩이로 받아 그린다(`kind: points`)
     earth: { source: null, info: null },
+    // KIGAM 5만 구조 요소(wetherilli 199) — 화석산지·시료·광산·도폭 틀. 받아 둔 WFS 파일을 한 덩이로
+    kigam50k: { source: null, info: null },
     geo3al: { source: null, info: null },     // 중국 — 모양 한 덩이 (025)
     npolar: { source: npolarSource, info: wmsInfoUrl },
     // 극지연구소 KPDC 지도 서버(057) — NPI 처럼 3031 로 곧장 받는다
@@ -732,6 +795,15 @@
     gsni: { source: npolarSource, info: wmsInfoUrl },
     // 남미·콜롬비아 SGC(wetherilli 188) — ArcGIS WMS 를 3857 로
     sgc: { source: npolarSource, info: wmsInfoUrl },
+    // 아르헨티나·우루과이(wetherilli 196) — 유럽 문처럼 카탈로그 행의 투영(3857)으로 서버 문을 거쳐 받는다
+    segemar: { source: npolarSource, info: wmsInfoUrl },
+    dinamige: { source: npolarSource, info: wmsInfoUrl },
+    // 브라질 SGB(wetherilli 191) — GeoServer WMS 를 3857 로. 범례는 보는 범위의 것(`sgb/legend/`)
+    sgb: { source: npolarSource, info: wmsInfoUrl },
+    // 페루 INGEMMET(wetherilli 195) — 우리 서버가 중계하는 REST 캐시의 z/x/y. 그리는 손은 일본의 것과 같다
+    ingemmet: { source: gsjSource, info: ingemmetInfoUrl },
+    // 에콰도르 IIGE(wetherilli 198) — ArcGIS WMS 를 3857 로
+    iige: { source: npolarSource, info: wmsInfoUrl },
     phyloserver: { source: phyloserverSource, info: null },
     peninsula: { source: peninsulaSource, info: null },
     // 남극 IBCSO 자료 출처(071) — GeoMAP 과 같은 3031 격자에 우리가 잘라 둔 것
@@ -1200,14 +1272,14 @@
     title: T("Sentinel-2 위성 (EOX)"),
     note: T("EOX · Copernicus Sentinel-2 (2023). 비상업 이용만 된다. 북위 82° 위는 해안선이 거칠다 — ArcticDEM 을 쓴다"),
     regions: ["greenland", "jan_mayen", "svalbard", "arctic_ocean", "fennoscandia", "japan", "china", "taiwan", "uk", "france",
-              "germany", "spain", "ireland", "south_america"],
+              "germany", "spain", "ireland", "colombia", "brazil", "peru", "argentina", "uruguay", "ecuador"],
     make: function () { return eoxLayer("s2cloudless-2023_3857", 16, EOX_S2); },
   };
   BASEMAPS.eox_terrain = {
     title: T("지형 음영 (EOX)"),
     note: T("EOX · OpenStreetMap. 비상업 이용만 된다. 북위 82° 위는 해안선이 거칠다 — ArcticDEM 을 쓴다"),
     regions: ["greenland", "jan_mayen", "svalbard", "arctic_ocean", "fennoscandia", "japan", "china", "taiwan", "uk", "france",
-              "germany", "spain", "ireland", "south_america"],
+              "germany", "spain", "ireland", "colombia", "brazil", "peru", "argentina", "uruguay", "ecuador"],
     make: function () { return eoxLayer("terrain-light_3857", 13, EOX_TERRAIN); },
   };
   BASEMAPS.arcticdem = {
@@ -1497,7 +1569,9 @@
     for (var z = 0; z < 18; z++) resolutions.push(21674.7100160867 / Math.pow(2, z));
     return new ol.layer.Tile({
       source: new ol.source.XYZ({
-        url: "https://geodata.npolar.no/arcgis/rest/services/Basisdata/" + service + "/MapServer/tile/{z}/{y}/{x}",
+        // 조건이 CC BY 4.0 이라 서버가 담는다 — 정적 판만 곧장 (wetherilli 200)
+        url: STATIC ? "https://geodata.npolar.no/arcgis/rest/services/Basisdata/" + service + "/MapServer/tile/{z}/{y}/{x}"
+                    : BASE + "npi/" + service + "/{z}/{y}/{x}",
         projection: "EPSG:25833",
         tileGrid: new ol.tilegrid.TileGrid({
           origin: [-5120900, 9998100],
@@ -1774,8 +1848,9 @@
     popupOverlay = new ol.Overlay({
       element: document.getElementById("popup"),
       // 아래 가장자리에는 좌표 막대가 덮여 있다. 여백을 주지 않으면 팝업
-      // 아랫단이 막대 밑으로 들어간다.
-      autoPan: { animation: { duration: 200 }, margin: 72 },
+      // 아랫단이 막대 밑으로 들어간다. 여백은 사방에 걸려서 휴대폰(390 px)에서는 320 px 팝업 + 72 px 둘이 들지 않아
+      // 팝업이 왼쪽 밖으로 밀렸다 — 좁은 화면은 12 px 로 (휴대폰 시험이 잡았다, wetherilli 193)
+      autoPan: { animation: { duration: 200 }, margin: popupMargin() },
       offset: [0, -8],
       positioning: "bottom-center",
     });
@@ -2197,10 +2272,11 @@
   //: 상류의 짧은 이름 — 기관 이름이라 옮기지 않는다
   var UPSTREAM_TAGS = {
     kigam: "KIGAM", vworld: "VWorld", geus: "GEUS", grportal: "GRL", npolar: "NPI", janmayen: "NPI",
-    gsj: "GSJ", gsitile: "GSIJ", geonavi: "GSJ", ccop: "CCOP", gsmma: "GSMMA", emodnet: "EMOD", ngu: "NGU", gtk: "GTK", bgs: "BGS", brgm: "BRGM", egdi: "EGDI", bgr: "BGR", igme: "IGME", gsi: "GSI", gsni: "GSNI", sgc: "SGC", geomap: "GeoMAP", geo3al: "USGS", kopri: "KOPRI", pgc: "PGC", ibcso: "IBCSO",
+    gsj: "GSJ", gsitile: "GSIJ", geonavi: "GSJ", ccop: "CCOP", gsmma: "GSMMA", emodnet: "EMOD", ngu: "NGU", gtk: "GTK", bgs: "BGS", brgm: "BRGM", egdi: "EGDI", bgr: "BGR", igme: "IGME", gsi: "GSI", gsni: "GSNI", sgc: "SGC", sgb: "SGB", ingemmet: "INGEMMET", iige: "IIGE", segemar: "SEGEMAR", dinamige: "DINAMIGE", geomap: "GeoMAP", geo3al: "USGS", kopri: "KOPRI", pgc: "PGC", ibcso: "IBCSO",
     phyloserver: "LAB", peninsula: "LAB",
     // 지구 자료 점(wetherilli 185) — 기관이 넷이라 딱지는 하나로 두고 이름은 레이어 제목이 적는다
     earth: "EARTH",
+    kigam50k: "KIGAM",
   };
   var UPSTREAM_NAMES = {
     kigam: T("한국지질자원연구원"), vworld: T("브이월드(국토교통부)"), geus: T("덴마크·그린란드 지질조사소"), grportal: T("그린란드 정부 포털"),
@@ -2210,11 +2286,13 @@
     ngu: T("노르웨이 지질조사소"), gtk: T("핀란드 지질조사소"),
     bgs: T("영국 지질조사소"), brgm: T("프랑스 지질광물조사소"), egdi: "EGDI (EuroGeoSurveys)",
     bgr: T("독일 연방 지구과학·자원청"), igme: T("스페인 지질광물연구소"), gsi: T("아일랜드 지질조사소"),
-    sgc: T("콜롬비아 지질조사소"),
+    sgc: T("콜롬비아 지질조사소"), sgb: T("브라질 지질조사소"), ingemmet: T("페루 지질광업야금연구소"), iige: T("에콰도르 지질·에너지 연구소"),
+    segemar: T("아르헨티나 지질광업조사소"), dinamige: T("우루과이 광업지질국"),
     gsni: T("북아일랜드 지질조사소"),
     geomap: "GeoMAP (SCAR)", geo3al: T("미국 지질조사국"), kopri: T("극지연구소"), pgc: T("미네소타대 극지공간정보센터"),
     ibcso: "IBCSO", phyloserver: T("연구실 자료"), peninsula: T("연구실 자료"),
     earth: T("온 지구 화면에 모아 둔 자료 — PBDB·GVP·USGS·Neotoma"),
+    kigam50k: T("한국지질자원연구원 5만 수치지질도"),
   };
 
   function upstreamOf(name) { return (byName[name] && byName[name].upstream) || "kigam"; }
@@ -2331,7 +2409,7 @@
       if (!layers.length) return;
       restCount += layers.length;
       // 북극 탭에서는 레이어군 앞에 지역을 적는다 — 그린란드의 "지질도" 가 어디 것인지
-      var where = wherePrefix(group.region, layers[0] && layers[0].upstream);
+      var where = wherePrefix(group.region, layers[0] && layers[0].upstream, layers[0] && layers[0].name);
       // 이름이 같은 레이어군은 한 칸으로 — 유럽 바다의 EMODnet 은 북극해(퇴적물·기반암)와 영국(제4기 퇴적층·지질 사건)에
       // 나뉘어 있다. 카탈로그의 차례대로 잇는다 (wetherilli 176)
       var name = where + group.name, at = catalog.indexOf(group);
@@ -3032,8 +3110,10 @@
     updateToolOut();
     // 팝업은 위경도의 한가운데에 띄운다 — 표의 "중앙" 과 첫 줄 위경도가 같아야 한다.
     // 지도 좌표(3857)의 한가운데는 위도가 몇 백만 분의 1 도 어긋난다
+    var ll = ol.proj.transformExtent(extent, viewProj(), "EPSG:4326");
     showPopup(fromLL(facts.center),
-              [{ title: T("범위 {n}", { n: feature.get("no") }), props: rangeRows(facts) }], "");
+              [{ title: T("범위 {n}", { n: feature.get("no") }), props: rangeRows(facts) }], "",
+              { rose: attitudeLayersOn() ? "bbox=" + ll.map(function (v) { return v.toFixed(5); }).join(",") : "" });
   }
 
   function showMeasure(got, done) {
@@ -4216,6 +4296,10 @@
       // 항적(아라온호, koprifossillab 006) — 범례가 선이라 적은 갈래는 굵게, 테두리를 둘러 바다 위에서 보이게
       style = [new ol.style.Style({ stroke: new ol.style.Stroke({ color: "rgba(0,0,0," + 0.55 * fade + ")", width: 4.5 }) }),
                new ol.style.Style({ stroke: new ol.style.Stroke({ color: color, width: 2.5 }) })];
+    } else if (spec.shape === "stroke") {
+      // 5만 단층·습곡(wetherilli 202) — 굵기·끊김을 서버의 표가 준다. 선이 수천이라 테두리 없이 가늘게
+      style = new ol.style.Style({ stroke: new ol.style.Stroke({ color: color, width: spec.width || 1.4,
+                                                                lineDash: spec.dash || undefined }) });
     } else if (spec.shape === "dash") {
       // 날짜만 아는 지난 항적(koprifossillab 009) — 지금 쌓는 것과 갈라 보이게 가늘게 끊어
       style = new ol.style.Style({ stroke: new ol.style.Stroke({ color: color, width: 1.6, lineDash: [6, 4] }) });
@@ -4259,6 +4343,12 @@
         sw.className = "sw-line";
         sw.innerHTML = '<svg width="30" height="10" aria-hidden="true"><line x1="1" y1="5" x2="29" y2="5" stroke="' +
           esc(r.color || "#888") + '" stroke-width="' + (r.width || 1.6) + '"' +
+          (r.dash ? ' stroke-dasharray="' + r.dash.join(" ") + '"' : "") + "/></svg>";
+      } else if (row.style === "class" && r.shape === "stroke") {
+        sw = document.createElement("span");
+        sw.className = "sw-line";
+        sw.innerHTML = '<svg width="30" height="10" aria-hidden="true"><line x1="1" y1="5" x2="29" y2="5" stroke="' +
+          esc(r.color || "#888") + '" stroke-width="' + (r.width || 1.4) + '"' +
           (r.dash ? ' stroke-dasharray="' + r.dash.join(" ") + '"' : "") + "/></svg>";
       } else if (row.style === "class" && (r.shape === "line" || r.shape === "dash")) {
         sw = document.createElement("span");
@@ -4568,6 +4658,127 @@
     return active.some(function (e) { return ATTITUDE_LAYERS.indexOf(e.name) >= 0; });
   }
 
+  function attitudeLayersOn() {
+    return isMercator() && active.some(function (e) { return ATTITUDE_LAYERS.indexOf(e.name) >= 0; });
+  }
+
+  // ── 장미도 — 도폭 하나(또는 잡은 범위)의 층리·엽리·편리·절리 (wetherilli 197, jikhanjung P01 §5 의 5 단계) ──
+  //
+  // 서버(`kigam50k/rose/`)가 각도를 10° 칸으로 세어 주고 여기서 SVG 로 그린다. 주향은 축이라 열여덟 칸을 마주 보게 겹쳐
+  // 그리고, 경사 방향은 서른여섯 칸 그대로다. 꽃잎의 길이는 수의 제곱근 — 넓이가 수에 비례한다(등면적 장미도)
+  var ROSE_KINDS = [["bedding", "층리"], ["foliation", "엽리"], ["schistosity", "편리"], ["joint", "절리"]];
+
+  function roseBlock(query, isRange) {
+    var box = document.createElement("div");
+    box.className = "rose-block";
+    var open = document.createElement("button");
+    open.type = "button";
+    open.className = "rose-open";
+    open.textContent = isRange ? T("이 범위의 층리·엽리 장미도") : T("이 도폭의 층리·엽리 장미도");
+    box.appendChild(open);
+    open.addEventListener("click", function () {
+      open.disabled = true;
+      fetch(BASE + "kigam50k/rose/?" + query)
+        .then(function (r) { return r.json(); })
+        .then(function (data) { box.innerHTML = ""; drawRoseBlock(box, data, isRange); popupOverlay.panIntoView({ animation: { duration: 200 }, margin: popupMargin() }); })
+        .catch(function () { open.disabled = false; open.textContent = T("장미도를 받지 못했다"); });
+    });
+    return box;
+  }
+
+  function drawRoseBlock(box, data, isRange) {
+    var kinds = ROSE_KINDS.filter(function (k) { return (data.n || {})[k[0]]; });
+    var head = document.createElement("h3");
+    head.textContent = data.sheet ? T("{name} 도폭 ({no}) — 자세 기호", { name: data.sheet.name, no: data.sheet.no })
+      : isRange ? T("잡은 범위 — 자세 기호") : T("자세 기호");
+    box.appendChild(head);
+    if (data.error || !kinds.length) {
+      var none = document.createElement("p");
+      none.className = "none";
+      none.textContent = data.error || T("이 자리에는 받아 둔 층리·엽리·절리가 없다");
+      box.appendChild(none);
+      return;
+    }
+    var state = { kind: kinds.slice().sort(function (a, b) { return data.n[b[0]] - data.n[a[0]]; })[0][0], axis: "strike" };
+    var tabs = document.createElement("div");
+    tabs.className = "rose-tabs";
+    var axes = document.createElement("div");
+    axes.className = "rose-tabs";
+    var pic = document.createElement("div");
+    pic.className = "rose-pic";
+    var foot = document.createElement("p");
+    foot.className = "rose-foot";
+    function tab(host, label, on, pick) {
+      var b = document.createElement("button");
+      b.type = "button";
+      b.textContent = label;
+      b.classList.toggle("on", on);
+      b.addEventListener("click", function () { pick(); render(); });
+      host.appendChild(b);
+    }
+    function render() {
+      tabs.innerHTML = "";
+      axes.innerHTML = "";
+      kinds.forEach(function (k) {
+        tab(tabs, T(k[1]) + " " + data.n[k[0]], state.kind === k[0], function () { state.kind = k[0]; });
+      });
+      tab(axes, T("주향"), state.axis === "strike", function () { state.axis = "strike"; });
+      tab(axes, T("경사 방향"), state.axis === "dipdir", function () { state.axis = "dipdir"; });
+      var bins = data[state.axis][state.kind];
+      pic.innerHTML = roseSvg(state.axis === "strike" ? bins.concat(bins) : bins) + dipSvg(data.dip[state.kind]);
+      var bits = [T("받은 날 {date}", { date: data.fetched || "?" })];
+      if (data.nodip[state.kind]) bits.push(T("경사 미상 {n}", { n: data.nodip[state.kind] }));
+      if (state.axis === "strike") bits.push(T("주향은 경사 방향 − 90° (오른손 법칙)"));
+      foot.textContent = bits.join(" · ");
+    }
+    box.append(tabs, axes, pic, foot);
+    render();
+  }
+
+  /** 꽃잎 서른여섯(10° 칸) — 북이 위, 시계 방향. 꽃잎 길이는 수의 제곱근 */
+  function roseSvg(bins) {
+    var size = 140, c = size / 2, R = c - 13;
+    var max = Math.max.apply(null, bins) || 1;
+    function at(deg, r) {
+      var a = deg * Math.PI / 180;
+      return (c + r * Math.sin(a)).toFixed(1) + "," + (c - r * Math.cos(a)).toFixed(1);
+    }
+    var out = ['<svg class="rose-svg" viewBox="0 0 ' + size + " " + size + '" width="' + size + '" height="' + size + '" role="img">'];
+    out.push('<circle cx="' + c + '" cy="' + c + '" r="' + R + '" class="ring"/>');
+    out.push('<circle cx="' + c + '" cy="' + c + '" r="' + (R * Math.SQRT1_2).toFixed(1) + '" class="ring half"/>');
+    bins.forEach(function (n, i) {
+      if (!n) return;
+      var r = R * Math.sqrt(n / max);
+      out.push('<path class="petal" d="M' + c + "," + c + " L" + at(i * 10, r) + " A" + r.toFixed(1) + "," + r.toFixed(1) +
+               " 0 0 1 " + at(i * 10 + 10, r) + ' Z"><title>' + (i * 10) + "–" + (i * 10 + 10) + "° · " + n + "</title></path>");
+    });
+    [["N", 0], ["E", 90], ["S", 180], ["W", 270]].forEach(function (d) {
+      out.push('<text x="' + at(d[1], R + 8).split(",")[0] + '" y="' + at(d[1], R + 8).split(",")[1] +
+               '" class="tick">' + d[0] + "</text>");
+    });
+    out.push("</svg>");
+    return out.join("");
+  }
+
+  /** 경사 분포 — 10° 칸 아홉 */
+  function dipSvg(bins) {
+    var w = 108, h = 140, base = h - 20, top = 14, bw = (w - 10) / 9;
+    var max = Math.max.apply(null, bins) || 1;
+    var out = ['<svg class="dip-svg" viewBox="0 0 ' + w + " " + h + '" width="' + w + '" height="' + h + '" role="img">'];
+    out.push('<text x="' + (w / 2) + '" y="10" class="tick">' + esc(T("경사")) + "</text>");
+    bins.forEach(function (n, i) {
+      var bh = (base - top) * n / max;
+      out.push('<rect class="bar" x="' + (5 + i * bw + 1).toFixed(1) + '" y="' + (base - bh).toFixed(1) + '" width="' + (bw - 2).toFixed(1) +
+               '" height="' + bh.toFixed(1) + '"><title>' + (i * 10) + "–" + (i * 10 + 10) + "° · " + n + "</title></rect>");
+    });
+    out.push('<line x1="5" x2="' + (w - 5) + '" y1="' + base + '" y2="' + base + '" class="ring"/>');
+    [0, 30, 60, 90].forEach(function (d) {
+      out.push('<text x="' + (5 + d / 10 * bw).toFixed(1) + '" y="' + (base + 14) + '" class="tick">' + d + "°</text>");
+    });
+    out.push("</svg>");
+    return out.join("");
+  }
+
   function refreshAttitudes() {
     if (!attitudeLayer) return;
     var want = attitudeWanted();
@@ -4807,7 +5018,11 @@
     return "IBCSO · " + bits.join(" · ");
   }
 
-  function showPopup(coordinate, parts, emptyText) {
+  /** 팝업을 화면 안으로 끌어올 때의 여백 — 사방에 걸린다. 넓은 화면은 좌표 막대를 비키는 72 px, 휴대폰은 320 px 팝업이 들게
+   *  12 px (wetherilli 193). 처음 띄울 때와 속성이 늦게 와 자랐을 때 두 곳이 같은 값을 쓴다 */
+  function popupMargin() { return window.innerWidth < 500 ? 12 : 72; }
+
+  function showPopup(coordinate, parts, emptyText, opts) {
     var body = document.getElementById("popup-body");
     body.innerHTML = "";
 
@@ -4913,12 +5128,16 @@
         if (extras) body.appendChild(extraToggle(table, extras));
       });
     }
+    // 5만 지질도를 켜 두었으면 그 자리 도폭의 층리·엽리 장미도를 부르는 단추 (wetherilli 197). 잡은 범위는 그 범위의 것
+    var roseQuery = opts && "rose" in opts ? opts.rose
+      : attitudeLayersOn() ? "lat=" + ll[1].toFixed(5) + "&lon=" + ll[0].toFixed(5) : "";
+    if (roseQuery) body.appendChild(roseBlock(roseQuery, !!(opts && opts.rose)));
     document.getElementById("popup").classList.add("on");
     document.getElementById("map-wrap").classList.add("popup-open");
     popupOverlay.setPosition(coordinate);
     // 속성이 늦게 와서 팝업이 자라도 자리는 그대로라 OL 이 다시 끌어오지
     // 않는다. 채운 뒤에 한 번 더 화면 안으로 끌어온다.
-    popupOverlay.panIntoView({ animation: { duration: 200 }, margin: 72 });
+    popupOverlay.panIntoView({ animation: { duration: 200 }, margin: popupMargin() });
   }
 
   /** 평소에는 접어 두는 속성. 사람이 읽을 것이 아니거나 다른 줄과 겹친다.

@@ -13,10 +13,8 @@
 
 번호는 그 문서의 절이다. 결정이 필요 없는 것만 옮겼다 — 빈 세션이 위에서부터 집는다.
 
-- [ ] (1) KIGAM 5만 받아 둔 WFS 의 화석산지·시료·도폭 틀(DOI)·단층·광산을 레이어로 — 레이어군 이름은 기본안으로 짓고 사람이 고친다. jikhanjung 에 알린다
-- [ ] (10) `fetch_kigam50k` 명령 — 주간 백업이 부르는데 명령이 없다(jikhanjung P01 §4)
-- [ ] (11–15·19) VWorld `minZoom`, 지역 탭·팝업 휴대폰 시험, NPI 쉼표 소수, 온 지구 주소 CSV, 도폭별 장미도,
-      플라이스토세 화산 — 자세한 것은 문서. (16·17 화성 극지 판·누른 자리 값은 섰다, wetherilli 192 — 수성에 옮길 것은 거기 적었다)
+- [ ] (1) KIGAM 5만 받아 둔 WFS 의 나머지 — 선구조·신장광물·습곡축·유동구조(점, 방향 기호가 든다). 화석산지·시료·광산·도폭 틀(199)과
+      단층·습곡·광종·변질대·변성대(202)는 섰다. 레이어군 "지질 구조 (5만)" 은 기본안이다 — 사람이 고친다(#153)
 
 ## 다른 대륙 — 아메리카·아프리카 (2026-10-04 실측, [docs/다른_대륙_지질도.md](docs/다른_대륙_지질도.md))
 
@@ -26,11 +24,16 @@
 
 - [ ] **(사람) 남미 1:500만의 CGMW 이용 조건** — 남미 탭은 SGC 로 섰다(wetherilli 188). CGMW 는 지도를 판다 — 정적 판·밖에 열기 전에 읽는다.
       읽고 되면 정적 판에 싣는다(CORS 가 열려 있어 `static-kinds.js` 한 갈래)
-- [ ] 브라질 SGB GeoServer — 1:100만 전국+1:250만(2025), 속성이 가장 풍부, CORS `*`. GetFeatureInfo 에 `propertyName` 을
-      붙인다(안 붙이면 2.2 MB). 범례가 225×46 700 이라 보는 범위의 범례를 뜬다. 하루
-- [ ] 페루 INGEMMET 1:5만 통합판 — 남미에서 가장 자세한 전국판, 3857 타일 캐시도 있다. 반나절–하루. (사람) 메타데이터가 CC BY-NC-SA
-- [ ] 아르헨티나 SEGEMAR 1:250만·우루과이 1:50만 — CORS 가 없어 서버 문으로만. 남쪽 원뿔을 채운다
-- 막힌 것: 칠레 SERNAGEOMIN(연결 거부 — 남미 1:500만이 메운다), 베네수엘라(서비스 없음), 볼리비아(8080 거부 — 다른 망에서 한 번 더)
+- [ ] (사람) 운영에서 `manage.py fetch_sgb_units` 를 한 번 — 브라질 범례에 단위 이름·시대가 붙는다(없으면 기호만). 1:100만은
+      WFS 열 번 남짓·1 초 간격 (wetherilli 191)
+- [ ] 브라질 SGB 의 점 레이어 — 노두·연대측정·화석 산지(`geosgb:afloramentos`·`geocronologia`·`ocorrencias_fossiliferas`). 지역 탭의
+      점 레이어나 온 지구의 점 후보. 조건은 CC BY-NC 4.0 이라 정적 판에는 싣지 않는다
+- [ ] 페루 INGEMMET 의 단층·습곡을 따로 켜고 끄기 — 지금은 통합판 캐시 한 장에 구워져 있다(wetherilli 195). WMS 로 따로 받으려면
+      넓은 줌이 30 초를 넘으니 가까운 줌에서만
+- [ ] (사람) 우루과이 DINAMIGE 1:50만의 이용 조건 — 탭은 섰다(wetherilli 196). Capabilities·MIEM 안내에 적힌 것이 없다. 밖에 열기 전에 읽는다
+- [ ] 아르헨티나 SEGEMAR 의 다른 판 — 1:100만 북서부·주별 1:75만·아르헨–칠레 국경 1:50만·말비나스, 제4기 변형·화산 위험도(wetherilli 196 은 1:250만·1:25만만)
+- 막힌 것: 칠레 SERNAGEOMIN(연결 거부 — 남미 1:500만이 메운다), 베네수엘라(서비스 없음), 볼리비아(그쪽 8080 이 거부한다 — 우리 망은 8080 으로
+  나간다, wetherilli 198. 뷰어가 지금도 그 주소만 부른다. 열리면 GeoServer 1:100만 `geologico:geologico_1M`)
 
 ### 북미
 
@@ -99,8 +102,8 @@
 - [ ] (사람) 달 Trek 판 한글 제목 초안(몸 전체를 덮는 114 판)을 읽고 고친다 — `data/moon_trek_layers.json` 의 `ko` (060)
 - [ ] (사람) SPA 지질도 원본(Zenodo 10.5281/zenodo.19728952 의 `GeoMap.tif.zip`·`Mapplate.zip`)을 NAS `sources/moon/` 에 둔다.
       운영 `db/moon/` 에는 두었다 (wetherilli 081)
-- [ ] 수성 화면 — USGS Astrogeology WMS(MESSENGER·Mariner)로 달·화성의 틀을 옮긴다. 달 화면의 Lunar Orbiter·Clementine
-      배경도 같은 상류 ([docs/새_상류_후보.md](docs/새_상류_후보.md) §1)
+- [ ] 달 화면의 Lunar Orbiter·Clementine 배경 — USGS Astrogeology WMS ([docs/새_상류_후보.md](docs/새_상류_후보.md) §1).
+      수성 화면은 섰다(wetherilli P10·137·144)
 
 ## 온 지구 (P06·P07)
 
@@ -186,9 +189,10 @@ phyloserver 는 이 저장소만으로 더 할 것이 없다 — 도폭(`MapShee
 
 2026-09-30 에 타일이 어디서 어떻게 캐시되는지 훑었다. 캐시를 더 적극적으로 쓰기로 했다(사람). 차례는 위에서 아래로.
 
-- [ ] 브라우저가 곧장 받는 배경 가운데 조건이 허락하는 것을 서버에 담는다 — 남은 것. GIBS·GEBCO 는 섰다(`basemaps.py`, wetherilli 184).
-      PGC 음영(요청마다 1–2 초)·NPI 타일·Trek 영상은 조건을 읽고 나서 `basemaps.py` 에 더한다. EOX(비상업)·Esri 는 조건을 먼저 본다.
-      VWorld 는 그대로 곧장 (003·033)
+- [ ] (사람) **PGC 음영·Trek 영상을 서버에 담아도 되는지** — 조건을 읽었지만 분명하지 않다(wetherilli 200, 이슈 #153). GIBS·GEBCO(184)·
+      NPI 타일(200)은 섰다. PGC 는 ArcticDEM 자료가 CC BY 4.0(AWS 공개 자료 목록)이지만 음영을 그려 주는 서비스(Esri 의 `di-pgc.img.arcgis.com`)에
+      조건이 없다. Trek 은 안내에 조건이 없고 배경에 JAXA(Kaguya)·ESA(HRSC)·ASU(LROC) 자료가 섞였다. PGC 에 묻거나 NASA 단독 배경만 고른다.
+      EOX(비상업)·Esri·VWorld 는 그대로 곧장
 - [ ] **무엇을 미리 받을지 정한다.** 남한 전체 줌 12 까지는 싸다(5만 지질도
       7 천 장, 0.4 GB, 호출 450 번 남짓). 줌 13~14 는 10 만 장·5 GB 라 디스크
       상의(맨 위)와 함께 본다. 줌 15 위는 전국으로는 받지 않고 현장 권역만

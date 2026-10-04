@@ -3,13 +3,13 @@
 이 문서는 **지금 어디까지 왔고 다음이 무엇인지** 한 곳에서 답한다.
 왜 그렇게 했는지는 `devlog/`, 무엇이 언제 붙었는지는 `CHANGELOG.md`.
 
-마지막으로 손본 날: **2026-10-01**
+마지막으로 손본 날: **2026-10-04**
 
 ## 작업 방식 (2026-09-30 부터)
 
-**브랜치** `main` = `0.47.0` · 병합을 기다리는 브랜치는 없다. 다음 코드 작업은 각자 자기 계정에서
-`feature/<기능 이름>` 브랜치를 `main` 에서 만들고, 끝나면 PR 을 만든다. 병합은 사람이 정하고, 판은 그 PR 안에서
-올린다. 문서만 고치는 것은 `main` 에 바로. devlog 는 글쓴이마다 번호를 센다 — CLAUDE.md "커밋과 PR"·"devlog",
+**브랜치** `main` = `0.48.1`(2026-10-04 배포). 병합을 기다리는 PR — #180 남미 나머지(에콰도르·볼리비아)·#181 KIGAM 5만 구조 요소 레이어·
+#182 NPI 배경 캐시. 코드 작업은 각자 자기 계정에서 `feature/<기능 이름>` 브랜치를 `main` 에서 만들고, 끝나면 PR 을 만든다.
+**PR 병합과 판 올리기·배포는 판 세션(gsm-31)이 한다** — 다른 세션은 PR 을 열고 알린다. 판은 몇 PR 이 모이면 따로 올린다. 문서만 고치는 것은 `main` 에 바로. devlog 는 글쓴이마다 번호를 센다 — CLAUDE.md "커밋과 PR"·"devlog",
 [devlog/README.md](devlog/README.md). WegenersDream 과 같은 규약이다.
 
 ## 한 줄
@@ -27,21 +27,27 @@
 
 판마다 무엇이 붙었는지는 `CHANGELOG.md`, 왜 그랬는지는 괄호 안의 devlog 다.
 
-- **지역** — 한국(기본)·일본·중국·그린란드·스발바르·얀마옌·북극해·남극, 묶음 탭 동아시아·북극 (016·017·021·024·076).
-  화면 투영은 3857·3413·3031 이다
-- **상류로 나가는 문 열일곱** — kigam·vworld·geus·grportal·npolar·gsj·phyloserver·elevation·trek·kopri·macrostrat·pbdb·linked·gfs·era5·gmgsi·ecco. 문이 아닌
-  것(우리 디스크의 파일을 굽는다)은 geomap·janmayen·geo3al·peninsula·moonmap·ibcso·marscraters·marsmap·zhurong·spamap, 그리고 3D 용으로 다시 펴는 warp
-- **달·화성** — 아이콘의 숨은 차림에서 `/GSM/moon/`·`/GSM/mars/`. 둥근 몸(Cesium)과 평면(OpenLayers)을 오가고,
+- **지역 스물과 묶음 넷** — 한국(기본)·일본·중국·대만·그린란드·스발바르·얀마옌·북극해·노르웨이·핀란드(한 탭)·영국·아일랜드·프랑스·독일·스페인·
+  콜롬비아·브라질·페루·아르헨티나·우루과이·남극, 묶음 탭 동아시아·북극·유럽·남미 (016·017·021·024·076, wetherilli 136·140·143·147·188·191·195·196).
+  화면 투영은 3857·3413·3031 이다. 지역 탭에는 화석 산지·화산·지진·고생태 점도 뜬다(wetherilli 185)
+- **상류로 나가는 문 서른여섯** — 목록은 CLAUDE.md "구조" 의 끝. 문이 아닌 것(우리 디스크의 파일을 굽거나 읽는다)도 거기 있다
+- **정적 판** — 연구소 밖 `https://koprifossillab.github.io/GSM-open/`. 보는 사람이 KIGAM·VWorld 키를 각자 넣는다. 판 세션이 판마다
+  `deploy/publish_pages.sh` 로 굽고, 소스는 `deploy/publish_open.sh` 로 GSM-open 에 민다 (wetherilli P11·149·162·174)
+- **공유 링크** — 지역 탭·온 지구·달·화성·수성의 "링크" 단추. 주소의 해시에 자리·레이어·배경을 담고, 받은 쪽의 기억은 덮지 않는다 (wetherilli 189)
+- **달·화성·수성** — 아이콘의 숨은 차림에서 `/GSM/moon/`·`/GSM/mars/`·`/GSM/mercury/`. 둥근 몸(Cesium)과 평면(OpenLayers)을 오가고,
   위도 65° 너머는 극 평면이다 (036·038·052·058·065). Trek 판 목록은 씨앗 `data/<몸>_trek_layers.json` (060).
   화성에는 크레이터 38 만 개·옛 지질도 I-1802 와 지역도·주룽 경로를 우리가 굽는다 (066–068, wetherilli 079).
-  달 SPA 지질도는 Trek 의 그림에 원본 GeoTIFF 의 속성을 붙인다 (wetherilli 081). 달 지형은 LOLA 256 ppd(가까이서는 극 5 m·NAC DTM, wetherilli 107), 극 평면에서는 Trek 판의 극지 짝을 받는다, 잰 선의 높이 그래프, 켠 값 판의 누른 자리 값 (wetherilli 083·085·100·103)
+  달 SPA 지질도는 Trek 의 그림에 원본 GeoTIFF 의 속성을 붙인다 (wetherilli 081). 달 지형은 LOLA 256 ppd(가까이서는 극 5 m·NAC DTM, wetherilli 107), 극 평면에서는 Trek 판의 극지 짝을 받는다, 잰 선의 높이 그래프, 켠 값 판의 누른 자리 값 (wetherilli 083·085·100·103).
+  화성도 극지 짝과 표고 판의 누른 자리 높이를 받는다(wetherilli 192). 수성은 USGS 1:500만 도폭 합본을 우리가 굽는다(wetherilli 137·144·194).
+  세 화면 모두 높이 그래프 밑에 지질 띠(wetherilli 180)
 - **온 지구** — 같은 숨은 차림에서 `/GSM/earth/`. 둥근 지구에 Macrostrat 지질도 (wetherilli 086). 시간 축과 그때의 지구,
-  누른 자리의 그때의 자리(PALEOMAP 2016)와 ETT 링크 (wetherilli 087·088·091·옛 해안선·화석 산지·지각 두께·지명·빙상 가장자리 (wetherilli 097·098·101·102·104)
+  누른 자리의 그때의 자리(PALEOMAP 2016)와 ETT 링크 (wetherilli 087·088·091), 옛 해안선·화석 산지·지각 두께·지명·빙상 가장자리
+  (wetherilli 097·098·101·102·104), 홀로세·플라이스토세 화산·지진·고생태 산지·맨틀 슬랩 (wetherilli 106·134·138·139·194), 높이 그래프(186)
   **바람** — 지금(GFS)·지난(ERA5 2005-06 ~ 2007-12), 지상 10 m·250 hPa 를 입자로. 지금의 바람은 앞뒤 두 장(분석·예보)을 지금 시각으로 섞는다 (koprifossillab P02·003·007·008).
   **해류** — ECCO2 표층을 입자로, 달마다 한 장 1992–2019(`build_ecco2 --monthly` 로 사람이 굽는다, `<DB 옆>/ocean/`). 지금의 해류는 아직 없다 (koprifossillab 014·015).
   **구름** — 같은 시각 축으로 전체·하층·중층·상층 구름량 (koprifossillab P03·011). **위성 구름** — NOAA GMGSI 적외선 합성,
   한 시간마다 가장 새 장 (koprifossillab 012)
-- **3D** — 도구 막대의 단추로 늘 연다 (059). 한국·일본·북극·남극 지형과 지질, 점묶음
+- **3D** — 도구 막대의 단추로 늘 연다 (059). 한국·일본·북극·남극·유럽·남미 지형과 지질, 점묶음 (wetherilli 187·188)
 - **영어판** — 설정의 "언어 · Language". 화면의 글을 고치면 `viewer/i18n.py` 에 영어도 적는다 (008)
 - **연구실 내부용** — geo3al·phyloserver·한반도 지질도·kopri. 밖에 열 때 `GSM_PUBLIC=1` 로 내린다 (025·029·053)
 
@@ -58,7 +64,10 @@
 | `moon/` | 달 원도 6 장 sqlite, SPA 지질도 원본 `spa_geomap_iqbal2026.tif`(112 MB) | `manage.py build_moon_originals <zip>` (039). SPA 는 Zenodo `GeoMap.tif.zip` 을 풀어 이름만 바꿔 둔다 (wetherilli 081) |
 | `ibcso/` | IBCSO 타일·수치 격자·TID | `manage.py build_ibcso` (047·051·071) |
 | `mars/` | 화성 크레이터·옛 지질도 sqlite | `manage.py build_mars_craters <zip>`·`build_mars_originals <zip>` (067·068) |
-| `earth/` | 옛 해안선 `paleocoastlines_v7.json`, 화석 산지 `pbdb.sqlite` | `manage.py build_paleocoastlines`·`fetch_pbdb` (wetherilli 097·098) |
+| `earth/` | 옛 해안선 `paleocoastlines_v7.json`, 화석 산지 `pbdb.sqlite`, 화산 `gvp_volcanoes.json`(·`gvp_pleistocene.json`), 지진 `quakes.sqlite`, 고생태 `neotoma.sqlite`, 맨틀 `mantle/` | `build_paleocoastlines`·`fetch_pbdb`·`fetch_gvp`·`fetch_quakes`·`fetch_neotoma`·`build_mantle` (wetherilli 097·098·106·134·138·139·194) |
+| `mercury/` | 수성 지질도 sqlite | `manage.py build_mercury_geology <zip>` (wetherilli 144) |
+| `wind/`·`ocean/` | 바람·구름(GFS·GMGSI·ERA5)·해류(ECCO2) PNG | 호스트 cron 의 `hourly.sh`, 지난 것은 사람이 `build_era5_wind`·`build_ecco2` (koprifossillab P02·005·014) |
+| `kigam_data/` | KIGAM `/openapi/data` 의 시료·분석·주제도·조사 | `manage.py fetch_kigam_data` (wetherilli 169) |
 | `kopri/` | 극지연구소 목록·상세 | `manage.py fetch_kopri` — 가끔, 새 것만 받는다 (053) |
 | `kigam50k/` | KIGAM 5만 지질도 층리·엽리·절리·단층 등 19 레이어(WFS, 2026-09-30). 0.25.1 부터 자세 기호의 커서·팝업이 읽는다 | 지금은 손으로 받아 둔 `raw/20260930/`. 받는 명령은 jikhanjung P01 |
 
@@ -101,7 +110,7 @@ GSM_DEV_DIRECT_WMS=0
 | 카탈로그 | `geoOpen` 61 개, 레이어군 8 갈래 |
 | 점묶음 | UTF-8 CSV·CP949 CSV·GeoJSON 올라간다. 위경도 열 없으면 까닭을 말한다 |
 | 좌표 | 십진도·도분초 오가고, 찍어서 이동하고, 눌러서 복사한다 |
-| 시험 | 654 개 다 돈다 (`manage.py test viewer`, 2026-09-30) |
+| 시험 | 1 370 개 다 돈다 (`manage.py test viewer`, 2026-10-04). 휴대폰 화면은 CI 의 "휴대폰 화면" job(`test_mobile`, 모든 지역 탭) |
 | 오픈API | 키로 61 개 전부 그려진다. 범례도 된다. **속성은 막혀 있다** (006) |
 | 배포 | `http://paleolab/GSM/` 200. 짧은 주소 `/geomap/` 301 |
 | 배경지도 | VWorld `Base`·`Satellite`·`Hybrid` 200. 자리 차례는 `z/y/x` (003) |
@@ -115,6 +124,9 @@ GSM_DEV_DIRECT_WMS=0
   타일 캐시를 둔 것이 이 때문이다 (브라우저 쪽 하루, 디스크 쪽은 지우지 않고 3 년마다 다시 묻는다)
 - 운영 DB 의 대조는 2026-09-27 에 끝났다 (61/61). 다시 돌릴 때는
   `docker exec -w /app/web gsm-web-1 python manage.py verify_layers --redo`
+- **사용자가 정할 것은 이슈 #153 에 모은다** — 다음 대륙(북미·아프리카), 정적 판의 3D, 남미 1:500만(CGMW)·우루과이(DINAMIGE)의 이용 조건,
+  VWorld 지오코더 결과의 저장, PGC 음영·Trek 영상의 서버 캐시, KIGAM 자료를 지도에 올리는 범위 따위. 세션은 갈림길을 만나면 거기 댓글을 남기고
+  다른 일로 넘어간다
 
 ## 알아두면 좋은 것
 

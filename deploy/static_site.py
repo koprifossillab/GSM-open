@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 """연구소 밖 정적 판을 굽는다 — GitHub Pages 의 https://koprifossillab.github.io/GSM-open/ (wetherilli P11·162).
 
-    python deploy/static_site.py <출력 폴더> [--baked <bake_static 의 출력>] [--prefix /GSM-open/]
+    python deploy/static_site.py <출력 폴더> [--baked <bake_static 의 출력>] [--prefix /GSM-open/] [--with colombia]
 
 서버 없이 도는 판이다. Django 로 지도 화면(map.html)을 `settings.STATIC_SITE` 를 켜고 **한 번** 그려 index.html 로 두고,
 정적 파일을 모으고, 우리 파일에서 미리 구운 것(`manage.py bake_static`, wetherilli 160)을 그 자리에 얹는다.
@@ -20,6 +20,8 @@ WegenersDream 의 `deploy/static_site.py`(tupandactyl 029)와 같은 길이다.
   그래서 굽는 판에는 어떤 키도 싣지 않는다(전에는 공개 판용 VWorld 키 하나를 실었다 — wetherilli 164).
   **운영 키로 저절로 돌아가지 않는다** — 운영 키와 갈라 두라는 것이 검토의 권고다(남이 뽑아 써 하루 한도를 먹으면 운영도 멈춘다).
   둘 다 없으면 VWorld 를 빼고 굽는다(배경·찾기·좌표→주소·VWorld 레이어가 빠진다)
+- **고를 수 있는 것**(`--with`, `OPTIONAL`) — 조건은 열렸지만 실을지는 사람이 정할 것. 기본으로는 싣지 않는다.
+  지금은 콜롬비아 1:50만(SGC 열린자료, CC BY 4.0, wetherilli 201) 하나다. 같은 지역의 남미 1:500만(CGMW)은 `views._static_catalog` 가 뺀다
 """
 import argparse
 import json
@@ -43,6 +45,9 @@ UPSTREAMS = ["kigam", "vworld", "geus", "npolar", "pgc", "emodnet", "kopri", "gr
 BAKED_REGIONS = ["antarctica", "greenland", "svalbard", "jan_mayen", "arctic_ocean"]
 #: 구운 타일로 통째로 서는 상류 — 점 레이어는 상류가 아니라 이름으로 싣는다(`views._static_catalog`)
 BAKED_UPSTREAMS = {"geomap": "geomap", "ibcso": "ibcso"}
+#: 고르면 싣는 것 — 이름 → (지역, 상류). 조건은 열렸고 브라우저가 곧장 부르는 소스(`static-kinds.js`)도 있지만, 실을지는 사람이 정한다.
+#: 콜롬비아(wetherilli 201): SGC 의 콜롬비아 1:50만만 선다 — 같은 지역의 남미 1:500만은 CGMW 의 지도라 `views._static_catalog` 가 뺀다
+OPTIONAL = {"colombia": (["colombia"], ["sgc"])}
 
 
 def baked_spec(baked: pathlib.Path) -> dict:
@@ -87,6 +92,8 @@ def main():
     parser.add_argument("--prefix", default="/GSM-open/", help="Pages 주소의 앞머리")
     parser.add_argument("--regions", default=",".join(REGIONS))
     parser.add_argument("--upstreams", default=",".join(UPSTREAMS))
+    parser.add_argument("--with", dest="extra", action="append", default=[], choices=sorted(OPTIONAL),
+                        help="고르면 싣는 것 (OPTIONAL) — 기본으로는 싣지 않는다")
     args = parser.parse_args()
 
     out = pathlib.Path(args.out).resolve()
@@ -114,6 +121,10 @@ def main():
 
     spec = {"regions": [r for r in args.regions.split(",") if r],
             "upstreams": [u for u in args.upstreams.split(",") if u]}
+    for extra in args.extra:
+        regions, upstreams = OPTIONAL[extra]
+        spec["regions"] += [r for r in regions if r not in spec["regions"]]
+        spec["upstreams"] += [u for u in upstreams if u not in spec["upstreams"]]
     if args.baked:
         # 구운 것을 화면에 알린다 — 마지막 줌·점 레이어·영어판 (wetherilli 165)
         spec["baked"] = baked_spec(pathlib.Path(args.baked))

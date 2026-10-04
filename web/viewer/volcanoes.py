@@ -19,7 +19,11 @@ from . import arcpoints, paleo
 from .i18n import msg, t
 
 FILE = "gvp_volcanoes.json"
+#: 갈래 → 파일. 플라이스토세는 따로 받은 파일이다 (wetherilli 194)
+FILES = {"holocene": FILE, "pleistocene": "gvp_pleistocene.json"}
 RENDERER = "1"
+#: 플라이스토세 화산의 세모 — 마지막 분화 열이 없어 한 색이다. 홀로세의 따뜻한 다섯 칸과 갈리게 보라
+PLEISTOCENE = ("#8c6bb1", msg("플라이스토세 화산 — 분화 기록이 없다"))
 
 #: 마지막 분화 — (이 해부터, 색, 범례 글). 위가 최근이다. 모르는 것은 `UNKNOWN`
 ERAS = (
@@ -31,8 +35,8 @@ ERAS = (
 UNKNOWN = ("#bdbdbd", msg("분화 기록이 없다"))
 
 
-def path() -> Path:
-    return Path(settings.EARTH_DIR) / FILE
+def path(kind: str = "holocene") -> Path:
+    return Path(settings.EARTH_DIR) / FILES[kind]
 
 
 def era(last) -> int:
@@ -45,50 +49,55 @@ def era(last) -> int:
     return len(ERAS) - 1
 
 
-def colour(last) -> tuple:
-    i = era(last)
-    hexa = ERAS[i][1] if i < len(ERAS) else UNKNOWN[0]
+def colour(last, kind: str = "holocene") -> tuple:
+    if kind == "pleistocene":
+        hexa = PLEISTOCENE[0]
+    else:
+        i = era(last)
+        hexa = ERAS[i][1] if i < len(ERAS) else UNKNOWN[0]
     return tuple(int(hexa[k:k + 2], 16) for k in (1, 3, 5))
 
 
-def legend(lang: str = "ko") -> list:
+def legend(lang: str = "ko", kind: str = "holocene") -> list:
     """범례 — `[{color, name}]`."""
+    if kind == "pleistocene":
+        return [{"color": PLEISTOCENE[0], "name": t(PLEISTOCENE[1], lang)}]
     return [{"color": c, "name": t(name, lang)} for _, c, name in ERAS + ((None,) + UNKNOWN,)]
 
 
-@functools.lru_cache(maxsize=1)
-def _load(mtime) -> dict:
-    data = json.loads(path().read_text(encoding="utf-8"))
+@functools.lru_cache(maxsize=2)
+def _load(kind, mtime) -> dict:
+    data = json.loads(path(kind).read_text(encoding="utf-8"))
     rows = data.get("volcanoes") or []
     return {"fetched": data.get("fetched", ""), "rows": rows, "by_no": {r["no"]: r for r in rows}}
 
 
-def data():
+def data(kind: str = "holocene"):
     """받아 둔 목록. 없으면 None."""
     try:
-        return _load(path().stat().st_mtime)
+        return _load(kind, path(kind).stat().st_mtime)
     except (FileNotFoundError, ValueError):
         return None
 
 
-def available() -> bool:
-    return data() is not None
+def available(kind: str = "holocene") -> bool:
+    return data(kind) is not None
 
 
-def fetched() -> str:
-    d = data()
+def fetched(kind: str = "holocene") -> str:
+    d = data(kind)
     return d["fetched"] if d else ""
 
 
-def points(west: float, south: float, east: float, north: float) -> list:
+def points(west: float, south: float, east: float, north: float, kind: str = "holocene") -> list:
     """그 네모 안의 화산 행."""
-    d = data()
+    d = data(kind)
     if d is None:
         return []
     return [r for r in d["rows"] if west <= r["lon"] <= east and south <= r["lat"] <= north]
 
 
-def render_tile(z: int, x: int, y: int) -> bytes:
+def render_tile(z: int, x: int, y: int, kind: str = "holocene") -> bytes:
     """경위도 격자(`paleo.render_tile` 과 같다) 한 장에 세모를 찍는다. 오래된·모르는 것을 먼저 — 최근 것이 위에 온다."""
     from PIL import Image, ImageDraw
 
@@ -106,26 +115,27 @@ def render_tile(z: int, x: int, y: int) -> bytes:
         w, e = west - shift - pad, west + span - shift + pad
         if e < -180 or w > 180:
             continue
-        found += [(r["lon"] + shift, r["lat"], r["last"]) for r in points(w, north - span - pad, e, north + pad)]
+        found += [(r["lon"] + shift, r["lat"], r.get("last")) for r in points(w, north - span - pad, e, north + pad, kind)]
     found.sort(key=lambda p: -era(p[2]))
     for lon, lat, last in found:
         cx, cy = (lon - west) * scale, (north - lat) * scale
         draw.polygon([(cx, cy - radius), (cx - radius * 0.95, cy + radius * 0.7), (cx + radius * 0.95, cy + radius * 0.7)],
-                     fill=colour(last) + (240,), outline=(30, 20, 20, 230), width=max(1, k // 2))
+                     fill=colour(last, kind) + (240,), outline=(30, 20, 20, 230), width=max(1, k // 2))
     buf = io.BytesIO()
     image.resize((paleo.TILE, paleo.TILE), Image.LANCZOS).save(buf, "PNG", optimize=True)
     return buf.getvalue()
 
 
-def near(lon: float, lat: float, radius: float, limit: int = 5) -> list:
-    """누른 자리에서 `radius`° 안의 화산 — 가까운 것부터."""
+def near(lon: float, lat: float, radius: float, limit: int = 5, kinds=("holocene",)) -> list:
+    """누른 자리에서 `radius`° 안의 화산 — 가까운 것부터. 행에 갈래(`kind`)를 붙인다."""
     cos = max(0.05, math.cos(math.radians(lat)))
     out = []
-    for shift in (-360.0, 0.0, 360.0):
-        for r in points(lon + shift - radius / cos, lat - radius, lon + shift + radius / cos, lat + radius):
-            d2 = ((r["lon"] - lon - shift) * cos) ** 2 + (r["lat"] - lat) ** 2
-            if d2 <= radius * radius:
-                out.append((d2, r))
+    for kind in kinds:
+        for shift in (-360.0, 0.0, 360.0):
+            for r in points(lon + shift - radius / cos, lat - radius, lon + shift + radius / cos, lat + radius, kind):
+                d2 = ((r["lon"] - lon - shift) * cos) ** 2 + (r["lat"] - lat) ** 2
+                if d2 <= radius * radius:
+                    out.append((d2, dict(r, kind=kind)))
     out.sort(key=lambda h: h[0])
     return [r for _, r in out[:limit]]
 

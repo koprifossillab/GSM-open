@@ -74,13 +74,14 @@ class Grids(SimpleTestCase):
 class Plans(TestCase):
     def setUp(self):
         groups = {region: LayerGroup.objects.create(name=f"시험 {region}", region=region)
-                  for region in ("arctic_ocean", "uk", "norway", "finland", "spain", "france")}
+                  for region in ("arctic_ocean", "uk", "norway", "finland", "spain", "france", "svalbard", "antarctica")}
         rows = [("ngu:Berggrunn_nasjonal_bergartsenheter", "ngu", "norway"),
                 ("gtk:kalliopera_1m_kivilajiseurueet", "gtk", "finland"),
                 ("emodnet:cp_wp4_pre_quaternary_geology_age", "emodnet", "arctic_ocean"),
                 ("emodnet:bgr:quaternary_age", "emodnet", "uk"),
                 ("igme:geologico1m:0", "igme", "spain"), ("igme:magna50:0", "igme", "spain"),
-                ("bgs:BGS.50k.Bedrock", "bgs", "uk"), ("brgm:SCAN_F_GEOL1M", "brgm", "france")]
+                ("bgs:BGS.50k.Bedrock", "bgs", "uk"), ("brgm:SCAN_F_GEOL1M", "brgm", "france"),
+                ("pgc:svalbard_slope", "pgc", "svalbard"), ("pgc:antarctica_contours", "pgc", "antarctica")]
         for name, upstream, region in rows:
             Layer.objects.create(name=name, title=name, group=groups[region], upstream=upstream)
 
@@ -99,6 +100,11 @@ class Plans(TestCase):
         self.assertEqual(self.crs("igme:geologico1m:0", "igme"), "EPSG:4326")
         self.assertEqual(self.crs("igme:magna50:0", "igme"), "EPSG:3857")
         self.assertIsNone(prewarm.plan_for("bgs:없는것", "bgs"))
+
+    def test_PGC_경사·등고선도_지역의_투영으로(self):
+        """wetherilli 182 가 남긴 것 (203) — 화면은 `npolarSource` 로 3413·3031 에서 받는다"""
+        self.assertEqual(self.crs("pgc:svalbard_slope", "pgc"), "EPSG:3413")
+        self.assertEqual(self.crs("pgc:antarctica_contours", "pgc"), "EPSG:3031")
 
     def test_화면이_그리지_않는_줌은_묻지_않는다(self):
         london = (-0.2, 51.45, -0.1, 51.55)

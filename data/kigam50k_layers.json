@@ -1,0 +1,109 @@
+{
+ "_주석": "KIGAM 5만 지질도 구조 요소의 씨앗이다 (wetherilli 199, jikhanjung P01 §2·§5). 받아 둔 WFS 파일(<DB 옆>/kigam50k/raw/<날짜>/, manage.py fetch_kigam50k)에서 화면이 점·면으로 받는다 — web/viewer/kigam50k.py 의 LAYERS. 레이어군 이름 \"지질 구조 (5만)\" 은 P01 §8 의 기본안이고 사람이 고친다. 층리·엽리·편리·절리는 5만 지질도 카드에 딸린 것이라 여기 없다(jikhanjung 004·005). 단층·습곡·광종·변질대·변성대는 wetherilli 202 에서 더했다. 정적 판에는 싣지 않는다.",
+ "_뽑은날": "2026-10-04",
+ "_출처": "https://data.kigam.re.kr/",
+ "_지역": "korea",
+ "_상류": "kigam50k",
+ "_레이어군차례": 30,
+ "레이어군순서": [
+  "지질 구조 (5만)"
+ ],
+ "레이어": [
+  {
+   "name": "kigam50k:frame",
+   "title": "5만 도폭 틀",
+   "group": "지질 구조 (5만)",
+   "abstract": "KIGAM 1:50,000 map sheet frames — surveyors, survey year, DOI",
+   "bbox": [
+    124.5,
+    33.0,
+    131.0,
+    38.7
+   ]
+  },
+  {
+   "name": "kigam50k:fossil",
+   "title": "화석산지 (5만)",
+   "group": "지질 구조 (5만)",
+   "abstract": "Fossil localities on the KIGAM 1:50,000 geological maps",
+   "bbox": [
+    124.5,
+    33.0,
+    131.0,
+    38.7
+   ]
+  },
+  {
+   "name": "kigam50k:sample",
+   "title": "연대측정·지구화학 시료 (5만)",
+   "group": "지질 구조 (5만)",
+   "abstract": "Dating (SHRIMP, K-Ar …) and geochemistry sample sites on the KIGAM 1:50,000 maps",
+   "bbox": [
+    124.5,
+    33.0,
+    131.0,
+    38.7
+   ]
+  },
+  {
+   "name": "kigam50k:mine",
+   "title": "광산 (5만)",
+   "group": "지질 구조 (5만)",
+   "abstract": "Mines, workings and adits on the KIGAM 1:50,000 maps",
+   "bbox": [
+    124.5,
+    33.0,
+    131.0,
+    38.7
+   ]
+  },
+  {
+   "name": "kigam50k:fault",
+   "title": "단층 (5만)",
+   "group": "지질 구조 (5만)",
+   "abstract": "Faults on the KIGAM 1:50,000 maps — certain, inferred, thrust, normal, strike-slip",
+   "bbox": [
+    124.5,
+    33.0,
+    131.0,
+    38.7
+   ]
+  },
+  {
+   "name": "kigam50k:fold",
+   "title": "습곡 (5만)",
+   "group": "지질 구조 (5만)",
+   "abstract": "Fold axial traces on the KIGAM 1:50,000 maps — anticlines, synclines, overturned, plunging",
+   "bbox": [
+    124.5,
+    33.0,
+    131.0,
+    38.7
+   ]
+  },
+  {
+   "name": "kigam50k:zones",
+   "title": "변질대·변성대 (5만)",
+   "group": "지질 구조 (5만)",
+   "abstract": "Alteration, thermal and contact metamorphic zones on the KIGAM 1:50,000 maps",
+   "bbox": [
+    124.5,
+    33.0,
+    131.0,
+    38.7
+   ]
+  },
+  {
+   "name": "kigam50k:oretype",
+   "title": "광종 (5만)",
+   "group": "지질 구조 (5만)",
+   "abstract": "Ore commodities at mines on the KIGAM 1:50,000 maps",
+   "bbox": [
+    124.5,
+    33.0,
+    131.0,
+    38.7
+   ]
+  }
+ ]
+}

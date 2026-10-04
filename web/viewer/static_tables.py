@@ -6,12 +6,12 @@
 으로 떠 싣는다. 상류가 바뀌어 문의 표를 고치면 정적 판도 다음 빌드에 따라온다.
 
 여기서는 상류를 부르지 않는다(`requests` 가 없다). 연구실 내부용(`views.LAB_ONLY` 의 geo3al·phyloserver·peninsula)은 싣지 않는다.
-극지연구소(KPDC)의 **지도 서버 레이어는 싣는다** — 사용자가 "공개 자료는 싣는다" 고 정했다(2026-10-02). 모아 둔 파일에서 그리는
+콜롬비아 SGC 는 조건이 열린 1:50만 판만 싣는다(wetherilli 201). 극지연구소(KPDC)의 **지도 서버 레이어는 싣는다** — 사용자가 "공개 자료는 싣는다" 고 정했다(2026-10-02). 모아 둔 파일에서 그리는
 KOPRI 점(시료·운석·KPDC 목록)은 여기 없다 — 굽는 쪽(`bake_static`)의 몫이다.
 """
 from django.conf import settings
 
-from . import arcpoints, elevation, emodnet, geus, grportal, i18n, kopri, npolar
+from . import arcpoints, elevation, emodnet, geus, grportal, i18n, kopri, npolar, sgc
 
 
 def _points(spec: dict, url: str, oid: str, page: int, max_pages: int) -> dict:
@@ -90,6 +90,12 @@ def tables() -> dict:
         "kopri": {
             "url": settings.KOPRI_GEO_URL.rstrip("/") + "/wms", "attribution": kopri.ATTRIBUTION,
             "wms": kopri.WMS, "projection": {name: kopri.wms_projection(name) for name in kopri.WMS},
+        },
+        # 콜롬비아 1:50만(wetherilli 201) — 조건이 열린 판만. 싣는 것은 굽는 사람이 고른다(`static_site.py --with colombia`)
+        "sgc": {
+            "url": settings.SGC_WMS_URL.rstrip("/"), "attribution": sgc.STATIC_ATTRIBUTION,
+            "sheets": {sheet: sgc.SHEETS[sheet] for sheet in sgc.STATIC_SHEETS},
+            "friendly": [list(pair) for pair in sgc.FRIENDLY],
         },
         # 지질시대 — 영문 ICS 값을 한국어로(`i18n.age_ko` 의 표)
         "age": {"words": i18n.AGE_WORDS_KO, "modifiers": i18n.AGE_MODIFIERS_KO, "joiners": i18n.AGE_JOINERS_KO},

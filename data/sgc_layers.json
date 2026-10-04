@@ -1,8 +1,8 @@
 {
- "_주석": "SGC(콜롬비아 지질조사소) 지질도 씨앗이다 — 남미 탭. 남미 1:500만(CGMW 2019, SGC·SGB 가 냄)이 대륙 바탕이고 콜롬비아 1:50만(2023)을 얹는다. 레이어명은 sgc:<판>:<WMS 번호> (web/viewer/sgc.py). 번호는 WMS 의 것이라 ArcGIS REST 와 다르다 (wetherilli 188).",
+ "_주석": "SGC(콜롬비아 지질조사소) 지질도 씨앗이다 — 콜롬비아 탭(남미 묶음에도 든다). 남미 1:500만(CGMW 2019, SGC·SGB 가 냄)이 대륙 바탕이고 콜롬비아 1:50만(2023)을 얹는다. 1:500만 레이어군은 브라질 탭이 빌린다(wetherilli 191). 레이어명은 sgc:<판>:<WMS 번호> (web/viewer/sgc.py). 번호는 WMS 의 것이라 ArcGIS REST 와 다르다 (wetherilli 188).",
  "_뽑은날": "2026-10-04",
  "_출처": "https://srvags.sgc.gov.co/arcgis/services/Mapa_Geologico_Sur_America/GeologicalMapSouthAmerican/MapServer/WMSServer?request=GetCapabilities&service=WMS · …/Mapa_Geologico_Colombia/Mapa_Geologico_Colombia_V2023/MapServer/WMSServer",
- "_지역": "south_america",
+ "_지역": "colombia",
  "_상류": "sgc",
  "_레이어군차례": 1,
  "레이어군순서": [

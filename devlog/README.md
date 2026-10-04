@@ -234,6 +234,19 @@
 | wetherilli 189 | 2026-10-04 | [공유 링크 — 보던 자리·켠 레이어·배경을 주소의 해시에](20261004_wetherilli_189_share_links.md) |
 | wetherilli 190 | 2026-10-04 | [점묶음을 CSV 로 — 우리 파일에서 읽는 값을 열로 붙여](20261004_wetherilli_190_pointset_csv.md) |
 | wetherilli 192 | 2026-10-04 | [화성 — Trek 판의 극지 길과 누른 자리의 높이](20261004_wetherilli_192_mars_polar_values.md) |
+| wetherilli 191 | 2026-10-04 | [브라질 — SGB 지질도, 그리고 남미를 나라 탭 둘과 묶음으로](20261004_wetherilli_191_brazil_sgb.md) |
+| wetherilli 193 | 2026-10-04 | [휴대폰 시험을 모든 지역 탭과 팝업으로 — 그리고 VWorld `minZoom`, NPI 쉼표 소수](20261004_wetherilli_193_mobile_all_tabs.md) |
+| wetherilli 194 | 2026-10-04 | [수성의 높이 값, 온 지구의 주소 CSV, 플라이스토세 화산](20261004_wetherilli_194_mercury_heights_earth_csv_pleistocene.md) |
+| wetherilli 195 | 2026-10-04 | [페루 — INGEMMET 1:5만·1:10만 통합판을 타일 캐시로](20261004_wetherilli_195_peru_ingemmet.md) |
+| wetherilli 196 | 2026-10-04 | [남미 — 아르헨티나 SEGEMAR(1:250만·1:25만)와 우루과이 DINAMIGE(1:50만)](20261004_wetherilli_196_argentina_uruguay.md) |
+| wetherilli 197 | 2026-10-04 | [도폭 하나의 층리·엽리 장미도](20261004_wetherilli_197_structure_rose.md) |
+| wetherilli 198 | 2026-10-04 | [남미의 남은 것 — 에콰도르를 싣고, 볼리비아는 또 막히고, 남미 묶음의 처음을 정한다](20261004_wetherilli_198_south_america_rest.md) |
+| wetherilli 199 | 2026-10-04 | [5만 구조 요소 — `fetch_kigam50k` 명령과 화석산지·시료·광산·도폭 틀 레이어](20261004_wetherilli_199_kigam50k_layers.md) |
+| wetherilli 200 | 2026-10-04 | [남은 배경의 조건을 읽었다 — NPI 타일만 서버 캐시로](20261004_wetherilli_200_cache_more_basemaps.md) |
+| wetherilli 201 | 2026-10-04 | [정적 판에 콜롬비아 1:50만을 실을 수 있게 — 싣는 것은 사람이 고른다](20261004_wetherilli_201_static_colombia.md) |
+| wetherilli 202 | 2026-10-04 | [5만 구조 요소 — 단층·습곡·광종·변질대·변성대](20261004_wetherilli_202_kigam50k_lines.md) |
+| wetherilli 203 | 2026-10-04 | [작은 고침 묶음 — 미뤄 둔 것·시험·영어판·휴대폰의 빈틈](20261004_wetherilli_203_small_fixes.md) |
+| wetherilli 208 | 2026-10-04 | [5만 구조 요소 받기를 주간 백업에서 뺀다 — 사람이 가끔 부른다](20261004_wetherilli_208_no_auto_kigam50k.md) |
 | koprifossillab P01 | 2026-09-30 | [백업 — WegenersDream 의 틀로, 바뀌는 빠르기에 따라 넷으로 (계획)](20260930_koprifossillab_P01_backup_plan.md) |
 | koprifossillab 001 | 2026-09-30 | [매주 월요일 새벽: 운영 자료 백업과 KPDC 목록 갱신](20260930_koprifossillab_001_weekly_backup.md) |
 | koprifossillab 002 | 2026-09-30 | [`/healthz/` — 판·DB·백업 상태를 한 장으로](20260930_koprifossillab_002_healthz.md) |

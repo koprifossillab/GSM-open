@@ -28,10 +28,10 @@ class Command(BaseCommand):
         if not rows:
             self.stdout.write("센 것이 없다.")
             return
-        self.stdout.write(f"{'날짜':<12}{'상류':<8}{'성공':>8}{'실패':>6}{'차단':>6}")
+        self.stdout.write(f"{'날짜':<12}{'상류':<12}{'성공':>8}{'실패':>6}{'차단':>6}")
         blocked_days = []
         for r in rows:
-            self.stdout.write(f"{r.day!s:<12}{r.upstream:<8}{r.ok:>8}{r.fail:>6}{r.blocked:>6}")
+            self.stdout.write(f"{r.day!s:<12}{r.upstream:<12}{r.ok:>8}{r.fail:>6}{r.blocked:>6}")
             if r.blocked:
                 blocked_days.append(f"{r.day} {r.upstream}")
         left = usage.paused()

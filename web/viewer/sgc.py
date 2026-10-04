@@ -25,6 +25,12 @@ ATTRIBUTION = ('Geological Map of South America 2019 (Gómez, Schobbenhaus & Mon
 SHEETS = {"sa": "Mapa_Geologico_Sur_America/GeologicalMapSouthAmerican",
           "co": "Mapa_Geologico_Colombia/Mapa_Geologico_Colombia_V2023"}
 ZOOMS = {"sa": (None, None), "co": (None, None)}
+#: 정적 판(GitHub Pages)에 실을 수 있는 판 — 조건이 열린 콜롬비아 1:50만(SGC 열린자료, CC BY 4.0)만이다 (wetherilli 201).
+#: 남미 1:500만은 CGMW 의 지도라 사람이 조건을 읽기 전에는 싣지 않는다. 싣는 것은 굽는 사람이 고른다(`static_site.py --with colombia`)
+STATIC_SHEETS = ("co",)
+#: 정적 판의 출처 표기 — 실는 판의 것만
+STATIC_ATTRIBUTION = ('Mapa Geológico de Colombia 2023 (<a href="https://www.sgc.gov.co/" target="_blank" rel="noopener">'
+                      'Servicio Geológico Colombiano</a>, CC BY 4.0)')
 #: 넓은 줌의 512 타일은 따로 물으면 3–4 초인데, 화면이 여러 장을 한꺼번에 물으면 상류에서 밀려 20 초를 넘긴다(2026-10-04).
 #: EGDI 처럼 더 기다린다 — gunicorn 의 60 초 안에서
 TIMEOUT = 45
@@ -32,6 +38,14 @@ TIMEOUT = 45
 
 class SgcError(RuntimeError):
     pass
+
+
+def static_ok(name: str) -> bool:
+    """정적 판에 실어도 되는 레이어인가 — 조건이 열린 판(`STATIC_SHEETS`)의 것만."""
+    try:
+        return split(name)[0] in STATIC_SHEETS
+    except SgcError:
+        return False
 
 
 def split(name: str):

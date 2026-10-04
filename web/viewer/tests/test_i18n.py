@@ -43,6 +43,18 @@ class Coverage(SimpleTestCase):
         self.assertIn("레이어 고르기", keys)                       # 템플릿
         self.assertIn("{line}째 줄 — 좌표를 읽지 못해 건너뛰었다", keys)  # 파이썬
 
+    def test_씨앗의_레이어는_모두_영어_제목이_있다(self):
+        """카탈로그는 영어판에서 레이어 **이름**으로 `LAYER_EN` 을 찾는다(`views._catalog`). 지역 탭의 화석·화산 열둘이 제목으로만
+        적혀 영어판에 한국어가 떴다 (wetherilli 203). `manage.py i18n_missing` 은 DB 가 있어야 돌아 씨앗 파일을 곧장 본다"""
+        import json
+        missing = []
+        for path in sorted((HERE.parent.parent / "data").glob("*_layers.json")):
+            data = json.loads(path.read_text(encoding="utf-8"))
+            for row in data.get("레이어", []) if isinstance(data, dict) else []:
+                if KOREAN.search(row.get("title", "")) and row["name"] not in i18n.LAYER_EN:
+                    missing.append(f"{path.name}: {row['name']}")
+        self.assertEqual(missing, [], "i18n.LAYER_EN 에 영어 제목을 적는다:\n" + "\n".join(missing))
+
     def test_자리표가_짝이_맞는다(self):
         for ko, en in i18n.EN.items():
             self.assertEqual(sorted(re.findall(r"\{(\w+)\}", ko)),

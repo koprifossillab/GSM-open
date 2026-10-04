@@ -293,3 +293,23 @@ class Basemap(SimpleTestCase):
             r = self.client.get("/GSM/vworld/Base/15/1000/1000.png")
         self.assertEqual(r.status_code, 200)
         self.assertEqual(r["Content-Type"], "image/png")
+
+
+class MinZoom(TestCase):
+    """가까이서만 그려 주는 레이어(토양·산림·국가유산)는 카탈로그가 `minZoom` 을 준다 — 멀리서 빈 타일을 묻지 않게 (wetherilli 193)."""
+
+    def test_표의_이름은_모두_씨앗에_있는_타일_레이어다(self):
+        from django.conf import settings
+        seed = json.loads((settings.REPO_DIR / "data" / "vworld_layers.json").read_text(encoding="utf-8"))
+        tiles = {l["name"] for l in seed["레이어"] if l.get("kind", "wms") == "wms"}
+        self.assertLessEqual(set(vworld.MIN_ZOOM), tiles)
+
+    @override_settings(VWORLD_KEY="SECRET")
+    def test_카탈로그가_싣는다(self):
+        from viewer import views
+        g = LayerGroup.objects.create(name="토양", region="korea", order=1)
+        Layer.objects.create(name="lt_c_asitsoildep", title="유효토심", group=g, upstream="vworld")
+        Layer.objects.create(name="lt_c_wkmstrm", title="하천망", group=g, upstream="vworld")
+        rows = {l["name"]: l for grp in views._catalog("ko") for l in grp["layers"]}
+        self.assertEqual(rows["lt_c_asitsoildep"]["minZoom"], 12)
+        self.assertNotIn("minZoom", rows["lt_c_wkmstrm"])

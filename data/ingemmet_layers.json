@@ -1,0 +1,37 @@
+{
+ "_주석": "INGEMMET(페루 지질광업야금연구소) 지질도 씨앗이다 — 페루 탭(남미 묶음에도 든다). GEOCATMIN 의 통합판 둘을 REST 타일 캐시로 그린다 — 1:5만(줌 13 까지)·1:10만(줌 16 까지). 레이어명은 ingemmet:<판> 이고 서비스 이름은 문(web/viewer/ingemmet.py)이 안다. 한글 제목과 레이어군은 사람이 붙였다 (wetherilli 195).",
+ "_뽑은날": "2026-10-04",
+ "_출처": "https://geocatmin.ingemmet.gob.pe/arcgis/rest/services/SERV_GEOLOGIA_50K_INTEGRADA/MapServer · …/SERV_GEOLOGIA_100K_INTEGRADA/MapServer",
+ "_지역": "peru",
+ "_상류": "ingemmet",
+ "_레이어군차례": 0,
+ "레이어군순서": [
+  "페루 지질도 (INGEMMET)"
+ ],
+ "레이어": [
+  {
+   "name": "ingemmet:50k",
+   "title": "지질도 1:5만 (통합판)",
+   "group": "페루 지질도 (INGEMMET)",
+   "abstract": "Carta Geológica Nacional 1:50 000 integrada (GEOCATMIN)",
+   "bbox": [
+    -81.5,
+    -18.35,
+    -68.83,
+    -2.98
+   ]
+  },
+  {
+   "name": "ingemmet:100k",
+   "title": "지질도 1:10만 (통합판)",
+   "group": "페루 지질도 (INGEMMET)",
+   "abstract": "Carta Geológica Nacional 1:100 000 integrada (GEOCATMIN)",
+   "bbox": [
+    -81.84,
+    -18.58,
+    -64.5,
+    0.0
+   ]
+  }
+ ]
+}

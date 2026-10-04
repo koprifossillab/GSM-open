@@ -130,6 +130,15 @@ class Friendly(SimpleTestCase):
         self.assertEqual(props, {"이름": "Kronebreen", "관측일": "2023-09-03",
                                  "원자료 (영상)": "T33XVH_20230903T133731_B08", "전면 길이 (km)": "3.60"})
 
+    def test_쉼표_소수는_어느_열이든_한_곳에서(self):
+        """노르웨이 꼴 소수(쉼표)를 열 이름과 상관없이 고친다 (wetherilli 193). 글·천 단위 둘은 건드리지 않는다."""
+        self.assertEqual(npolar.decimal_point("3,595676"), "3.595676")
+        self.assertEqual(npolar.decimal_point("-12,5"), "-12.5")
+        for same in ("Hornsund, Sørkapp", "1,234,567", "12", 3.5, None, "Kronebreen"):
+            self.assertEqual(npolar.decimal_point(same), same)
+        props = npolar.friendly({"Name": "X", "Type section / area": "0,75"})
+        self.assertEqual(props["모식지"], "0.75")
+
     def test_주소는_링크로(self):
         props = npolar.friendly({"URL": "http://nhm2.uio.no/norges/litho/svalbard/gips.htm#cp50",
                                  "Stratigraphic Unit": "Cadellfjellet Member"})

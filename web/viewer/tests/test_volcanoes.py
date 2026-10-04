@@ -64,7 +64,8 @@ class Door(SimpleTestCase):
             out = io.StringIO()
             call_command("fetch_gvp", stdout=out)
         self.assertIn("화산 4 곳", out.getvalue())
-        self.assertEqual(get.call_args.kwargs["params"]["typeName"], gvp.LAYER)
+        # 갈래마다 한 번 — 홀로세가 먼저, 플라이스토세가 다음 (wetherilli 194)
+        self.assertEqual([c.kwargs["params"]["typeName"] for c in get.call_args_list], [gvp.LAYER, gvp.LAYERS["pleistocene"]])
         self.assertNotIn("key", get.call_args.kwargs["params"])
         data = json.loads((Path(folder) / volcanoes.FILE).read_text(encoding="utf-8"))
         self.assertEqual(len(data["volcanoes"]), 4)
@@ -123,3 +124,50 @@ class Views(TestCase):
             page = self.client.get(reverse("viewer:earth")).content.decode()
         self.assertEqual(Image.open(io.BytesIO(r.content)).convert("RGBA").getextrema()[3], (0, 0))
         self.assertIn('"volcanoes": []', page)
+
+
+#: 2026-10-04 에 `Smithsonian_VOTW_Pleistocene_Volcanoes` 를 받은 꼴 — 마지막 분화·지구조·암석 열이 없다 (wetherilli 194)
+PLEISTOCENE = {"type": "FeatureCollection", "features": [
+    {"type": "Feature", "geometry": {"type": "Point", "coordinates": [149.339, -4.624]},
+     "properties": {"Volcano_Number": 252021, "Volcano_Name": "Mundua", "Volcanic_Landform": "Composite",
+                    "Primary_Volcano_Type": "Complex", "Country": "Papua New Guinea", "Region": "…",
+                    "Subregion": "Bismarck Sea Volcanic Province", "Geological_Summary": "…", "Elevation": 171,
+                    "Geologic_Epoch": "Pleistocene"}}]}
+
+
+class Pleistocene(TestCase):
+    """플라이스토세 화산 — 따로 받아 따로 그린다 (wetherilli 194)"""
+
+    def setUp(self):
+        self.dir = tempfile.mkdtemp(prefix="gsm-gvp-p-")
+        patch = override_settings(EARTH_DIR=self.dir, TILE_CACHE_DIR=tempfile.mkdtemp(prefix="gsm-gvp-pt-"))
+        patch.enable()
+        self.addCleanup(patch.disable)
+        written(self.dir)
+        (Path(self.dir) / volcanoes.FILES["pleistocene"]).write_text(
+            json.dumps({"fetched": "2026-10-04", "volcanoes": gvp.shrink(PLEISTOCENE)}), encoding="utf-8")
+
+    def test_받기는_갈래마다(self):
+        answer = mock.Mock(status_code=200, url="…", content=b"{}", json=lambda: PLEISTOCENE)
+        with mock.patch("viewer.gvp.requests.get", return_value=answer) as get, mock.patch.object(gvp.usage, "record"):
+            call_command("fetch_gvp", kind=["pleistocene"], stdout=io.StringIO())
+        self.assertEqual(get.call_args.kwargs["params"]["typeName"], gvp.LAYERS["pleistocene"])
+
+    def test_한_색으로_찍는다(self):
+        url = reverse("viewer:earth-pleistocene-tile", kwargs={"z": 0, "x": 1, "y": 0})
+        im = Image.open(io.BytesIO(self.client.get(url).content)).convert("RGB")
+        colours = {c for _, c in im.getcolors(1 << 16) if c != (0, 0, 0)}
+        self.assertTrue(any(abs(c[0] - 0x8c) < 12 and abs(c[2] - 0xb1) < 12 for c in colours))
+
+    def test_누르면_켠_갈래에서(self):
+        url = reverse("viewer:earth-volcano-at")
+        only = self.client.get(url, {"lon": 149.34, "lat": -4.62, "r": 0.2}).json()
+        self.assertEqual(only["hits"], [])                                    # 홀로세만 물으면 없다
+        both = self.client.get(url, {"lon": 149.34, "lat": -4.62, "r": 0.2, "kinds": "holocene,pleistocene"}).json()
+        rows = dict(both["hits"][0]["rows"])
+        self.assertEqual((rows["화산"], rows["시대"]), ("Mundua", "플라이스토세"))
+        self.assertNotIn("마지막 분화", rows)
+
+    def test_화면이_레이어를_받는다(self):
+        page = self.client.get(reverse("viewer:earth")).content.decode()
+        self.assertIn("플라이스토세 화산 — 분화 기록이 없다", page)

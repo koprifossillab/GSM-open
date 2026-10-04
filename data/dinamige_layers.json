@@ -1,0 +1,49 @@
+{
+ "_주석": "DINAMIGE(우루과이 광업지질국, MIEM) 지질도 씨앗이다 — 우루과이 탭(남미 묶음에도 든다). Carta Geológica del Uruguay 1:500.000 갱신판 한 판이다. WMS 레이어는 번호뿐이라 이름은 dinamige:<WMS 번호> — REST 의 번호와 거꾸로다(WMS 0 이 지질 단위) (web/viewer/dinamige.py). 한글 제목은 사람이 붙였다 (wetherilli 196).",
+ "_뽑은날": "2026-10-04",
+ "_출처": "https://geoportal.miem.gub.uy/arcgis1091/services/Dinamige_GeoS/MapaBaseUnidadesGeologicasGeoS/MapServer/WMSServer?request=GetCapabilities&service=WMS",
+ "_지역": "uruguay",
+ "_상류": "dinamige",
+ "_레이어군차례": 0,
+ "레이어군순서": [
+  "우루과이 지질도 (DINAMIGE 1:50만)"
+ ],
+ "레이어": [
+  {
+   "name": "dinamige:0",
+   "title": "지질 단위 (1:50만)",
+   "group": "우루과이 지질도 (DINAMIGE 1:50만)",
+   "abstract": "Unidades Geológicas — color y trama",
+   "bbox": [
+    -58.46,
+    -34.99,
+    -53.08,
+    -30.03
+   ]
+  },
+  {
+   "name": "dinamige:1",
+   "title": "단층·접촉·선구조 (1:50만)",
+   "group": "우루과이 지질도 (DINAMIGE 1:50만)",
+   "abstract": "Líneas de fallas, contactos y lineamientos",
+   "bbox": [
+    -58.46,
+    -34.99,
+    -53.08,
+    -30.03
+   ]
+  },
+  {
+   "name": "dinamige:2",
+   "title": "암맥 (1:50만)",
+   "group": "우루과이 지질도 (DINAMIGE 1:50만)",
+   "abstract": "Filones",
+   "bbox": [
+    -58.46,
+    -34.99,
+    -53.08,
+    -30.03
+   ]
+  }
+ ]
+}

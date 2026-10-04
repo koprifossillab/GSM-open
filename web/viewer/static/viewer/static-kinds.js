@@ -510,18 +510,21 @@
   };
 
   /** 여느 WMS(EMODnet 3413·KPDC 3031/3413) — 타일·속성(JSON)·범례(그림) */
-  function wmsKind(url, layerOf, projectionOf, friendly, attribution) {
+  /** WMS 상류 하나. `url` 은 글자이거나 레이어 이름 → 주소의 함수다. `infoFormat` 은 속성의 꼴 — 기본 `application/json`,
+   *  ArcGIS 는 `application/geo+json` 이다(콜롬비아 SGC, wetherilli 201) */
+  function wmsKind(url, layerOf, projectionOf, friendly, attribution, infoFormat) {
+    var urlOf = typeof url === "function" ? url : function () { return url; };
     return {
       source: function (name) {
         var code = projectionOf(name);
         return named(name, new ol.source.TileWMS({
-          url: url, params: { LAYERS: layerOf(name), TILED: true, FORMAT: "image/png", TRANSPARENT: true },
+          url: urlOf(name), params: { LAYERS: layerOf(name), TILED: true, FORMAT: "image/png", TRANSPARENT: true },
           projection: code, tileGrid: tileGrid(code), crossOrigin: "anonymous", transition: 0, attributions: attribution,
         }));
       },
       info: function (source, coordinate, view) {
         var u = source.getFeatureInfoUrl(coordinate, view.getResolution(), view.getProjection(),
-                                         { INFO_FORMAT: "application/json", FEATURE_COUNT: 5 });
+                                         { INFO_FORMAT: infoFormat || "application/json", FEATURE_COUNT: 5 });
         if (!u) return null;
         return getJson(u).then(function (data) {
           return tidy((data.features || []).map(function (f) {
@@ -530,7 +533,7 @@
         });
       },
       legend: function (name) {
-        return Promise.resolve({ img: query(url, { service: "WMS", version: "1.1.1", request: "GetLegendGraphic",
+        return Promise.resolve({ img: query(urlOf(name), { service: "WMS", version: "1.1.1", request: "GetLegendGraphic",
                                                    format: "image/png", layer: layerOf(name) }) });
       },
     };
@@ -550,8 +553,29 @@
   // 모아 둔 파일에서 그리는 KOPRI 점(시료·운석·KPDC 목록)은 여기 없다 — 굽는 쪽(bake_static)이 싣는다
   KINDS.kopri.points = null;
 
+  // ── 콜롬비아 1:50만 — SGC ArcGIS WMS (wetherilli 201) ──
+  // 조건이 열린 판(CC BY 4.0)만 표(`T.sgc.sheets`)에 실려 온다. SGC 는 Origin 을 되돌려 주어 곧장 부른다. 이름은 `sgc:<판>:<번호>`
+  var sgcT = T.sgc || {};
+  function sgcSheet(name) { return String(name).split(":")[1]; }
+  function sgcUrl(name) { return sgcT.url + "/" + (sgcT.sheets || {})[sgcSheet(name)] + "/MapServer/WMSServer"; }
+  /** `sgc.friendly` 의 콜롬비아 판 갈래 — 값은 에스파냐어 그대로다. 남미 판(영문 시대를 옮기는 것)은 정적 판에 없다 */
+  function sgcFriendly(props) {
+    var out = {};
+    (sgcT.friendly || []).forEach(function (pair) {
+      var value = props[pair[0]];
+      if (value == null) return;
+      value = String(value).trim();
+      if (!value || value.toLowerCase() === "null" || out[pair[1]] != null) return;
+      out[pair[1]] = value;
+    });
+    return out;
+  }
+  KINDS.sgc = wmsKind(sgcUrl, function (name) { return String(name).split(":")[2]; }, function () { return "EPSG:3857"; },
+                      sgcFriendly, sgcT.attribution, "application/geo+json");
+
   window.GSM_STATIC_KINDS = KINDS;
   // 시험·다른 화면이 같은 손질을 쓰게 — 정적 판의 다른 파일(개인 레이어 따위)도 지질시대를 옮길 수 있다
   window.GSM_STATIC_HELPERS = { ageKo: ageKo, parsePlain: parsePlain, compact: compact, classOf: classOf, pointBody: pointBody,
-                                npiFriendly: npiFriendly, emodFriendly: emodFriendly, geusFriendly: geusFriendly, tidy: tidy };
+                                npiFriendly: npiFriendly, emodFriendly: emodFriendly, geusFriendly: geusFriendly, sgcFriendly: sgcFriendly,
+                                tidy: tidy };
 })();

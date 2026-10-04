@@ -237,3 +237,26 @@ def pct(value, scale: float):
         return BELOW_UNKNOWN
     return float(f"{number * scale:.6g}")
 
+
+
+def renderer_colors(renderer: dict) -> dict:
+    """ArcGIS 칠하기 규칙(`drawingInfo.renderer`, uniqueValue) → `{값: "#rrggbb"}` (wetherilli 195·198).
+
+    옛 꼴은 `uniqueValueInfos` 의 `value` 하나, 새 꼴(ArcGIS Pro 로 올린 것)은 `uniqueValueGroups[].classes[].values` 에 값 묶음이다
+    (에콰도르 IIGE). 둘 다 읽는다. 값은 앞뒤 빈칸을 떼고 글자로 둔다."""
+    def hexa(symbol):
+        color = (symbol or {}).get("color")
+        return "#" + "".join(f"{int(v):02x}" for v in list(color)[:3]) if color else None
+
+    table = {}
+    for info in renderer.get("uniqueValueInfos") or []:
+        color = hexa(info.get("symbol"))
+        if color:
+            table[str(info.get("value")).strip()] = color
+    for group in renderer.get("uniqueValueGroups") or []:
+        for cls in group.get("classes") or []:
+            color = hexa(cls.get("symbol"))
+            for values in cls.get("values") or []:
+                if color and values:
+                    table[str(values[0]).strip()] = color
+    return table

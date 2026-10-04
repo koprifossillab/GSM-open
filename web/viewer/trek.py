@@ -596,10 +596,24 @@ _MARS_VALUE_IDS = (
 )
 
 
+#: 수성 (wetherilli 194) — 화성처럼 표고를 그린 판(색 음영·음영)을 켜면 MESSENGER 665 m DEM 의 높이를 낸다. 점묶음의 표고
+#: (`mercury_values`)와 같은 서비스다. 지역 DEM(`MSGR_*_DEM_*`)은 씨앗에 타일이 없어 화면에 서지 않는다 — 넣지 않았다
+MERCURY_VALUES = {
+    "mercury_elev": ("arcgis", "mercury/Mercury_Messenger_USGS_DEM_Global_665m_v2", "높이 — 수성 기준구 2439.4 km", "m", 1,
+                     -12000, 12000, 0, "MESSENGER · USGS 665 m"),
+}
+_MERCURY_VALUE_IDS = (
+    (re.compile(r"^Mercury_Messenger_USGS_DEM_665m_v2_Hillshade(Color)?$"), "mercury_elev"),
+    (re.compile(r"^Mercury_Messenger_USGS_ClrShade_Global_2km$"), "mercury_elev"),
+)
+
+
 def value_key(body: str, label: str) -> str:
-    """씨앗의 판 → 누른 자리의 값 갈래. 없으면 빈 칸. 달과 화성(wetherilli 192)."""
+    """씨앗의 판 → 누른 자리의 값 갈래. 없으면 빈 칸. 달·화성(wetherilli 192)·수성(194)."""
     if body == "mars":
         return next((key for pattern, key in _MARS_VALUE_IDS if pattern.match(label)), "")
+    if body == "mercury":
+        return next((key for pattern, key in _MERCURY_VALUE_IDS if pattern.match(label)), "")
     if body != "moon":
         return ""
     for pattern, key in _VALUE_IDS:
@@ -613,6 +627,8 @@ def value_at(key: str, lon: float, lat: float) -> dict:
     """`{"rows": [[이름, "16.7 wt%"], ["출처", …]]}` — 자료 밖이면 rows 가 빈다. 이름은 한국어 원문이다."""
     if key in MARS_VALUES:
         return _value_rows(MARS_VALUES[key], lon, lat, MARS_SR, _body_base("mars"))
+    if key in MERCURY_VALUES:
+        return _value_rows(MERCURY_VALUES[key], lon, lat, MERCURY_SR, _body_base("mercury"))
     root, service, label, unit, scale, lo, hi, digits, source = VALUES[key]
     # Kaguya MI 는 남북위 50° 안뿐이다. 밖을 물으면 빈 값이 아니라 "Invalid … parameters" 오류가 온다(2026-09-30)
     if abs(lat) > VALUE_LAT.get(key, 90) or lat < VALUE_NORTH.get(key, -90):
@@ -1064,8 +1080,8 @@ def mars_traverses() -> list:
 #
 # 화성과 같은 틀이다 — 주소만 `settings.TREK_MERCURY_URL` 밑이다. **ArcGIS 의 뿌리가 다르다** — 달·화성의
 # `trekarcgis/` 가 아니라 `arcgis/rest/services/mercury/` 다(2026-10-02, `trekarcgis` 는 404).
-# 지질도는 아직 없다 — Trek 의 5M 도폭 일곱은 색인·Capabilities 만 있고 타일이 404 다(2026-10-02). 원본
-# 셰이프파일을 우리가 굽는 것이 다음 단계다(P10 §2). 영상 배경(MESSENGER MDIS)은 브라우저가 곧장 부른다.
+# 지질도는 Trek 에서 받지 않는다 — Trek 의 5M 도폭 일곱은 색인·Capabilities 만 있고 타일이 404 다(2026-10-02). USGS 1:500만
+# 도폭 합본을 우리가 굽는다(`mercurymap.py`, wetherilli 144). 영상 배경(MESSENGER MDIS)은 브라우저가 곧장 부른다.
 
 MERCURY_ATTRIBUTION = ("MESSENGER MDIS (NASA/JHUAPL/Carnegie Institution of Washington) · "
                        "MESSENGER DEM v2 (USGS, Becker et al., 2016) · via NASA Mercury Trek")

@@ -64,8 +64,9 @@ class Views(TestCase):
                        for l in g["layers"]}
 
     def test_씨앗과_지역(self):
-        self.assertEqual(Layer.objects.get(name="sgc:sa:8").group.region, "south_america")
-        self.assertEqual(Layer.objects.get(name="sgc:co:3").group.region, "south_america")
+        # 콜롬비아 지역에 둘 다 둔다 — 남미 1:500만은 브라질 탭이 빌린다 (wetherilli 191)
+        self.assertEqual(Layer.objects.get(name="sgc:sa:8").group.region, "colombia")
+        self.assertEqual(Layer.objects.get(name="sgc:co:3").group.region, "colombia")
         self.assertNotEqual(Layer.objects.get(name="sgc:sa:8").group, Layer.objects.get(name="sgc:co:3").group)
         self.assertEqual(self.layers["sgc:co:3"]["projection"], "EPSG:3857")
         self.assertIn("CGMW", self.layers["sgc:sa:8"]["attribution"])

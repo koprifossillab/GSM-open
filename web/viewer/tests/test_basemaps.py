@@ -114,3 +114,35 @@ class Script(TestCase):
         js = self.code("earth.js")
         self.assertNotIn("gibs.earthdata", js)
         self.assertNotIn("wms.gebco", js)
+
+
+class Npi(TestCase):
+    """NPI 스발바르 배경 타일 — 서비스 설명이 CC BY 4.0 이라 서버가 담는다 (wetherilli 200)"""
+
+    def setUp(self):
+        tmp = tempfile.TemporaryDirectory()
+        self.addCleanup(tmp.cleanup)
+        patch = override_settings(TILE_CACHE_DIR=tmp.name, TILE_CACHE_SECONDS=86400)
+        patch.enable()
+        self.addCleanup(patch.disable)
+
+    def test_브라우저가_부르던_주소로_받아_담는다(self):
+        url = reverse("viewer:npi-tile", kwargs={"service": "NP_Basiskart_Svalbard_WMTS_25833", "z": "5", "y": "40", "x": "50"})
+        with mock.patch.object(basemaps.requests, "get", return_value=answer(PNG, "image/png")) as get:
+            first, second = self.client.get(url), self.client.get(url)
+        get.assert_called_once()
+        self.assertEqual(get.call_args.args[0], "https://geodata.npolar.no/arcgis/rest/services/Basisdata/"
+                                                "NP_Basiskart_Svalbard_WMTS_25833/MapServer/tile/5/40/50")
+        self.assertEqual((first["X-GSM-Cache"], second["X-GSM-Cache"]), ("miss", "hit"))
+
+    def test_모르는_서비스·줌은_묻지_않는다(self):
+        with mock.patch.object(basemaps.requests, "get") as get:
+            self.assertEqual(self.client.get("/GSM/npi/NP_Basiskart_Intern/1/0/0").status_code, 404)
+            self.assertEqual(self.client.get("/GSM/npi/NP_Satellitt_Svalbard_WMTS_25833/18/0/0").status_code, 404)
+        get.assert_not_called()
+
+    def test_화면은_서버를_거치고_정적_판만_곧장(self):
+        js = Script.code(self, "map.js")
+        for line in (l for l in js.splitlines() if "geodata.npolar.no/arcgis/rest/services/Basisdata" in l):
+            self.assertIn("STATIC ?", line)
+        self.assertIn('BASE + "npi/" + service', js)

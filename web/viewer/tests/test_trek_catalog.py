@@ -394,3 +394,51 @@ class MarsPolar(SimpleTestCase):
         outside = mock.Mock(status_code=200, text=json.dumps(out), json=lambda: out)
         with mock.patch("viewer.trek._get", return_value=outside):
             self.assertEqual(trek.value_at("mars_gale", 0, 0), {"rows": []})
+
+
+class MercuryValues(SimpleTestCase):
+    """수성 표고 판의 값 (wetherilli 194) — 화성의 것(192)을 옮겼다"""
+
+    def test_표고_판만(self):
+        self.assertEqual(trek.value_key("mercury", "Mercury_Messenger_USGS_ClrShade_Global_2km"), "mercury_elev")
+        self.assertEqual(trek.value_key("mercury", "Mercury_Messenger_USGS_DEM_665m_v2_HillshadeColor"), "mercury_elev")
+        self.assertEqual(trek.value_key("mercury", "Mercury_Messenger_USGS_DEM_665m_v2_SlopeColor"), "")
+        body = {"samples": [{"value": "1356.2"}]}
+        ok = mock.Mock(status_code=200, text=json.dumps(body), json=lambda: body)
+        with mock.patch("viewer.trek._get", return_value=ok) as get:
+            self.assertEqual(trek.value_at("mercury_elev", -31.5, -11.3)["rows"][0],
+                             ["높이 — 수성 기준구 2439.4 km", "1,356 m"])
+        self.assertIn("arcgis/rest/services/mercury/Mercury_Messenger_USGS_DEM_Global_665m_v2/ImageServer",
+                      get.call_args[0][0])
+
+
+class BodyValueViews(TestCase):
+    """`mars/values/`·`mercury/values/` 끝점 (wetherilli 192·194) — 달의 것(`moon_values`)과 한 몸이다. 시험이 빠져 있던 것 (203)"""
+
+    def setUp(self):
+        patch = override_settings(TILE_CACHE_DIR=tempfile.mkdtemp(prefix="gsm-body-values-"))
+        patch.enable()
+        self.addCleanup(patch.disable)
+
+    def test_화성·수성_값과_캐시(self):
+        rows = {"rows": [["높이 — 화성 기준면(아레오이드)", "19,995 m"], ["출처", "MOLA–HRSC 200 m"]]}
+        with mock.patch("viewer.trek.value_at", return_value=rows) as at:
+            url = reverse("viewer:mars-values")
+            ko = self.client.get(url, {"lon": "-133.8", "lat": "18.65", "key": "mars_elev"}).json()
+            en = self.client.get(url, {"lon": "-133.8", "lat": "18.65", "key": "mars_elev"}, HTTP_COOKIE="gsm_lang=en").json()
+        self.assertEqual(at.call_count, 1)                                    # 캐시
+        self.assertEqual(ko["rows"][0], ["높이 — 화성 기준면(아레오이드)", "19,995 m"])
+        self.assertEqual(en["rows"][0], ["Elevation — above the Mars areoid", "19,995 m"])
+        with mock.patch("viewer.trek.value_at", return_value={"rows": []}):
+            got = self.client.get(reverse("viewer:mercury-values"), {"lon": "0", "lat": "0", "key": "mercury_elev"}).json()
+        self.assertEqual(got["rows"], [])
+
+    def test_모르는_갈래·자리는_400(self):
+        self.assertEqual(self.client.get(reverse("viewer:mars-values"), {"lon": "0", "lat": "0", "key": "feo"}).status_code, 400)
+        self.assertEqual(self.client.get(reverse("viewer:mercury-values"),
+                                         {"lon": "0", "lat": "99", "key": "mercury_elev"}).status_code, 400)
+
+    def test_상류가_못_주면_502(self):
+        with mock.patch("viewer.trek.value_at", side_effect=trek.TrekError("x")):
+            r = self.client.get(reverse("viewer:mars-values"), {"lon": "1", "lat": "1", "key": "mars_gale"})
+        self.assertEqual(r.status_code, 502)

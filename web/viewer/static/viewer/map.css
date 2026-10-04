@@ -1455,6 +1455,12 @@ button.proplink { font-family: inherit; line-height: inherit; cursor: pointer; }
   #scalebar { left: 8px; bottom: 54px; transform: scale(.82); transform-origin: left bottom; }
   .ol-attribution { bottom: 52px !important; right: 8px !important; max-width: calc(100% - 16px); }
   .popup { min-width: 0; width: min(320px, calc(100vw - 24px)); max-width: calc(100vw - 24px); max-height: 50vh; }
+  /* 닫기 단추가 × 글자 크기(11 px)라 손가락에 작았다 — 32 px 네모로, 첫 줄이 그 밑에 들지 않게 비킨다 (wetherilli 193) */
+  .popup-close { top: 2px; right: 2px; width: 32px; height: 32px; }
+  /* 팝업이 도구 묶음(z 6) 밑에 깔려 닫기 단추가 가려졌다 — 공유 단추(189)로 묶음이 길어져 드러났다. 팝업은 OpenLayers 가 인라인
+     z-index 0 을 건 겹 안에 있어 올릴 수 없다. 좁은 화면에서는 팝업이 지도를 거의 덮으니 열린 동안 묶음을 숨긴다 (wetherilli 193) */
+  #map-wrap.popup-open #toolbar { visibility: hidden; }
+  .popup > #popup-body > :first-child { padding-right: 28px; }
 }
 
 /* 범위잡기 — 끄는 동안의 네모. 다 그리면 지도 위의 금색 네모(rangeStyle)로 바뀐다 */
@@ -1842,7 +1848,7 @@ button.proplink { font-family: inherit; line-height: inherit; cursor: pointer; }
   --hi: #123a28; --hi-deep: #0a2418; --on-hi: #f3fbf7; --hi-ink: #1d8a5a;
   --glass: rgba(250, 253, 251, .95); --glass-line: #cfe0d7;
 }
-/* 남미 — 안데스의 구리빛 (wetherilli 188) */
+/* 남미(묶음) — 안데스의 구리빛 (wetherilli 188) */
 :root[data-region="south_america"] {
   --bg: #17110d; --panel: #1f1712; --panel-tint: #120d0a; --raise: #2a1f18;
   --ink: #f6ece4; --ink-soft: #cdb4a2; --ink-faint: #8e7464;
@@ -2246,3 +2252,139 @@ a.tool { text-decoration: none; }                /* 3D 단추는 링크다 */
 .key-check.bad { color: var(--direct-ink); font-weight: 600; }
 .key-forget { display: flex; gap: 6px; align-items: center; font-size: 12px; margin: 0 0 12px; }
 .key-buttons { display: flex; gap: 8px; justify-content: flex-end; flex-wrap: wrap; }
+
+/* ── 콜롬비아 (wetherilli 191) — 커피 열매의 진홍: 볶은 원두 바탕 ── */
+:root[data-region="colombia"] {
+  --bg: #161010; --panel: #1f1615; --panel-tint: #120c0c; --raise: #2b1e1d;
+  --ink: #f7ecea; --ink-soft: #d3b5b1; --ink-faint: #93736f;
+  --line: #3c2826; --line-soft: #2b1e1d;
+  --gold: #d2414b; --gold-bright: #f08d93; --gold-muted: #b23a43;
+  --gold-wash: rgba(210, 65, 75, .13); --gold-edge: rgba(210, 65, 75, .42);
+  --hi: #d2414b; --hi-deep: #f08d93; --on-hi: #120c0c; --hi-ink: #f08d93;
+  --glass: rgba(18, 12, 12, .93); --glass-line: rgba(210, 65, 75, .35);
+}
+:root[data-region="colombia"][data-theme="light"] {
+  --bg: #f8efee; --panel: #fefbfb; --panel-tint: #faf3f2; --raise: #efe0de;
+  --ink: #2a1413; --ink-soft: #63443f; --ink-faint: #9e817d;
+  --line: #e6d2cf; --line-soft: #efe0de;
+  --gold: #a92a33; --gold-bright: #831c24; --gold-muted: #9c5258;
+  --gold-wash: #f8e2e3; --gold-edge: #e8b0b4;
+  --hi: #4e1418; --hi-deep: #300a0d; --on-hi: #fdf4f4; --hi-ink: #a92a33;
+  --glass: rgba(254, 251, 251, .95); --glass-line: #e6d2cf;
+}
+
+/* ── 브라질 (wetherilli 191) — 이페(ipê-amarelo) 꽃의 노랑: 대서양림의 짙은 초록 바탕 ── */
+:root[data-region="brazil"] {
+  --bg: #0f140d; --panel: #161c13; --panel-tint: #0b0f09; --raise: #20281b;
+  --ink: #f3f5e8; --ink-soft: #c5cbad; --ink-faint: #858c6c;
+  --line: #2c3524; --line-soft: #20281b;
+  --gold: #e9c21d; --gold-bright: #f6dd72; --gold-muted: #c7a51c;
+  --gold-wash: rgba(233, 194, 29, .12); --gold-edge: rgba(233, 194, 29, .4);
+  --hi: #e9c21d; --hi-deep: #f6dd72; --on-hi: #0b0f09; --hi-ink: #f6dd72;
+  --glass: rgba(11, 15, 9, .93); --glass-line: rgba(233, 194, 29, .33);
+}
+:root[data-region="brazil"][data-theme="light"] {
+  --bg: #f4f5ea; --panel: #fdfdf8; --panel-tint: #f8f9f0; --raise: #e7e9d6;
+  --ink: #1b2010; --ink-soft: #4f5638; --ink-faint: #868c6c;
+  --line: #dcdfc6; --line-soft: #e7e9d6;
+  --gold: #8f7400; --gold-bright: #6d5800; --gold-muted: #8a7a3a;
+  --gold-wash: #f6efc9; --gold-edge: #e3d27f;
+  --hi: #23300f; --hi-deep: #141d07; --on-hi: #fbfcf2; --hi-ink: #8f7400;
+  --glass: rgba(253, 253, 248, .95); --glass-line: #dcdfc6;
+}
+
+/* ── 페루 (wetherilli 195) — 티티카카 호수의 쪽빛: 알티플라노의 밤 ── */
+:root[data-region="peru"] {
+  --bg: #0e1118; --panel: #151a24; --panel-tint: #0a0d13; --raise: #1f2633;
+  --ink: #edf1f9; --ink-soft: #b5c0d6; --ink-faint: #74809a;
+  --line: #2a3345; --line-soft: #1f2633;
+  --gold: #5b8ce6; --gold-bright: #a7c2f3; --gold-muted: #4f78c2;
+  --gold-wash: rgba(91, 140, 230, .13); --gold-edge: rgba(91, 140, 230, .42);
+  --hi: #5b8ce6; --hi-deep: #a7c2f3; --on-hi: #0a0d13; --hi-ink: #a7c2f3;
+  --glass: rgba(10, 13, 19, .93); --glass-line: rgba(91, 140, 230, .35);
+}
+:root[data-region="peru"][data-theme="light"] {
+  --bg: #eff2f8; --panel: #fbfcfe; --panel-tint: #f4f6fb; --raise: #e1e7f1;
+  --ink: #121a2b; --ink-soft: #46526b; --ink-faint: #7f8aa1;
+  --line: #d3dbe9; --line-soft: #e1e7f1;
+  --gold: #2d5bb5; --gold-bright: #1f4389; --gold-muted: #4f6896;
+  --gold-wash: #e1e9f8; --gold-edge: #a9c0ea;
+  --hi: #15264a; --hi-deep: #0b162e; --on-hi: #f5f8fd; --hi-ink: #2d5bb5;
+  --glass: rgba(251, 252, 254, .95); --glass-line: #d3dbe9;
+}
+
+/* ── 아르헨티나 (wetherilli 196) — 페리토 모레노 빙하의 청록: 파타고니아 고원의 회갈 바탕 ── */
+:root[data-region="argentina"] {
+  --bg: #10141a; --panel: #161c23; --panel-tint: #0c1015; --raise: #202831;
+  --ink: #eef3f7; --ink-soft: #b4c3cf; --ink-faint: #74848f;
+  --line: #2a3540; --line-soft: #202831;
+  --gold: #4fb3c8; --gold-bright: #93d6e4; --gold-muted: #3f93a5;
+  --gold-wash: rgba(79, 179, 200, .13); --gold-edge: rgba(79, 179, 200, .42);
+  --hi: #4fb3c8; --hi-deep: #93d6e4; --on-hi: #0c1015; --hi-ink: #93d6e4;
+  --glass: rgba(12, 16, 21, .93); --glass-line: rgba(79, 179, 200, .35);
+}
+:root[data-region="argentina"][data-theme="light"] {
+  --bg: #eff4f6; --panel: #fbfdfd; --panel-tint: #f4f8f9; --raise: #e1eaee;
+  --ink: #142028; --ink-soft: #40525d; --ink-faint: #7f909a;
+  --line: #d3e0e6; --line-soft: #e1eaee;
+  --gold: #1f7f93; --gold-bright: #15606f; --gold-muted: #4d8591;
+  --gold-wash: #dceff3; --gold-edge: #a6d3dd;
+  --hi: #123a44; --hi-deep: #0a252c; --on-hi: #f4fbfc; --hi-ink: #1f7f93;
+  --glass: rgba(251, 253, 253, .95); --glass-line: #d3e0e6;
+}
+
+/* ── 우루과이 (wetherilli 196) — 마노(瑪瑙, 아르티가스의 자수정·마노 지오드)의 보라 ── */
+:root[data-region="uruguay"] {
+  --bg: #141019; --panel: #1b1522; --panel-tint: #100c14; --raise: #261e2f;
+  --ink: #f2edf7; --ink-soft: #c5b8d3; --ink-faint: #857894;
+  --line: #352a41; --line-soft: #261e2f;
+  --gold: #a679d6; --gold-bright: #cfb0ee; --gold-muted: #8a62b4;
+  --gold-wash: rgba(166, 121, 214, .13); --gold-edge: rgba(166, 121, 214, .42);
+  --hi: #a679d6; --hi-deep: #cfb0ee; --on-hi: #100c14; --hi-ink: #cfb0ee;
+  --glass: rgba(16, 12, 20, .93); --glass-line: rgba(166, 121, 214, .35);
+}
+:root[data-region="uruguay"][data-theme="light"] {
+  --bg: #f4f0f7; --panel: #fdfbfe; --panel-tint: #f8f4fa; --raise: #e9e1ef;
+  --ink: #221a2b; --ink-soft: #54476a; --ink-faint: #8c809b;
+  --line: #e0d5e8; --line-soft: #e9e1ef;
+  --gold: #6e3fa3; --gold-bright: #552d82; --gold-muted: #7d5f9e;
+  --gold-wash: #eee3f7; --gold-edge: #cdb4e5;
+  --hi: #2c1845; --hi-deep: #1b0d2e; --on-hi: #fbf7fe; --hi-ink: #6e3fa3;
+  --glass: rgba(253, 251, 254, .95); --glass-line: #e0d5e8;
+}
+
+/* 층리·엽리 장미도 (wetherilli 197) — 팝업 안 */
+.rose-block { margin-top: 10px; }
+.rose-open { font: inherit; font-size: 12px; padding: 4px 10px; color: var(--ink); background: var(--panel-tint);
+  border: 1px solid var(--line); border-radius: var(--radius); cursor: pointer; }
+.rose-open:hover:not(:disabled) { border-color: var(--hi); }
+.rose-tabs { display: flex; flex-wrap: wrap; gap: 4px; margin: 4px 0; }
+.rose-tabs button { font: inherit; font-size: 11.5px; padding: 2px 8px; color: var(--ink-soft); background: none;
+  border: 1px solid var(--line); border-radius: 999px; cursor: pointer; }
+.rose-tabs button.on { color: var(--on-hi); background: var(--hi); border-color: var(--hi); }
+.rose-pic { display: flex; flex-wrap: wrap; gap: 4px; align-items: flex-end; justify-content: center; margin: 4px 0; }
+.rose-svg .ring, .dip-svg .ring { fill: none; stroke: var(--line); stroke-width: 1; }
+.rose-svg .ring.half { stroke-dasharray: 2 3; }
+.rose-svg .petal, .dip-svg .bar { fill: var(--hi); fill-opacity: .75; stroke: var(--hi-ink); stroke-width: .6; }
+.rose-svg .tick, .dip-svg .tick { font-size: 9px; fill: var(--ink-faint); text-anchor: middle; dominant-baseline: middle; }
+.rose-foot { margin: 2px 0 0; font-size: 11px; color: var(--ink-faint); line-height: 1.45; }
+
+/* ── 에콰도르 (wetherilli 198) — 갈라파고스 푸른발부비새의 하늘청록: 화산섬의 현무암 바탕 ── */
+:root[data-region="ecuador"] {
+  --bg: #0d1315; --panel: #141b1e; --panel-tint: #0a0f11; --raise: #1d272b;
+  --ink: #ecf6f7; --ink-soft: #b0c8cc; --ink-faint: #6f8a8f;
+  --line: #27363a; --line-soft: #1d272b;
+  --gold: #3fbfd1; --gold-bright: #96e0ea; --gold-muted: #39a4b3;
+  --gold-wash: rgba(63, 191, 209, .12); --gold-edge: rgba(63, 191, 209, .4);
+  --hi: #3fbfd1; --hi-deep: #96e0ea; --on-hi: #0a0f11; --hi-ink: #96e0ea;
+  --glass: rgba(10, 15, 17, .93); --glass-line: rgba(63, 191, 209, .33);
+}
+:root[data-region="ecuador"][data-theme="light"] {
+  --bg: #eef6f7; --panel: #fbfdfd; --panel-tint: #f3f9fa; --raise: #dfecee;
+  --ink: #102024; --ink-soft: #435c61; --ink-faint: #7c9499;
+  --line: #d0e2e5; --line-soft: #dfecee;
+  --gold: #1a8798; --gold-bright: #116675; --gold-muted: #4d8890;
+  --gold-wash: #dcf1f4; --gold-edge: #9fd6de;
+  --hi: #0e3a42; --hi-deep: #07232a; --on-hi: #f2fafb; --hi-ink: #1a8798;
+  --glass: rgba(251, 253, 253, .95); --glass-line: #d0e2e5;
+}

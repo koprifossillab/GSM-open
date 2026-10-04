@@ -462,13 +462,26 @@ def friendly(props: dict, lang: str = "ko") -> dict:
             value = i18n.age_ko(value)
         elif key == "Date" and re.fullmatch(r"\d{8}", str(value)):
             value = f"{str(value)[:4]}-{str(value)[4:6]}-{str(value)[6:]}"     # 빙하 전면의 20230910
-        elif key == "Length_km":
-            try:       # identify 는 노르웨이 꼴로 소수점을 쉼표로 적는다("3,595676")
-                value = f"{float(str(value).replace(',', '.')):.2f}"
-            except (TypeError, ValueError):
-                pass
+        else:
+            value = decimal_point(value)
+            if key == "Length_km" and isinstance(value, str) and _NUMBER.fullmatch(value):
+                value = f"{float(value):.2f}"
         out[label] = value
     return out
+
+
+#: identify 가 노르웨이 꼴로 적는 소수 — 소수점이 쉼표다("3,595676", wetherilli 094). 노르웨이 꼴은 천 단위를 빈칸으로 띄우므로
+#: 쉼표 하나는 소수점으로 읽는다. 쉼표가 둘 이상("1,234,567")이면 꼴이 달라 걸리지 않는다
+_COMMA_DECIMAL = re.compile(r"-?\d+,\d+")
+_NUMBER = re.compile(r"-?\d+(?:\.\d+)?")
+
+
+def decimal_point(value):
+    """쉼표 소수(`"3,595676"`)를 점 소수(`"3.595676"`)로. 그 꼴이 아니면 그대로 — 어느 열이든 여기 한 곳에서 고친다 (wetherilli 193).
+    쉼표가 하나뿐이고 양쪽이 숫자일 때만이라 "Hornsund, Sørkapp" 같은 글은 건드리지 않는다."""
+    if isinstance(value, str) and _COMMA_DECIMAL.fullmatch(value.strip()):
+        return value.strip().replace(",", ".")
+    return value
 
 
 # ── 범례 ────────────────────────────────────────────────────────────

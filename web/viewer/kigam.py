@@ -299,6 +299,58 @@ def fetch_capabilities() -> str:
     return r.text
 
 
+# ── 5만 지질도 구조 요소 — GeoServer WFS (jikhanjung P01 §4, wetherilli 199) ─────────
+#
+# 층리·엽리·화석산지·도폭 틀 따위를 통째로 받는다. **문서에 없는 주소다** — 속성(`DIRECT_REQUESTS`)과 같은 GeoServer 길이라
+# 여기 적는다. 키는 붙이지 않는다(묻지 않는 곳이다). 제품이 도는 길에서는 부르지 않고 사람이 `manage.py fetch_kigam50k` 를 가끔
+# 부른다(주간 백업에서 뺐다, wetherilli 208) — 받은 것은 `kigam50k.py` 가 디스크에서 읽는다
+
+WFS_WORKSPACE = "Geology_map"
+
+
+def wfs_url() -> str:
+    return settings.CAPABILITIES_URL.rsplit("/", 1)[0] + "/wfs"
+
+
+def wfs_type(name: str) -> str:
+    """`bedding` → `Geology_map:l_50k_geology_bedding_latest`."""
+    return f"{WFS_WORKSPACE}:l_50k_geology_{name}_latest"
+
+
+def _wfs(params: dict):
+    left = usage.paused()
+    if left:
+        raise UpstreamError(f"차단 조짐이 있어 {int(left)}초 동안 상류에 묻지 않는다")
+    base = {"service": "WFS", "version": "2.0.0", "request": "GetFeature", "srsName": "EPSG:4326"}
+    try:
+        r = requests.get(wfs_url(), params=dict(base, **params), timeout=120, verify=_verify(),
+                         headers={"User-Agent": "GSM/0.1 (kigam50k)"})
+    except requests.RequestException as exc:
+        usage.record("kigam", ok=False)
+        raise UpstreamError(f"상류에 닿지 못했다: {redact(str(exc))}") from exc
+    blocked = usage.looks_blocked(r.status_code, r.content[:1000])
+    usage.record("kigam", ok=r.status_code == 200, blocked=blocked)
+    log.info("상류 WFS %s -> %s", redact(r.url), r.status_code)
+    if r.status_code != 200:
+        raise UpstreamError(f"WFS 가 받지 않았다 (status={r.status_code})", status=r.status_code)
+    return r
+
+
+def wfs_count(name: str) -> int:
+    """상류가 센 수(`numberMatched`) — 본문 없이 `resultType=hits` 로."""
+    r = _wfs({"typeNames": wfs_type(name), "resultType": "hits"})
+    m = re.search(rb'numberMatched="(\d+)"', r.content)
+    if not m:
+        raise UpstreamError("WFS 가 센 수를 주지 않았다")
+    return int(m.group(1))
+
+
+def wfs_features(name: str) -> tuple[bytes, str]:
+    """레이어 하나를 GeoJSON 으로 통째로. `(본문, 요청 주소)`."""
+    r = _wfs({"typeNames": wfs_type(name), "outputFormat": "application/json"})
+    return r.content, redact(r.url)
+
+
 # ── 데이터셋 API — `/openapi/data` (wetherilli 169) ─────────────────────
 #
 # 지오빅데이터 오픈플랫폼의 자료 목록(시료·분석, 조사·탐사, 지질자원주제도)이다. **인증키가 필요한 길**이라 이 문으로만

@@ -144,6 +144,8 @@ GSMMA_API_URL = env("GSM_GSMMA_API_URL", "https://www.geologycloud.tw/api/v1/zh-
 EMODNET_WMS_URL = env("GSM_EMODNET_WMS_URL", "https://drive.emodnet-geology.eu/geoserver/ows")
 #: 조건이 열린 배경 — NASA GIBS(Blue Marble)·GEBCO 해저 지형. 서버가 받아 캐시에 담는다 (`viewer/basemaps.py`, wetherilli 184). 열쇠가 없다
 GIBS_URL = env("GSM_GIBS_URL", "https://gibs.earthdata.nasa.gov")
+#: NPI 의 스발바르 배경 타일 — 조건이 CC BY 4.0 이라 서버가 담는다 (wetherilli 200)
+NPI_TILE_URL = env("GSM_NPI_TILE_URL", "https://geodata.npolar.no/arcgis/rest/services/Basisdata")
 GEBCO_WMS_URL = env("GSM_GEBCO_WMS_URL", "https://wms.gebco.net/mapserv")
 #: 노르웨이·핀란드 기반암 지질도 — NGU MapServer·GTK ArcGIS WMS (`viewer/ngu.py`·`viewer/gtk.py`, wetherilli 140). 열쇠가 없다
 NGU_WMS_URL = env("GSM_NGU_WMS_URL", "https://geo.ngu.no/mapserver/BerggrunnWMS3")
@@ -159,6 +161,16 @@ GSI_WMS_URL = env("GSM_GSI_WMS_URL", "https://gsi.geodata.gov.ie/server/services
 GSNI_WMS_URL = env("GSM_GSNI_WMS_URL", "https://map.bgs.ac.uk/arcgis/services/GeoIndex_GSNI/GSNI_Geology_Landsat_WMS/MapServer/WmsServer")
 #: 남미 지질도 — SGC ArcGIS WMS 의 판 앞 주소 (wetherilli 188). 열쇠가 없다
 SGC_WMS_URL = env("GSM_SGC_WMS_URL", "https://srvags.sgc.gov.co/arcgis/services")
+#: 브라질 지질도 — SGB GeoServer 둘 (wetherilli 191). 1:100만·1:25만은 geoservicos, 2025 년판 1:250만은 opendata. 열쇠가 없다
+SGB_GEOSERVICOS_URL = env("GSM_SGB_GEOSERVICOS_URL", "https://geoservicos.sgb.gov.br/geoserver/ows")
+SGB_OPENDATA_URL = env("GSM_SGB_OPENDATA_URL", "https://opendata.sgb.gov.br/geoserver/ows")
+#: 페루 지질도 — INGEMMET GEOCATMIN ArcGIS 의 서비스 앞 주소 (wetherilli 195). 열쇠가 없다
+INGEMMET_URL = env("GSM_INGEMMET_URL", "https://geocatmin.ingemmet.gob.pe/arcgis/rest/services")
+#: 아르헨티나 SEGEMAR SIGAM GeoServer·우루과이 DINAMIGE ArcGIS (wetherilli 196). 둘 다 CORS 가 없어 서버 문으로만 간다
+SEGEMAR_WMS_URL = env("GSM_SEGEMAR_WMS_URL", "https://sigam.segemar.gov.ar/geoserver217/ows")
+DINAMIGE_URL = env("GSM_DINAMIGE_URL", "https://geoportal.miem.gub.uy/arcgis1091")
+#: 에콰도르 지질도 — IIGE ArcGIS 의 앞 주소(`services/…/WMSServer`·`rest/services/…`) (wetherilli 198). 열쇠가 없다
+IIGE_URL = env("GSM_IIGE_URL", "https://capas.geoenergia.gob.ec/arcgis")
 #: NASA Moon Trek 의 달 서비스들 (`viewer/trek.py`, devlog 036·P05). 열쇠가 없다.
 #: 지질도(ArcGIS MapServer)·표고(ImageServer)·색인(TrekServices)이 이 밑에 있다.
 TREK_URL = env("GSM_TREK_URL", "https://trek.nasa.gov/moon")
@@ -247,6 +259,8 @@ KOPRI_DIR = env("GSM_KOPRI_DIR") or str(_data_dir() / "kopri")
 #: KIGAM 오픈플랫폼의 자료 목록·상세(`/openapi/data`) — `manage.py fetch_kigam_data` 가 1 초 간격으로 모아 둔 것과 행정구역을
 #: 찾은 자리. 저장소·이미지에 두지 않는다. 지도에 무엇을 올릴지는 아직 정하지 않았다(이슈 #153, wetherilli 169).
 KIGAM_DATA_DIR = env("GSM_KIGAM_DATA_DIR") or str(_data_dir() / "kigam_data")
+#: 브라질 SGB 의 단위 이름표 — 범례에 이름·시대를 붙인다(`manage.py fetch_sgb_units`, wetherilli 191). 없어도 범례는 기호로 뜬다
+SGB_DIR = env("GSM_SGB_DIR") or str(_data_dir() / "sgb")
 #: KIGAM 5만 지질도의 층리·엽리·절리 등 — GeoServer WFS 에서 한 번 받아 둔 것(`raw/<YYYYMMDD>/`).
 #: 저장소·이미지에 두지 않는다. 없으면 자세 기호에 커서가 안 바뀔 뿐 뷰어는 돈다 (jikhanjung 004).
 KIGAM50K_DIR = env("GSM_KIGAM50K_DIR") or str(_data_dir() / "kigam50k")
@@ -395,6 +409,14 @@ GSI_CATALOG_SEED = REPO_DIR / "data" / "gsi_layers.json"
 GSNI_CATALOG_SEED = REPO_DIR / "data" / "gsni_layers.json"
 #: 남미 (wetherilli 188)
 SGC_CATALOG_SEED = REPO_DIR / "data" / "sgc_layers.json"
+#: 브라질 (wetherilli 191)
+SGB_CATALOG_SEED = REPO_DIR / "data" / "sgb_layers.json"
+#: 페루 (wetherilli 195)
+INGEMMET_CATALOG_SEED = REPO_DIR / "data" / "ingemmet_layers.json"
+SEGEMAR_CATALOG_SEED = REPO_DIR / "data" / "segemar_layers.json"
+DINAMIGE_CATALOG_SEED = REPO_DIR / "data" / "dinamige_layers.json"
+#: 에콰도르 (wetherilli 198)
+IIGE_CATALOG_SEED = REPO_DIR / "data" / "iige_layers.json"
 #: 중국 — USGS geo3al (devlog 025)
 GEO3AL_CATALOG_SEED = REPO_DIR / "data" / "geo3al_layers.json"
 #: 연구실의 암맥 기록 — phyloserver (devlog 026)
@@ -411,6 +433,8 @@ KOPRI_CATALOG_SEEDS = [REPO_DIR / "data" / f"kopri_{region}_layers.json"
                        for region in ("antarctica", "svalbard", "greenland", "arctic_ocean")]
 #: 지구 자료 점 — 화석 산지·홀로세 화산·지진·고생태 산지를 지역 탭에 (wetherilli 185). 북극은 북극해에 두고 다른 탭이 빌린다
 EARTH_CATALOG_SEEDS = [REPO_DIR / "data" / f"earth_{region}_layers.json" for region in ("korea", "antarctica", "arctic_ocean")]
+#: KIGAM 5만 구조 요소 — 화석산지·시료·광산·도폭 틀 (wetherilli 199, jikhanjung P01)
+KIGAM50K_CATALOG_SEED = REPO_DIR / "data" / "kigam50k_layers.json"
 GEOMAP_STYLES = REPO_DIR / "data" / "geomap_styles.json"
 
 # ── Django ────────────────────────────────────────────────────────────
