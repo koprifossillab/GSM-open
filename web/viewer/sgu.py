@@ -77,7 +77,7 @@ def _get(params: dict):
         usage.record("sgu", ok=False)
         raise SguError(f"SGU 에 닿지 못했다: {exc}") from exc
     log.info("SGU %s -> %s", r.url, r.status_code)
-    usage.record("sgu", ok=r.status_code == 200, blocked=usage.looks_blocked(r.status_code, r.content[:1000]))
+    usage.record("sgu", ok=r.status_code == 200, blocked=usage.looks_blocked(r.status_code, r.content[:1000]), elapsed=r.elapsed)
     return r
 
 

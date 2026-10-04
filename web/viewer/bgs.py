@@ -45,7 +45,7 @@ def _get(params: dict):
         usage.record("bgs", ok=False)
         raise BgsError(f"BGS 에 닿지 못했다: {exc}") from exc
     log.info("BGS %s -> %s", r.url, r.status_code)
-    usage.record("bgs", ok=r.status_code == 200, blocked=usage.looks_blocked(r.status_code, r.content[:1000]))
+    usage.record("bgs", ok=r.status_code == 200, blocked=usage.looks_blocked(r.status_code, r.content[:1000]), elapsed=r.elapsed)
     return r
 
 
@@ -147,7 +147,7 @@ def _gsni_get(params: dict):
         usage.record("gsni", ok=False)
         raise BgsError(f"GSNI(BGS) 에 닿지 못했다: {exc}") from exc
     log.info("GSNI %s -> %s", r.url, r.status_code)
-    usage.record("gsni", ok=r.status_code == 200, blocked=usage.looks_blocked(r.status_code, r.content[:1000]))
+    usage.record("gsni", ok=r.status_code == 200, blocked=usage.looks_blocked(r.status_code, r.content[:1000]), elapsed=r.elapsed)
     return r
 
 
@@ -253,7 +253,7 @@ def _aga_get(params: dict):
         usage.record("aga", ok=False)
         raise BgsError(f"BGS 지하수 지도책에 닿지 못했다: {exc}") from exc
     log.info("AGA %s -> %s", r.url, r.status_code)
-    usage.record("aga", ok=r.status_code == 200, blocked=usage.looks_blocked(r.status_code, r.content[:1000]))
+    usage.record("aga", ok=r.status_code == 200, blocked=usage.looks_blocked(r.status_code, r.content[:1000]), elapsed=r.elapsed)
     return r
 
 
@@ -352,7 +352,7 @@ def _gsn_get(params: dict):
         usage.record("gsn", ok=False)
         raise BgsError(f"GSN(BGS) 에 닿지 못했다: {exc}") from exc
     log.info("GSN %s -> %s", r.url, r.status_code)
-    usage.record("gsn", ok=r.status_code == 200, blocked=usage.looks_blocked(r.status_code, r.content[:1000]))
+    usage.record("gsn", ok=r.status_code == 200, blocked=usage.looks_blocked(r.status_code, r.content[:1000]), elapsed=r.elapsed)
     return r
 
 
@@ -462,7 +462,7 @@ def _bumigeb_get(params: dict):
         usage.record("bumigeb", ok=False)
         raise BgsError(f"BUMIGEB(BGS) 에 닿지 못했다: {exc}") from exc
     log.info("BUMIGEB %s -> %s", r.url, r.status_code)
-    usage.record("bumigeb", ok=r.status_code == 200, blocked=usage.looks_blocked(r.status_code, r.content[:1000]))
+    usage.record("bumigeb", ok=r.status_code == 200, blocked=usage.looks_blocked(r.status_code, r.content[:1000]), elapsed=r.elapsed)
     return r
 
 
@@ -579,7 +579,7 @@ def _geoindex_get(url: str, params: dict):
         usage.record("bgsgi", ok=False)
         raise BgsError(f"BGS GeoIndex 에 닿지 못했다: {exc}") from exc
     log.info("BGS-GeoIndex %s -> %s", r.url, r.status_code)
-    usage.record("bgsgi", ok=r.status_code == 200, blocked=usage.looks_blocked(r.status_code, r.content[:1000]))
+    usage.record("bgsgi", ok=r.status_code == 200, blocked=usage.looks_blocked(r.status_code, r.content[:1000]), elapsed=r.elapsed)
     return r
 
 

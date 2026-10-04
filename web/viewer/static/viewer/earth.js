@@ -104,6 +104,9 @@
     { group: "화석 산지 (PBDB)", layers: [
       { name: "fossils", title: "화석 산지", grid: "ll", always: true, legend: "geology",
         src: "Paleobiology Database · CC BY 4.0" },
+      // 같은 산지를 1° 칸에 세어 로그로 칠한 것 — 점이 서로를 덮어 몰린 곳이 안 보일 때. 모든 연대에, 옛 연대는 그때의 자리로 (wetherilli 286)
+      { name: "fossilheat", title: "화석 산지 밀도", grid: "ll", always: true, legend: "fossilheat", max: 5,
+        src: "Paleobiology Database · CC BY 4.0 — 산지 수(채집 편향이 든다)" },
     ] },
     // 지구 속 — 구에서만. 땅을 비치게 하고 그 밑에 그린다. 모든 연대에 뜬다(가장 가까운 20 Myr 시점) (106)
     { group: "지구 속 (OPT1 모의)", layers: [
@@ -242,6 +245,12 @@
         { name: "lips", title: "거대 화성암 지대 (LIP)", grid: "ll", info: "impacts", legend: "lips", always: true, max: 7,
           src: "Johansson et al. 2018 · EarthByte · CC BY 4.0" }] });
   }
+  // 빙하 하나하나 — RGI 7.0 의 27 만 개를 넓이만 한 점으로. 구운 것이 있을 때만. 줌 3 부터(그 밑은 Natural Earth 의 빙하·빙붕이 맡는다) (wetherilli 289)
+  if (THEN.glaciers && THEN.glaciers.length) {
+    CATALOG.filter(function (g) { return g.layers.some(function (l) { return l.name === "ice"; }); })[0].layers.push(
+      { name: "glaciers", title: "빙하 하나하나 (RGI 7.0)", grid: "ll", info: "glaciers", legend: "glaciers", max: 9,
+        src: "Randolph Glacier Inventory 7.0 · CC BY 4.0" });
+  }
   if (THEN.araon) {
     CATALOG.filter(function (g) { return g.flux; })[0].layers.push(
       { name: "araon", title: "아라온호 항적", track: true, src: "KOPRI · RV Araon live position" });
@@ -257,10 +266,10 @@
     ["지구물리", ["crust", "heatflow", "mantle"]],
     ["자원", []],                                     // 세계 광상(USGS)의 광종 칸은 `mineral` 로 여기 선다 (wetherilli 276)
     ["화산·지진", ["volcanoes", "pleistocene", "lips", "quake6", "quake55", "quake5"]],
-    ["화석·고생태", ["fossils"]],                      // 고생태 산지(Neotoma)의 자료형 칸은 `neo` 로 여기 선다
+    ["화석·고생태", ["fossils", "fossilheat"]],                      // 고생태 산지(Neotoma)의 자료형 칸은 `neo` 로 여기 선다
     ["그때의 지구", ["coast", "icemargins"]],
     ["움직이는 지구", ["wind", "cloud", "satcloud", "ocean", "araon"]],
-    ["지리", ["names", "water", "ice"]],
+    ["지리", ["names", "water", "ice", "glaciers"]],
   ];
   CATALOG = (function (groups) {
     var theme = {};
@@ -289,6 +298,7 @@
     if (name === "plates") return paleoUrl("edge", 0);
     if (name === "coast") return paleoUrl("coast", paleoOn() ? age : 0);
     if (name === "crust") return BASE + "earth/crust/tiles/{z}/{x}/{y}.png" + vq("crust");
+    if (name === "glaciers") return BASE + "earth/glaciers/tiles/{z}/{x}/{y}.png" + vq("glaciers");
     if (name === "impacts") return BASE + "earth/impacts/impacts/0/{z}/{x}/{y}.png" + vq("impacts");
     if (name === "lips") return BASE + "earth/impacts/lips/" + Math.round(paleoOn() ? age : 0) + "/{z}/{x}/{y}.png" + vq("impacts");
     if (name === "gemfaults") return BASE + "earth/faults/tiles/{z}/{x}/{y}.png" + vq("faults");
@@ -301,6 +311,7 @@
     if (name === "icemargins") return BASE + "earth/icemargins/tiles/" + Math.min(1000, Math.round(age * 1000)) + "/{z}/{x}/{y}.png" + vq("icemargins");
     if (name === "water" || name === "ice") return BASE + "earth/ne/tiles/" + name + "/{z}/{x}/{y}.png" + vq("ne");
     if (name === "fossils") return BASE + "earth/fossils/tiles/" + Math.round(age * 1000) + "/{z}/{x}/{y}.png" + vq("fossils");
+    if (name === "fossilheat") return BASE + "earth/fossils/density/" + Math.round(age * 1000) + "/{z}/{x}/{y}.png" + vq("fossildensity");
     if (name === "volcanoes") return BASE + "earth/volcanoes/tiles/{z}/{x}/{y}.png" + vq("volcanoes");
     if (name === "pleistocene") return BASE + "earth/volcanoes/pleistocene/tiles/{z}/{x}/{y}.png" + vq("pleistocene");
     if (LAYER[name].neo) return BASE + "earth/neotoma/tiles/" + name + "/" + Math.min(999, Math.round(age * 1000)) + "/{z}/{x}/{y}.png" + vq("neotoma");
@@ -327,13 +338,15 @@
   var MIN_CREDIT = "USGS Mineral Resources Data System · Global Mineral Resource Assessment (public domain)";
   var FAULT_CREDIT = "GEM Global Active Faults (Styron & Pagani 2020) · CC BY-SA 4.0";
   var IMPACT_CREDIT = "Wikidata (CC0)", LIP_CREDIT = "Johansson et al. 2018 · EarthByte GPlates 2.3 (CC BY 4.0)";
+  var RGI_CREDIT = "Randolph Glacier Inventory 7.0 (RGI Consortium 2023, CC BY 4.0)";
   function creditOf(name) {
+    if (name === "glaciers") return RGI_CREDIT;
     if (name === "impacts") return IMPACT_CREDIT;
     if (name === "lips") return LIP_CREDIT;
     if (name === "gemfaults") return FAULT_CREDIT;
     if (LAYER[name] && LAYER[name].mineral) return MIN_CREDIT;
     if (LAYER[name] && LAYER[name].neo) return NEO_CREDIT;
-    return { geology: GEO_CREDIT, plates: PALEO_CREDIT, coast: COAST_CREDIT, fossils: PBDB_CREDIT, volcanoes: GVP_CREDIT, pleistocene: GVP_CREDIT, quake6: QUAKE_CREDIT, quake55: QUAKE_CREDIT, quake5: QUAKE_CREDIT, crust: CRUST_CREDIT, stress: STRESS_CREDIT, tbound: TECT_CREDIT, tprov: TECT_CREDIT, glim: GLIM_CREDIT, heatflow: HEATFLOW_CREDIT, seaage: SEAAGE_CREDIT, sediment: SEDIMENT_CREDIT,
+    return { geology: GEO_CREDIT, plates: PALEO_CREDIT, coast: COAST_CREDIT, fossils: PBDB_CREDIT, fossilheat: PBDB_CREDIT, volcanoes: GVP_CREDIT, pleistocene: GVP_CREDIT, quake6: QUAKE_CREDIT, quake55: QUAKE_CREDIT, quake5: QUAKE_CREDIT, crust: CRUST_CREDIT, stress: STRESS_CREDIT, tbound: TECT_CREDIT, tprov: TECT_CREDIT, glim: GLIM_CREDIT, heatflow: HEATFLOW_CREDIT, seaage: SEAAGE_CREDIT, sediment: SEDIMENT_CREDIT,
              names: NE_CREDIT, water: NE_CREDIT, ice: NE_CREDIT, icemargins: ICE_CREDIT, mantle: MANTLE_CREDIT }[name];
   }
   // 판 조각 타일 — 서버가 연대마다 돌려 그린다(`paleo.render_tile`). 경위도 격자, 줌 0 이 180° 두 장이다
@@ -2286,7 +2299,7 @@
     var mine = ++asked;
     showPopup(head + '<p class="none">' + esc(T("읽는 중")) + "</p>", pixel);
     var at = "?lon=" + ll[0].toFixed(4) + "&lat=" + ll[1].toFixed(4) + "&z=" + hereZoom();
-    var ASK = { geology: "earth/info/", crust: "earth/crust/at/", tectonics: "earth/tectonics/at/", seafloor: "earth/seafloor/at/", glim: "earth/glim/at/", faults: "earth/faults/at/", impacts: "earth/impacts/at/" };
+    var ASK = { geology: "earth/info/", crust: "earth/crust/at/", tectonics: "earth/tectonics/at/", seafloor: "earth/seafloor/at/", glim: "earth/glim/at/", faults: "earth/faults/at/", impacts: "earth/impacts/at/", glaciers: "earth/glaciers/at/" };
     Promise.all(layers.map(function (l) {
       return fetch(BASE + ASK[l.info] + at + (l.info === "seafloor" || l.info === "impacts" ? "&layer=" + l.name : "")).then(function (r) { return r.json(); }).catch(function () { return { error: true }; });
     })).then(function (all) {
@@ -2312,6 +2325,14 @@
           html += data.province ? "<p><b>" + esc(data.province.name) + "</b></p><table>" + data.province.rows.map(function (row) {
             return "<tr><th>" + esc(row[0]) + "</th><td>" + esc(row[1]) + "</td></tr>";
           }).join("") + "</table>" : '<p class="none">' + esc(data.text) + "</p>";
+          return;
+        }
+        if (layers[i].info === "glaciers") {
+          html += data.hits && data.hits.length ? data.hits.map(function (h) {
+            return "<p><b>" + esc(h.name) + "</b></p><table>" + h.rows.map(function (row) {
+              return "<tr><th>" + esc(row[0]) + "</th><td>" + esc(row[1]) + "</td></tr>";
+            }).join("") + "</table>";
+          }).join("") : '<p class="none">' + esc(data.text) + "</p>";
           return;
         }
         if (layers[i].info === "crust" || layers[i].info === "seafloor" || layers[i].info === "glim") { html += '<p class="none">' + esc(data.text) + "</p>"; return; }
@@ -2463,6 +2484,13 @@
         }).join("");
       return Promise.resolve(legends[kind]);
     }
+    if (kind === "fossilheat") {
+      legends[kind] = '<li class="empty">' + esc(T("1° 칸의 산지 수(로그) — 조사가 몰린 곳이 진하다")) + "</li>" +
+        (THEN.fossildensity || []).map(function (row) {
+          return '<li><span class="chip" style="background:' + esc(row.color) + '"></span>' + esc(row.name) + "</li>";
+        }).join("");
+      return Promise.resolve(legends[kind]);
+    }
     if (kind === "gemfaults") {
       legends[kind] = (THEN.faults || []).map(function (row) {
         return '<li><span class="chip" style="background:' + esc(row.color) + (row.dash ? ";opacity:.6" : "") + '"></span>' + esc(row.name) + "</li>";
@@ -2472,6 +2500,13 @@
     if (kind === "impacts" || kind === "lips") {
       legends[kind] = (kind === "lips" ? '<li class="empty">' + esc(T("색은 생긴 때. 대륙 위의 것은 판 회전으로 그때의 자리에 — 계산이지 관측이 아니다")) + "</li>" : "") +
         (IMP[kind] || []).map(function (row) {
+          return '<li><span class="chip" style="background:' + esc(row.color) + '"></span>' + esc(row.name) + "</li>";
+        }).join("");
+      return Promise.resolve(legends[kind]);
+    }
+    if (kind === "glaciers") {
+      legends[kind] = '<li class="empty">' + esc(T("넓이만 한 점 — 줌 3 부터. 넓게 볼 때는 빙하·빙붕(Natural Earth)")) + "</li>" +
+        (THEN.glaciers || []).map(function (row) {
           return '<li><span class="chip" style="background:' + esc(row.color) + '"></span>' + esc(row.name) + "</li>";
         }).join("");
       return Promise.resolve(legends[kind]);

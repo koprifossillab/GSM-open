@@ -243,3 +243,85 @@ def search(query: str, limit: int = 8, formations: int = 5) -> tuple:
         "ORDER BY (lower(formation) = lower(?)) DESC, (lower(formation) LIKE lower(?) || '%') DESC, n DESC LIMIT ?",
         (like, q, q, formations)).fetchall()
     return sites, forms
+
+
+# ── 밀도 열지도 (wetherilli 286) ────────────────────────────────────────
+#
+# 점은 많아질수록 서로를 덮어 "어디에 화석이 몰려 있나" 가 안 보인다 — 특히 옛 연대에는 북미·유럽이 한 덩이로 칠해진다. 같은 산지(그 연대를
+# 품은 것, 1 Ma 부터는 판 회전으로 그때의 자리)를 1° 칸에 세어 로그로 칠한다. 점 레이어와 같은 고르기(`points`·`_moved`)라 두 레이어가 어긋나지
+# 않는다. 상류를 부르지 않는다 — `pbdb.sqlite` 만 읽는다. **산지 수지 생물의 수가 아니다** — 조사가 몰린 곳이 진하다(채집 편향).
+
+DENSITY_RENDERER = "1"
+DENSITY_CELL = 1.0               # 칸(°)
+DENSITY_MAX_ZOOM = 5
+#: (0…1 의 자리, 색) — 주황에서 진한 자주로. 0 칸은 비운다. 옛 지구의 대륙이 옅은 베이지라 옅은 노랑은 묻혀서 주황부터 시작한다
+DENSITY_RAMP = ((0.0, (255, 170, 60)), (0.4, (235, 80, 35)), (0.75, (175, 15, 65)), (1.0, (85, 0, 95)))
+
+
+def _ramp(f: float) -> tuple:
+    for (a, ca), (b, cb) in zip(DENSITY_RAMP, DENSITY_RAMP[1:]):
+        if f <= b:
+            k = (f - a) / (b - a) if b > a else 0.0
+            return tuple(round(x + (y - x) * k) for x, y in zip(ca, cb))
+    return DENSITY_RAMP[-1][1]
+
+
+@functools.lru_cache(maxsize=8)
+def density_image(age: float):
+    """그 연대의 밀도 — 온 지구 한 장(360 × 180, 칸마다 한 화소) RGBA 와 가장 많은 칸의 산지 수. 연대는 1 Ma 로 끊어 담는다."""
+    from PIL import Image, ImageFilter
+    w, h = int(360 / DENSITY_CELL), int(180 / DENSITY_CELL)
+    counts = [0] * (w * h)
+    for lon, lat, _, _ in points(age, -180.0, -90.0, 180.0, 90.0):
+        i = min(w - 1, max(0, int((((lon + 180.0) % 360.0)) / DENSITY_CELL)))
+        j = min(h - 1, max(0, int((90.0 - lat) / DENSITY_CELL)))
+        counts[j * w + i] += 1
+    top = max(counts) if counts else 0
+    if top == 0:
+        return Image.new("RGBA", (w, h), (0, 0, 0, 0)), 0
+    scale = math.log1p(top)
+    palette = [_ramp(k / 255) for k in range(256)]
+    rgb = bytearray()
+    alpha = bytearray()
+    for c in counts:
+        if c:
+            f = math.log1p(c) / scale
+            rgb += bytes(palette[min(255, int(f * 255))])
+            alpha.append(min(240, 165 + int(f * 75)))
+        else:
+            rgb += b"\x00\x00\x00"
+            alpha.append(0)
+    from PIL import ImageChops
+    sharp = Image.frombytes("L", (w, h), bytes(alpha))
+    colour = Image.frombytes("RGB", (w, h), bytes(rgb))
+    # 빈 칸은 이웃의 색을 빌린다 — 둘레를 흐릴 때 검게 번지지 않게
+    colour = Image.composite(colour, colour.filter(ImageFilter.MaxFilter(3)), sharp)
+    im = colour.convert("RGBA")
+    # 칸 둘레만 부드럽게 — 칸 자체의 진하기는 지킨다(흩어진 산지 하나가 흐려져 사라지지 않게)
+    im.putalpha(ImageChops.lighter(sharp, sharp.filter(ImageFilter.BoxBlur(0.6))))
+    return im, top
+
+
+def density_legend(lang: str = "ko") -> list:
+    """범례 — 칸의 산지 수(로그). 숫자는 연대마다 다르므로 비율로만 적는다"""
+    from .i18n import msg, t
+    return [{"color": "#%02x%02x%02x" % _ramp(f), "name": t(label, lang)}
+            for f, label in ((0.1, msg("드물다")), (0.4, msg("몇 곳")), (0.7, msg("많다")), (1.0, msg("가장 많은 칸")))]
+
+
+def density_valid(z: int, x: int, y: int) -> bool:
+    return 0 <= z <= DENSITY_MAX_ZOOM and 0 <= x < 2 ** (z + 1) and 0 <= y < 2 ** z
+
+
+def render_density(age: float, z: int, x: int, y: int) -> bytes:
+    """경위도 격자(`paleo.render_tile` 과 같다) 한 장 — 칸을 부드럽게 늘린다"""
+    from PIL import Image
+    im, _ = density_image(round(age, 3) if age < PALEO_FROM else float(round(age)))
+    span = 180.0 / 2 ** z
+    west, north = -180.0 + x * span, 90.0 - y * span
+    k = 1.0 / DENSITY_CELL
+    box = ((west + 180.0) * k, (90.0 - north) * k, (west + span + 180.0) * k, (90.0 - north + span) * k)
+    tile = im.transform((paleo.TILE, paleo.TILE), Image.Transform.EXTENT, box, Image.Resampling.BILINEAR)
+    buf = io.BytesIO()
+    tile.save(buf, "PNG", optimize=True)
+    return buf.getvalue()

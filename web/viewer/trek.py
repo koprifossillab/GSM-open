@@ -158,7 +158,7 @@ def _get(path: str, params: dict, base: str = ""):
         raise TrekError(f"NASA Trek 에 닿지 못했다: {exc}") from exc
     log.info("trek %s -> %s", r.url, r.status_code)
     usage.record("trek", ok=r.status_code == 200,
-                 blocked=usage.looks_blocked(r.status_code, r.content[:1000]))
+                 blocked=usage.looks_blocked(r.status_code, r.content[:1000]), elapsed=r.elapsed)
     return r
 
 

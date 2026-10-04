@@ -58,7 +58,7 @@ def _get(sheet: str, params: dict):
         usage.record("gsi", ok=False)
         raise GsiError(f"GSI 에 닿지 못했다: {exc}") from exc
     log.info("GSI %s -> %s", r.url, r.status_code)
-    usage.record("gsi", ok=r.status_code == 200, blocked=usage.looks_blocked(r.status_code, r.content[:1000]))
+    usage.record("gsi", ok=r.status_code == 200, blocked=usage.looks_blocked(r.status_code, r.content[:1000]), elapsed=r.elapsed)
     return r
 
 

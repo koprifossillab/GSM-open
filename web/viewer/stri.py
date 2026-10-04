@@ -61,7 +61,7 @@ def _get(path: str, params: dict):
         usage.record("stri", ok=False)
         raise StriError(f"STRI 파나마 지질도에 닿지 못했다: {exc}") from exc
     log.info("STRI %s -> %s", r.url, r.status_code)
-    usage.record("stri", ok=r.status_code == 200, blocked=usage.looks_blocked(r.status_code, r.content[:1000]))
+    usage.record("stri", ok=r.status_code == 200, blocked=usage.looks_blocked(r.status_code, r.content[:1000]), elapsed=r.elapsed)
     if r.status_code != 200:
         raise StriError(f"받지 못했다 (status={r.status_code})")
     try:

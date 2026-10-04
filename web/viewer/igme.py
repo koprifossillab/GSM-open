@@ -73,7 +73,7 @@ def _get(sheet: str, params: dict):
         usage.record("igme", ok=False)
         raise IgmeError(f"IGME 에 닿지 못했다: {exc}") from exc
     log.info("IGME %s -> %s", r.url, r.status_code)
-    usage.record("igme", ok=r.status_code == 200, blocked=usage.looks_blocked(r.status_code, r.content[:1000]))
+    usage.record("igme", ok=r.status_code == 200, blocked=usage.looks_blocked(r.status_code, r.content[:1000]), elapsed=r.elapsed)
     return r
 
 

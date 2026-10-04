@@ -61,7 +61,7 @@ def _get(url: str, params: dict):
         usage.record("georep", ok=False)
         raise GeorepError(f"Géorep 에 닿지 못했다: {exc}") from exc
     log.info("Géorep %s -> %s", r.url, r.status_code)
-    usage.record("georep", ok=r.status_code == 200, blocked=usage.looks_blocked(r.status_code, r.content[:1000]))
+    usage.record("georep", ok=r.status_code == 200, blocked=usage.looks_blocked(r.status_code, r.content[:1000]), elapsed=r.elapsed)
     return r
 
 

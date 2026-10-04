@@ -96,7 +96,7 @@ def _get(url: str, params: dict):
         usage.record("mrdata", ok=False)
         raise MrdataError(f"USGS mrdata 에 닿지 못했다: {exc}") from exc
     log.info("mrdata %s -> %s", r.url, r.status_code)
-    usage.record("mrdata", ok=r.status_code == 200, blocked=usage.looks_blocked(r.status_code, r.content[:1000]))
+    usage.record("mrdata", ok=r.status_code == 200, blocked=usage.looks_blocked(r.status_code, r.content[:1000]), elapsed=r.elapsed)
     return r
 
 

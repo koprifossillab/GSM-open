@@ -72,7 +72,7 @@ def get_feature_info(params: dict) -> dict:
         usage.record("ags", ok=False)
         raise AgsError(f"앨버타에 닿지 못했다: {exc}") from exc
     log.info("AGS %s -> %s", r.url, r.status_code)
-    usage.record("ags", ok=r.status_code == 200, blocked=usage.looks_blocked(r.status_code, r.content[:1000]))
+    usage.record("ags", ok=r.status_code == 200, blocked=usage.looks_blocked(r.status_code, r.content[:1000]), elapsed=r.elapsed)
     if r.status_code != 200:
         raise AgsError(f"속성을 읽지 못했다 (status={r.status_code})")
     try:

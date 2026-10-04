@@ -70,6 +70,9 @@ urlpatterns = [
     re_path(r"^earth/fossils/tiles/(?P<ka>\d{1,7})/(?P<z>\d{1,2})/(?P<x>\d{1,4})/(?P<y>\d{1,4})\.png$",
             views.earth_fossil_tile, name="earth-fossil-tile"),
     path("earth/fossils/at/", views.earth_fossil_at, name="earth-fossil-at"),
+    # 화석 산지 밀도 열지도 (fossils.py, wetherilli 286)
+    re_path(r"^earth/fossils/density/(?P<ka>\d{1,7})/(?P<z>\d{1,2})/(?P<x>\d{1,4})/(?P<y>\d{1,4})\.png$",
+            views.earth_fossil_density_tile, name="earth-fossil-density-tile"),
     re_path(r"^earth/volcanoes/tiles/(?P<z>\d{1,2})/(?P<x>\d{1,4})/(?P<y>\d{1,4})\.png$", views.earth_volcano_tile,
             name="earth-volcano-tile"),
     re_path(r"^earth/volcanoes/pleistocene/tiles/(?P<z>\d{1,2})/(?P<x>\d{1,4})/(?P<y>\d{1,4})\.png$", views.earth_volcano_tile,
@@ -84,6 +87,9 @@ urlpatterns = [
     re_path(r"^earth/crust/tiles/(?P<z>\d{1,2})/(?P<x>\d{1,4})/(?P<y>\d{1,4})\.png$", views.earth_crust_tile,
             name="earth-crust-tile"),
     path("earth/crust/at/", views.earth_crust_at, name="earth-crust-at"),
+    # 세계 빙하 RGI 7.0 (glaciers.py, wetherilli 289)
+    re_path(r"^earth/glaciers/tiles/(?P<z>\d{1,2})/(?P<x>\d{1,4})/(?P<y>\d{1,4})\.png$", views.earth_glaciers_tile, name="earth-glaciers-tile"),
+    path("earth/glaciers/at/", views.earth_glaciers_at, name="earth-glaciers-at"),
     # 충돌구·거대 화성암 지대 (impacts.py, wetherilli 283)
     re_path(r"^earth/impacts/(?P<layer>impacts|lips)/(?P<ma>\d{1,4})/(?P<z>\d{1,2})/(?P<x>\d{1,4})/(?P<y>\d{1,4})\.png$",
             views.earth_impacts_tile, name="earth-impacts-tile"),

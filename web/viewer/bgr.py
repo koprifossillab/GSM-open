@@ -76,7 +76,7 @@ def _get(sheet: str, params: dict):
         usage.record("bgr", ok=False)
         raise BgrError(f"BGR 에 닿지 못했다: {exc}") from exc
     log.info("BGR %s -> %s", r.url, r.status_code)
-    usage.record("bgr", ok=r.status_code == 200, blocked=usage.looks_blocked(r.status_code, r.content[:1000]))
+    usage.record("bgr", ok=r.status_code == 200, blocked=usage.looks_blocked(r.status_code, r.content[:1000]), elapsed=r.elapsed)
     return r
 
 

@@ -57,7 +57,7 @@ def _get(url: str, params: dict):
         usage.record("gsiindia", ok=False)
         raise GsiIndiaError(f"인도 지질도에 닿지 못했다: {exc}") from exc
     log.info("GSI 인도 %s -> %s", r.url, r.status_code)
-    usage.record("gsiindia", ok=r.status_code == 200, blocked=usage.looks_blocked(r.status_code, r.content[:1000]))
+    usage.record("gsiindia", ok=r.status_code == 200, blocked=usage.looks_blocked(r.status_code, r.content[:1000]), elapsed=r.elapsed)
     return r
 
 

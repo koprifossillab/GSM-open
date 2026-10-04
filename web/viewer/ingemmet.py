@@ -141,7 +141,7 @@ def _get(url: str, params=None):
         raise IngemmetError(f"INGEMMET 에 닿지 못했다: {exc}") from exc
     log.info("INGEMMET %s -> %s", r.url, r.status_code)
     # 캐시 밖의 타일은 404 다 — 차단이 아니다
-    usage.record("ingemmet", ok=r.status_code in (200, 404), blocked=usage.looks_blocked(r.status_code, r.content[:1000]))
+    usage.record("ingemmet", ok=r.status_code in (200, 404), blocked=usage.looks_blocked(r.status_code, r.content[:1000]), elapsed=r.elapsed)
     return r
 
 

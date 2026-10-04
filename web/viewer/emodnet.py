@@ -44,7 +44,7 @@ def _get(params: dict):
         usage.record("emodnet", ok=False)
         raise EmodnetError(f"EMODnet 에 닿지 못했다: {exc}") from exc
     log.info("EMODnet %s -> %s", r.url, r.status_code)
-    usage.record("emodnet", ok=r.status_code == 200, blocked=usage.looks_blocked(r.status_code, r.content[:1000]))
+    usage.record("emodnet", ok=r.status_code == 200, blocked=usage.looks_blocked(r.status_code, r.content[:1000]), elapsed=r.elapsed)
     return r
 
 

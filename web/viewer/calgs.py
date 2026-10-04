@@ -66,7 +66,7 @@ def _get(path: str, params: dict):
         usage.record("calgs", ok=False)
         raise CalgsError(f"CGS 에 닿지 못했다: {exc}") from exc
     log.info("CGS(캘리포니아) %s -> %s", r.url, r.status_code)
-    usage.record("calgs", ok=r.status_code == 200, blocked=usage.looks_blocked(r.status_code, r.content[:1000]))
+    usage.record("calgs", ok=r.status_code == 200, blocked=usage.looks_blocked(r.status_code, r.content[:1000]), elapsed=r.elapsed)
     return r
 
 

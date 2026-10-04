@@ -83,7 +83,7 @@ def _get(sheet: str, params: dict):
         usage.record("sgc", ok=False)
         raise SgcError(f"SGC 에 닿지 못했다: {exc}") from exc
     log.info("SGC %s -> %s", r.url, r.status_code)
-    usage.record("sgc", ok=r.status_code == 200, blocked=usage.looks_blocked(r.status_code, r.content[:1000]))
+    usage.record("sgc", ok=r.status_code == 200, blocked=usage.looks_blocked(r.status_code, r.content[:1000]), elapsed=r.elapsed)
     return r
 
 

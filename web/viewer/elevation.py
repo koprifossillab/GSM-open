@@ -71,7 +71,7 @@ def _get(url: str, upstream: str, **kwargs):
         usage.record(upstream, ok=False)
         raise ElevationError(f"{upstream} 에 닿지 못했다: {exc}") from exc
     usage.record(upstream, ok=r.status_code in (200, 404),
-                 blocked=usage.looks_blocked(r.status_code, r.content[:1000]))
+                 blocked=usage.looks_blocked(r.status_code, r.content[:1000]), elapsed=r.elapsed)
     return r
 
 

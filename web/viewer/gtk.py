@@ -55,7 +55,7 @@ def _get(params: dict, url: str = ""):
         usage.record("gtk", ok=False)
         raise GtkError(f"GTK 에 닿지 못했다: {exc}") from exc
     log.info("GTK %s -> %s", r.url, r.status_code)
-    usage.record("gtk", ok=r.status_code == 200, blocked=usage.looks_blocked(r.status_code, r.content[:1000]))
+    usage.record("gtk", ok=r.status_code == 200, blocked=usage.looks_blocked(r.status_code, r.content[:1000]), elapsed=r.elapsed)
     return r
 
 

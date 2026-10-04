@@ -80,7 +80,7 @@ def _get(upstream: str, url: str, params=None):
         usage.record(upstream, ok=False)
         raise BasemapError(f"{upstream} 에 닿지 못했다: {exc}") from exc
     log.info("%s %s -> %s", upstream, r.url, r.status_code)
-    usage.record(upstream, ok=r.status_code == 200, blocked=usage.looks_blocked(r.status_code, r.content[:1000]))
+    usage.record(upstream, ok=r.status_code == 200, blocked=usage.looks_blocked(r.status_code, r.content[:1000]), elapsed=r.elapsed)
     ctype = r.headers.get("content-type", "")
     if r.status_code != 200 or not ctype.startswith("image/"):
         raise BasemapError(f"그림이 아닌 것이 왔다 (status={r.status_code}, type={ctype})")

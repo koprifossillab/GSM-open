@@ -68,7 +68,7 @@ def _get(params: dict, path: str = "query", base: str = ""):
         usage.record("usgscarib", ok=False)
         raise UsgsCaribError(f"USGS 카리브 지질도에 닿지 못했다: {exc}") from exc
     log.info("USGS 카리브 %s -> %s", r.url, r.status_code)
-    usage.record("usgscarib", ok=r.status_code == 200, blocked=usage.looks_blocked(r.status_code, r.content[:1000]))
+    usage.record("usgscarib", ok=r.status_code == 200, blocked=usage.looks_blocked(r.status_code, r.content[:1000]), elapsed=r.elapsed)
     if r.status_code != 200:
         raise UsgsCaribError(f"받지 못했다 (status={r.status_code})")
     try:

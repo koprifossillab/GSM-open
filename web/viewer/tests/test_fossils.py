@@ -131,3 +131,41 @@ class Views(TestCase):
             r = self.client.get(reverse("viewer:earth-fossil-tile", kwargs={"ka": 0, "z": 0, "x": 0, "y": 0}))
         self.assertEqual(r.status_code, 200)
         self.assertEqual(Image.open(io.BytesIO(r.content)).convert("RGBA").getextrema()[3], (0, 0))
+
+
+class Density(TestCase):
+    """밀도 열지도 (wetherilli 286) — 점 레이어와 같은 고르기를 1° 칸에 센다"""
+
+    def setUp(self):
+        self.dir = tempfile.mkdtemp(prefix="gsm-fossils-")
+        patch = override_settings(EARTH_DIR=self.dir, TILE_CACHE_DIR=tempfile.mkdtemp(prefix="gsm-fossils-t-"))
+        patch.enable()
+        self.addCleanup(patch.disable)
+        baked(self.dir)
+        fossils._moved.cache_clear()
+        fossils.density_image.cache_clear()
+        self.addCleanup(fossils.density_image.cache_clear)
+
+    def test_칸을_센다(self):
+        _, top = fossils.density_image(0.0)
+        self.assertEqual(top, 1)                                      # 세 산지가 다른 칸에 하나씩
+        _, top = fossils.density_image(250.0)
+        self.assertEqual(top, 1)                                      # 250 Ma 는 서울 산지 하나(그때의 자리로)
+        _, top = fossils.density_image(500.0)
+        self.assertEqual(top, 0)                                      # 품은 산지가 없다
+
+    def test_그때의_자리에_칠한다(self):
+        im, _ = fossils.density_image(250.0)
+        moved = fossils.points(250, -180, -90, 180, 90)[0]
+        i, j = int(moved[0] + 180), int(90 - moved[1])
+        self.assertGreater(im.getpixel((i, j))[3], 100)
+        self.assertEqual(im.getpixel((int(126.98 + 180), int(90 - 37.57)))[3] > 100,
+                         (i, j) == (int(126.98 + 180), int(90 - 37.57)))   # 오늘의 자리는 (옮겨지지 않았다면) 비어 있다
+
+    def test_타일과_화면(self):
+        url = reverse("viewer:earth-fossil-density-tile", kwargs={"ka": 0, "z": 0, "x": 1, "y": 0})
+        first, again = self.client.get(url), self.client.get(url)
+        self.assertEqual((first["X-GSM-Cache"], again["X-GSM-Cache"]), ("miss", "hit"))
+        self.assertGreater(Image.open(io.BytesIO(first.content)).convert("RGBA").getextrema()[3][1], 100)
+        self.assertEqual(self.client.get(url.replace("/0/0/1/0.png", "/0/9/1/0.png")).status_code, 404)
+        self.assertIn('"fossildensity": [{"color"', self.client.get("/GSM/earth/").content.decode())

@@ -124,7 +124,7 @@ def _get(path: str, params: dict, name: str = ""):
         usage.record("sgm", ok=False)
         raise SgmError(f"SGM 에 닿지 못했다: {exc}") from exc
     log.info("SGM %s -> %s", r.url, r.status_code)
-    usage.record("sgm", ok=r.status_code == 200, blocked=usage.looks_blocked(r.status_code, r.content[:1000]))
+    usage.record("sgm", ok=r.status_code == 200, blocked=usage.looks_blocked(r.status_code, r.content[:1000]), elapsed=r.elapsed)
     return r
 
 

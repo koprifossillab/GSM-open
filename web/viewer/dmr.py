@@ -55,7 +55,7 @@ def _get(url: str, params: dict):
         usage.record("dmr", ok=False)
         raise DmrError(f"DMR 에 닿지 못했다: {exc}") from exc
     log.info("DMR %s -> %s", r.url, r.status_code)
-    usage.record("dmr", ok=r.status_code == 200, blocked=usage.looks_blocked(r.status_code, r.content[:1000]))
+    usage.record("dmr", ok=r.status_code == 200, blocked=usage.looks_blocked(r.status_code, r.content[:1000]), elapsed=r.elapsed)
     return r
 
 

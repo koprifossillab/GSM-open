@@ -59,7 +59,7 @@ def _get(path: str, params: dict):
         usage.record("nsgs", ok=False)
         raise NsgsError(f"노바스코샤에 닿지 못했다: {exc}") from exc
     log.info("NSGS %s -> %s", r.url, r.status_code)
-    usage.record("nsgs", ok=r.status_code == 200, blocked=usage.looks_blocked(r.status_code, r.content[:1000]))
+    usage.record("nsgs", ok=r.status_code == 200, blocked=usage.looks_blocked(r.status_code, r.content[:1000]), elapsed=r.elapsed)
     return r
 
 

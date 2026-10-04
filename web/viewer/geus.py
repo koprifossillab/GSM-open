@@ -42,7 +42,7 @@ def _get(params: dict):
         raise GeusError(f"GEUS 에 닿지 못했다: {reason}") from exc
     log.info("GEUS %s -> %s", _WHOAMI_RE.sub(r"\1…", r.url), r.status_code)
     usage.record("geus", ok=r.status_code == 200,
-                 blocked=usage.looks_blocked(r.status_code, r.content[:1000]))
+                 blocked=usage.looks_blocked(r.status_code, r.content[:1000]), elapsed=r.elapsed)
     return r
 
 
@@ -178,7 +178,7 @@ def _arc_get(path: str, params: dict):
         reason = _WHOAMI_RE.sub(r"\1…", str(exc))
         raise GeusError(f"GEUS ArcGIS 에 닿지 못했다: {reason}") from exc
     log.info("GEUS-ArcGIS %s -> %s", _WHOAMI_RE.sub(r"\1…", r.url), r.status_code)
-    usage.record("geusarc", ok=r.status_code == 200, blocked=usage.looks_blocked(r.status_code, r.content[:1000]))
+    usage.record("geusarc", ok=r.status_code == 200, blocked=usage.looks_blocked(r.status_code, r.content[:1000]), elapsed=r.elapsed)
     return r
 
 

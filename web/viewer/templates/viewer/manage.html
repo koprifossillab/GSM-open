@@ -24,6 +24,7 @@
   <nav class="mg-tabs" id="mg-tabs">
     <button type="button" class="mg-tab on" data-tab="import">{% t "개인 레이어 반입" %}</button>
     <button type="button" class="mg-tab" data-tab="stored">{% t "저장 자료 관리" %}</button>
+    <button type="button" class="mg-tab" data-tab="upstream">{% t "상류 응답 시간" %}</button>
   </nav>
   <a class="btn quiet mg-back" href="{{ base }}map/">
     <svg viewBox="0 0 24 24" aria-hidden="true"><path class="stroke" d="M15 5l-7 7 7 7"/></svg>
@@ -151,6 +152,39 @@
         <div class="mg-acts">
           <button type="button" class="btn quiet danger mg-right" id="mg-prefs-clear">{% t "설정을 모두 지운다" %}</button>
         </div>
+      </div>
+    </div>
+  </section>
+
+  {% comment %}상류 응답 시간 (wetherilli 295) — `manage.py upstream_stats` 와 같은 값. 읽기만 한다. 상류의 이름과 수뿐이다{% endcomment %}
+  <section class="mg-body" id="tab-upstream">
+    <div class="box">
+      <h2 class="box-head">{% t "상류 응답 시간" %} <span class="count">{{ upstream_rows|length }}</span>
+        <span class="hint">{% t "지난 7 일의 평균이 느린 차례 — 시간은 상류가 응답의 머리를 보내기까지" %}</span></h2>
+      <div class="box-body">
+        {% if upstream_rows %}
+        <div class="mg-scroll"><table class="mg-table mg-upstream" id="mg-upstream">
+          <thead>
+            <tr><th rowspan="2">{% t "상류" %}</th><th colspan="4">{% t "오늘" %}</th><th colspan="4">{% t "지난 7 일" %}</th></tr>
+            <tr>
+              <th>{% t "건수" %}</th><th>{% t "실패" %}</th><th>{% t "평균 (초)" %}</th><th>p95</th>
+              <th>{% t "건수" %}</th><th>{% t "실패" %}</th><th>{% t "평균 (초)" %}</th><th>p95</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for r in upstream_rows %}
+            <tr><td class="mono">{{ r.name }}</td>
+              <td class="num">{{ r.today.count }}</td><td class="num{% if r.today.fail %} bad{% endif %}">{{ r.today.fail }}</td>
+              <td class="num">{{ r.today.mean }}</td><td class="num">{{ r.today.p95 }}</td>
+              <td class="num">{{ r.span.count }}</td><td class="num{% if r.span.fail %} bad{% endif %}">{{ r.span.fail }}</td>
+              <td class="num">{{ r.span.mean }}</td><td class="num">{{ r.span.p95 }}</td></tr>
+            {% endfor %}
+          </tbody>
+        </table></div>
+        {% else %}
+        <p class="hint">{% t "아직 센 것이 없다" %}</p>
+        {% endif %}
+        <p class="hint">{% t "p95 는 시간 칸(0.5·1·2·3·5·8·13·21·34 초)에서 어림한 위 끝이다. 실패는 차단 조짐을 함께 센다. 서버 쪽에서는 manage.py upstream_stats 로 같은 값을 본다." %}</p>
       </div>
     </div>
   </section>

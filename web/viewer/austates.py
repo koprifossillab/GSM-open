@@ -50,7 +50,7 @@ def _get(upstream: str, url: str, params: dict, timeout: int = 45):
         usage.record(upstream, ok=False)
         raise AuStatesError(f"{upstream.upper()} 에 닿지 못했다: {exc}") from exc
     log.info("%s %s -> %s", upstream.upper(), r.url, r.status_code)
-    usage.record(upstream, ok=r.status_code == 200, blocked=usage.looks_blocked(r.status_code, r.content[:1000]))
+    usage.record(upstream, ok=r.status_code == 200, blocked=usage.looks_blocked(r.status_code, r.content[:1000]), elapsed=r.elapsed)
     return r
 
 

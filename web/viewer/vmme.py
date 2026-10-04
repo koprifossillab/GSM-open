@@ -54,7 +54,7 @@ def _get(params: dict):
         usage.record("vmme", ok=False)
         raise VmmeError(f"파라과이 지질도에 닿지 못했다: {exc}") from exc
     log.info("VMME %s -> %s", r.url, r.status_code)
-    usage.record("vmme", ok=r.status_code == 200, blocked=usage.looks_blocked(r.status_code, r.content[:1000]))
+    usage.record("vmme", ok=r.status_code == 200, blocked=usage.looks_blocked(r.status_code, r.content[:1000]), elapsed=r.elapsed)
     if r.status_code != 200:
         raise VmmeError(f"받지 못했다 (status={r.status_code})")
     try:

@@ -68,7 +68,7 @@ def _get(url: str, params: dict | None = None):
             raise MacrostratError(f"Macrostrat 에 닿지 못했다: {exc}") from exc
     log.info("Macrostrat %s -> %s", r.url, r.status_code)
     blocked = usage.looks_blocked(r.status_code, r.content[:1000])
-    usage.record("macrostrat", ok=r.status_code == 200, blocked=blocked)
+    usage.record("macrostrat", ok=r.status_code == 200, blocked=blocked, elapsed=r.elapsed)
     return r
 
 

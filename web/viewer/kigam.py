@@ -193,7 +193,7 @@ def _get(params: dict, *, stream=False):
     blocked = usage.looks_blocked(r.status_code, head)
     if blocked:
         log.warning("상류가 차단하는 얼굴을 보였다 (status=%s)", r.status_code)
-    usage.record("kigam", ok=r.status_code == 200, blocked=blocked)
+    usage.record("kigam", ok=r.status_code == 200, blocked=blocked, elapsed=r.elapsed)
     return r
 
 
@@ -251,7 +251,7 @@ def probe_openapi_feature_info(layer: str, bbox: str) -> str:
         usage.record("kigam", ok=False)
         return f"닿지 못했다: {redact(str(exc))}"
     usage.record("kigam", ok=r.status_code == 200,
-                 blocked=usage.looks_blocked(r.status_code, r.content[:1000]))
+                 blocked=usage.looks_blocked(r.status_code, r.content[:1000]), elapsed=r.elapsed)
     if r.status_code == 200:
         try:
             r.json()
@@ -329,7 +329,7 @@ def _wfs(params: dict):
         usage.record("kigam", ok=False)
         raise UpstreamError(f"상류에 닿지 못했다: {redact(str(exc))}") from exc
     blocked = usage.looks_blocked(r.status_code, r.content[:1000])
-    usage.record("kigam", ok=r.status_code == 200, blocked=blocked)
+    usage.record("kigam", ok=r.status_code == 200, blocked=blocked, elapsed=r.elapsed)
     log.info("상류 WFS %s -> %s", redact(r.url), r.status_code)
     if r.status_code != 200:
         raise UpstreamError(f"WFS 가 받지 않았다 (status={r.status_code})", status=r.status_code)
@@ -382,7 +382,7 @@ def _data_get(url: str, params: dict = None) -> dict:
         raise UpstreamError(f"상류에 닿지 못했다: {redact(str(exc))}") from exc
     log.info("상류 %s -> %s", redact(r.url), r.status_code)
     blocked = usage.looks_blocked(r.status_code, r.content[:1000])
-    usage.record("kigam", ok=r.status_code == 200, blocked=blocked)
+    usage.record("kigam", ok=r.status_code == 200, blocked=blocked, elapsed=r.elapsed)
     if r.status_code != 200:
         raise UpstreamError(f"자료 API 가 {r.status_code} 로 답했다")
     try:

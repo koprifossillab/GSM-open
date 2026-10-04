@@ -6,6 +6,9 @@
   (`map.js` 의 `npolarSource`) 문이 옮긴다 — NPI 문(021)과 같은 수다. 문은 서로를 타지 않아 옮기는 셈을 여기 따로 둔다
 - 3857 로 그린다. 넓은 그림 한 장이 11 초까지 걸린다(2026-10-04, 요하네스버그 둘레 250 km) — 가까우면 2–3 초
 - 속성(`identify`): `STRAT_NAME`·`STRAT_RANK`·`STRAT_PAR_`(상위 층서)·`CHRONO_NAM`·`LITHO_1..5`·`LABEL`. 값은 영어 대문자 그대로 둔다
+- **광업·자원 지역**(wetherilli 285) — 같은 서비스의 레이어 0 "Main Mining areas (CSIR)"(면 8 — 새·쇠퇴·생산 광업 지역)·
+  1 "Main Coal resource areas (CGS)"(면 86)·2 "Uranium areas (CGS)"(면 19 — 층군 이름). 거친 지역 구분이지 광상 점이 아니다.
+  석탄 지역은 속성이 번호뿐이라 누르지 않는다. 같은 조건(NO_STORE)을 따른다
 - 조건: `copyrightText` 가 비었다. 자료의 주인은 CGS 이고 CGS 자료는 원래 판다. **서버 캐시에 담지 않는다**(`views.NO_STORE`) —
   받은 것을 다시 내주지 않으려는 것이다. 출처는 "Council for Geoscience (via DPME)". 정적 판에 싣지 않는다
 """
@@ -22,7 +25,9 @@ PREFIX = "cgs:"
 ATTRIBUTION = ('Geology 1:1 000 000 — <a href="https://www.geoscience.org.za/" target="_blank" rel="noopener">Council for Geoscience</a>'
                ' (via DPME GIS)')
 #: 레이어 → MapServer 의 레이어 번호
-LAYERS = {"cgs:geology_1m": 5}
+LAYERS = {"cgs:geology_1m": 5, "cgs:mining_areas": 0, "cgs:coal": 1, "cgs:uranium": 2}
+#: 누르지 않는 레이어 — 석탄 지역은 속성이 번호뿐이다 (wetherilli 285)
+NOT_QUERYABLE = ("cgs:coal",)
 TIMEOUT = 45
 
 
@@ -83,7 +88,7 @@ def _get(op: str, params: dict):
         usage.record("cgs", ok=False)
         raise CgsError(f"DPME(CGS) 에 닿지 못했다: {exc}") from exc
     log.info("CGS %s -> %s", r.url, r.status_code)
-    usage.record("cgs", ok=r.status_code == 200, blocked=usage.looks_blocked(r.status_code, r.content[:1000]))
+    usage.record("cgs", ok=r.status_code == 200, blocked=usage.looks_blocked(r.status_code, r.content[:1000]), elapsed=r.elapsed)
     return r
 
 
@@ -165,6 +170,11 @@ def _value(props: dict, key: str) -> str:
 
 def friendly(props: dict, lang: str = "ko") -> dict:
     """층서 이름·상위 층서·시대·암석(LITHO_1..5 를 잇는다)·기호. 값은 영어 그대로 둔다."""
+    if "resource" in props:                       # 우라늄 지역 (wetherilli 285)
+        rows = (("광종", _value(props, "resource")), ("층군", _value(props, "Fields")), ("이름", _value(props, "Name")))
+        return {k: v for k, v in rows if v}
+    if "OID" in props and "Name" in props and "STRAT_NAME" not in props:   # 광업 지역
+        return {"광업 지역": v} if (v := _value(props, "Name")) else {}
     out = {}
     name = _value(props, "STRAT_NAME")
     if name:

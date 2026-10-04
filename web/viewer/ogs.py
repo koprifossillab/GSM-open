@@ -20,7 +20,9 @@ log = logging.getLogger(__name__)
 
 PREFIX = "ogs:"
 #: WMS 번호 → REST 번호
-REST_ID = {"3": "57", "1": "52", "6": "54", "4": "56", "5": "55"}
+REST_ID = {"3": "57", "1": "52", "6": "54", "4": "56", "5": "55",
+           # 광물 산지 목록 MDI(OMEIS Mineral Inventory, 1 만 8 천 곳, wetherilli 288)
+           "11": "46"}
 ATTRIBUTION = ('Bedrock & Quaternary Geology of Ontario — <a href="https://www.ontario.ca/page/open-government-licence-ontario" '
                'target="_blank" rel="noopener">Ontario Geological Survey, OGL–Ontario</a>')
 TIMEOUT = 45
@@ -59,7 +61,7 @@ def _get(url: str, params: dict):
         usage.record("ogs", ok=False)
         raise OgsError(f"OGS 에 닿지 못했다: {exc}") from exc
     log.info("OGS %s -> %s", r.url, r.status_code)
-    usage.record("ogs", ok=r.status_code == 200, blocked=usage.looks_blocked(r.status_code, r.content[:1000]))
+    usage.record("ogs", ok=r.status_code == 200, blocked=usage.looks_blocked(r.status_code, r.content[:1000]), elapsed=r.elapsed)
     return r
 
 
@@ -153,8 +155,28 @@ def _age_name(value: str) -> str:
     return name.strip().capitalize() + (f" ({rest}" if sep else "")
 
 
+#: MDI 의 열 — identify 는 별칭(`MDI Identifier`)을, WMS 는 필드 이름(`MDI_IDENT`)을 준다. 둘 다 읽는다 (wetherilli 288)
+MDI_COLS = (("이름", ("NAME", "Name")), ("번호", ("MDI_IDENT", "MDI Identifier")), ("개발 단계", ("STATUS", "Status")),
+            ("광종", ("PRIMARY_COMMODITIES", "Primary Commodities")), ("딸린 광종", ("SECONDARY_COMMODITIES", "Secondary Commodities")),
+            ("곳", ("TOWNSHIP", "Township or Area")), ("지구", ("RGP_DISTRICT", "RGP District")))
+
+
+def mdi_friendly(props: dict) -> dict:
+    out = {}
+    for label, keys in MDI_COLS:
+        value = next((str(props[k]).strip() for k in keys if str(props.get(k) or "").strip().lower() not in ("", "null", "<null>")), "")
+        if value:
+            out[label] = value
+    link = next((str(props[k]) for k in ("INFO_LINK", "Info Link", "Information Link") if str(props.get(k) or "").startswith("http")), "")
+    if link:
+        out["상세"] = {"text": "", "links": [{"url": link, "label": "MDI"}]}
+    return out
+
+
 def friendly(props: dict, lang: str = "ko") -> dict:
     """열 이름을 한국어로. 지질시대는 가장 잘게 가른 것 하나이고 한국어판이면 ICS 이름을 옮긴다. 값(암상·층서)은 영어 그대로."""
+    if any(k in props for k in ("MDI_IDENT", "MDI Identifier")):
+        return mdi_friendly(props)
     out = {}
     for key, label in FRIENDLY:
         value = str(props.get(key) or "").strip()

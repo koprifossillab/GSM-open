@@ -56,7 +56,7 @@ def _get(url: str, params: dict = None, *, timeout: int = None):
         raise KopriError(f"극지연구소에 닿지 못했다: {exc}") from exc
     log.info("kopri %s -> %s", r.url, r.status_code)
     blocked = usage.looks_blocked(r.status_code, r.content[:1000])
-    usage.record("kopri", ok=r.status_code == 200, blocked=blocked)
+    usage.record("kopri", ok=r.status_code == 200, blocked=blocked, elapsed=r.elapsed)
     if r.status_code != 200:
         raise KopriError(f"극지연구소가 받지 않았다 (status={r.status_code})")
     return r
@@ -783,7 +783,7 @@ def _araon_page(nday: int, nhour: int) -> str:
         usage.record("kopri", ok=False)
         raise KopriError(f"아라온호 위치에 닿지 못했다: {exc}") from exc
     log.info("kopri %s -> %s", r.url, r.status_code)
-    usage.record("kopri", ok=r.status_code == 200, blocked=usage.looks_blocked(r.status_code, r.content[:1000]))
+    usage.record("kopri", ok=r.status_code == 200, blocked=usage.looks_blocked(r.status_code, r.content[:1000]), elapsed=r.elapsed)
     if r.status_code != 200:
         raise KopriError(f"아라온호 위치가 받지 않았다 (status={r.status_code})")
     return r.text

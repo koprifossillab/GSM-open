@@ -522,6 +522,13 @@ EN = {
     "깊은 지진 (300 km 넘게)": "Deep (over 300 km)",
     "원의 크기는 규모, 색은 진원 깊이": "Circle size is magnitude, colour is focal depth",
     "M{mag} 지진": "M{mag} earthquake",
+    # 관리 화면의 상류 응답 시간 (wetherilli 295)
+    "상류 응답 시간": "Upstream response times",
+    "지난 7 일의 평균이 느린 차례 — 시간은 상류가 응답의 머리를 보내기까지": "Slowest first by the 7-day mean — time until the upstream sends the response headers",
+    "상류": "Upstream", "지난 7 일": "Past 7 days", "건수": "Calls", "실패": "Failed", "평균 (초)": "Mean (s)",
+    "아직 센 것이 없다": "Nothing counted yet",
+    "p95 는 시간 칸(0.5·1·2·3·5·8·13·21·34 초)에서 어림한 위 끝이다. 실패는 차단 조짐을 함께 센다. 서버 쪽에서는 manage.py upstream_stats 로 같은 값을 본다.":
+        "p95 is the upper edge of the time band (0.5 · 1 · 2 · 3 · 5 · 8 · 13 · 21 · 34 s) it falls in. Failures include block signs. On the server, manage.py upstream_stats shows the same figures.",
     "지진 {n} 곳 가운데 가까운 것부터": "Nearest of {n} earthquakes",
     "USGS 에서 보기": "Open at USGS",
     # 제4기 고생태 산지 (wetherilli 139)
@@ -539,6 +546,16 @@ EN = {
     "지각 (CRUST 2.0)": "Crust (CRUST 2.0)",
     "지각 두께": "Crustal thickness",
     "약 {km} km — CRUST 2.0, 2° 칸의 모형이다": "About {km} km — CRUST 2.0, a model on 2° cells",
+    # 세계 빙하 RGI 7.0 (wetherilli 289)
+    "빙하 하나하나 (RGI 7.0)": "Individual glaciers (RGI 7.0)",
+    "바다에서 끝난다 (조수 빙하)": "Marine-terminating (tidewater)",
+    "빙하 (끝의 갈래를 가리지 않았다)": "Glacier (terminus type not assigned)",
+    "서지 가능": "Possible surge",
+    "서지 그럴듯": "Probable surge",
+    "서지 관측": "Observed surge",
+    "이름 없는 빙하": "Unnamed glacier",
+    "여기에는 빙하가 없다": "No glacier here",
+    "넓이만 한 점 — 줌 3 부터. 넓게 볼 때는 빙하·빙붕(Natural Earth)": "Dots sized by area — from zoom 3. Zoomed out, see Glaciers and ice shelves (Natural Earth)",
     # 충돌구·거대 화성암 지대 (wetherilli 283)
     "충돌구·거대 화성암 지대": "Impact craters & large igneous provinces", "충돌구": "Impact craters",
     "거대 화성암 지대 (LIP)": "Large igneous provinces (LIP)", "충돌구 — 원의 크기는 지름": "Impact crater — circle size shows diameter",
@@ -548,6 +565,13 @@ EN = {
         "Colour shows emplacement age. Continental ones move with plate rotation — computed, not observed",
     "신생대 (66 Ma 안쪽)": "Cenozoic (under 66 Ma)", "데본기·실루리아기": "Devonian–Silurian", "오르도비스기·캄브리아기": "Ordovician–Cambrian",
     "원생대": "Proterozoic",
+    # 화석 산지 밀도 (wetherilli 286)
+    "화석 산지 밀도": "Fossil locality density",
+    "드물다": "Sparse",
+    "몇 곳": "A few",
+    "많다": "Many",
+    "가장 많은 칸": "Densest cell",
+    "1° 칸의 산지 수(로그) — 조사가 몰린 곳이 진하다": "Localities per 1° cell (log) — darker where sampling concentrates",
     # 세계 활성단층 GEM (wetherilli 279)
     "활성단층 (GEM)": "Active faults (GEM)", "역단층·섭입": "Reverse / subduction", "주향이동·변환": "Strike-slip / transform",
     "사교 (주향이동+경사이동)": "Oblique (strike-slip + dip-slip)", "확장 해령": "Spreading ridge", "습곡·갈래 모름": "Fold / unknown",
@@ -1865,6 +1889,13 @@ EN = {
 # 모았다. 영문 열(`symnum`·`GRAY_INDEX` …)은 그대로 둔다.
 
 PROP_EN = {
+    # 세계 빙하 (wetherilli 289)
+    "넓이 (km²)": "Area (km²)",
+    "가운데 높이 (m)": "Median elevation (m)",
+    "끝": "Terminus",
+    "서지": "Surge",
+    "윤곽의 날": "Outline date",
+    "RGI": "RGI",
     # 충돌구·LIP (wetherilli 283)
     "생긴 때 (Ma)": "Age (Ma)", "그때의 지구": "Past positions", "지름 (km)": "Diameter (km)",
     # 세계 활성단층 (wetherilli 279)
@@ -2415,7 +2446,10 @@ PROP_EN = {
     # 독일 BGR·스페인 IGME (wetherilli 147)
     "대": "Era",
     "성인": "Genesis",
+    "회사": "Company",
+    "생산": "Production", "발견": "Discovery",
     "광종 (태국어)": "Commodity (Thai)", "군": "District", "탐사 단계": "Exploration status", "광종 갈래": "Commodity group", "조사 단계": "Survey stage",
+    "광업 지역": "Mining area",
     "딸린 광종": "Other commodities", "채굴 기간": "Years mined", "총 광량 (Mt)": "Total tonnage (Mt)", "광석 광물": "Ore minerals",
     "광화 시기": "Age of mineralisation", "광상 유형": "Deposit type", "생산 끝": "Production ended",
     "시대 기호": "Age code", "자원량": "Resources",
@@ -3097,8 +3131,10 @@ def props_en(props: dict) -> dict:
 # 레이어 이름을 열쇠로 여기 둔다. 없으면 한국어 제목이 뜬다.
 
 GROUP_EN = {
+    "캐나다 주 광물 산지": "Canadian provincial mineral occurrences",
     "인도네시아 광물 자원 (ESDM)": "Indonesia mineral resources (ESDM)", "필리핀 광물 자원 (MGB)": "Philippines mineral resources (MGB)",
     "태국 광물 (DMR)": "Thailand minerals (DMR)", "사우디 광물 (SGS)": "Saudi Arabia minerals (SGS)", "몽골 광물 (MRIS)": "Mongolia minerals (MRIS)",
+    "남아공 광업·자원 지역 (CGS)": "South Africa mining and resource areas (CGS)",
     "핀란드 지구물리 (GTK)": "Finland geophysics (GTK)", "북유럽 광상 (FODD)": "Fennoscandian ore deposits (FODD)",
     "스웨덴 광물·지구물리 (SGU)": "Sweden minerals and geophysics (SGU)",
     "페루 광물 자원 (INGEMMET)": "Peru mineral resources (INGEMMET)", "페루 지구물리 (INGEMMET)": "Peru geophysics (INGEMMET)",
@@ -3246,12 +3282,18 @@ GROUP_EN = {
 }
 
 LAYER_EN = {
+    # 캐나다 주 광물 산지 (wetherilli 288)
+    "bcgs:minfile": "British Columbia MINFILE mineral occurrences", "ygs:57": "Yukon MINFILE mineral occurrences",
+    "ogs:11": "Ontario mineral deposit inventory (MDI)", "sigeom:mines": "Québec active mines and advanced projects",
+    "skgs:smdi": "Saskatchewan mineral deposits index (SMDI)", "skgs:mines": "Saskatchewan mine locations",
     # 아시아 광물 (wetherilli 280)
     "esdm:metal": "Metallic mineral potential", "esdm:nonmetal": "Non-metallic mineral and rock potential",
     "mgb:metallic": "Metallic mineral resources", "mgb:nonmetallic": "Non-metallic mineral resources",
     "dmr:min_occ": "Mineral occurrences", "dmr:critical": "Critical mineral occurrences",
     "sgs:mods": "Mineral occurrences (MODS)", "sgs:belts": "Mineralization belts (gold, nickel, zinc, VMS)",
     "mris:ree": "Rare earth deposits, mineralized points and occurrences",
+    # 남아공 광업·자원 지역 (wetherilli 285)
+    "cgs:mining_areas": "Main mining areas (CSIR)", "cgs:coal": "Main coal resource areas", "cgs:uranium": "Uranium areas",
     # 북유럽 광물·지구물리 (wetherilli 270)
     "gtk:aeromagneettinen_anomaliakartta": "Aeromagnetic anomaly", "gtk:aeroradiometrinen_yhdistelmakartta": "Aeroradiometric ternary (K·Th·U)",
     "gtk:fennoscandia_mineral_deposit": "Ore deposits (Norway, Sweden, Finland, NW Russia)",

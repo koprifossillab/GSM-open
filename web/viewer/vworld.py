@@ -472,7 +472,7 @@ def _raw(url: str, params: dict, timeout=None):
         raise VWorldError(f"VWorld 에 닿지 못했다: {_redact(str(exc))}") from exc
     log.info("VWorld %s -> %s", _redact(r.url), r.status_code)
     usage.record("vworld", ok=r.status_code == 200,
-                 blocked=usage.looks_blocked(r.status_code, r.content[:1000]))
+                 blocked=usage.looks_blocked(r.status_code, r.content[:1000]), elapsed=r.elapsed)
     return r
 
 
@@ -773,7 +773,7 @@ def get_wmts_tile(layer: str, z: int, y: int, x: int):
     log.info("VWorld WMTS %s -> %s", where, r.status_code)
     ctype = r.headers.get("content-type", "")
     usage.record("vworld", ok=r.status_code == 200,
-                 blocked=usage.looks_blocked(r.status_code, r.content[:1000]))
+                 blocked=usage.looks_blocked(r.status_code, r.content[:1000]), elapsed=r.elapsed)
     if r.status_code == 200 and ctype.startswith("image/"):
         return r.content, ctype
     if r.status_code == 200:

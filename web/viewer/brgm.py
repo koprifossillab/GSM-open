@@ -57,7 +57,7 @@ def _get(params: dict):
         usage.record("brgm", ok=False)
         raise BrgmError(f"BRGM 에 닿지 못했다: {exc}") from exc
     log.info("BRGM %s -> %s", r.url, r.status_code)
-    usage.record("brgm", ok=r.status_code == 200, blocked=usage.looks_blocked(r.status_code, r.content[:1000]))
+    usage.record("brgm", ok=r.status_code == 200, blocked=usage.looks_blocked(r.status_code, r.content[:1000]), elapsed=r.elapsed)
     return r
 
 
@@ -179,7 +179,7 @@ def _cgmw_get(url: str, params=None):
         usage.record("cgmw", ok=False)
         raise BrgmError(f"CGMW–BRGM 에 닿지 못했다: {exc}") from exc
     log.info("CGMW %s -> %s", r.url, r.status_code)
-    usage.record("cgmw", ok=r.status_code == 200, blocked=usage.looks_blocked(r.status_code, r.content[:1000]))
+    usage.record("cgmw", ok=r.status_code == 200, blocked=usage.looks_blocked(r.status_code, r.content[:1000]), elapsed=r.elapsed)
     return r
 
 
@@ -290,7 +290,7 @@ def _irgm_get(params: dict):
         usage.record("irgm", ok=False)
         raise BrgmError(f"IRGM(BRGM) 에 닿지 못했다: {exc}") from exc
     log.info("IRGM %s -> %s", r.url, r.status_code)
-    usage.record("irgm", ok=r.status_code == 200, blocked=usage.looks_blocked(r.status_code, r.content[:1000]))
+    usage.record("irgm", ok=r.status_code == 200, blocked=usage.looks_blocked(r.status_code, r.content[:1000]), elapsed=r.elapsed)
     return r
 
 

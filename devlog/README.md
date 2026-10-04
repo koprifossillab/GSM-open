@@ -328,6 +328,12 @@
 | wetherilli 283 | 2026-10-05 | [온 지구 — 충돌구와 거대 화성암 지대](20261005_wetherilli_283_earth_impacts.md) |
 | wetherilli 284 | 2026-10-05 | [메타타일 넓히기 — SGC 넓은 줌, EGDI(실패하면 칸 하나로), prewarm 의 메타타일 블록](20261005_wetherilli_284_metatile_more.md) |
 | wetherilli 287 | 2026-10-05 | [느린 상류 찾기와 메타타일 적용](20261005_wetherilli_287_metatile_slow.md) |
+| wetherilli 285 | 2026-10-05 | [아프리카 — 남아공의 광업·석탄·우라늄 지역](20261005_wetherilli_285_africa_resources.md) |
+| wetherilli 286 | 2026-10-05 | [온 지구 — 화석 산지 밀도, 옛 연대는 그때의 자리로](20261005_wetherilli_286_earth_fossil_density.md) |
+| wetherilli 288 | 2026-10-05 | [캐나다 — 주의 광물 산지 다섯](20261005_wetherilli_288_canada_minerals.md) |
+| wetherilli 289 | 2026-10-05 | [온 지구 — 세계 빙하 (RGI 7.0)](20261005_wetherilli_289_earth_glaciers.md) |
+| wetherilli 290 | 2026-10-05 | [상류 응답 시간을 날마다 센다](20261005_wetherilli_290_upstream_timing.md) |
+| wetherilli 295 | 2026-10-05 | [관리 화면에 상류 응답 시간 표](20261005_wetherilli_295_upstream_dashboard.md) |
 | koprifossillab P01 | 2026-09-30 | [백업 — WegenersDream 의 틀로, 바뀌는 빠르기에 따라 넷으로 (계획)](20260930_koprifossillab_P01_backup_plan.md) |
 | koprifossillab 001 | 2026-09-30 | [매주 월요일 새벽: 운영 자료 백업과 KPDC 목록 갱신](20260930_koprifossillab_001_weekly_backup.md) |
 | koprifossillab 002 | 2026-09-30 | [`/healthz/` — 판·DB·백업 상태를 한 장으로](20260930_koprifossillab_002_healthz.md) |

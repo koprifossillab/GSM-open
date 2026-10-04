@@ -147,3 +147,9 @@ body.manage { display: block; height: auto; min-height: 100vh; overflow: visible
 .mg-cap-warn.bad { color: var(--bad); background: var(--panel-tint); border: 1px solid var(--bad); }
 .mg-table td.mg-big { color: var(--bad); font-weight: 600; }
 .mg-size-check { margin-top: 10px; font-size: 12.5px; color: var(--ink-soft); }
+
+/* 상류 응답 시간 (wetherilli 295) — 수는 오른쪽에, 실패가 있으면 붉게 */
+.mg-upstream td.num, .mg-upstream th { text-align: right; font-variant-numeric: tabular-nums; }
+.mg-upstream th:first-child, .mg-upstream td:first-child { text-align: left; }
+.mg-upstream thead th[colspan] { text-align: center; }
+.mg-upstream td.bad { color: #d4523a; font-weight: 600; }

@@ -22,7 +22,9 @@ PREFIX = "ygs:"
 ATTRIBUTION = ('<a href="https://data.geology.gov.yk.ca/" target="_blank" rel="noopener">Yukon Geological Survey</a> '
                "(Government of Yukon, OGL–Yukon)")
 #: 레이어 → (WMS 번호, 처음 그리는 화면 줌, 누르기가 되나)
-LAYERS = {"ygs:47": ("47", 7, True), "ygs:50": ("50", 10, False)}
+LAYERS = {"ygs:47": ("47", 7, True), "ygs:50": ("50", 10, False),
+          # MINFILE 광물 산지 3 223 곳(wetherilli 288) — 같은 서비스, WMS 57(REST 4)
+          "ygs:57": ("57", 5, True)}
 
 
 class YgsError(RuntimeError):
@@ -59,7 +61,7 @@ def _get(params: dict):
         usage.record("ygs", ok=False)
         raise YgsError(f"유콘에 닿지 못했다: {exc}") from exc
     log.info("YGS %s -> %s", r.url, r.status_code)
-    usage.record("ygs", ok=r.status_code == 200, blocked=usage.looks_blocked(r.status_code, r.content[:1000]))
+    usage.record("ygs", ok=r.status_code == 200, blocked=usage.looks_blocked(r.status_code, r.content[:1000]), elapsed=r.elapsed)
     return r
 
 
@@ -119,6 +121,13 @@ def _age(props: dict, lang: str) -> str:
 
 def friendly(props: dict, lang: str = "ko") -> dict:
     v = lambda k: _v(props, k)          # noqa: E731
+    if "minfile_number" in props or "MINFILE_NUMBER" in props:     # MINFILE (wetherilli 288) — WMS 는 열 이름이 작은 글자다
+        w = lambda k: v(k.lower()) or v(k)                          # noqa: E731
+        link = w("LINK_TO_DOCUMENT")
+        rows = (("이름", w("MINFILE_NAME")), ("번호", w("MINFILE_NUMBER")), ("광종", w("MAIN_COMMODITY")),
+                ("광상 유형", w("DEPOSIT_TYPE")), ("개발 단계", w("DEPOSIT_STATUS")), ("생산", "Y" if w("PRODUCER_IND") == "Y" else ""),
+                ("상세", {"text": "", "links": [{"url": link, "label": "MINFILE"}]} if link.startswith(("http://", "https://")) else ""))
+        return {k: x for k, x in rows if x}
     ma = " – ".join(x for x in (v("AGE_MIN_MA"), v("AGE_MAX_MA")) if x)
     rows = (("기호", v("UNIT_250K") or v("UNIT_1M")), ("지층", v("FORMATION") or v("GP_SUITE") or v("ASSEMBLAGE")),
             ("암석", v("SHORT_DESCRIPTION") or v("ROCK_MAJOR")), ("암석 분류", v("ROCK_CLASS")), ("지질시대", _age(props, lang)),

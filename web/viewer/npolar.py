@@ -233,7 +233,7 @@ def _get(url: str, params: dict):
         raise NpolarError(f"NPI 에 닿지 못했다: {exc}") from exc
     log.info("npolar %s -> %s", r.url, r.status_code)
     usage.record("npolar", ok=r.status_code == 200,
-                 blocked=usage.looks_blocked(r.status_code, r.content[:1000]))
+                 blocked=usage.looks_blocked(r.status_code, r.content[:1000]), elapsed=r.elapsed)
     return r
 
 

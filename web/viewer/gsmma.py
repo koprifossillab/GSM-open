@@ -118,7 +118,7 @@ def _get(url: str, params: dict, label: str):
         usage.record("gsmma", ok=False)
         raise GsmmaError(f"대만 {label} 에 닿지 못했다: {exc}") from exc
     log.info("GSMMA %s -> %s", r.url, r.status_code)
-    usage.record("gsmma", ok=r.status_code == 200, blocked=usage.looks_blocked(r.status_code, r.content[:1000]))
+    usage.record("gsmma", ok=r.status_code == 200, blocked=usage.looks_blocked(r.status_code, r.content[:1000]), elapsed=r.elapsed)
     return r
 
 

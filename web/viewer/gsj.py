@@ -84,7 +84,7 @@ def _get(path: str, params: dict):
         raise GsjError(f"GSJ 에 닿지 못했다: {exc}") from exc
     log.info("GSJ %s -> %s", r.url, r.status_code)
     blocked = usage.looks_blocked(r.status_code, r.content[:1000])
-    usage.record("gsj", ok=r.status_code in (200, 301, 302), blocked=blocked)
+    usage.record("gsj", ok=r.status_code in (200, 301, 302), blocked=blocked, elapsed=r.elapsed)
     return r
 
 
@@ -238,7 +238,7 @@ def _ccop_get(params: dict):
         usage.record("ccop", ok=False)
         raise GsjError(f"CCOP(GSJ) 에 닿지 못했다: {exc}") from exc
     log.info("CCOP %s -> %s", r.url, r.status_code)
-    usage.record("ccop", ok=r.status_code == 200, blocked=usage.looks_blocked(r.status_code, r.content[:1000]))
+    usage.record("ccop", ok=r.status_code == 200, blocked=usage.looks_blocked(r.status_code, r.content[:1000]), elapsed=r.elapsed)
     return r
 
 
@@ -392,7 +392,7 @@ def _gsjows_get(url: str, params: dict):
         usage.record("gsjows", ok=False)
         raise GsjError(f"GSJ 에 닿지 못했다: {exc}") from exc
     log.info("GSJ-OWS %s -> %s", r.url, r.status_code)
-    usage.record("gsjows", ok=r.status_code == 200, blocked=usage.looks_blocked(r.status_code, r.content[:1000]))
+    usage.record("gsjows", ok=r.status_code == 200, blocked=usage.looks_blocked(r.status_code, r.content[:1000]), elapsed=r.elapsed)
     return r
 
 
@@ -482,7 +482,7 @@ def fetch_geonavi_capabilities() -> str:
     except requests.RequestException as exc:
         usage.record("gsj", ok=False)
         raise GsjError(f"지질도Navi 에 닿지 못했다: {exc}") from exc
-    usage.record("gsj", ok=r.status_code == 200)
+    usage.record("gsj", ok=r.status_code == 200, elapsed=r.elapsed)
     if r.status_code != 200 or b"<Capabilities" not in r.content[:2000]:
         raise GsjError(f"Capabilities 가 아닌 것이 왔다 (status={r.status_code})")
     return r.content.decode("utf-8")

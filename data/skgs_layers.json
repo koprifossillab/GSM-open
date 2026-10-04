@@ -1,12 +1,13 @@
 {
- "_주석": "사스카치원 지질조사소 기반암 지질도 씨앗이다 — 캐나다 탭. ArcGIS WMS 를 3978 로 받는다. 레이어명은 skgs:<WMS 번호> — WMS 번호가 REST 와 거꾸로다 (web/viewer/skgs.py). 한글 제목과 레이어군은 사람이 붙였다 (wetherilli 235).",
+ "_주석": "사스카치원 지질조사소 기반암 지질도 씨앗이다 — 캐나다 탭. ArcGIS WMS 를 3978 로 받는다. 레이어명은 skgs:<WMS 번호> — WMS 번호가 REST 와 거꾸로다 (web/viewer/skgs.py). 한글 제목과 레이어군은 사람이 붙였다 (wetherilli 235). 광물 산지·광산은 Economy/Mineral_Exploration — WMS 가 없어 REST 로 (wetherilli 288).",
  "_뽑은날": "2026-10-05",
  "_출처": "https://gis.saskatchewan.ca/arcgis/services/Economy/Geology/MapServer/WMSServer?SERVICE=WMS&REQUEST=GetCapabilities",
  "_지역": "canada",
  "_상류": "skgs",
  "_레이어군차례": 0,
  "레이어군순서": [
-  "사스카치원 지질도 (SGS)"
+  "사스카치원 지질도 (SGS)",
+  "캐나다 주 광물 산지"
  ],
  "레이어": [
   {
@@ -42,6 +43,30 @@
     -110.0,
     49.0,
     -101.3,
+    60.0
+   ]
+  },
+  {
+   "name": "skgs:smdi",
+   "title": "사스카치원 광물 산지 (SMDI)",
+   "group": "캐나다 주 광물 산지",
+   "abstract": "Saskatchewan Mineral Deposits Index — 6 012 곳",
+   "bbox": [
+    -110.0,
+    49.0,
+    -101.4,
+    60.0
+   ]
+  },
+  {
+   "name": "skgs:mines",
+   "title": "사스카치원 광산 위치",
+   "group": "캐나다 주 광물 산지",
+   "abstract": "Mine Locations",
+   "bbox": [
+    -110.0,
+    49.0,
+    -101.4,
     60.0
    ]
   }

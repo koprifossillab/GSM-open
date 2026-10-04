@@ -61,10 +61,18 @@
       브라질 opendata 의 광업 권역(ANM)·항공 지구물리 조사 범위, SEGEMAR 자력 이상(나라 전체 면 47 개뿐이라 뺐다), 페루 광업 권리(`SERV_CATASTRO_MINERO`)·
       지화학 지도첩(`SERV_ATLAS_GEOQUIMICO`)·산업 광물(`SERV_ROCAS_MINERALES_INDUSTRIALES`)
 
+- [ ] 캐나다 주 광물(wetherilli 288) — BC·유콘 MINFILE, 온타리오 MDI, 퀘벡 가동 광산·사업, 사스카치원 SMDI 는 섰다. 남은 것: 앨버타 금속·산업 광물 산지는
+      ArcGIS Online 피처 서비스(`Metallic_Mineral_Occurrences`·`Industrial_Mineral_Occurrences`)뿐이라 그림 길이 없다 — 파나마(stri)처럼 한 덩이로 받아
+      화면이 그릴지. 노바스코샤는 광물 산지 서비스를 찾지 못했다. 퀘벡의 광물 산지(gîte)는 WMS 에 없다(SIGÉOM 의 다른 서비스를 찾을 것)
+
 - [ ] 아시아 광물(wetherilli 280) — 인도네시아·필리핀·태국·사우디·몽골 희토류는 섰다. 남은 것: 말레이시아 MyGEMS 는 `rest/services` 목록이 허브 쪽으로
       넘어가 광물 서비스를 찾지 못했다, 인도 GSI 는 Bhukosh 가 나라 밖에서 닿지 않는다. 몽골 `Atlas/AtlasPoints` 의 광상 레이어(6–9)는 우물 자료를
       돌려준다 — 고쳐지면 금속·비금속·연료·전략 광상. 태국 지구물리 탐사 지점·사우디 지구물리 사업 범위는 범위뿐이라 뺐다.
       다섯 곳 모두 이용 조건이 적혀 있지 않다 — 정적 판에 싣기 전에 사람이 읽는다
+
+- [ ] 아프리카 광물(wetherilli 285) — 남아공 광업·석탄·우라늄 지역(DPME 사본)만 섰다. 나미비아 GSN·부르키나파소 BUMIGEB(BGS OneGeology)·카메룬 IRGM(BRGM)
+      WMS 는 지질 단위·단층뿐이고, BGS ArcGIS 의 아프리카 폴더는 지하수뿐이다(`Ghana`·`Kenya` 폴더는 비었다). CGS 자신의 서버(`maps.geoscience.org.za`)는
+      여전히 시간 초과다. 광상 점은 SIGAfrique(BRGM)·나라 지질조사소 포털에 물어야 한다
 
 - [ ] 오세아니아 광물·지구물리(wetherilli 269) — 퀸즐랜드·빅토리아·남호주·뉴질랜드 중력은 섰다. 남은 것: 뉴질랜드 광물 산지 GERM(`gns:GERM_ERML_VIEW`)은
       가까이 봐도 빈 그림이다(스타일이 없거나 축척 제한) — GNS 에 물을지. 빅토리아 중력 측점(`gravity`)·자력 선형(`lineaments_tmi`), 남호주 지구물리(SARIG 영상)
@@ -161,6 +169,8 @@ wetherilli 249 — 네팔 DMG GeoServer 는 열렸지만 행정 경계·도폭�
 
 (2026-09-30 운영 `/srv/GSM/db/earth/` 에 옛 해안선·화석 산지·맨틀을 두었다. 화석 산지는 가끔 `fetch_pbdb` 로 새로 받는다)
 
+- [ ] **(사람)** RGI 7.0 빙하 **윤곽** — NSIDC-0770 은 NASA Earthdata 로그인 뒤에만 받힌다. 계정을 만들어 `RGI2000-v7.0-G-global` 셰이프를 받아 NAS
+      `sources/earth/rgi7/` 에 두면 `glaciers.py` 의 점을 면으로 바꾼다(지금은 속성 표의 가운데·넓이로 넓이만 한 원) (wetherilli 289)
 - [ ] **(사람)** GEOROC 암석 지화학 시료(wetherilli 293 으로 받은 일) — 조건은 **CC BY-SA 4.0**(GEOROC Compilation 미리 엮은 파일, 일에 적힌 CC BY 가
       아니다). 파일은 모두 GRO.data(`data.goettingen-research-online.de`, "Rock Types" doi:10.25625/2JETOA, 356 MB zip 90 개)에 있는데 **이 서버에서는
       TLS 연결이 끊긴다**(2026-10-05, 여러 번·CA 묶음으로도 SSLEOF). GEOROC 2.0 API 는 접근 열쇠가 든다. 다른 망에서 zip 을 받아 NAS

@@ -316,6 +316,20 @@ class UpstreamDay(models.Model):
     ok = models.PositiveIntegerField("성공", default=0)
     fail = models.PositiveIntegerField("실패", default=0)
     blocked = models.PositiveIntegerField("차단 조짐", default=0)
+    # 걸린 시간 (wetherilli 290) — 문이 받은 응답의 `elapsed`(보내고 머리를 받기까지). 잰 건수·합(초)과 칸마다의 건수.
+    # 칸의 위 끝은 `usage.TIME_BUCKETS` 다(0.5·1·2·3·5·8·13·21·34 초, 마지막 칸은 그 너머). p95 는 칸에서 어림한다
+    timed = models.PositiveIntegerField("잰 건수", default=0)
+    seconds = models.FloatField("걸린 시간 합(초)", default=0.0)
+    t0 = models.PositiveIntegerField(default=0)
+    t1 = models.PositiveIntegerField(default=0)
+    t2 = models.PositiveIntegerField(default=0)
+    t3 = models.PositiveIntegerField(default=0)
+    t4 = models.PositiveIntegerField(default=0)
+    t5 = models.PositiveIntegerField(default=0)
+    t6 = models.PositiveIntegerField(default=0)
+    t7 = models.PositiveIntegerField(default=0)
+    t8 = models.PositiveIntegerField(default=0)
+    t9 = models.PositiveIntegerField(default=0)
 
     class Meta:
         ordering = ["-day", "upstream"]

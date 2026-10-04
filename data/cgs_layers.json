@@ -1,12 +1,13 @@
 {
- "_주석": "남아공 지질조사소(CGS) 1:100만 씨앗이다 — 아프리카 탭. CGS 의 지도 서버에 닿지 않아 정부(DPME) GIS 의 사본을 ArcGIS REST 로 받는다(web/viewer/cgs.py). 자료를 파는 곳이라 서버 캐시에 담지 않는다 (wetherilli 209).",
+ "_주석": "남아공 지질조사소(CGS) 1:100만 씨앗이다 — 아프리카 탭. CGS 의 지도 서버에 닿지 않아 정부(DPME) GIS 의 사본을 ArcGIS REST 로 받는다(web/viewer/cgs.py). 자료를 파는 곳이라 서버 캐시에 담지 않는다 (wetherilli 209). 광업·석탄·우라늄 지역도 같은 DPME 서비스의 레이어다 (wetherilli 285).",
  "_뽑은날": "2026-10-04",
  "_출처": "https://dpmegis.dpme.gov.za/arcgis/rest/services/Geology/MapServer?f=json",
  "_지역": "africa",
  "_상류": "cgs",
  "_레이어군차례": 2,
  "레이어군순서": [
-  "남아프리카공화국 지질도 (CGS 1:100만)"
+  "남아프리카공화국 지질도 (CGS 1:100만)",
+  "남아공 광업·자원 지역 (CGS)"
  ],
  "레이어": [
   {
@@ -14,6 +15,42 @@
    "title": "지질도 (1:100만)",
    "group": "남아프리카공화국 지질도 (CGS 1:100만)",
    "abstract": "Geology 1 million (Council for Geoscience)",
+   "bbox": [
+    16.4,
+    -34.9,
+    32.9,
+    -22.1
+   ]
+  },
+  {
+   "name": "cgs:mining_areas",
+   "title": "주요 광업 지역 (CSIR)",
+   "group": "남아공 광업·자원 지역 (CGS)",
+   "abstract": "Main Mining areas — 면 8 (새·쇠퇴·생산 광업)",
+   "bbox": [
+    16.4,
+    -34.9,
+    32.9,
+    -22.1
+   ]
+  },
+  {
+   "name": "cgs:coal",
+   "title": "주요 석탄 자원 지역",
+   "group": "남아공 광업·자원 지역 (CGS)",
+   "abstract": "Main Coal resource areas (CGS) — 면 86",
+   "bbox": [
+    16.4,
+    -34.9,
+    32.9,
+    -22.1
+   ]
+  },
+  {
+   "name": "cgs:uranium",
+   "title": "우라늄 지역",
+   "group": "남아공 광업·자원 지역 (CGS)",
+   "abstract": "Uranium areas (CGS) — 면 19",
    "bbox": [
     16.4,
     -34.9,

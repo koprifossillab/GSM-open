@@ -91,7 +91,7 @@ def _get(params: dict):
         usage.record("segemar", ok=False)
         raise SegemarError(f"SEGEMAR 에 닿지 못했다: {exc}") from exc
     log.info("SEGEMAR %s -> %s", r.url, r.status_code)
-    usage.record("segemar", ok=r.status_code == 200, blocked=usage.looks_blocked(r.status_code, r.content[:1000]))
+    usage.record("segemar", ok=r.status_code == 200, blocked=usage.looks_blocked(r.status_code, r.content[:1000]), elapsed=r.elapsed)
     return r
 
 
