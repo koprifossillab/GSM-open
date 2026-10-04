@@ -1,0 +1,37 @@
+{
+ "_주석": "나미비아 지질조사소(GSN) 1:100만 씨앗이다 — 아프리카 탭. BGS 가 대신 내주는 MapServer 라 문은 bgs.py 의 GSN 이다. 자료를 파는 곳이라 서버 캐시에 담지 않는다 (wetherilli 209).",
+ "_뽑은날": "2026-10-04",
+ "_출처": "https://ogc.bgs.ac.uk/cgi-bin/BGS_GSN_Bedrock_Geology/wms?service=WMS&request=GetCapabilities",
+ "_지역": "africa",
+ "_상류": "gsn",
+ "_레이어군차례": 3,
+ "레이어군순서": [
+  "나미비아 지질도 (GSN 1:100만)"
+ ],
+ "레이어": [
+  {
+   "name": "gsn:NAM_GSN_1M_BLS",
+   "title": "암층서 (1:100만)",
+   "group": "나미비아 지질도 (GSN 1:100만)",
+   "abstract": "Namibia 1:1M bedrock lithostratigraphy",
+   "bbox": [
+    11.7,
+    -29.0,
+    25.3,
+    -16.9
+   ]
+  },
+  {
+   "name": "gsn:NAM_GSN_1M_BA",
+   "title": "연대 (1:100만)",
+   "group": "나미비아 지질도 (GSN 1:100만)",
+   "abstract": "Namibia 1:1M bedrock age",
+   "bbox": [
+    11.7,
+    -29.0,
+    25.3,
+    -16.9
+   ]
+  }
+ ]
+}

@@ -2388,3 +2388,102 @@ a.tool { text-decoration: none; }                /* 3D 단추는 링크다 */
   --hi: #0e3a42; --hi-deep: #07232a; --on-hi: #f2fafb; --hi-ink: #1a8798;
   --glass: rgba(251, 253, 253, .95); --glass-line: #d0e2e5;
 }
+
+/* ── 미국 (wetherilli 205) — 모뉴먼트밸리의 붉은 사암: 사막의 밤하늘 바탕 ── */
+:root[data-region="usa"] {
+  --bg: #12101a; --panel: #1a1723; --panel-tint: #0d0b13; --raise: #25202f;
+  --ink: #f6eee9; --ink-soft: #cdb9ae; --ink-faint: #8a7a72;
+  --line: #352c39; --line-soft: #25202f;
+  --gold: #c8643c; --gold-bright: #eba27f; --gold-muted: #ad5a39;
+  --gold-wash: rgba(200, 100, 60, .13); --gold-edge: rgba(200, 100, 60, .42);
+  --hi: #c8643c; --hi-deep: #eba27f; --on-hi: #0d0b13; --hi-ink: #eba27f;
+  --glass: rgba(13, 11, 19, .93); --glass-line: rgba(200, 100, 60, .35);
+}
+:root[data-region="usa"][data-theme="light"] {
+  --bg: #f8f1ec; --panel: #fefbf9; --panel-tint: #faf4f0; --raise: #eee1d9;
+  --ink: #2a160e; --ink-soft: #644637; --ink-faint: #9e8174;
+  --line: #e6d4ca; --line-soft: #eee1d9;
+  --gold: #a94a26; --gold-bright: #84371a; --gold-muted: #9a5a40;
+  --gold-wash: #f8e4da; --gold-edge: #e7b49d;
+  --hi: #4c1d0d; --hi-deep: #2f1006; --on-hi: #fdf6f2; --hi-ink: #a94a26;
+  --glass: rgba(254, 251, 249, .95); --glass-line: #e6d4ca;
+}
+
+/* ── 멕시코 (wetherilli 206) — 로사 메히카노: 오악사카 흑도기 바탕 ── */
+:root[data-region="mexico"] {
+  --bg: #141013; --panel: #1c161b; --panel-tint: #0f0b0e; --raise: #281f26;
+  --ink: #f8edf3; --ink-soft: #d3b6c6; --ink-faint: #917585;
+  --line: #3a2a34; --line-soft: #281f26;
+  --gold: #e0389a; --gold-bright: #f394c8; --gold-muted: #bf3884;
+  --gold-wash: rgba(224, 56, 154, .13); --gold-edge: rgba(224, 56, 154, .42);
+  --hi: #e0389a; --hi-deep: #f394c8; --on-hi: #0f0b0e; --hi-ink: #f394c8;
+  --glass: rgba(15, 11, 14, .93); --glass-line: rgba(224, 56, 154, .35);
+}
+:root[data-region="mexico"][data-theme="light"] {
+  --bg: #f9eff5; --panel: #fefbfd; --panel-tint: #fbf3f8; --raise: #f0e0ea;
+  --ink: #2b1222; --ink-soft: #654253; --ink-faint: #a0808f;
+  --line: #e8d3df; --line-soft: #f0e0ea;
+  --gold: #b11f73; --gold-bright: #8a1558; --gold-muted: #a05380;
+  --gold-wash: #f9e0ee; --gold-edge: #eaa9cc;
+  --hi: #4f0c33; --hi-deep: #320620; --on-hi: #fdf4f9; --hi-ink: #b11f73;
+  --glass: rgba(254, 251, 253, .95); --glass-line: #e8d3df;
+}
+
+/* ── 아프리카 (wetherilli 207) — 사바나 황토와 바오바브 껍질의 적갈 ── */
+:root[data-region="africa"] {
+  --bg: #17120c; --panel: #1f1810; --panel-tint: #120e09; --raise: #2b2116;
+  --ink: #f7efe3; --ink-soft: #d6c2a4; --ink-faint: #957f61;
+  --line: #3d2f1f; --line-soft: #2b2116;
+  --gold: #d9902f; --gold-bright: #f0bf74; --gold-muted: #b5772a;
+  --gold-wash: rgba(217, 144, 47, .13); --gold-edge: rgba(217, 144, 47, .42);
+  --hi: #d9902f; --hi-deep: #f0bf74; --on-hi: #120e09; --hi-ink: #f0bf74;
+  --glass: rgba(18, 14, 9, .93); --glass-line: rgba(217, 144, 47, .35);
+}
+:root[data-region="africa"][data-theme="light"] {
+  --bg: #f8f1e6; --panel: #fefbf6; --panel-tint: #faf5ec; --raise: #efe2cd;
+  --ink: #2a1d0d; --ink-soft: #634c2e; --ink-faint: #9e8a6c;
+  --line: #e7d7bd; --line-soft: #efe2cd;
+  --gold: #9c5e12; --gold-bright: #7a470b; --gold-muted: #8d6a3b;
+  --gold-wash: #f6e6cb; --gold-edge: #e6c48d;
+  --hi: #3f2508; --hi-deep: #281604; --on-hi: #fdf8f0; --hi-ink: #9c5e12;
+  --glass: rgba(254, 251, 246, .95); --glass-line: #e7d7bd;
+
+/* ── 캐나다 (wetherilli 204) — 단풍잎의 붉은빛: 캐나다 순상지 화강암의 회색 바탕 ── */
+:root[data-region="canada"] {
+  --bg: #151313; --panel: #1c1919; --panel-tint: #110f0f; --raise: #282323;
+  --ink: #f6f1f0; --ink-soft: #cdbfbd; --ink-faint: #8d7f7d;
+  --line: #3a3232; --line-soft: #282323;
+  --gold: #d8473a; --gold-bright: #f08a7f; --gold-muted: #b13a2f;
+  --gold-wash: rgba(216, 71, 58, .13); --gold-edge: rgba(216, 71, 58, .42);
+  --hi: #d8473a; --hi-deep: #f08a7f; --on-hi: #110f0f; --hi-ink: #f08a7f;
+  --glass: rgba(17, 15, 15, .93); --glass-line: rgba(216, 71, 58, .35);
+}
+:root[data-region="canada"][data-theme="light"] {
+  --bg: #f6f2f1; --panel: #fdfbfb; --panel-tint: #f9f5f4; --raise: #ece4e2;
+  --ink: #241a19; --ink-soft: #5a4946; --ink-faint: #93817e;
+  --line: #e4d9d7; --line-soft: #ece4e2;
+  --gold: #b22a1e; --gold-bright: #8c1f16; --gold-muted: #9a5048;
+  --gold-wash: #f7e3e0; --gold-edge: #e7b3ad;
+  --hi: #3b0f0a; --hi-deep: #250805; --on-hi: #fdf8f7; --hi-ink: #b22a1e;
+  --glass: rgba(253, 251, 251, .95); --glass-line: #e4d9d7;
+}
+
+/* ── 호주 (wetherilli 212) — 그레이트배리어리프의 산호빛: 산호해의 깊은 바다 바탕 ── */
+:root[data-region="australia"] {
+  --bg: #0c1218; --panel: #121a22; --panel-tint: #090e13; --raise: #1b2631;
+  --ink: #eef4f8; --ink-soft: #b3c3cf; --ink-faint: #71838f;
+  --line: #263442; --line-soft: #1b2631;
+  --gold: #f2836b; --gold-bright: #f9bcae; --gold-muted: #cf7360;
+  --gold-wash: rgba(242, 131, 107, .13); --gold-edge: rgba(242, 131, 107, .42);
+  --hi: #f2836b; --hi-deep: #f9bcae; --on-hi: #090e13; --hi-ink: #f9bcae;
+  --glass: rgba(9, 14, 19, .93); --glass-line: rgba(242, 131, 107, .35);
+}
+:root[data-region="australia"][data-theme="light"] {
+  --bg: #f9f1ee; --panel: #fefcfb; --panel-tint: #fbf5f3; --raise: #f0e2dd;
+  --ink: #1d1714; --ink-soft: #5b4a43; --ink-faint: #97847c;
+  --line: #e8d6cf; --line-soft: #f0e2dd;
+  --gold: #c2533b; --gold-bright: #993d2a; --gold-muted: #a8685a;
+  --gold-wash: #f9e2dc; --gold-edge: #edb3a6;
+  --hi: #3d1a12; --hi-deep: #250e09; --on-hi: #fdf6f4; --hi-ink: #c2533b;
+  --glass: rgba(254, 252, 251, .95); --glass-line: #e8d6cf;
+}

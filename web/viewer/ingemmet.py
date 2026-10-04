@@ -17,7 +17,6 @@
 import json
 import logging
 import math
-import unicodedata
 
 import requests
 from django.conf import settings
@@ -183,27 +182,9 @@ def legend_row(name: str, row: dict, table: dict, lang: str = "ko") -> dict:
 
 # ── 속성 ────────────────────────────────────────────────────────────
 
-#: 에스파냐어 시대 이름 → ICS 영문. 덧붙임표를 떼고 작은 글자로 견준다
-AGES_ES = {
-    "arqueano": "Archean", "arcaico": "Archean", "proterozoico": "Proterozoic", "paleoproterozoico": "Paleoproterozoic",
-    "mesoproterozoico": "Mesoproterozoic", "neoproterozoico": "Neoproterozoic", "fanerozoico": "Phanerozoic",
-    "paleozoico": "Paleozoic", "mesozoico": "Mesozoic", "cenozoico": "Cenozoic",
-    "cambrico": "Cambrian", "ordovicico": "Ordovician", "silurico": "Silurian", "devonico": "Devonian",
-    "carbonifero": "Carboniferous", "permico": "Permian", "triasico": "Triassic", "jurasico": "Jurassic",
-    "cretacico": "Cretaceous", "cretaceo": "Cretaceous", "paleogeno": "Paleogene", "neogeno": "Neogene",
-    "cuaternario": "Quaternary",
-    "paleoceno": "Paleocene", "eoceno": "Eocene", "oligoceno": "Oligocene", "mioceno": "Miocene", "plioceno": "Pliocene",
-    "pleistoceno": "Pleistocene", "holoceno": "Holocene",
-}
-
-
-def _fold(text: str) -> str:
-    text = unicodedata.normalize("NFKD", str(text or "").strip().lower())
-    return "".join(c for c in text if not unicodedata.combining(c))
-
-
 def age_en(value: str) -> str:
-    return AGES_ES.get(_fold(value), str(value or "").strip())
+    """에스파냐어 시대 이름 → ICS 영문 — `i18n.age_es` (멕시코 SGM 과 함께 쓴다, wetherilli 206)"""
+    return i18n.age_es(value)
 
 
 def _clean(value) -> str:

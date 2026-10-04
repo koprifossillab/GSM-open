@@ -1,0 +1,25 @@
+{
+ "_주석": "남아공 지질조사소(CGS) 1:100만 씨앗이다 — 아프리카 탭. CGS 의 지도 서버에 닿지 않아 정부(DPME) GIS 의 사본을 ArcGIS REST 로 받는다(web/viewer/cgs.py). 자료를 파는 곳이라 서버 캐시에 담지 않는다 (wetherilli 209).",
+ "_뽑은날": "2026-10-04",
+ "_출처": "https://dpmegis.dpme.gov.za/arcgis/rest/services/Geology/MapServer?f=json",
+ "_지역": "africa",
+ "_상류": "cgs",
+ "_레이어군차례": 2,
+ "레이어군순서": [
+  "남아프리카공화국 지질도 (CGS 1:100만)"
+ ],
+ "레이어": [
+  {
+   "name": "cgs:geology_1m",
+   "title": "지질도 (1:100만)",
+   "group": "남아프리카공화국 지질도 (CGS 1:100만)",
+   "abstract": "Geology 1 million (Council for Geoscience)",
+   "bbox": [
+    16.4,
+    -34.9,
+    32.9,
+    -22.1
+   ]
+  }
+ ]
+}

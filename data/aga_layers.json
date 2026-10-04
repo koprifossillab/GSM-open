@@ -1,0 +1,25 @@
+{
+ "_주석": "BGS 아프리카 지하수 지도책(Africa Groundwater Atlas)의 나라별 1:500만 지질 씨앗이다 — 아프리카 탭. 38 나라 레이어를 문(bgs.py 의 AGA)이 쉼표로 이어 묻는 레이어 하나다. CC BY-SA 4.0 (wetherilli 207).",
+ "_뽑은날": "2026-10-04",
+ "_출처": "https://map.bgs.ac.uk/arcgis/services/AGA/BGS_Groundwater/MapServer/WMSServer?request=GetCapabilities&service=WMS",
+ "_지역": "africa",
+ "_상류": "aga",
+ "_레이어군차례": 1,
+ "레이어군순서": [
+  "아프리카 나라별 지질 (BGS 지하수 지도책 1:500만)"
+ ],
+ "레이어": [
+  {
+   "name": "aga:geology",
+   "title": "나라별 암상 (1:500만, 38 나라)",
+   "group": "아프리카 나라별 지질 (BGS 지하수 지도책 1:500만)",
+   "abstract": "Africa Groundwater Atlas — country geology maps 1:5M (simplified lithology)",
+   "bbox": [
+    -17.6,
+    -30.7,
+    51.5,
+    37.6
+   ]
+  }
+ ]
+}

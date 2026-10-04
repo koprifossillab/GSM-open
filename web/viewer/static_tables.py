@@ -11,7 +11,7 @@ KOPRI 점(시료·운석·KPDC 목록)은 여기 없다 — 굽는 쪽(`bake_sta
 """
 from django.conf import settings
 
-from . import arcpoints, elevation, emodnet, geus, grportal, i18n, kopri, npolar, sgc
+from . import arcpoints, elevation, emodnet, ga, geus, grportal, i18n, kopri, mrdata, npolar, sgc
 
 
 def _points(spec: dict, url: str, oid: str, page: int, max_pages: int) -> dict:
@@ -96,6 +96,18 @@ def tables() -> dict:
             "url": settings.SGC_WMS_URL.rstrip("/"), "attribution": sgc.STATIC_ATTRIBUTION,
             "sheets": {sheet: sgc.SHEETS[sheet] for sheet in sgc.STATIC_SHEETS},
             "friendly": [list(pair) for pair in sgc.FRIENDLY],
+        },
+        # 미국 USGS(wetherilli 205) — 공공 도메인. 싣는 것은 굽는 사람이 고른다(`static_site.py --with usa`)
+        "mrdata": {
+            "url": settings.MRDATA_URL.rstrip("/"), "attribution": mrdata.ATTRIBUTION,
+            "layers": {name: list(parts) for name, parts in mrdata.LAYERS.items()}, "queryable": list(mrdata.QUERYABLE),
+            "sgmcFields": list(mrdata.SGMC_FIELDS),
+        },
+        # 호주 GA(wetherilli 212) — CC BY 4.0. 싣는 것은 굽는 사람이 고른다(`static_site.py --with australia`)
+        "ga": {
+            "url": settings.GA_WMS_URL, "attribution": ga.ATTRIBUTION,
+            "layers": {name: f"{spec[0]},{spec[1]}" for name, spec in ga.LAYERS.items()},
+            "queryable": ga.legend_layers(),
         },
         # 지질시대 — 영문 ICS 값을 한국어로(`i18n.age_ko` 의 표)
         "age": {"words": i18n.AGE_WORDS_KO, "modifiers": i18n.AGE_MODIFIERS_KO, "joiners": i18n.AGE_JOINERS_KO},

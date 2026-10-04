@@ -1,0 +1,61 @@
+{
+ "_주석": "Geoscience Australia 지표 지질도 씨앗이다 — 호주 탭. 1:250만·1:100만 판을 한 레이어가 함께 부르고 상류가 축척에 맞는 판을 그린다. 레이어명은 ga:<갈래> (web/viewer/ga.py). 한글 제목과 레이어군은 사람이 붙였다 (wetherilli 212).",
+ "_뽑은날": "2026-10-04",
+ "_출처": "https://services.ga.gov.au/gis/services/GA_Surface_Geology/MapServer/WMSServer?request=GetCapabilities&service=WMS",
+ "_지역": "australia",
+ "_상류": "ga",
+ "_레이어군차례": 0,
+ "레이어군순서": [
+  "호주 지표 지질도 (GA 1:250만·1:100만)"
+ ],
+ "레이어": [
+  {
+   "name": "ga:lithostratigraphy",
+   "title": "지질 단위 — 암층층서",
+   "group": "호주 지표 지질도 (GA 1:250만·1:100만)",
+   "abstract": "Surface Geology of Australia — lithostratigraphy",
+   "bbox": [
+    112.9,
+    -43.7,
+    153.7,
+    -9.1
+   ]
+  },
+  {
+   "name": "ga:age",
+   "title": "지질 단위 — 연대",
+   "group": "호주 지표 지질도 (GA 1:250만·1:100만)",
+   "abstract": "Surface Geology of Australia — age",
+   "bbox": [
+    112.9,
+    -43.7,
+    153.7,
+    -9.1
+   ]
+  },
+  {
+   "name": "ga:lithology",
+   "title": "지질 단위 — 암상",
+   "group": "호주 지표 지질도 (GA 1:250만·1:100만)",
+   "abstract": "Surface Geology of Australia — lithology",
+   "bbox": [
+    112.9,
+    -43.7,
+    153.7,
+    -9.1
+   ]
+  },
+  {
+   "name": "ga:faults",
+   "title": "단층",
+   "group": "호주 지표 지질도 (GA 1:250만·1:100만)",
+   "abstract": "Surface Geology of Australia — faults",
+   "bbox": [
+    112.9,
+    -43.7,
+    153.7,
+    -9.1
+   ]
+  }
+ ]
+}

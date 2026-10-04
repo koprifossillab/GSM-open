@@ -209,3 +209,219 @@ def parse_esri_xml(text: str) -> list:
 
 #: `views._Door` 가 쓰는 꼴 — 다른 문(모듈)과 같은 이름의 셋
 GSNI = _NS(get_map=gsni_get_map, get_feature_info=gsni_get_feature_info, get_legend=gsni_get_legend)
+
+
+# ── 아프리카 지하수 지도책(AGA)의 나라별 1:500만 지질 (wetherilli 207) ──────────
+#
+# 같은 BGS 서버(`map.bgs.ac.uk/arcgis/services/AGA/BGS_Groundwater`)의 것이라 문은 여기다(GSNI 와 같다). 상류 이름은 `aga` 로 따로 —
+# 조건이 **CC BY-SA 4.0** 으로 다르다(Capabilities 의 AccessConstraints). 나라마다 레이어가 하나라(38 나라, 수단·모리타니·보츠와나는
+# 기반암·표층으로 갈린다 — 기반암을 쓴다) 카탈로그에는 **레이어 하나**(`aga:geology`)로 두고 문이 나라 레이어를 쉼표로 이어 묻는다.
+# 3857 그대로(동아프리카 넷을 묶어 256² 1.7 초, 2026-10-04). 속성은 `text/xml` 의 `<FIELDS KenGLG="Igneous Volcanic" …/>` —
+# 열 이름이 나라마다 달라 `…GLG` 로 끝나는 것을 암상으로 읽는다. 지질시대 열은 없다
+
+AGA_PREFIX = "aga:"
+AGA_ATTRIBUTION = ('Africa Groundwater Atlas — <a href="https://www2.bgs.ac.uk/africagroundwateratlas/" target="_blank" rel="noopener">'
+                   'British Geological Survey</a> (CC BY-SA 4.0)')
+#: 나라 레이어 — 2026-10-04 의 Capabilities. 기반암·표층으로 갈린 셋은 기반암
+AGA_COUNTRIES = ("AGO", "BEN", "BFA", "BWA", "CAF", "CIV", "CMR", "COD", "COG", "DJI", "DZA", "ESH", "ETH", "GAB", "GHA", "GMB",
+                 "KEN", "LSO", "MAR", "MDG", "MLI", "MOZ", "MRT", "MWI", "NER", "NGA", "SDN", "SEN", "SLE", "SOM", "SSD", "TCD",
+                 "TGO", "TUN", "TZA", "UGA", "ZMB", "ZWE")
+AGA_SPLIT = ("BWA", "MRT", "SDN")
+AGA_LAYERS = {"aga:geology": tuple(f"{c}_BGS_5M_{'Bedrock' if c in AGA_SPLIT else ''}Geology" for c in AGA_COUNTRIES)}
+#: 범례는 나라마다 같은 갈래(암상 열 남짓)라 한 나라의 것을 쓴다
+AGA_LEGEND_LAYER = "KEN_BGS_5M_Geology"
+
+
+def _aga_names(names: str) -> str:
+    out = []
+    for one in str(names or "").split(","):
+        one = one.strip()
+        if one not in AGA_LAYERS:
+            raise BgsError(f"모르는 레이어다: {one}")
+        out.extend(AGA_LAYERS[one])
+    return ",".join(out)
+
+
+def _aga_get(params: dict):
+    left = usage.paused()
+    if left:
+        raise BgsError(f"차단 조짐이 있어 {int(left)}초 동안 상류에 묻지 않는다")
+    try:
+        r = requests.get(settings.AGA_WMS_URL, params=params, timeout=settings.UPSTREAM_TIMEOUT,
+                         verify=settings.CA_BUNDLE or True, headers={"User-Agent": "GSM/0.1"})
+    except requests.RequestException as exc:
+        usage.record("aga", ok=False)
+        raise BgsError(f"BGS 지하수 지도책에 닿지 못했다: {exc}") from exc
+    log.info("AGA %s -> %s", r.url, r.status_code)
+    usage.record("aga", ok=r.status_code == 200, blocked=usage.looks_blocked(r.status_code, r.content[:1000]))
+    return r
+
+
+def _aga_wms(params: dict, request: str) -> dict:
+    params = dict(params, service="WMS", request=request, version="1.1.1")
+    if "crs" in params and "srs" not in params:
+        params["srs"] = params.pop("crs")
+    params["layers"] = _aga_names(params.get("layers") or params.get("query_layers"))
+    if "query_layers" in params:
+        params["query_layers"] = _aga_names(params["query_layers"])
+    return params
+
+
+def aga_get_map(params: dict):
+    r = _aga_get(_aga_wms(params, "GetMap"))
+    ctype = r.headers.get("content-type", "")
+    if r.status_code != 200 or not ctype.startswith("image/"):
+        raise BgsError(f"그림이 아닌 것이 왔다 (status={r.status_code}, type={ctype})")
+    return r.content, ctype
+
+
+def aga_get_legend(layer: str):
+    _aga_names(layer)
+    r = _aga_get({"service": "WMS", "version": "1.1.1", "request": "GetLegendGraphic", "format": "image/png",
+                  "layer": AGA_LEGEND_LAYER})
+    if r.status_code != 200 or not r.headers.get("content-type", "").startswith("image/"):
+        raise BgsError(f"범례가 아닌 것이 왔다 (status={r.status_code})")
+    return r.content, r.headers.get("content-type")
+
+
+def aga_get_feature_info(params: dict) -> dict:
+    params = _aga_wms(params, "GetFeatureInfo")
+    params["info_format"] = "text/xml"
+    if "i" in params and "x" not in params:
+        params["x"], params["y"] = params.pop("i"), params.pop("j", "0")
+    r = _aga_get(params)
+    if r.status_code != 200:
+        raise BgsError(f"속성을 읽지 못했다 (status={r.status_code})")
+    return {"features": parse_fields_xml(r.text)}
+
+
+def parse_fields_xml(text: str) -> list:
+    """ArcGIS `text/xml` 의 `<FIELDS 열="값" …/>` → feature 목록."""
+    try:
+        root = _ET.fromstring(text.encode("utf-8") if isinstance(text, str) else text)
+    except _ET.ParseError:
+        return []
+    return [{"id": f"aga.{f.attrib.get('OBJECTID', i)}", "properties": dict(f.attrib)}
+            for i, f in enumerate(root.iter(f"{_ESRI}FIELDS"))]
+
+
+def aga_friendly(props: dict, lang: str = "ko") -> dict:
+    """나라마다 열 이름이 다르다(`KenGLG`·`EthGLG` …) — `GLG` 로 끝나는 열이 암상이다. 값(영어)은 그대로 둔다."""
+    for key, value in props.items():
+        if key.endswith("GLG") and str(value or "").strip():
+            return {"암상": str(value).strip()}
+    return {}
+
+
+AGA = _NS(get_map=aga_get_map, get_feature_info=aga_get_feature_info, get_legend=aga_get_legend)
+
+
+# ── 나미비아 지질조사소(GSN) 1:100만 — BGS 가 대신 내준다 (wetherilli 209) ─────────
+#
+# BGS 의 다른 서버(`ogc.bgs.ac.uk/cgi-bin/BGS_GSN_Bedrock_Geology/wms`, MapServer·OneGeology)라 문은 여기다(GSNI·AGA 와 같다). 상류 이름은
+# `gsn` — 자료의 주인이 나미비아 지질조사소이고 조건이 다르다: AccessConstraints "This data set is available from the Geological Survey of
+# Namibia, contact: sales@mme.gov.na", Fees "N$283" — **자료는 파는 것**이다. 보기(WMS)는 열려 있지만 **서버 캐시에 담지 않는다**
+# (`views.NO_STORE`). 3857 그대로(빈트후크 둘레 256² 1.6 초, 2026-10-04). 속성은 `text/plain` — 연대·층군·층·암석이 넉넉하다
+import re as _re
+
+GSN_PREFIX = "gsn:"
+GSN_ATTRIBUTION = ('Geological Map of Namibia 1:1 000 000 — <a href="https://www.mme.gov.na/gsn/" target="_blank" rel="noopener">'
+                   'Geological Survey of Namibia</a> (served by BGS)')
+GSN_LAYERS = ("NAM_GSN_1M_BLS", "NAM_GSN_1M_BA")
+
+
+def _gsn_names(names: str) -> str:
+    out = []
+    for one in str(names or "").split(","):
+        one = one.strip()
+        name = one[len(GSN_PREFIX):] if one.startswith(GSN_PREFIX) else ""
+        if name not in GSN_LAYERS:
+            raise BgsError(f"모르는 레이어다: {one}")
+        out.append(name)
+    return ",".join(out)
+
+
+def _gsn_get(params: dict):
+    left = usage.paused()
+    if left:
+        raise BgsError(f"차단 조짐이 있어 {int(left)}초 동안 상류에 묻지 않는다")
+    try:
+        r = requests.get(settings.GSN_WMS_URL, params=params, timeout=settings.UPSTREAM_TIMEOUT,
+                         verify=settings.CA_BUNDLE or True, headers={"User-Agent": "GSM/0.1"})
+    except requests.RequestException as exc:
+        usage.record("gsn", ok=False)
+        raise BgsError(f"GSN(BGS) 에 닿지 못했다: {exc}") from exc
+    log.info("GSN %s -> %s", r.url, r.status_code)
+    usage.record("gsn", ok=r.status_code == 200, blocked=usage.looks_blocked(r.status_code, r.content[:1000]))
+    return r
+
+
+def _gsn_wms(params: dict, request: str) -> dict:
+    params = dict(params, service="WMS", request=request, version="1.1.1")
+    if "crs" in params and "srs" not in params:
+        params["srs"] = params.pop("crs")
+    params["layers"] = _gsn_names(params.get("layers") or params.get("query_layers"))
+    if "query_layers" in params:
+        params["query_layers"] = _gsn_names(params["query_layers"])
+    # MapServer 는 GetFeatureInfo 에도 STYLES·FORMAT 을 요구한다(없으면 MissingParameterValue, 2026-10-04)
+    params.setdefault("styles", "")
+    params.setdefault("format", "image/png")
+    return params
+
+
+def gsn_get_map(params: dict):
+    r = _gsn_get(_gsn_wms(params, "GetMap"))
+    ctype = r.headers.get("content-type", "")
+    if r.status_code != 200 or not ctype.startswith("image/"):
+        raise BgsError(f"그림이 아닌 것이 왔다 (status={r.status_code}, type={ctype})")
+    return r.content, ctype
+
+
+def gsn_get_legend(layer: str):
+    r = _gsn_get({"service": "WMS", "version": "1.1.1", "request": "GetLegendGraphic", "format": "image/png",
+                  "layer": _gsn_names(layer)})
+    if r.status_code != 200 or not r.headers.get("content-type", "").startswith("image/"):
+        raise BgsError(f"범례가 아닌 것이 왔다 (status={r.status_code})")
+    return r.content, r.headers.get("content-type")
+
+
+def gsn_get_feature_info(params: dict) -> dict:
+    params = _gsn_wms(params, "GetFeatureInfo")
+    params["info_format"] = "text/plain"
+    if "i" in params and "x" not in params:
+        params["x"], params["y"] = params.pop("i"), params.pop("j", "0")
+    r = _gsn_get(params)
+    if r.status_code != 200:
+        raise BgsError(f"속성을 읽지 못했다 (status={r.status_code})")
+    return {"features": parse_mapserver_plain(r.text)}
+
+
+_PLAIN_FEATURE = _re.compile(r"^\s*Feature\s+(\S+):\s*$")
+_PLAIN_ATTR = _re.compile(r"^\s{2,}(\w+)\s*=\s*'(.*)'\s*$")
+
+
+def parse_mapserver_plain(text: str) -> list:
+    """MapServer 의 `text/plain` 속성 → feature 목록. 문은 서로를 타지 않아 brgm.py 의 것과 따로 둔다."""
+    features, current = [], None
+    for line in (text or "").splitlines():
+        m = _PLAIN_FEATURE.match(line)
+        if m:
+            current = {"id": f"gsn.{m.group(1)}", "properties": {}}
+            features.append(current)
+            continue
+        m = _PLAIN_ATTR.match(line)
+        if m and current is not None:
+            current["properties"][m.group(1)] = m.group(2)
+    return features
+
+
+GSN_FRIENDLY = (("MAPCODE", "기호"), ("AGE", "지질시대"), ("SEQUENCE", "누층군"), ("GROUP", "층군"), ("SUBGROUP", "아층군"),
+                ("FORMATION", "층"), ("ROCKTYPES", "암석"))
+
+
+def gsn_friendly(props: dict, lang: str = "ko") -> dict:
+    """연대(`Namibian` 같은 그 나라의 시대 이름)·층서·암석. 값은 영어 그대로 둔다."""
+    return {label: str(props[key]).strip() for key, label in GSN_FRIENDLY if str(props.get(key) or "").strip()}
+
+
+GSN = _NS(get_map=gsn_get_map, get_feature_info=gsn_get_feature_info, get_legend=gsn_get_legend)

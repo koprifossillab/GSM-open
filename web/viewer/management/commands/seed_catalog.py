@@ -92,6 +92,21 @@ class Command(BaseCommand):
                 (settings.DINAMIGE_CATALOG_SEED, "우루과이 (DINAMIGE)", "uruguay", "dinamige"),
                 # 에콰도르 — IIGE 일반 지질도 (wetherilli 198)
                 (settings.IIGE_CATALOG_SEED, "에콰도르 (IIGE)", "ecuador", "iige"),
+                # 미국 — USGS SGMC(본토)·SIM 3340(알래스카) (wetherilli 205)
+                (settings.MRDATA_CATALOG_SEED, "미국 (USGS)", "usa", "mrdata"),
+                # 멕시코 — SGM 1:25만·1:5만 (wetherilli 206)
+                (settings.SGM_CATALOG_SEED, "멕시코 (SGM)", "mexico", "sgm"),
+                # 호주 — Geoscience Australia 1:250만·1:100만 (wetherilli 212)
+                (settings.GA_CATALOG_SEED, "호주 (GA)", "australia", "ga"),
+                # 아프리카 — CGMW–BRGM 1:1000만, BGS 지하수 지도책 나라별 1:500만 지질 (wetherilli 207)
+                (settings.CGMW_CATALOG_SEED, "아프리카 (CGMW–BRGM)", "africa", "cgmw"),
+                (settings.AGA_CATALOG_SEED, "아프리카 나라별 (BGS AGA)", "africa", "aga"),
+                # 아프리카 나라 판 — 남아공 CGS·나미비아 GSN 1:100만 (wetherilli 209). 탭은 아프리카 하나에 얹는다
+                (settings.CGS_CATALOG_SEED, "남아공 (CGS)", "africa", "cgs"),
+                (settings.GSN_CATALOG_SEED, "나미비아 (GSN)", "africa", "gsn"),
+                # 캐나다 — NRCan 1:500만(Wheeler)·온타리오 OGS 1:25만 (wetherilli 204)
+                (settings.NRCAN_CATALOG_SEED, "캐나다 (NRCan)", "canada", "nrcan"),
+                (settings.OGS_CATALOG_SEED, "온타리오 (OGS)", "canada", "ogs"),
                 # 중국 — USGS geo3al, 우리 디스크의 셰이프파일 (025)
                 (settings.GEO3AL_CATALOG_SEED, "중국 (USGS)", "china", "geo3al"),
                 # KIGAM 5만 구조 요소 — 받아 둔 WFS 파일의 화석산지·시료·광산·도폭 틀 (wetherilli 199, jikhanjung P01)

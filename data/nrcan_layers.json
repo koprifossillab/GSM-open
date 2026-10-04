@@ -1,0 +1,25 @@
+{
+ "_주석": "NRCan(캐나다 천연자원부)·GSC 캐나다 지질도 1:500만(Wheeler 외 1996) 씨앗이다 — 캐나다 탭. WMS 레이어 0 하나라 이름은 nrcan:wheeler (web/viewer/nrcan.py). 한글 제목은 사람이 붙였다 (wetherilli 204).",
+ "_뽑은날": "2026-10-04",
+ "_출처": "https://maps-cartes.services.geo.ca/server_serveur/services/NRCan/geological_map_canada_wheeler_en/MapServer/WMSServer?request=GetCapabilities&service=WMS",
+ "_지역": "canada",
+ "_상류": "nrcan",
+ "_레이어군차례": 0,
+ "레이어군순서": [
+  "캐나다 지질도 (NRCan 1:500만)"
+ ],
+ "레이어": [
+  {
+   "name": "nrcan:wheeler",
+   "title": "캐나다 지질도 (1:500만, Wheeler)",
+   "group": "캐나다 지질도 (NRCan 1:500만)",
+   "abstract": "Geological Map of Canada 1:5,000,000 (GSC Map 1860A) — geological units onshore and offshore",
+   "bbox": [
+    -141.0,
+    40.0,
+    -47.0,
+    84.0
+   ]
+  }
+ ]
+}

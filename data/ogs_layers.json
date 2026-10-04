@@ -1,0 +1,73 @@
+{
+ "_주석": "OGS(온타리오 지질조사소) 씨앗이다 — 캐나다 탭. 기반암 1:25만과 제4기, 1:150만보다 가까울 때 그려지는 단층·암맥·철층 선. 이름은 WMS 번호로 ogs:<번호> — REST 번호와 다르다(web/viewer/ogs.py 의 REST_ID). 한글 제목은 사람이 붙였다 (wetherilli 204).",
+ "_뽑은날": "2026-10-04",
+ "_출처": "https://ws.lioservices.lrc.gov.on.ca/arcgis1071a/services/GeologyOntario/GeologyOntario_Map/MapServer/WMSServer?request=GetCapabilities&service=WMS",
+ "_지역": "canada",
+ "_상류": "ogs",
+ "_레이어군차례": 1,
+ "레이어군순서": [
+  "온타리오 지질도 (OGS 1:25만)"
+ ],
+ "레이어": [
+  {
+   "name": "ogs:3",
+   "title": "온타리오 기반암 (1:25만)",
+   "group": "온타리오 지질도 (OGS 1:25만)",
+   "abstract": "Bedrock Geology of Ontario 1:250,000",
+   "bbox": [
+    -95.16,
+    41.67,
+    -74.32,
+    56.86
+   ]
+  },
+  {
+   "name": "ogs:1",
+   "title": "온타리오 제4기 지질",
+   "group": "온타리오 지질도 (OGS 1:25만)",
+   "abstract": "Quaternary Geology of Ontario",
+   "bbox": [
+    -95.16,
+    41.67,
+    -74.32,
+    56.86
+   ]
+  },
+  {
+   "name": "ogs:6",
+   "title": "온타리오 단층",
+   "group": "온타리오 지질도 (OGS 1:25만)",
+   "abstract": "Faults — drawn closer than 1:1,500,000",
+   "bbox": [
+    -95.16,
+    41.67,
+    -74.32,
+    56.86
+   ]
+  },
+  {
+   "name": "ogs:4",
+   "title": "온타리오 암맥",
+   "group": "온타리오 지질도 (OGS 1:25만)",
+   "abstract": "Dikes — drawn closer than 1:1,500,000",
+   "bbox": [
+    -95.16,
+    41.67,
+    -74.32,
+    56.86
+   ]
+  },
+  {
+   "name": "ogs:5",
+   "title": "온타리오 철층",
+   "group": "온타리오 지질도 (OGS 1:25만)",
+   "abstract": "Iron formations — drawn closer than 1:1,500,000",
+   "bbox": [
+    -95.16,
+    41.67,
+    -74.32,
+    56.86
+   ]
+  }
+ ]
+}

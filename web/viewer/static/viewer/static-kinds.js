@@ -573,9 +573,102 @@
   KINDS.sgc = wmsKind(sgcUrl, function (name) { return String(name).split(":")[2]; }, function () { return "EPSG:3857"; },
                       sgcFriendly, sgcT.attribution, "application/geo+json");
 
+  // ── 미국 — USGS mrdata 의 SGMC·알래스카 (wetherilli 205) ──
+  // 공공 도메인, CORS `*`. 그림은 WMS 그대로. 본토(SGMC)의 WMS 는 GetFeatureInfo 가 막혀 있어 서버 판(`mrdata.get_feature_info`)처럼
+  // WFS 1.0 에 작은 경위도 네모로 묻고 GML 을 읽는다. 알래스카는 WMS 의 `text/plain`(GEUS 와 같은 MapServer 꼴)
+  var usgsT = T.mrdata || {};
+  function usgsParts(name) { return (usgsT.layers || {})[name] || []; }
+  function usgsLink(url) {
+    url = String(url || "").trim();
+    return /^https?:\/\//.test(url) ? { text: "", links: [{ url: url, label: "열기" }] } : null;
+  }
+  /** `mrdata.friendly` 와 같다 — 값은 영어 그대로, 알래스카의 시대만 옮긴다 */
+  function usgsFriendly(props) {
+    var v = function (k) { return String(props[k] == null ? "" : props[k]).trim(); }, rows;
+    if ("state_unit" in props || "age_range" in props) {
+      var age = v("age_range");
+      rows = [["이름", v("state_unit")], ["기호", v("label")], ["지질시대", age && lang() === "ko" ? ageKo(age) : age],
+              ["단위 설명", usgsLink(v("url"))]];
+    } else {
+      rows = [["주", v("state")], ["기호", v("orig_label")], ["암상", v("generalize")], ["단위 설명", usgsLink(v("url"))],
+              ["원도", usgsLink(v("src_url"))]];
+    }
+    var out = {};
+    rows.forEach(function (r) { if (r[1]) out[r[0]] = r[1]; });
+    return out;
+  }
+  function unescapeXml(t) {
+    return t.replace(/&lt;/g, "<").replace(/&gt;/g, ">").replace(/&quot;/g, '"').replace(/&apos;/g, "'").replace(/&amp;/g, "&");
+  }
+  /** `mrdata.parse_gml` 와 같다 — `<ms:열>값</ms:열>` 만 */
+  function usgsGml(text, kind) {
+    var out = [], re = new RegExp("<ms:" + kind + "[^>]*>([\\s\\S]*?)</ms:" + kind + ">", "g"), m, n = 0;
+    while ((m = re.exec(String(text || "")))) {
+      var props = {}, f, fr = /<ms:([A-Za-z_]+)>([\s\S]*?)<\/ms:\1>/g;
+      while ((f = fr.exec(m[1]))) props[f[1]] = unescapeXml(f[2].trim());
+      out.push({ id: kind + "." + (n++), properties: props });
+    }
+    return out;
+  }
+  KINDS.mrdata = {
+    source: function (name) {
+      var p = usgsParts(name);
+      return named(name, new ol.source.TileWMS({
+        url: usgsT.url + "/" + p[0], params: { LAYERS: p[1], TILED: true, FORMAT: "image/png", TRANSPARENT: true },
+        projection: "EPSG:3857", tileGrid: tileGrid("EPSG:3857"), crossOrigin: "anonymous", transition: 0,
+        attributions: usgsT.attribution,
+      }));
+    },
+    info: function (source, coordinate, view) {
+      var name = source.get("gsmName"), p = usgsParts(name);
+      if ((usgsT.queryable || []).indexOf(name) < 0) return null;
+      if (p[0] === "sgmc2") {
+        var ll = ol.proj.transform(coordinate, view.getProjection(), "EPSG:4326");
+        var d = Math.max(ol.proj.getPointResolution(view.getProjection(), view.getResolution(), coordinate) / 111320 * 2, 1e-5);
+        var url = query(usgsT.url + "/wfs/sgmc2", { service: "WFS", version: "1.0.0", request: "GetFeature", typeName: "Lithology",
+                                                    maxFeatures: 3, propertyName: (usgsT.sgmcFields || []).join(","),
+                                                    bbox: [ll[0] - d, ll[1] - d, ll[0] + d, ll[1] + d].map(function (x) { return x.toFixed(6); }).join(",") });
+        return fetch(url, { credentials: "omit" }).then(function (r) { return r.ok ? r.text() : ""; }).then(function (text) {
+          return tidy(usgsGml(text, "Lithology").map(function (f) { return { id: f.id, props: forLang(usgsFriendly(f.properties)) }; }));
+        });
+      }
+      var u = source.getFeatureInfoUrl(coordinate, view.getResolution(), view.getProjection(), { INFO_FORMAT: "text/plain" });
+      if (!u) return null;
+      return fetch(u, { credentials: "omit" }).then(function (r) { return r.ok ? r.text() : ""; }).then(function (text) {
+        return tidy(parsePlain(text).map(function (f) { return { id: f.id, props: forLang(usgsFriendly(f.properties)) }; }));
+      });
+    },
+    // 범례는 없다 — 단위가 주마다 수천이다. 팝업의 단위 설명 링크가 갈음한다
+    legend: function () { return Promise.resolve(null); },
+  };
+
+  // ── 호주 — Geoscience Australia (wetherilli 212) ──
+  // CC BY 4.0, Origin 을 되비춘다. 레이어 하나가 1:250만·1:100만 두 판을 함께 부르고 상류가 축척에 맞는 판을 그린다(서버의 `ga._wms`)
+  var gaT = T.ga || {};
+  /** `ga.friendly` 와 같다 — 이름·설명·암상은 영어 그대로, 시대만 옮긴다 */
+  function gaFriendly(props) {
+    var v = function (k) {
+      var s = String(props[k] == null ? "" : props[k]).trim();
+      return ["null", "none"].indexOf(s.toLowerCase()) >= 0 ? "" : s;
+    };
+    var hist = v("geologicHistory").split(" to ").map(function (p) { return p.trim(); }).filter(Boolean).join(" - ");
+    var scale = v("resolutionScale");
+    var rows = [["기호", v("mapSymbol") || v("plotSymbol")], ["이름", v("name")], ["설명", v("description")],
+                ["지질시대", hist && lang() === "ko" ? ageKo(hist) : hist], ["암석", v("lithology")],
+                ["축척", /^\d+(\.\d+)?$/.test(scale) ? "1:" + Math.floor(Number(scale)).toLocaleString("en-US") : ""]];
+    var out = {};
+    rows.forEach(function (r) { if (r[1]) out[r[0]] = r[1]; });
+    return out;
+  }
+  KINDS.ga = wmsKind(gaT.url, function (name) { return (gaT.layers || {})[name]; }, function () { return "EPSG:3857"; },
+                     gaFriendly, gaT.attribution, "application/geo+json");
+  // 범례 그림은 198×4096 이라 싣지 않는다 — 서버 판은 보는 범위의 범례를 뜨지만 정적 판에는 그 길이 없다
+  KINDS.ga.legend = function () { return Promise.resolve(null); };
+
   window.GSM_STATIC_KINDS = KINDS;
   // 시험·다른 화면이 같은 손질을 쓰게 — 정적 판의 다른 파일(개인 레이어 따위)도 지질시대를 옮길 수 있다
   window.GSM_STATIC_HELPERS = { ageKo: ageKo, parsePlain: parsePlain, compact: compact, classOf: classOf, pointBody: pointBody,
                                 npiFriendly: npiFriendly, emodFriendly: emodFriendly, geusFriendly: geusFriendly, sgcFriendly: sgcFriendly,
+                                usgsFriendly: usgsFriendly, usgsGml: usgsGml, gaFriendly: gaFriendly,
                                 tidy: tidy };
 })();

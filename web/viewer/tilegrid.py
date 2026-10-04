@@ -94,6 +94,8 @@ EXTENT = {
     "EPSG:3031": (-3333134.0276, -3333134.0276, 3333134.0276, 3333134.0276),
     "EPSG:3575": (-9009964.76, -9009964.76, 9009964.76, 9009964.76),
     "EPSG:4326": (-180.0, -90.0, 180.0, 90.0),
+    # 캐나다 람베르트(wetherilli 204) — 3857 과 같은 너비로 잡아 줌 번호가 3857 과 같은 해상도다(`map.js` 가 같은 범위를 건다)
+    "EPSG:3978": (-20037508.342789244, -20037508.342789244, 20037508.342789244, 20037508.342789244),
 }
 #: 위도가 먼저인 투영 — WMS 1.3.0 의 축 차례
 LAT_FIRST = ("EPSG:4326",)
@@ -177,11 +179,15 @@ def forward(lon: float, lat: float, crs: str) -> tuple:
     if crs == "EPSG:3575":
         from . import crs as planar      # crs 는 import 가 없다 — 돌고 도는 일이 없다
         return planar.latlon_to_laea_north(lat, lon, 10.0)
+    if crs == "EPSG:3978":
+        # NAD83 / Canada Atlas Lambert — 표준위선 49°·77°, 원점 49°N 95°W. NAD83(GRS80)과 WGS84 는 이 셈에서 같다
+        from . import crs as planar
+        return planar.latlon_to_lcc(lat, lon, -95.0, 49.0, 77.0, lat0=49.0)
     return polar_forward(lon, lat, crs)
 
 
 #: 극점을 품는 투영 — 북극 1·남극 -1
-_POLE = {"EPSG:3413": 1, "EPSG:3031": -1, "EPSG:3575": 1}
+_POLE = {"EPSG:3413": 1, "EPSG:3031": -1, "EPSG:3575": 1, "EPSG:3978": 0}
 
 
 def projected_bbox(bbox_lonlat, crs: str) -> tuple:

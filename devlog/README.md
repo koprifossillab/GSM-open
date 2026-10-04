@@ -247,6 +247,12 @@
 | wetherilli 202 | 2026-10-04 | [5만 구조 요소 — 단층·습곡·광종·변질대·변성대](20261004_wetherilli_202_kigam50k_lines.md) |
 | wetherilli 203 | 2026-10-04 | [작은 고침 묶음 — 미뤄 둔 것·시험·영어판·휴대폰의 빈틈](20261004_wetherilli_203_small_fixes.md) |
 | wetherilli 208 | 2026-10-04 | [5만 구조 요소 받기를 주간 백업에서 뺀다 — 사람이 가끔 부른다](20261004_wetherilli_208_no_auto_kigam50k.md) |
+| wetherilli 204 | 2026-10-04 | [캐나다 — NRCan 1:500만과 온타리오 OGS 1:25만, 화면은 캐나다 람베르트(3978)](20261004_wetherilli_204_canada.md) |
+| wetherilli 205 | 2026-10-04 | [미국 — USGS SGMC(본토)와 알래스카 SIM 3340 으로 미국 탭](20261004_wetherilli_205_usa_usgs.md) |
+| wetherilli 206 | 2026-10-04 | [멕시코 — SGM 1:25만·1:5만, WMS 가 막혀 문이 REST export 로 옮긴다](20261004_wetherilli_206_mexico_sgm.md) |
+| wetherilli 207 | 2026-10-04 | [아프리카 — CGMW–BRGM 1:1000만과 BGS 아프리카 지하수 지도책으로 탭을 연다](20261004_wetherilli_207_africa.md) |
+| wetherilli 209 | 2026-10-04 | [아프리카 나라 판 — 남아공 CGS·나미비아 GSN 1:100만 (탄자니아는 TLS 로 막혔다)](20261004_wetherilli_209_africa_countries.md) |
+| wetherilli 212 | 2026-10-04 | [호주 — Geoscience Australia 지표 지질도 1:250만·1:100만](20261004_wetherilli_212_australia_ga.md) |
 | koprifossillab P01 | 2026-09-30 | [백업 — WegenersDream 의 틀로, 바뀌는 빠르기에 따라 넷으로 (계획)](20260930_koprifossillab_P01_backup_plan.md) |
 | koprifossillab 001 | 2026-09-30 | [매주 월요일 새벽: 운영 자료 백업과 KPDC 목록 갱신](20260930_koprifossillab_001_weekly_backup.md) |
 | koprifossillab 002 | 2026-09-30 | [`/healthz/` — 판·DB·백업 상태를 한 장으로](20260930_koprifossillab_002_healthz.md) |

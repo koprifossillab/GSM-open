@@ -1,0 +1,62 @@
+{
+ "_주석": "USGS mrdata 지질도 씨앗이다 — 미국 탭. 본토 48 주는 SGMC(주 지질도 합본), 알래스카는 SIM 3340. 공공 도메인. 레이어명은 mrdata:<서비스>:<레이어> (web/viewer/mrdata.py). 한글 제목과 레이어군은 사람이 붙였다 (wetherilli 205).",
+ "_뽑은날": "2026-10-04",
+ "_출처": "https://mrdata.usgs.gov/services/sgmc2?service=WMS&request=GetCapabilities · https://mrdata.usgs.gov/services/sim3340?service=WMS&request=GetCapabilities",
+ "_지역": "usa",
+ "_상류": "mrdata",
+ "_레이어군차례": 0,
+ "레이어군순서": [
+  "미국 본토 지질도 (USGS SGMC)",
+  "알래스카 지질도 (USGS SIM 3340)"
+ ],
+ "레이어": [
+  {
+   "name": "mrdata:sgmc2:sgmc2",
+   "title": "지질 단위 (주 지질도 합본)",
+   "group": "미국 본토 지질도 (USGS SGMC)",
+   "abstract": "State Geologic Map Compilation — lithology",
+   "bbox": [
+    -125.0,
+    24.4,
+    -66.9,
+    49.4
+   ]
+  },
+  {
+   "name": "mrdata:sgmc2:sgmc2structure",
+   "title": "구조선 (주 지질도 합본)",
+   "group": "미국 본토 지질도 (USGS SGMC)",
+   "abstract": "State Geologic Map Compilation — structure",
+   "bbox": [
+    -125.0,
+    24.4,
+    -66.9,
+    49.4
+   ]
+  },
+  {
+   "name": "mrdata:sim3340:units",
+   "title": "지질 단위 (알래스카 1:158만)",
+   "group": "알래스카 지질도 (USGS SIM 3340)",
+   "abstract": "Geologic Map of Alaska (SIM 3340) — units",
+   "bbox": [
+    -180.0,
+    51.2,
+    -129.9,
+    71.4
+   ]
+  },
+  {
+   "name": "mrdata:sim3340:faults",
+   "title": "단층 (알래스카 1:158만)",
+   "group": "알래스카 지질도 (USGS SIM 3340)",
+   "abstract": "Geologic Map of Alaska (SIM 3340) — faults",
+   "bbox": [
+    -180.0,
+    51.2,
+    -129.9,
+    71.4
+   ]
+  }
+ ]
+}

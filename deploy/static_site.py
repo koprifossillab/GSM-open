@@ -21,7 +21,7 @@ WegenersDream 의 `deploy/static_site.py`(tupandactyl 029)와 같은 길이다.
   **운영 키로 저절로 돌아가지 않는다** — 운영 키와 갈라 두라는 것이 검토의 권고다(남이 뽑아 써 하루 한도를 먹으면 운영도 멈춘다).
   둘 다 없으면 VWorld 를 빼고 굽는다(배경·찾기·좌표→주소·VWorld 레이어가 빠진다)
 - **고를 수 있는 것**(`--with`, `OPTIONAL`) — 조건은 열렸지만 실을지는 사람이 정할 것. 기본으로는 싣지 않는다.
-  지금은 콜롬비아 1:50만(SGC 열린자료, CC BY 4.0, wetherilli 201) 하나다. 같은 지역의 남미 1:500만(CGMW)은 `views._static_catalog` 가 뺀다
+  콜롬비아 1:50만(SGC 열린자료, CC BY 4.0, wetherilli 201)과 미국 USGS(공공 도메인, wetherilli 205)다. 같은 지역의 남미 1:500만(CGMW)은 `views._static_catalog` 가 뺀다
 """
 import argparse
 import json
@@ -47,7 +47,11 @@ BAKED_REGIONS = ["antarctica", "greenland", "svalbard", "jan_mayen", "arctic_oce
 BAKED_UPSTREAMS = {"geomap": "geomap", "ibcso": "ibcso"}
 #: 고르면 싣는 것 — 이름 → (지역, 상류). 조건은 열렸고 브라우저가 곧장 부르는 소스(`static-kinds.js`)도 있지만, 실을지는 사람이 정한다.
 #: 콜롬비아(wetherilli 201): SGC 의 콜롬비아 1:50만만 선다 — 같은 지역의 남미 1:500만은 CGMW 의 지도라 `views._static_catalog` 가 뺀다
-OPTIONAL = {"colombia": (["colombia"], ["sgc"])}
+OPTIONAL = {"colombia": (["colombia"], ["sgc"]),
+            # 미국(wetherilli 205): USGS SGMC·알래스카 — 공공 도메인, CORS `*`. 브라우저가 mrdata 를 곧장 부른다
+            "usa": (["usa"], ["mrdata"]),
+            # 호주(wetherilli 212): Geoscience Australia — CC BY 4.0, Origin 을 되비춘다. 브라우저가 GA WMS 를 곧장 부른다
+            "australia": (["australia"], ["ga"])}
 
 
 def baked_spec(baked: pathlib.Path) -> dict:

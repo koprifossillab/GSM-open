@@ -1,0 +1,49 @@
+{
+ "_주석": "CGMW–BRGM 아프리카 지질도 1:1000만(2016, Thiéblemont 편) 씨앗이다 — 아프리카 탭. BRGM 의 mapsref 서버라 문은 brgm.py 의 CGMW 이고 상류 이름은 cgmw 다. CGMW 의 지도라 정적 판에 싣지 않는다 (wetherilli 207).",
+ "_뽑은날": "2026-10-04",
+ "_출처": "https://mapsref.brgm.fr/wxs/1GG/IGC35_CGMW_BRGM_Africa_Geology?service=WMS&request=GetCapabilities",
+ "_지역": "africa",
+ "_상류": "cgmw",
+ "_레이어군차례": 0,
+ "레이어군순서": [
+  "아프리카 지질도 (CGMW–BRGM 1:1000만)"
+ ],
+ "레이어": [
+  {
+   "name": "cgmw:AFR_CGMW_BRGM_10M_GeologicUnits",
+   "title": "지질 단위 (1:1000만)",
+   "group": "아프리카 지질도 (CGMW–BRGM 1:1000만)",
+   "abstract": "Geological Map of Africa 1:10M — Geological units",
+   "bbox": [
+    -26.0,
+    -47.0,
+    64.0,
+    38.0
+   ]
+  },
+  {
+   "name": "cgmw:AFR_CGMW_BRGM_10M_Faults",
+   "title": "단층 (1:1000만)",
+   "group": "아프리카 지질도 (CGMW–BRGM 1:1000만)",
+   "abstract": "Geological Map of Africa 1:10M — Faults",
+   "bbox": [
+    -26.0,
+    -47.0,
+    64.0,
+    38.0
+   ]
+  },
+  {
+   "name": "cgmw:AFR_CGMW_BRGM_10M_Oceanic_crust_domain",
+   "title": "해양 지각 (1:1000만)",
+   "group": "아프리카 지질도 (CGMW–BRGM 1:1000만)",
+   "abstract": "Geological Map of Africa 1:10M — Oceanic crust & oceanic domain",
+   "bbox": [
+    -26.0,
+    -47.0,
+    64.0,
+    38.0
+   ]
+  }
+ ]
+}
