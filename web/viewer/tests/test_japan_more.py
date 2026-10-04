@@ -27,8 +27,12 @@ class Door(SimpleTestCase):
 
 
 class Catalog(TestCase):
-    def setUp(self):
+    @classmethod
+    def setUpTestData(cls):
+        # 카탈로그는 반마다 한 번 — 시험마다 넣으면 0.5 초씩 든다 (wetherilli 294)
         call_command("seed_catalog", stdout=open("/dev/null", "w"))
+
+    def setUp(self):
         self.rows = {l["name"]: (g, l) for g in views._catalog("ko") for l in g["layers"]}
 
     def test_자력은_브라우저가_곧장(self):

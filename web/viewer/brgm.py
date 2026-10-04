@@ -125,9 +125,23 @@ def parse_plain(text: str) -> list:
 
 #: 상류의 열 → 팝업에 보일 이름. 값은 프랑스어 그대로 둔다
 FRIENDLY = (("DESCR", "암상"), ("TYPE", "갈래"))
+#: 광상·광산(wetherilli 296) — 같은 WMS 의 `GITES_PT`(BD Gîtes, 광상·광화 지점)·`MINES_PT`(광산의 주 광종). 갈래·형태 열은 번호뿐이라 싣지 않는다
+GITES_FRIENDLY = (("nom_gite", "이름"), ("nom_site", "이름"), ("c_substance", "광종"), ("substance", "광종"), ("identifiant", "번호"))
 
 
 def friendly(props: dict) -> dict:
+    if "nom_gite" in props or "nom_site" in props:
+        out = {}
+        for key, label in GITES_FRIENDLY:
+            value = str(props.get(key) or "").strip()
+            if value and label not in out:
+                out[label] = value
+        unit = str(props.get("unite") or "").strip()
+        for key, label in (("production", "생산량"), ("potentiel", "잠재량")):
+            value = str(props.get(key) or "").strip()
+            if value and value != "0":
+                out[label] = f"{value} {unit}".strip()
+        return out
     return {label: str(props[key]).strip() for key, label in FRIENDLY if str(props.get(key) or "").strip()}
 
 

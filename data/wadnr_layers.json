@@ -1,0 +1,37 @@
+{
+ "_주석": "워싱턴 지질조사소(DNR) 씨앗이다 — 미국 탭. 1:50만과 1:10만 GeMS. ArcGIS REST 를 문(web/viewer/usstates.py)이 3978 export 로 옮긴다 (wetherilli 291).",
+ "_뽑은날": "2026-10-05",
+ "_출처": "https://gis.dnr.wa.gov/site1/rest/services/Public_Geology",
+ "_지역": "usa",
+ "_상류": "wadnr",
+ "_레이어군차례": 0,
+ "레이어군순서": [
+  "워싱턴 지질도 (DNR)"
+ ],
+ "레이어": [
+  {
+   "name": "wadnr:500k",
+   "title": "지질도 (1:50만)",
+   "abstract": "Surface geology 1:500,000 (2022) — 단위·단층·습곡",
+   "bbox": [
+    -124.8,
+    45.5,
+    -116.9,
+    49.0
+   ],
+   "group": "워싱턴 지질도 (DNR)"
+  },
+  {
+   "name": "wadnr:100k",
+   "title": "지질도 (1:10만 GeMS)",
+   "abstract": "Surface geology 1:100,000 GeMS (2026) — 줌 8 부터",
+   "bbox": [
+    -124.8,
+    45.5,
+    -116.9,
+    49.0
+   ],
+   "group": "워싱턴 지질도 (DNR)"
+  }
+ ]
+}

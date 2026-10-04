@@ -23,8 +23,12 @@ ROWS = [
 
 
 class Map3D(TestCase):
-    def setUp(self):
+    @classmethod
+    def setUpTestData(cls):
+        # 카탈로그는 반마다 한 번 — 시험마다 넣으면 0.5 초씩 든다 (wetherilli 294)
         call_command("seed_catalog", stdout=io.StringIO())
+
+    def setUp(self):
         self.page = self.client.get(reverse("viewer:map3d")).content.decode()
 
     def test_유럽_상류가_목록에(self):

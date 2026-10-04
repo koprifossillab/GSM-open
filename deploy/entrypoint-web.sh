@@ -35,6 +35,7 @@ python manage.py migrate --noinput
 # 카탈로그가 비어 있으면 저장소에 든 씨앗으로 채운다. 상류를 타지 않는다.
 python manage.py seed_catalog || echo "씨앗을 넣지 못했다 — 화면은 뜬다"
 
+# --timeout 60 은 요청 한계가 아니다 — 스레드 워커(gthread)는 워커가 살아 있는지만 본다. 요청의 한계는 nginx 90 초 > 문 60 초 + 잠금 20 초 (wetherilli 300)
 exec gunicorn gsmweb.wsgi:application \
     --bind 0.0.0.0:9090 \
     --workers 3 \

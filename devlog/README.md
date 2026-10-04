@@ -334,6 +334,16 @@
 | wetherilli 289 | 2026-10-05 | [온 지구 — 세계 빙하 (RGI 7.0)](20261005_wetherilli_289_earth_glaciers.md) |
 | wetherilli 290 | 2026-10-05 | [상류 응답 시간을 날마다 센다](20261005_wetherilli_290_upstream_timing.md) |
 | wetherilli 295 | 2026-10-05 | [관리 화면에 상류 응답 시간 표](20261005_wetherilli_295_upstream_dashboard.md) |
+| wetherilli 291 | 2026-10-05 | [미국 — 네바다·워싱턴·오리건 주 지질도](20261005_wetherilli_291_us_states.md) |
+| wetherilli 292 | 2026-10-05 | [최근 지진 — USGS 실시간 피드를 매시 받아 온 지구 화면과 지역 탭에](20261005_wetherilli_292_recent_quakes.md) |
+| wetherilli 294 | 2026-10-05 | [시험 돌리기 다듬기 — 나란히 돌 때 깨진 것이 보이게, 느린 것 줄이기](20261005_wetherilli_294_test_speed.md) |
+| wetherilli 296 | 2026-10-05 | [유럽 — 프랑스·스페인·독일·포르투갈의 광물](20261005_wetherilli_296_europe_minerals.md) |
+| wetherilli 297 | 2026-10-05 | [타일 캐시 디스크 점검 — 상류별 몫, 5 GB 바닥, 메타타일 두 벌](20261005_wetherilli_297_cache_audit.md) |
+| wetherilli 298 | 2026-10-05 | [모든 상류의 레이어 대조 — verify_layers 를 670 개로](20261005_wetherilli_298_verify_all_layers.md) |
+| wetherilli 299 | 2026-10-05 | [메타타일 첫 운영 점검표 — 하루 뒤에 볼 것, 되돌리는 스위치](20261005_wetherilli_299_metatile_ops_checklist.md) |
+| wetherilli 300 | 2026-10-05 | [시간 한계의 사슬 — 바깥이 안보다 길게, 넘으면 "느리다" 안내 타일](20261005_wetherilli_300_timeout_chain.md) |
+| wetherilli 301 | 2026-10-05 | [그린란드 — 공중 자력 셋, 지질도 1:250만·1:10만 둘 (GEUS ArcGIS)](20261005_wetherilli_301_greenland_geophysics_maps.md) |
+| wetherilli 303 | 2026-10-05 | [페루 — INGEMMET 지화학 지도첩·산업 광물](20261005_wetherilli_303_peru_more.md) |
 | koprifossillab P01 | 2026-09-30 | [백업 — WegenersDream 의 틀로, 바뀌는 빠르기에 따라 넷으로 (계획)](20260930_koprifossillab_P01_backup_plan.md) |
 | koprifossillab 001 | 2026-09-30 | [매주 월요일 새벽: 운영 자료 백업과 KPDC 목록 갱신](20260930_koprifossillab_001_weekly_backup.md) |
 | koprifossillab 002 | 2026-09-30 | [`/healthz/` — 판·DB·백업 상태를 한 장으로](20260930_koprifossillab_002_healthz.md) |

@@ -47,7 +47,9 @@ MEASURE = """(sels) => {
 }"""
 
 
-class PhoneScreenTests(StaticLiveServerTestCase):
+class PhoneBase(StaticLiveServerTestCase):
+    """여는 법과 공통 검사 — 시험은 아래 반들이 갖는다. 반마다 브라우저 하나"""
+
     @classmethod
     def setUpClass(cls):
         if sync_playwright is None:
@@ -142,6 +144,8 @@ class PhoneScreenTests(StaticLiveServerTestCase):
         self.assertIn("panel-folded", self.measure(page)["body"])
         return page
 
+
+class PhoneScreenTests(PhoneBase):
     # ── 화면마다 ────────────────────────────────────────────
 
     def test_2D_지도(self):
@@ -150,18 +154,11 @@ class PhoneScreenTests(StaticLiveServerTestCase):
     def test_남극(self):
         self.check_map_screen("map/?region=antarctica")
 
-    def test_모든_지역_탭(self):
-        """지역 탭마다 패널 구성·범례·투영이 다르다 — 한국·남극 밖의 탭도 다 연다 (wetherilli 193). 탭 목록은 `map.js` 의
-        `REGIONS` 에서 읽는다 — 새 지역(남미 따위)이 들어오면 저절로 돈다. 카탈로그가 있어야 탭이 서서 씨앗을 넣는다"""
-        call_command("seed_catalog", stdout=open(os.devnull, "w"))
-        js = (Path(__file__).resolve().parents[1] / "static/viewer/map.js").read_text(encoding="utf-8")
-        regions = [r for r in re.findall(r"^    (\w+): \{ title: \"[^\"]+\", proj:", js, re.M)
-                   if r not in ("korea", "antarctica")]
+    def test_지역_탭은_다_나뉘어_돈다(self):
+        """지역 탭은 아래 `RegionTabs*` 반들이 나눠 연다 — 나눔이 탭을 빠뜨리지 않는다"""
+        regions = region_tabs()
         self.assertIn("france", regions)
-        for region in regions:
-            with self.subTest(region=region):
-                page = self.check_map_screen(f"map/?region={region}")
-                page.context.close()
+        self.assertEqual(sorted(sum((region_tabs(k) for k in range(SHARDS)), [])), sorted(regions))
 
     def test_지역_접기(self):
         """탭 줄에는 한국·북극·남극만 서고 나머지는 "그 외" 하나로 접힌다. 접힌 지역을 보면 단추가 그 이름이 되고,
@@ -222,16 +219,6 @@ class PhoneScreenTests(StaticLiveServerTestCase):
         self.assertFalse(page.locator("#popup.on").count(), "팝업이 닫히지 않는다")
         self.assertTrue(page.locator("#toolbar").is_visible(), "팝업을 닫으면 도구 묶음이 돌아온다")
 
-    def test_구_화면은_범례가_접혀_열린다(self):
-        for path in ("earth/", "moon/", "mars/", "mercury/"):
-            with self.subTest(path=path):
-                page = self.check_map_screen(path, settle=3000)
-                self.assertFalse(page.evaluate("document.getElementById('legend-dock').open"),
-                                 f"{path}: 범례가 구를 덮는다")
-                # 화면마다 바로 닫는다 — 시험이 끝날 때까지 두면 앞의 구들이 소프트웨어 WebGL 로 계속 그려 CPU 를
-                # 다 먹고, 넷째 화면(수성)이 30 초 안에 뜨지 못한다 (wetherilli 145)
-                page.context.close()
-
     def test_공유_링크로_연다(self):
         """링크로 열면 그 지역·레이어로 서고, 띠가 화면 안에 뜨고, 그 사람의 기억은 그대로다 (wetherilli 189)"""
         page, errors = self.open("map/#r=antarctica&c=0,-90&z=2&p=3031&l=geomap_simple_geology*80&b=")
@@ -243,14 +230,6 @@ class PhoneScreenTests(StaticLiveServerTestCase):
         self.assertIsNone(page.evaluate("localStorage.getItem('gsm.region')"), "그 사람의 기억을 덮는다")
         self.assertIsNone(page.evaluate("localStorage.getItem('gsm.layers.antarctica')"))
         self.assertTrue(page.locator("#tool-share").is_visible())
-
-    def test_영어판(self):
-        """영어 글은 한국어보다 길다 — 지역 지도와 온 지구를 영어판으로 연다 (wetherilli 203)"""
-        for path, settle in (("map/", 1500), ("earth/", 3000)):
-            with self.subTest(path=path):
-                page = self.check_map_screen(path, settle, lang="en")
-                self.assertEqual(page.evaluate("document.documentElement.lang"), "en")
-                page.context.close()
 
     def test_설정_창(self):
         """설정 창(판 이력·언어·기억 지우기)이 휴대폰 화면 안에 선다 (wetherilli 203)"""
@@ -288,3 +267,60 @@ class PhoneScreenTests(StaticLiveServerTestCase):
                 page, errors = self.open(path)
                 self.assertEqual(errors, [], f"{path}: 페이지 오류")
                 self.assertFits(self.measure(page), path or "intro")
+
+
+
+class GlobeScreens(PhoneBase):
+    """구 화면(Cesium 소프트웨어 WebGL)은 한 장에 3 초를 기다린다 — 따로 반으로 두어 `--parallel` 이 나란히 돌린다 (wetherilli 294)"""
+
+    def test_구_화면은_범례가_접혀_열린다(self):
+        for path in ("earth/", "moon/", "mars/", "mercury/"):
+            with self.subTest(path=path):
+                page = self.check_map_screen(path, settle=3000)
+                self.assertFalse(page.evaluate("document.getElementById('legend-dock').open"),
+                                 f"{path}: 범례가 구를 덮는다")
+                # 화면마다 바로 닫는다 — 시험이 끝날 때까지 두면 앞의 구들이 소프트웨어 WebGL 로 계속 그려 CPU 를
+                # 다 먹고, 넷째 화면(수성)이 30 초 안에 뜨지 못한다 (wetherilli 145)
+                page.context.close()
+
+    def test_영어판(self):
+        """영어 글은 한국어보다 길다 — 지역 지도와 온 지구를 영어판으로 연다 (wetherilli 203)"""
+        for path, settle in (("map/", 1500), ("earth/", 3000)):
+            with self.subTest(path=path):
+                page = self.check_map_screen(path, settle, lang="en")
+                self.assertEqual(page.evaluate("document.documentElement.lang"), "en")
+                page.context.close()
+
+# ── 지역 탭 전부 (wetherilli 193) ───────────────────────────
+# 쉰 남짓한 탭을 한 시험에서 열면 4 분이 든다(탭마다 4 초). 반 여섯으로 나눠 `--parallel` 이 나란히 돌린다 — 지키는 것은 같다 (wetherilli 294)
+
+SHARDS = 6
+
+
+def region_tabs(shard=None) -> list:
+    """`map.js` 의 `REGIONS` 에서 한국·남극 밖의 탭 — 새 지역(남미 따위)이 들어오면 저절로 돈다. `shard` 를 주면 그 몫만"""
+    js = (Path(__file__).resolve().parents[1] / "static/viewer/map.js").read_text(encoding="utf-8")
+    regions = [r for r in re.findall(r"^    (\w+): \{ title: \"[^\"]+\", proj:", js, re.M) if r not in ("korea", "antarctica")]
+    return regions if shard is None else regions[shard::SHARDS]
+
+
+class RegionTabs(PhoneBase):
+    """지역 탭마다 패널 구성·범례·투영이 다르다 — 한국·남극 밖의 탭도 다 연다. 카탈로그가 있어야 탭이 서서 씨앗을 넣는다"""
+    shard = None
+
+    def run_tabs(self):
+        call_command("seed_catalog", stdout=open(os.devnull, "w"))
+        for region in region_tabs(self.shard):
+            with self.subTest(region=region):
+                page = self.check_map_screen(f"map/?region={region}")
+                page.context.close()
+
+
+def _shard(k):
+    def test_모든_지역_탭(self):
+        self.run_tabs()
+    return type(f"RegionTabs{k}", (RegionTabs,), {"shard": k, "test_모든_지역_탭": test_모든_지역_탭, "__module__": __name__})
+
+
+for _k in range(SHARDS):
+    globals()[f"RegionTabs{_k}"] = _shard(_k)

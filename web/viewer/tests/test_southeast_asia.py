@@ -119,7 +119,9 @@ class Malaysia(SimpleTestCase):
 
 
 class Catalog(TestCase):
-    def setUp(self):
+    @classmethod
+    def setUpTestData(cls):
+        # 카탈로그는 반마다 한 번 — 시험마다 넣으면 0.5 초씩 든다 (wetherilli 294)
         call_command("seed_catalog", stdout=open("/dev/null", "w"))
 
     def test_나라_탭과_묶음(self):

@@ -20,7 +20,9 @@ def static_site():
 
 
 class Colombia(TestCase):
-    def setUp(self):
+    @classmethod
+    def setUpTestData(cls):
+        # 카탈로그는 반마다 한 번 — 시험마다 넣으면 0.5 초씩 든다 (wetherilli 294)
         call_command("seed_catalog", stdout=io.StringIO())
 
     def names(self, spec):

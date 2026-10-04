@@ -16,7 +16,7 @@ import logging
 import requests
 from django.conf import settings
 
-from . import i18n, usage
+from . import arcwms, i18n, usage
 
 log = logging.getLogger(__name__)
 
@@ -24,12 +24,20 @@ PREFIX = "bgr:"
 ATTRIBUTION = ('Datenquelle: GÜK250 · GK1000 (WMS), <a href="https://www.bgr.bund.de/" target="_blank" rel="noopener">'
                '© BGR</a>, Hannover')
 #: 판마다 다른 인용 — Capabilities 가 적은 꼴 그대로
-ATTRIBUTIONS = {"igme5000": ('Datenquelle: IGME5000, <a href="https://www.bgr.bund.de/" target="_blank" rel="noopener">'
+ATTRIBUTIONS = {"kor250": 'Datenquelle: KOR250, <a href="https://www.bgr.bund.de/" target="_blank" rel="noopener">© BGR</a>',
+                "bsk1000": 'Datenquelle: BSK1000, <a href="https://www.bgr.bund.de/" target="_blank" rel="noopener">© BGR</a>',
+                "igme5000": ('Datenquelle: IGME5000, <a href="https://www.bgr.bund.de/" target="_blank" rel="noopener">'
                              '© BGR</a> Hannover, 2007')}
 #: 판마다 그리는 화면 줌(3857, 처음·끝)
-ZOOMS = {"gk1000": (9, 10), "guek250": (10, 14), "igme5000": (None, 11)}
+ZOOMS = {"gk1000": (9, 10), "guek250": (10, 14), "igme5000": (None, 11), "kor250": (None, None), "bsk1000": (None, None)}
 #: 누를 것이 없는 레이어 — 단층(선의 갈래 하나뿐)·연대 기호(글자)
 NOT_QUERYABLE = ("igme5000:46+47+48", "igme5000:51+53+55+57")
+
+
+#: `geologie` 가 아닌 WMS 폴더의 판 (wetherilli 296) — 원료: 지표 부근 원료 1:25만(KOR250)·지하자원 1:100만(BSK1000).
+#: 속성은 geo+json·XML 이 `InvalidXslTemplate` 라 **text/plain**(`arcwms.fields_plain`)으로 받는다
+FOLDERS = {"kor250": "rohstoffe", "bsk1000": "rohstoffe"}
+PLAIN = ("kor250", "bsk1000")
 
 
 class BgrError(RuntimeError):
@@ -69,7 +77,10 @@ def _get(sheet: str, params: dict):
     if left:
         raise BgrError(f"차단 조짐이 있어 {int(left)}초 동안 상류에 묻지 않는다")
     try:
-        r = requests.get(f"{settings.BGR_WMS_URL.rstrip('/')}/{sheet}/", params=params,
+        base = settings.BGR_WMS_URL.rstrip("/")
+        if sheet in FOLDERS:
+            base = f"{base.rsplit('/', 1)[0]}/{FOLDERS[sheet]}"
+        r = requests.get(f"{base}/{sheet}/", params=params,
                          timeout=settings.UPSTREAM_TIMEOUT, verify=settings.CA_BUNDLE or True,
                          headers={"User-Agent": "GSM/0.1"})
     except requests.RequestException as exc:
@@ -110,12 +121,15 @@ def get_legend(layer: str):
 
 def get_feature_info(params: dict) -> dict:
     sheet, params = _wms(params, "GetFeatureInfo")
-    params["info_format"] = "application/geo+json"
+    params["info_format"] = "text/plain" if sheet in PLAIN else "application/geo+json"
     if "i" in params and "x" not in params:
         params["x"], params["y"] = params.pop("i"), params.pop("j", "0")
     r = _get(sheet, params)
     if r.status_code != 200:
         raise BgrError(f"속성을 읽지 못했다 (status={r.status_code})")
+    if sheet in PLAIN:
+        return {"features": [{"id": f"bgr.{sheet}.{n}", "properties": p}
+                             for n, p in enumerate(arcwms.fields_plain(r.content.decode("utf-8", "replace")))]}
     try:
         return {"features": r.json().get("features") or []}
     except ValueError as exc:
@@ -124,6 +138,9 @@ def get_feature_info(params: dict) -> dict:
 
 #: 상류의 열 → 팝업에 보일 이름. **여기 적은 것만, 적은 차례로.** GÜK250 은 독일어 표제, GK1000 은 대문자 열이다
 FRIENDLY = (
+    # 원료(wetherilli 296) — KOR250·BSK1000. 지질도의 열과 겹치지 않는다
+    ("Rohstoff 1", "원료"), ("Rohstoff", "원료"), ("Rohstoffgruppe", "원료 갈래"), ("Rohstoffkategorie", "갈래"),
+    ("Erläuterungen 1", "설명"), ("Rohstoff 2", "딸린 원료"),
     ("Legendentext", "지질 단위"),
     ("Petrographie - komplett", "암석"),
     ("Petrographie - kurz", "암석"),

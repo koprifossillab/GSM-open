@@ -35,3 +35,13 @@ class Dashboard(TestCase):
         en = self.client.get("/GSM/manage/", HTTP_ACCEPT_LANGUAGE="en").content.decode()
         self.assertIn("Upstream response times", en)
         self.assertNotIn("http", html.split('id="tab-upstream"')[1].split("</section>")[0])   # 주소가 없다
+
+
+class Rollback(TestCase):
+    def test_옛_코드도_행을_넣는다(self):
+        """응답 시간 열을 모르는 v0.59 가 넣는 꼴 — 열에 db 기본값이 있어야 한다 (wetherilli 299)"""
+        from django.db import connection
+        with connection.cursor() as c:
+            c.execute("INSERT INTO viewer_upstreamday (day, upstream, ok, fail, blocked) VALUES (%s, %s, 1, 0, 0)", ["2026-10-05", "old"])
+        row = UpstreamDay.objects.get(upstream="old")
+        self.assertEqual((row.timed, row.seconds, row.t9), (0, 0.0, 0))

@@ -1,12 +1,13 @@
 {
- "_주석": "GEUS ArcGIS 씨앗이다 — 그린란드 탭(북극 묶음에도 든다). 자력 편찬·DTU 부게 중력·지질구 1:250만을 REST export 로 3413 에 받는다. 문은 web/viewer/geus.py 의 ARC(상류 geusarc). GEUS 이용 조건(개인 용도·출처). 한글 제목과 레이어군은 사람이 붙였다 (wetherilli 259).",
+ "_주석": "GEUS ArcGIS 씨앗이다 — 그린란드 탭(북극 묶음에도 든다). 자력 편찬·DTU 부게 중력·지질구 1:250만을 REST export 로 3413 에 받는다. 문은 web/viewer/geus.py 의 ARC(상류 geusarc). GEUS 이용 조건(개인 용도·출처). 한글 제목과 레이어군은 사람이 붙였다 (wetherilli 259). 공중 자력 셋·지질도 1:250만·1:10만 둘을 더했다(wetherilli 301).",
  "_뽑은날": "2026-10-05",
  "_출처": "https://data.geus.dk/arcgis/rest/services/Greenland",
  "_지역": "greenland",
  "_상류": "geusarc",
  "_레이어군차례": 2,
  "레이어군순서": [
-  "그린란드 지구물리·지질구 (GEUS)"
+  "그린란드 지구물리·지질구 (GEUS)",
+  "그린란드 지질도 1:250만·1:10만 (GEUS)"
  ],
  "레이어": [
   {
@@ -43,6 +44,90 @@
     59.0,
     -10.0,
     84.0
+   ]
+  },
+  {
+   "name": "geusarc:aeromag",
+   "title": "공중 자력 AEROMAG 1992–2013",
+   "group": "그린란드 지구물리·지질구 (GEUS)",
+   "abstract": "GEUS AEROMAG 총자력 — 조사한 곳만",
+   "bbox": [
+    -62.0,
+    59.0,
+    -38.0,
+    72.5
+   ]
+  },
+  {
+   "name": "geusarc:aeromag_tilt",
+   "title": "공중 자력 기울기 도함수",
+   "group": "그린란드 지구물리·지질구 (GEUS)",
+   "abstract": "AEROMAG tilt derivative — 구조선이 잘 보인다",
+   "bbox": [
+    -62.0,
+    59.0,
+    -38.0,
+    72.5
+   ]
+  },
+  {
+   "name": "geusarc:awi",
+   "title": "공중 자력 AWI 1993–96 (동부)",
+   "group": "그린란드 지구물리·지질구 (GEUS)",
+   "abstract": "AWI 동그린란드 공중 자력 — 300–600 nT 색 척도",
+   "bbox": [
+    -32.0,
+    68.0,
+    -10.0,
+    84.0
+   ]
+  },
+  {
+   "name": "geusarc:aem",
+   "title": "헬기 자력 조사 (국지)",
+   "group": "그린란드 지구물리·지질구 (GEUS)",
+   "abstract": "AEM 조사 열 곳의 자력 — 잉글필드·마니초크–누크·제임슨랜드 등",
+   "bbox": [
+    -74.0,
+    59.0,
+    -10.0,
+    84.0
+   ]
+  },
+  {
+   "name": "geusarc:g2500k",
+   "title": "지질도 1:250만",
+   "group": "그린란드 지질도 1:250만·1:10만 (GEUS)",
+   "abstract": "Geological map of Greenland 1:2 500 000 — 지질·경계·구조선",
+   "bbox": [
+    -74.0,
+    59.0,
+    -10.0,
+    84.0
+   ]
+  },
+  {
+   "name": "geusarc:g100k_ssw",
+   "title": "서남부 지질도 1:10만",
+   "group": "그린란드 지질도 1:250만·1:10만 (GEUS)",
+   "abstract": "South-West Greenland 1:100 000 — 지질·경계·구조선",
+   "bbox": [
+    -54.0,
+    59.5,
+    -44.0,
+    66.5
+   ]
+  },
+  {
+   "name": "geusarc:g100k_karrat",
+   "title": "카라트 지질도 1:10만",
+   "group": "그린란드 지질도 1:250만·1:10만 (GEUS)",
+   "abstract": "Karrat 1:100 000 — 지질·경계·구조선",
+   "bbox": [
+    -60.0,
+    70.5,
+    -50.0,
+    73.5
    ]
   }
  ]

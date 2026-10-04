@@ -245,6 +245,13 @@
         { name: "lips", title: "거대 화성암 지대 (LIP)", grid: "ll", info: "impacts", legend: "lips", always: true, max: 7,
           src: "Johansson et al. 2018 · EarthByte · CC BY 4.0" }] });
   }
+  // 최근 지진 — USGS 실시간 피드(지난 7 일 M2.5 이상, 매시 받음). 속이 빈 고리에 지난 시간의 색이라 지난 지진(속을 채운 원, 깊이의 색)과
+  // 섞이지 않는다. 오늘의 레이어다 (wetherilli 292)
+  if (THEN.recentquakes && THEN.recentquakes.length) {
+    CATALOG.filter(function (g) { return g.flux; })[0].layers.push(
+      { name: "recentquakes", title: "최근 지진 (7 일, M2.5 이상)", grid: "ll", recent: true, legend: "recentquake",
+        src: "U.S. Geological Survey · real-time feed (past 7 days M2.5+) · public domain" });
+  }
   // 빙하 하나하나 — RGI 7.0 의 27 만 개를 넓이만 한 점으로. 구운 것이 있을 때만. 줌 3 부터(그 밑은 Natural Earth 의 빙하·빙붕이 맡는다) (wetherilli 289)
   if (THEN.glaciers && THEN.glaciers.length) {
     CATALOG.filter(function (g) { return g.layers.some(function (l) { return l.name === "ice"; }); })[0].layers.push(
@@ -268,7 +275,7 @@
     ["화산·지진", ["volcanoes", "pleistocene", "lips", "quake6", "quake55", "quake5"]],
     ["화석·고생태", ["fossils", "fossilheat"]],                      // 고생태 산지(Neotoma)의 자료형 칸은 `neo` 로 여기 선다
     ["그때의 지구", ["coast", "icemargins"]],
-    ["움직이는 지구", ["wind", "cloud", "satcloud", "ocean", "araon"]],
+    ["움직이는 지구", ["wind", "cloud", "satcloud", "ocean", "recentquakes", "araon"]],
     ["지리", ["names", "water", "ice", "glaciers"]],
   ];
   CATALOG = (function (groups) {
@@ -316,6 +323,7 @@
     if (name === "pleistocene") return BASE + "earth/volcanoes/pleistocene/tiles/{z}/{x}/{y}.png" + vq("pleistocene");
     if (LAYER[name].neo) return BASE + "earth/neotoma/tiles/" + name + "/" + Math.min(999, Math.round(age * 1000)) + "/{z}/{x}/{y}.png" + vq("neotoma");
     if (LAYER[name].quake) return BASE + "earth/quakes/tiles/" + name + "/{z}/{x}/{y}.png" + vq("quakes");
+    if (name === "recentquakes") return BASE + "earth/recentquakes/tiles/{z}/{x}/{y}.png" + vq("recentquakes");
     return BASE + "earth/tiles/" + name + "/{z}/{x}/{y}.png";
   }
   var GEO_CREDIT = "Macrostrat (CC BY 4.0) · Peters, Husson & Czaplewski 2018, G-cubed";
@@ -346,7 +354,7 @@
     if (name === "gemfaults") return FAULT_CREDIT;
     if (LAYER[name] && LAYER[name].mineral) return MIN_CREDIT;
     if (LAYER[name] && LAYER[name].neo) return NEO_CREDIT;
-    return { geology: GEO_CREDIT, plates: PALEO_CREDIT, coast: COAST_CREDIT, fossils: PBDB_CREDIT, fossilheat: PBDB_CREDIT, volcanoes: GVP_CREDIT, pleistocene: GVP_CREDIT, quake6: QUAKE_CREDIT, quake55: QUAKE_CREDIT, quake5: QUAKE_CREDIT, crust: CRUST_CREDIT, stress: STRESS_CREDIT, tbound: TECT_CREDIT, tprov: TECT_CREDIT, glim: GLIM_CREDIT, heatflow: HEATFLOW_CREDIT, seaage: SEAAGE_CREDIT, sediment: SEDIMENT_CREDIT,
+    return { geology: GEO_CREDIT, plates: PALEO_CREDIT, coast: COAST_CREDIT, fossils: PBDB_CREDIT, fossilheat: PBDB_CREDIT, volcanoes: GVP_CREDIT, pleistocene: GVP_CREDIT, quake6: QUAKE_CREDIT, quake55: QUAKE_CREDIT, quake5: QUAKE_CREDIT, recentquakes: QUAKE_CREDIT, crust: CRUST_CREDIT, stress: STRESS_CREDIT, tbound: TECT_CREDIT, tprov: TECT_CREDIT, glim: GLIM_CREDIT, heatflow: HEATFLOW_CREDIT, seaage: SEAAGE_CREDIT, sediment: SEDIMENT_CREDIT,
              names: NE_CREDIT, water: NE_CREDIT, ice: NE_CREDIT, icemargins: ICE_CREDIT, mantle: MANTLE_CREDIT }[name];
   }
   // 판 조각 타일 — 서버가 연대마다 돌려 그린다(`paleo.render_tile`). 경위도 격자, 줌 0 이 180° 두 장이다
@@ -2438,6 +2446,13 @@
         }).join("");
       return Promise.resolve(legends[kind]);
     }
+    if (kind === "recentquake") {
+      legends[kind] = '<li class="empty">' + esc(T("속이 빈 고리 — 크기는 규모, 색은 지난 시간 (매시 받음)")) + "</li>" +
+        THEN.recentquakes.map(function (row) {
+          return '<li><span class="chip ring" style="border-color:' + esc(row.color) + '"></span>' + esc(row.name) + "</li>";
+        }).join("");
+      return Promise.resolve(legends[kind]);
+    }
     if (kind === "volcano") {
       legends[kind] = '<li class="empty">' + esc(T("세모의 색은 마지막 분화")) + "</li>" +
         THEN.volcanoes.map(function (row) {
@@ -3044,12 +3059,25 @@
         .then(function (r) { return r.json(); })
         .then(function (d) {
           if (mineV !== asked) return;
-          if (d.hits && d.hits.length) showVolcanoes(d.hits, pixel); else askQuake(ll, pixel, perPx);
+          if (d.hits && d.hits.length) showVolcanoes(d.hits, pixel); else askRecent(ll, pixel, perPx);
         })
-        .catch(function () { if (mineV === asked) askQuake(ll, pixel, perPx); });
+        .catch(function () { if (mineV === asked) askRecent(ll, pixel, perPx); });
       return;
     }
-    askQuake(ll, pixel, perPx);
+    askRecent(ll, pixel, perPx);
+  }
+  // 최근 지진 — 켜져 있으면 지난 지진보다 먼저 묻는다. 없으면 지난 지진 (wetherilli 292)
+  function askRecent(ll, pixel, perPx) {
+    if (!active.some(function (e) { return LAYER[e.name].recent && visibleNow(e.name); })) { askQuake(ll, pixel, perPx); return; }
+    var mine = ++asked;
+    fetch(BASE + "earth/recentquakes/at/?lon=" + ll[0].toFixed(4) + "&lat=" + ll[1].toFixed(4) +
+          "&r=" + Math.max(0.002, perPx * 7).toFixed(4))
+      .then(function (r) { return r.json(); })
+      .then(function (d) {
+        if (mine !== asked) return;
+        if (d.hits && d.hits.length) showQuakes(d.hits, pixel); else askQuake(ll, pixel, perPx);
+      })
+      .catch(function () { if (mine === asked) askQuake(ll, pixel, perPx); });
   }
   // 지진 — 켠 규모 칸에서만 찾는다. 없으면 화석 산지 (wetherilli 138)
   function askQuake(ll, pixel, perPx) {

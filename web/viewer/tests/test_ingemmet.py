@@ -58,11 +58,15 @@ class Friendly(SimpleTestCase):
 
 
 class Views(TestCase):
+    @classmethod
+    def setUpTestData(cls):
+        # 카탈로그는 반마다 한 번 — 시험마다 넣으면 0.5 초씩 든다 (wetherilli 294)
+        call_command("seed_catalog", stdout=io.StringIO())
+
     def setUp(self):
         patch = override_settings(TILE_CACHE_DIR=tempfile.mkdtemp(prefix="gsm-ingemmet-"))
         patch.enable()
         self.addCleanup(patch.disable)
-        call_command("seed_catalog", stdout=io.StringIO())
         for name, value in (("record", None), ("paused", 0)):
             p = mock.patch.object(ingemmet.usage, name, return_value=value)
             p.start()

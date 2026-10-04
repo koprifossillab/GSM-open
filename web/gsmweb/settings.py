@@ -232,6 +232,10 @@ AGS_FEATURE_URL = env("GSM_AGS_FEATURE_URL", "https://services2.arcgis.com/jQV6V
 BCGS_WMS_URL = env("GSM_BCGS_WMS_URL", "https://openmaps.gov.bc.ca/geo/pub/WHSE_MINERAL_TENURE.GEOL_BEDROCK_UNIT_POLY_SVW/ows")
 #: 캘리포니아 지질도 1:75만 — CGS ArcGIS 의 앞 주소 (`viewer/calgs.py`, wetherilli 231). 열쇠가 없다
 CALGS_URL = env("GSM_CALGS_URL", "https://gis.conservation.ca.gov/server")
+#: 미국 주 지질도 셋 — 네바다 NBMG·워싱턴 DNR·오리건 DOGAMI ArcGIS REST 의 `rest/services` 까지 (`viewer/usstates.py`, wetherilli 291). 열쇠가 없다
+NBMG_URL = env("GSM_NBMG_URL", "https://gisweb.unr.edu/nbmg/rest/services")
+WADNR_URL = env("GSM_WADNR_URL", "https://gis.dnr.wa.gov/site1/rest/services")
+DOGAMI_URL = env("GSM_DOGAMI_URL", "https://gis.dogami.oregon.gov/arcgis/rest/services")
 #: 유럽 — 오스트리아 GeoSphere·폴란드 PIG·네덜란드 TNO·플랑드르 DOV·왈로니아 SPW (wetherilli 237). 열쇠가 없다
 GEOSPHERE_URL = env("GSM_GEOSPHERE_URL", "https://gis.geosphere.at/maps")
 PIG_URL = env("GSM_PIG_URL", "https://cbdgmapa.pgi.gov.pl/arcgis")
@@ -377,6 +381,12 @@ TILE_CACHE_SECONDS = env_int("GSM_TILE_CACHE_SECONDS", 86400)
 #: 상류에서 받은 것은 위의 하루 그대로이고, 지나면 ETag 로 되묻는다(304)
 TILE_IMMUTABLE_SECONDS = env_int("GSM_TILE_IMMUTABLE_SECONDS", 365 * 86400)
 UPSTREAM_TIMEOUT = env_int("GSM_UPSTREAM_TIMEOUT", 20)
+#: 시간 한계의 사슬 (wetherilli 300) — 바깥이 안보다 길어야 504 대신 우리 안내 타일이 나간다.
+#:   nginx `proxy_read_timeout` 90 초(deploy/nginx) > 문 한계 `UPSTREAM_TIMEOUT_MAX` 60 초 + 메타타일 잠금 기다림 `METATILE_LOCK_WAIT` 20 초 + 여유 10 초.
+#: 화면이 부르는 길의 문은 상류 한 번을 이것보다 길게 기다리지 않는다(`test_timeouts` 가 지킨다). 호스트·사람이 부르는 받기(바람·지진 목록·씨앗)는 따로다.
+#: gunicorn `--timeout 60` 은 요청 한계가 아니다 — 스레드 워커(gthread)에서는 워커가 살아 있는지만 본다
+UPSTREAM_TIMEOUT_MAX = env_int("GSM_UPSTREAM_TIMEOUT_MAX", 60)
+METATILE_LOCK_WAIT = env_int("GSM_METATILE_LOCK_WAIT", 20)
 
 #: 받아온 타일을 우리 디스크에 두는 자리. 비우면 캐시를 끈다.
 #: 위의 TILE_CACHE_SECONDS 와 **다른 것이다** — 저쪽은 브라우저,
@@ -436,6 +446,21 @@ def _dev_direct_wms() -> bool:
 
 
 DEV_DIRECT_WMS = _dev_direct_wms()
+
+
+def _metatile() -> bool:
+    """메타타일(wetherilli 282)을 쓰는가. 기본은 쓴다. **되돌리는 스위치다** — 운영에서 이상하면 판을 다시 붙이지 않고 끈다 (wetherilli 299).
+
+    환경변수 `GSM_METATILE_OFF=1` 이나 파일 `<DB 옆>/metatile_off`(첫 줄 `1`). 파일을 보는 까닭은 `dev_direct_wms` 와 같다 — 배포한 자리의
+    `.env` 는 root 의 것이다. 뜰 때 한 번 읽으므로 켜고 끈 뒤 컨테이너를 다시 띄운다. 끄면 칸을 하나씩 받던 앞의 길로 돌아가고,
+    담아 둔 조각은 쓰이지 않을 뿐 지우지 않는다"""
+    if env_bool("GSM_METATILE_OFF", False):
+        return False
+    flag = _lines_from("GSM_METATILE_OFF_FILE", "metatile_off")
+    return not (bool(flag) and flag[0].lower() in ("1", "true", "yes", "on"))
+
+
+METATILE = _metatile()
 
 
 def _public() -> bool:
@@ -550,6 +575,9 @@ AGS_CATALOG_SEED = REPO_DIR / "data" / "ags_layers.json"
 #: 브리티시컬럼비아·캘리포니아 (wetherilli 231)
 BCGS_CATALOG_SEED = REPO_DIR / "data" / "bcgs_layers.json"
 CALGS_CATALOG_SEED = REPO_DIR / "data" / "calgs_layers.json"
+NBMG_CATALOG_SEED = REPO_DIR / "data" / "nbmg_layers.json"
+WADNR_CATALOG_SEED = REPO_DIR / "data" / "wadnr_layers.json"
+DOGAMI_CATALOG_SEED = REPO_DIR / "data" / "dogami_layers.json"
 #: 오스트리아·폴란드·네덜란드·벨기에 (wetherilli 237)
 GEOSPHERE_CATALOG_SEED = REPO_DIR / "data" / "geosphere_layers.json"
 PIG_CATALOG_SEED = REPO_DIR / "data" / "pig_layers.json"

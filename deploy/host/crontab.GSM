@@ -16,7 +16,7 @@
 
 
 # 매시 받기 (koprifossillab 013) — 매시 :40 에 hourly.sh 가 차례로 부른다: 지금의 바람·구름(fetch_gfs_wind, koprifossillab 003·008·011),
-# 위성 구름(fetch_gmgsi, 012), 아라온호 위치(fetch_araon, 004). 일은 저마다 run.sh 로 따로 부를 수 있다. 한 일이 멈춰도 다음 일은
+# 위성 구름(fetch_gmgsi, 012), 아라온호 위치(fetch_araon, 004), 최근 지진(fetch_recent_quakes, wetherilli 292). 일은 저마다 run.sh 로 따로 부를 수 있다. 한 일이 멈춰도 다음 일은
 # 돈다. :40 인 것은 GMGSI 의 장이 정시에서 30 분 남짓 뒤에 올라오기 때문이다 — 다른 매시 일(:20·:25)과도 비껴 있다.
 # 일마다의 결과는 /srv/GSM/db/hourly_status.json(`/GSM/healthz/` 가 읽는다), 로그는 /data/GSM/logs/hourly.log
 40 * * * * timeout 3000 /srv/GSM/scripts/hourly.sh

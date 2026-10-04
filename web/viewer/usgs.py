@@ -91,3 +91,48 @@ def download(dest: Path, log_line=print, pause: float = PAUSE) -> int:
         raise UsgsError("USGS 가 빈 목록을 주었다")
     tmp.replace(dest)
     return count
+
+
+# ── 최근 지진 — 실시간 피드 (wetherilli 292) ──────────────────────────
+#
+# USGS 가 자주 받아 가라고 열어 둔 요약 피드(GeoJSON, 1 분마다 새로 짓는다). 지난 7 일의 M2.5 이상이다. **한 시간에 한 번만** 받는다 —
+# 호스트 cron 의 `hourly.sh` 가 `manage.py fetch_recent_quakes` 를 부른다. 화면이 부를 때는 상류를 타지 않는다(`recentquakes.py` 가 파일만 읽는다)
+
+FEED = "https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/2.5_week.geojson"
+
+
+def fetch_recent(dest: Path) -> dict:
+    """피드를 받아 줄인 JSON 을 `dest` 에 쓴다(옆에 쓰고 옮긴다). `{"quakes": n, "generated": …}`"""
+    import json
+    left = usage.paused()
+    if left:
+        raise UsgsError(f"차단 조짐이 있어 {int(left)}초 동안 상류에 묻지 않는다")
+    try:
+        r = requests.get(FEED, timeout=max(settings.UPSTREAM_TIMEOUT, 60), verify=settings.CA_BUNDLE or True,
+                         headers={"User-Agent": "GSM/0.1"})
+    except requests.RequestException as exc:
+        usage.record("usgs", ok=False)
+        raise UsgsError(f"USGS 피드에 닿지 못했다: {exc}") from exc
+    usage.record("usgs", ok=r.status_code == 200, blocked=usage.looks_blocked(r.status_code, r.content[:1000]), elapsed=r.elapsed)
+    if r.status_code != 200:
+        raise UsgsError(f"피드를 받지 못했다 (status={r.status_code})")
+    try:
+        data = r.json()
+    except ValueError as exc:
+        raise UsgsError("피드가 JSON 이 아니다") from exc
+    rows = []
+    for f in data.get("features") or []:
+        p, g = f.get("properties") or {}, (f.get("geometry") or {}).get("coordinates") or []
+        if len(g) < 2 or p.get("mag") is None or p.get("type", "earthquake") != "earthquake":
+            continue
+        rows.append({"id": f.get("id"), "lon": round(g[0], 4), "lat": round(g[1], 4),
+                     "depth": round(g[2], 1) if len(g) > 2 and g[2] is not None else None,
+                     "mag": p["mag"], "mag_type": p.get("magType") or "", "ms": p.get("time"), "place": p.get("place") or "",
+                     "status": p.get("status") or ""})
+    generated = (data.get("metadata") or {}).get("generated")
+    out = {"generated": generated, "quakes": rows}
+    tmp = Path(str(dest) + ".part")
+    tmp.parent.mkdir(parents=True, exist_ok=True)
+    tmp.write_text(json.dumps(out, separators=(",", ":")), encoding="utf-8")
+    tmp.replace(dest)
+    return {"quakes": len(rows), "generated": generated}

@@ -144,6 +144,10 @@ class Command(BaseCommand):
                 # 브리티시컬럼비아 BCGS(캐나다 탭)·캘리포니아 CGS(미국 탭) (wetherilli 231)
                 (settings.BCGS_CATALOG_SEED, "브리티시컬럼비아 (BCGS)", "canada", "bcgs"),
                 (settings.CALGS_CATALOG_SEED, "캘리포니아 (CGS)", "usa", "calgs"),
+                # 네바다·워싱턴·오리건 (wetherilli 291) — 한 문(`usstates.py`)에 셋
+                (settings.NBMG_CATALOG_SEED, "네바다 (NBMG)", "usa", "nbmg"),
+                (settings.WADNR_CATALOG_SEED, "워싱턴 (DNR)", "usa", "wadnr"),
+                (settings.DOGAMI_CATALOG_SEED, "오리건 (DOGAMI)", "usa", "dogami"),
                 # 유럽 — 오스트리아 GeoSphere·폴란드 PIG·네덜란드 TNO·벨기에(플랑드르 DOV·왈로니아 SPW) (wetherilli 237)
                 (settings.GEOSPHERE_CATALOG_SEED, "오스트리아 (GeoSphere)", "austria", "geosphere"),
                 (settings.PIG_CATALOG_SEED, "폴란드 (PIG-PIB)", "poland", "pig"),

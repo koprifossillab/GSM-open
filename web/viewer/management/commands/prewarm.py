@@ -57,6 +57,7 @@ import time
 
 from PIL import Image
 
+from django.conf import settings
 from django.core.management.base import BaseCommand, CommandError
 
 from viewer import elevation, geomap, gsj, ingemmet, kigam, kopri, metatile, npolar, tilecache, tilegrid, trek, usage, views
@@ -473,7 +474,7 @@ def _projected_plan(name, upstream):
     # 브라우저가 묻지 않는 타일이다(인도네시아·오스트리아·폴란드·캘리포니아, wetherilli 252)
     if extra.get("maxZoom"):
         last = min(last, extra["maxZoom"] - 1) if last else extra["maxZoom"] - 1
-    if grid is None and metatile.limit(views.METATILE, name) is not False:
+    if grid is None and settings.METATILE and metatile.limit(views.METATILE, name) is not False:
         return MetaPlan(name, upstream, grid, (extra.get("minZoom"), last))
     return WmsPlan(name, upstream, grid, (extra.get("minZoom"), last))
 

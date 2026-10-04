@@ -177,9 +177,11 @@ class Map3dRegions(TestCase):
 class StaticSiteTests(TestCase):
     """연구소 밖 정적 판 (wetherilli P11·162) — 지도 화면을 서버 없이 도는 꼴로 그린다."""
 
-    def setUp(self):
-        from django.core.management import call_command
+    @classmethod
+    def setUpTestData(cls):
+        # 카탈로그는 반마다 한 번 — 시험마다 넣으면 0.5 초씩 든다 (wetherilli 294)
         import io
+        from django.core.management import call_command
         call_command("seed_catalog", stdout=io.StringIO())
 
     def test_정적_판의_소개는_서버_화면으로_가는_문이_없다(self):

@@ -116,8 +116,8 @@ def _get(path: str, params: dict, name: str = ""):
     if left:
         raise SgmError(f"차단 조짐이 있어 {int(left)}초 동안 상류에 묻지 않는다")
     try:
-        # 메타타일(1024 px)은 한 장이 20 초 남짓이다 — 넉넉히 기다린다 (wetherilli 282)
-        wait = 90 if metatile.limit(METATILE, name) is not False else 45
+        # 메타타일(1024 px)은 한 장이 20 초 남짓이다 — 넉넉히 기다리되 문 한계까지만 (wetherilli 282·300)
+        wait = settings.UPSTREAM_TIMEOUT_MAX if metatile.limit(METATILE, name) is not False else 45
         r = requests.get(f"{_base(name)}/{path}", params=params, timeout=max(settings.UPSTREAM_TIMEOUT, wait),
                          verify=settings.CA_BUNDLE or True, headers={"User-Agent": "GSM/0.1"})
     except requests.RequestException as exc:

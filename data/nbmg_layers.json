@@ -1,0 +1,25 @@
+{
+ "_주석": "네바다 광산지질국(NBMG) 1:50만 씨앗이다 — 미국 탭. ArcGIS REST 를 문(web/viewer/usstates.py)이 3978 export 로 옮긴다 (wetherilli 291).",
+ "_뽑은날": "2026-10-05",
+ "_출처": "https://gisweb.unr.edu/nbmg/rest/services/Geology/NV_500k_Geology/MapServer",
+ "_지역": "usa",
+ "_상류": "nbmg",
+ "_레이어군차례": 0,
+ "레이어군순서": [
+  "네바다 지질도 (NBMG 1:50만)"
+ ],
+ "레이어": [
+  {
+   "name": "nbmg:geology",
+   "title": "지질도 (1:50만)",
+   "abstract": "Geologic map of Nevada 1:500,000 (Stewart & Carlson) — 단위·단층",
+   "bbox": [
+    -120.0,
+    35.0,
+    -114.0,
+    42.0
+   ],
+   "group": "네바다 지질도 (NBMG 1:50만)"
+  }
+ ]
+}

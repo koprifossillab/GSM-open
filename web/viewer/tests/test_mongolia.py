@@ -88,12 +88,16 @@ class Friendly(SimpleTestCase):
 
 
 class Catalog(TestCase):
+    @classmethod
+    def setUpTestData(cls):
+        # 카탈로그는 반마다 한 번 — 시험마다 넣으면 0.5 초씩 든다 (wetherilli 294)
+        call_command("seed_catalog", stdout=open("/dev/null", "w"))
+
     def setUp(self):
         # 범례 길은 받은 것을 캐시에 담는다 — 가짜 범례가 개발 캐시에 남지 않게 임시 자리를 쓴다
         patch = override_settings(TILE_CACHE_DIR=tempfile.mkdtemp(prefix="gsm-mongolia-"))
         patch.enable()
         self.addCleanup(patch.disable)
-        call_command("seed_catalog", stdout=open("/dev/null", "w"))
 
     def test_몽골_탭과_동아시아(self):
         rows = {l["name"]: (g, l) for g in views._catalog("ko") for l in g["layers"]}

@@ -11,6 +11,7 @@
 - 그림은 3000 × 3000 까지, 한 번에 레이어 5 개까지 (GEUS 의 제한)
 - 속성은 `text/plain` 으로 받는다. `application/json` 을 광고하지만 비어 온다
 """
+import json
 import logging
 import re
 
@@ -19,7 +20,7 @@ from django.conf import settings
 
 from types import SimpleNamespace as _NS
 
-from . import usage
+from . import arcwms, tilecache, usage
 
 log = logging.getLogger(__name__)
 
@@ -150,7 +151,20 @@ ARC_LAYERS = {
     "geusarc:magnetic": ("Magnetic_compilation", "0", False),          # 측선(6)은 뺀다
     "geusarc:bouguer": ("dtu_bouguer_anomaly", "3", False),            # 관측점(0–2)은 뺀다
     "geusarc:provinces": ("Geological_provinces_2500k", "1,0,3,6,5", True),
+    # 더한 것 (wetherilli 301) — 공중 자력 셋은 조사한 곳만 덮는다(서남부·동부·북부의 조각)
+    "geusarc:aeromag": ("Geophysics_Aeromag_Magnetic", "0", False),               # AEROMAG 1992–2013 총자력
+    "geusarc:aeromag_tilt": ("Geophysics_Aeromag_Magnetic", "2", False),          # 같은 것의 기울기 도함수 — 구조선이 잘 보인다
+    "geusarc:awi": ("Geophysics_Aeromag_AWI", "2", False),                       # AWI 1993–96 동부 해안, 300–600 nT 색 척도(측선 0 은 뺀다)
+    "geusarc:aem": ("Geophysics_Aem_Magnetic", "1,2,3,4,5,6,7,8,9,10", False),     # 국지 헬기 조사 열
+    "geusarc:g2500k": ("Geological_map_2500k", "4,2,1", True),                    # 지질·경계·구조선(글자 0 은 뺀다)
+    "geusarc:g100k_ssw": ("Geological_map_100k_SSW", "5,3,0", True),              # 서남부 1:10만 — 지질·경계·구조선
+    "geusarc:g100k_karrat": ("Geological_map_100k_Karrat", "17,13,10", True),     # 카라트 1:10만 — 지질·경계·구조선
 }
+#: 누를 때만 다른 REST 레이어에 묻는 것 — 선(경계·구조선)을 빼고 면에만. 목록 범례도 이 면의 것이다
+ARC_QUERY = {"geusarc:g2500k": "4", "geusarc:g100k_ssw": "5", "geusarc:g100k_karrat": "17"}
+#: 목록 범례(`views.list_legend`)를 내는 레이어 — 지구물리는 REST 범례가 RGB 띠 이름뿐이라 두지 않는다 (wetherilli 301)
+LEGEND_LAYERS = tuple(ARC_QUERY)
+LEGEND_MAX_AGE = 30 * 86400
 ARC_ATTRIBUTION = {"geusarc:bouguer": "Bouguer anomaly © DTU Space · via GEUS"}
 GEUS_ATTRIBUTION = '© <a href="https://www.geus.dk/" target="_blank" rel="noopener">GEUS</a> (personal use, terms 2014-06-20)'
 
@@ -207,7 +221,29 @@ def arc_get_map(params: dict):
 
 
 def arc_get_legend(layer: str):
-    raise GeusError("GEUS ArcGIS 범례는 따로 받지 않는다")
+    raise GeusError("GEUS ArcGIS 범례는 그림으로 받지 않는다 — 지질도는 목록 범례(`legend_rows`)")
+
+
+def legend_rows(layer: str) -> list:
+    """지질도 1:250만·1:10만의 칸 — REST 범례의 이름표와 견본(78·195·79 칸). 한 번 받아 30 일 담아 둔다 (wetherilli 301)"""
+    if layer not in LEGEND_LAYERS:
+        raise GeusError(f"범례가 없는 레이어다: {layer}")
+    service, _, _ = _arc(layer)
+    key = tilecache.key_text("geusarc-legend", layer)
+    held = tilecache.get(key, ".json", max_age=LEGEND_MAX_AGE)
+    if held is not None:
+        return json.loads(held)
+    r = _arc_get(f"{service}/MapServer/legend", {"f": "json"})
+    try:
+        data = r.json()
+    except ValueError as exc:
+        raise GeusError("범례가 JSON 이 아니다") from exc
+    if r.status_code != 200 or data.get("error"):
+        raise GeusError(f"범례를 받지 못했다 (status={r.status_code})")
+    rows = [{"symbol": "", "lithology": label, "age": "", "color": "transparent", "swatch": uri}
+            for label, uri in arcwms.legend_list(data, layer_ids=(int(ARC_QUERY[layer]),))]
+    tilecache.put(key, json.dumps(rows, ensure_ascii=False).encode("utf-8"), ".json")
+    return rows
 
 
 def arc_get_feature_info(params: dict) -> dict:
@@ -224,7 +260,7 @@ def arc_get_feature_info(params: dict) -> dict:
     x = bbox[0] + (bbox[2] - bbox[0]) * (i + 0.5) / width
     y = bbox[3] - (bbox[3] - bbox[1]) * (j + 0.5) / height
     r = _arc_get(f"{service}/MapServer/identify", {
-        "geometry": f"{x!r},{y!r}", "geometryType": "esriGeometryPoint", "sr": sr, "layers": f"all:{layers}", "tolerance": "2",
+        "geometry": f"{x!r},{y!r}", "geometryType": "esriGeometryPoint", "sr": sr, "layers": f"all:{ARC_QUERY.get(name, layers)}", "tolerance": "2",
         "mapExtent": ",".join(repr(v) for v in bbox), "imageDisplay": f"{width},{height},96", "returnGeometry": "false", "f": "json"})
     if r.status_code != 200:
         raise GeusError(f"속성을 읽지 못했다 (status={r.status_code})")
@@ -242,6 +278,12 @@ PROVINCE_KINDS = {"Quaternary": "제4기", "Sedimentary_basins": "퇴적분지",
 
 
 def arc_friendly(props: dict, lang: str = "ko") -> dict:
+    if "gm_label" in props:                      # 지질도 1:250만·1:10만 (wetherilli 301) — 열 이름이 판마다 조금씩 다르다
+        def first(*keys):
+            return next((str(props[k]).strip() for k in keys if str(props.get(k) or "").strip()), "")
+        rows = (("기호", first("gm_label")), ("단위", first("gm_unit_name", "Legend_Heading", "Heading")),
+                ("설명", first("Description", "short_description")))
+        return {k: x for k, x in rows if x}
     kind = str(props.get("_layer") or "")
     text = str(props.get("Description") or props.get("short_text") or "").strip()
     rows = (("갈래", PROVINCE_KINDS.get(kind, kind) if lang == "ko" else kind.replace("_", " ")), ("지질구", text))

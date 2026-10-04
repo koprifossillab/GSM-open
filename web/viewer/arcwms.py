@@ -4,6 +4,7 @@
 여기 모았다. 이름은 ArcGIS 지만 GeoServer WMS 도 이 틀로 돈다. 문은 제 `_get`(상류로 나가는 길)을 넘기고, 이 틀은 WMS 변수를 고치고
 응답을 읽기만 한다. ArcGIS WMS 의 GetFeatureInfo 는 판에 따라 geojson 을 주기도 하고 ESRI XML(`<FIELDS a="…"/>`)만 주기도 한다 — 둘 다 읽는다.
 """
+import re
 import xml.etree.ElementTree as ET
 
 
@@ -149,4 +150,23 @@ def identify_features(data: dict, name: str, limit: int = 3) -> list:
         props = {k: v for k, v in (item.get("attributes") or {}).items()
                  if v is not None and str(v).strip() and str(v).strip().lower() != "null"}
         out.append({"id": f"{name}.{n}", "properties": props})
+    return out
+
+
+def fields_plain(text) -> list:
+    """ArcGIS WMS 의 `text/plain` 속성(wetherilli 296) → 속성 사전 목록. 한 줄에 다 온다 —
+    `@<레이어 이름> <열1>;<열2>;…;<열n>; <값1>;…;<값n>; <값1>;…`. 레이어 이름에 빈칸이 있어 첫 열은 마지막 낱말만 쓰고,
+    머리는 빈칸으로 시작하는 첫 칸 앞까지다. 값 `Null`·빈 칸은 뺀다. 레이어가 여럿이면 `@` 로 다시 시작한다"""
+    out = []
+    for block in re.split(r"(?:^|\s)@", str(text or "").strip()):
+        tokens = block.split(";")
+        start = next((i for i, t in enumerate(tokens) if t.startswith(" ")), None)
+        if not start:
+            continue
+        header = [t.strip() for t in tokens[:start]]
+        header[0] = header[0].rsplit(" ", 1)[-1]
+        rest = tokens[start:]
+        for k in range(0, len(rest) - len(header) + 1, len(header)):
+            values = [v.strip() for v in rest[k:k + len(header)]]
+            out.append({h: v for h, v in zip(header, values) if v and v.lower() != "null"})
     return out

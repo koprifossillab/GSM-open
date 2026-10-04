@@ -32,8 +32,8 @@ from gsmweb.version import VERSION
 from . import (coords, crs, geo3al, geomap, geus, grportal, gsj, gsmma, i18n, ibcso, janmayen, kigam, kopri, npolar,
                patchnotes, elevation, moonmap, peninsula, phyloserver, pointsets, tilecache, tiles, trek, vworld, warp,
                marscraters, marsmap, mercurymap, zhurong)
-from . import admap, arcpoints, caribmap, crust, glaciers, impacts, faults, minerals, stress, tectonics, seafloor, glim, heatflow, fossils, gvp, icemargins, kigam50k, macrostrat, mantle, metatile, naturalearth, neotoma, paleo, paleoeco, paleocoast, pbdb, quakes, spamap, ocean, usgs, volcanoes, wind
-from . import ags, austates, bas, basemaps, bcgs, bgr, bgs, brgm, calgs, cgs, dinamige, dmr, dov, egdi, emodnet, esdm, ga, geosphere, georep, gns, gsi, gsiindia, gtk, igme, iige, ineter, ingemmet, ispra, jmg, linked, lneg, mgb, mrdata, mris, natt, ngu, nrcan, nsgs, ogs, pig, segemar, sgb, sgc, sgm, sgs, sgu, sigeom, skgs, spw, stri, swisstopo, tno, usage, usgscarib, vmme, ygs
+from . import admap, arcpoints, caribmap, crust, glaciers, impacts, faults, minerals, stress, tectonics, seafloor, glim, heatflow, fossils, gvp, icemargins, kigam50k, macrostrat, mantle, metatile, naturalearth, neotoma, paleo, paleoeco, paleocoast, pbdb, quakes, recentquakes, spamap, ocean, usgs, volcanoes, wind
+from . import ags, austates, bas, basemaps, bcgs, bgr, bgs, brgm, calgs, cgs, dinamige, dmr, dov, egdi, emodnet, esdm, ga, georep, geosphere, gns, gsi, gsiindia, gtk, igme, iige, ineter, ingemmet, ispra, jmg, linked, lneg, mgb, mrdata, mris, natt, ngu, nrcan, nsgs, ogs, pig, segemar, sgb, sgc, sgm, sgs, sgu, sigeom, skgs, spw, stri, swisstopo, tno, usage, usgscarib, usstates, vmme, ygs
 from . import earthpoints, pointvalues, profileband, static_tables, tilegrid
 from .i18n import msg
 from .models import Layer, LayerGroup, Point, PointSet, PointSetDeletion, Shape
@@ -402,6 +402,8 @@ MAP3D_WMS = ("kigam", "geus", "geusarc", "vworld", "ccop", "gsjows", "gsmma",
              "esdm", "jmg", "mgb", "dmr",
              # 브리티시컬럼비아 BCGS·캘리포니아 CGS(wetherilli 231) — 2D 는 3978 이지만 3D 는 3857 로 묻는다(둘 다 그려 준다)
              "bcgs", "calgs",
+             # 네바다·워싱턴·오리건(wetherilli 291) — 캘리포니아처럼 문이 REST export 로, 3D 는 3857
+             "nbmg", "wadnr", "dogami",
              # 오스트리아·폴란드·네덜란드·벨기에(wetherilli 237) — 3857 로 그린다
              "geosphere", "pig", "tno", "dov", "spw",
              # 니카라과 INETER(wetherilli 242) — GeoServer 라 3857 로 그린다
@@ -528,7 +530,7 @@ def moon_tile(request, layer, z, x, y):
         if old is not None:
             return _tile(old, cached=True)
         log.warning("달 지질도 타일을 받지 못했다 (%s %s/%s/%s): %s", layer, z, x, y, exc)
-        return _tile(tiles.notice_tile(256, 256, tiles.NO_MAP), store=False)
+        return _tile(tiles.notice_tile(256, 256, tiles.SLOW if metatile.slow(exc) else tiles.NO_MAP), store=False)
     tilecache.put(key, png)
     response = _tile(png)
     response["X-GSM-Cache"] = "miss"
@@ -589,7 +591,7 @@ def moon_polar_tile(request, pole, layer, z, x, y):
         if old is not None:
             return _tile(old, cached=True)
         log.warning("달 극 지질도 타일을 받지 못했다 (%s %s %s/%s/%s): %s", pole, layer, z, x, y, exc)
-        return _tile(tiles.notice_tile(256, 256, tiles.NO_MAP), store=False)
+        return _tile(tiles.notice_tile(256, 256, tiles.SLOW if metatile.slow(exc) else tiles.NO_MAP), store=False)
     tilecache.put(key, png)
     response = _tile(png)
     response["X-GSM-Cache"] = "miss"
@@ -914,7 +916,7 @@ def trek_map_tile(request, body, label, z, x, y):
         if old is not None:
             return _tile(old, cached=True)
         log.warning("Trek 판 타일을 받지 못했다 (%s %s %s/%s/%s): %s", body, label, z, x, y, exc)
-        return _tile(tiles.notice_tile(256, 256, tiles.NO_MAP), store=False)
+        return _tile(tiles.notice_tile(256, 256, tiles.SLOW if metatile.slow(exc) else tiles.NO_MAP), store=False)
     tilecache.put(key, png)
     response = _tile(png)
     response["X-GSM-Cache"] = "miss"
@@ -942,7 +944,7 @@ def trek_map_polar_tile(request, body, label, pole, z, x, y):
         if old is not None:
             return _tile(old, cached=True)
         log.warning("Trek 극지 판 타일을 받지 못했다 (%s %s %s %s/%s/%s): %s", body, label, pole, z, x, y, exc)
-        return _tile(tiles.notice_tile(256, 256, tiles.NO_MAP), store=False)
+        return _tile(tiles.notice_tile(256, 256, tiles.SLOW if metatile.slow(exc) else tiles.NO_MAP), store=False)
     tilecache.put(key, png)
     response = _tile(png)
     response["X-GSM-Cache"] = "miss"
@@ -1092,7 +1094,7 @@ def mars_tile(request, layer, z, x, y):
         if old is not None:
             return _tile(old, cached=True)
         log.warning("화성 지질도 타일을 받지 못했다 (%s/%s/%s): %s", z, x, y, exc)
-        return _tile(tiles.notice_tile(256, 256, tiles.NO_MAP), store=False)
+        return _tile(tiles.notice_tile(256, 256, tiles.SLOW if metatile.slow(exc) else tiles.NO_MAP), store=False)
     tilecache.put(key, png)
     response = _tile(png)
     response["X-GSM-Cache"] = "miss"
@@ -1125,7 +1127,7 @@ def mars_polar_tile(request, pole, layer, z, x, y):
         if old is not None:
             return _tile(old, cached=True)
         log.warning("화성 극 지질도 타일을 받지 못했다 (%s %s/%s/%s): %s", pole, z, x, y, exc)
-        return _tile(tiles.notice_tile(256, 256, tiles.NO_MAP), store=False)
+        return _tile(tiles.notice_tile(256, 256, tiles.SLOW if metatile.slow(exc) else tiles.NO_MAP), store=False)
     tilecache.put(key, png)
     response = _tile(png)
     response["X-GSM-Cache"] = "miss"
@@ -1487,6 +1489,8 @@ def earth_view(request):
                                                    if volcanoes.available("pleistocene") else []),
                                    # 지진 (wetherilli 138) — 구운 것이 있을 때만. 규모 칸 셋이 레이어가 된다. 범례는 깊이의 색
                                    "quakes": quakes.legend(lang) if quakes.available() else [],
+                                   # 최근 지진 (wetherilli 292) — 매시 받은 피드가 있을 때만. 범례는 지난 시간의 색
+                                   "recentquakes": recentquakes.legend(lang) if recentquakes.available() else [],
                                    # 제4기 고생태 산지 (wetherilli 139) — 구운 것이 있을 때만. 자료형 칸 다섯이 레이어가 된다
                                    "neotoma": paleoeco.legend(lang) if paleoeco.available() else [],
                                    "crust": crust.legend() if crust.grid() else [],
@@ -1545,7 +1549,7 @@ def earth_tile(request, z, x, y):
         if old is not None:
             return _tile(old, cached=True)
         log.warning("Macrostrat 타일을 받지 못했다 (%s/%s/%s): %s", z, x, y, exc)
-        return _tile(tiles.notice_tile(256, 256, tiles.NO_MAP), store=False)
+        return _tile(tiles.notice_tile(256, 256, tiles.SLOW if metatile.slow(exc) else tiles.NO_MAP), store=False)
     tilecache.put(key, png)                   # 바다의 빈 타일도 담는다 — 다시 물을 까닭이 없다
     response = _tile(png)
     response["X-GSM-Cache"] = "miss"
@@ -2492,6 +2496,46 @@ def earth_quake_at(request):
     return JsonResponse({"hits": out, "credit": usgs.CREDIT})
 
 
+# ── 최근 지진 (wetherilli 292) ─────────────────────────────────────
+
+@require_GET
+def earth_recent_quake_tile(request, z, x, y):
+    """`earth/recentquakes/tiles/<z>/<x>/<y>.png` — USGS 실시간 피드의 지난 7 일 M2.5 이상. 속이 빈 고리, 지난 시간의 색"""
+    z, x, y = int(z), int(x), int(y)
+    if not paleo.valid_tile(z, x, y):
+        return JsonResponse({"error": i18n.t(msg("그런 타일은 없다"), i18n.lang_of(request))}, status=404)
+    if not recentquakes.available():
+        return _tile(tiles.blank_tile(), store=False)
+    version = recentquakes_version()
+    key = tilecache.key_text("usgs-recent", f"{version}/{z}/{x}/{y}")
+    hit = tilecache.get(key)
+    if hit is not None:
+        return _immutable(request, _tile(hit, cached=True), version)
+    png = recentquakes.render_tile(z, x, y)
+    tilecache.put(key, png)
+    response = _tile(png)
+    response["X-GSM-Cache"] = "miss"
+    return _immutable(request, response, version)
+
+
+@require_GET
+def earth_recent_quake_at(request):
+    """`?lon=&lat=&r=` — 누른 자리 둘레의 최근 지진, 가까운 것부터 다섯. 꼴은 `earth_quake_at` 과 같다"""
+    lang = i18n.lang_of(request)
+    lat, lon = _float(request.GET.get("lat")), _float(request.GET.get("lon"))
+    r = min(5.0, max(0.001, _float(request.GET.get("r")) or 0.1))
+    if lat is None or lon is None:
+        return JsonResponse({"error": i18n.t(msg("lat·lon 이 없다"), lang)}, status=400)
+    out = []
+    for q in recentquakes.near(lon, lat, r):
+        rows = [("규모", f"{q['mag']:g} {q['mag_type']}".strip()), ("일시 (UTC)", recentquakes.when(q["ms"])),
+                ("깊이 (km)", f"{q['depth']:g}" if q["depth"] is not None else ""), ("곳", q["place"])]
+        rows = [[i18n.PROP_EN.get(k, k) if lang == "en" else k, v] for k, v in rows if v]
+        out.append({"id": q["id"], "name": i18n.t(msg("M{mag} 최근 지진", mag=f"{q['mag']:g}"), lang), "rows": rows,
+                    "link": usgs.event_url(q["id"]), "at": [q["lon"], q["lat"]]})
+    return JsonResponse({"hits": out, "credit": usgs.CREDIT})
+
+
 # ── 제4기 고생태 산지 (wetherilli 139) ───────────────────────────────
 
 @require_GET
@@ -2763,8 +2807,9 @@ def _layer_extra(layer, lang: str = "ko") -> dict:
     """상류마다 화면에 더 알려야 하는 것. 남극(GeoMAP)은 타일 주소와 출처,
     NPI 는 타일을 받을 투영과 출처 (devlog 021)."""
     if layer.upstream == "geusarc" and geus.arc_knows(layer.name):
-        # 그린란드 GEUS ArcGIS(wetherilli 259) — 화면의 투영(3413)으로 REST export. 범례는 따로 받지 않고, 지질구만 누른다
-        return {"attribution": geus.ARC_ATTRIBUTION.get(layer.name, geus.GEUS_ATTRIBUTION), "projection": "EPSG:3413", "noLegend": True,
+        # 그린란드 GEUS ArcGIS(wetherilli 259) — 화면의 투영(3413)으로 REST export. 지질도는 목록 범례(wetherilli 301), 지구물리는 범례가 없다
+        legend = ({"legend": "list", "legendUrl": "list/legend/"} if layer.name in geus.LEGEND_LAYERS else {"noLegend": True})
+        return {"attribution": geus.ARC_ATTRIBUTION.get(layer.name, geus.GEUS_ATTRIBUTION), "projection": "EPSG:3413", **legend,
                 **({} if geus.ARC_LAYERS[layer.name][2] else {"queryable": False})}
     if layer.upstream == "vworld" and layer.name in vworld.MIN_ZOOM:
         # 가까이서만 그려 주는 VWorld 레이어(토양·산림·국가유산, wetherilli 084·193) — 멀리서는 묻지 않는다
@@ -2932,6 +2977,12 @@ def _layer_extra(layer, lang: str = "ko") -> dict:
             # MINFILE 광물 산지(wetherilli 288) — 같은 openmaps 의 점 레이어, 넓게 봐도 그린다
             return {"attribution": bcgs.ATTRIBUTION, "projection": "EPSG:3978"}
         return {"attribution": bcgs.ATTRIBUTION, "projection": "EPSG:3978", "minZoom": bcgs.MIN_ZOOM}
+    if layer.upstream in usstates.DOORS and usstates.knows(layer.upstream, layer.name):
+        # 네바다·워싱턴·오리건(wetherilli 291) — 캘리포니아처럼 문이 REST export 를 3978 로. 주 밖 칸은 묻지 않는다(`clip`).
+        # 넓게 보면 느린 판은 처음 줌을 둔다. 범례는 REST 를 목록으로
+        first = usstates.first_zoom(layer.name)
+        return {"attribution": usstates.UPSTREAMS[layer.upstream][0], "projection": "EPSG:3978", "clip": True,
+                "legend": "list", "legendUrl": "list/legend/", **({"minZoom": first} if first else {})}
     if layer.upstream == "calgs" and calgs.knows(layer.name):
         # 캘리포니아(wetherilli 231) — 문이 REST export 를 3978 로 받는다. 줌 12 너머는 상류가 그리지 않아 화면이 늘린다. 범례는 목록
         return {"attribution": calgs.ATTRIBUTION, "projection": "EPSG:3978", "maxZoom": calgs.MAX_ZOOM,
@@ -3177,7 +3228,7 @@ UPSTREAM_ERRORS = (kigam.UpstreamError, geus.GeusError, vworld.VWorldError, geom
                    bgr.BgrError, igme.IgmeError, gsi.GsiError, sgc.SgcError, sgb.SgbError, cgs.CgsError, ingemmet.IngemmetError,
                    segemar.SegemarError, dinamige.DinamigeError, iige.IigeError, mrdata.MrdataError, sgm.SgmError, nrcan.NrcanError, ogs.OgsError, sigeom.SigeomError, ygs.YgsError, skgs.SkgsError, nsgs.NsgsError, ags.AgsError, ga.GaError, austates.AuStatesError,
                    ispra.IspraError, lneg.LnegError, swisstopo.SwisstopoError, natt.NattError, gns.GnsError, mris.MrisError, gsiindia.GsiIndiaError, sgs.SgsError,
-                   esdm.EsdmError, jmg.JmgError, mgb.MgbError, dmr.DmrError, bcgs.BcgsError, calgs.CalgsError, bas.BasError,
+                   esdm.EsdmError, jmg.JmgError, mgb.MgbError, dmr.DmrError, bcgs.BcgsError, calgs.CalgsError, usstates.UsStatesError, bas.BasError,
                    geosphere.GeosphereError, pig.PigError, tno.TnoError, dov.DovError, spw.SpwError, ineter.IneterError, georep.GeorepError,
                    basemaps.BasemapError)
 
@@ -3269,6 +3320,8 @@ class _Door:
                "esdm": esdm, "jmg": jmg, "mgb": mgb, "dmr": dmr,
                # 브리티시컬럼비아·캘리포니아(wetherilli 231)
                "bcgs": bcgs, "calgs": calgs,
+               # 네바다·워싱턴·오리건(wetherilli 291) — 한 파일(`usstates.py`)에 문 셋
+               **usstates.DOORS,
                # 오스트리아·폴란드·네덜란드·벨기에(wetherilli 237)
                "geosphere": geosphere, "pig": pig, "tno": tno, "dov": dov, "spw": spw,
                # 니카라과(wetherilli 242)
@@ -3281,7 +3334,7 @@ class _Door:
         self.local = self.name == "geomap"
         #: 받은 것을 서버 캐시에 담지 않는다 — 우리가 그리는 것(GeoMAP)과, 자료를 파는 상류(`NO_STORE`, wetherilli 209)
         self.nostore = self.local or self.name in NO_STORE
-        if self.name in ("geus", "geusarc", "npolar", "kopri", "pgc", "ccop", "gsjows", "gsmma", "emodnet", "ngu", "gtk", "bgs", "bgsgi", "brgm", "egdi", "bgr", "igme", "gsi", "gsni", "sgc", "sgb", "ingemmet", "segemar", "dinamige", "iige", "mrdata", "sgm", "cgmw", "aga", "cgs", "gsn", "bumigeb", "irgm", "nrcan", "ogs", "sigeom", "ygs", "skgs", "nsgs", "ags", "ga", "gsq", "gsv", "gssa", "ispra", "lneg", "swisstopo", "sgu", "natt", "gns", "mris", "gsiindia", "sgs", "esdm", "jmg", "mgb", "dmr", "bcgs", "calgs", "geosphere", "pig", "tno", "dov", "spw", "ineter", "georep"):    # 열쇠가 없는 공개 서비스다
+        if self.name in ("geus", "geusarc", "npolar", "kopri", "pgc", "ccop", "gsjows", "gsmma", "emodnet", "ngu", "gtk", "bgs", "bgsgi", "brgm", "egdi", "bgr", "igme", "gsi", "gsni", "sgc", "sgb", "ingemmet", "segemar", "dinamige", "iige", "mrdata", "sgm", "cgmw", "aga", "cgs", "gsn", "bumigeb", "irgm", "nrcan", "ogs", "sigeom", "ygs", "skgs", "nsgs", "ags", "ga", "gsq", "gsv", "gssa", "ispra", "lneg", "swisstopo", "sgu", "natt", "gns", "mris", "gsiindia", "sgs", "esdm", "jmg", "mgb", "dmr", "bcgs", "calgs", "nbmg", "wadnr", "dogami", "geosphere", "pig", "tno", "dov", "spw", "ineter", "georep"):    # 열쇠가 없는 공개 서비스다
             self.ready = True
         elif self.name == "vworld":
             self.ready = vworld.enabled()
@@ -3343,10 +3396,10 @@ def wms(request):
             return _tile(old, cached=True)
         return _tile(tiles.notice_tile(width, height, tiles.NO_KEY), store=False)
 
+    # 느린 상류는 큰 장을 받아 잘라 담는다(메타타일, wetherilli 282) — 격자에 맞지 않는 칸이면 하던 대로 한 칸
+    first = (params.get("layers") or "").split(",")[0].strip()
+    last = metatile.limit(METATILE, first) if settings.METATILE else False      # 끄는 스위치(wetherilli 299)
     try:
-        # 느린 상류는 큰 장을 받아 잘라 담는다(메타타일, wetherilli 282) — 격자에 맞지 않는 칸이면 하던 대로 한 칸
-        first = (params.get("layers") or "").split(",")[0].strip()
-        last = metatile.limit(METATILE, first)
         piece = (metatile.serve(first, params, lambda bbox, w, h: door.get_map(dict(params, bbox=bbox, width=w, height=h)),
                                 max_zoom=last, errors=UPSTREAM_ERRORS)
                  if last is not False else None)
@@ -3354,18 +3407,22 @@ def wms(request):
             content, ctype = piece, "image/png"
         else:
             content, ctype = door.get_map(params)
-    except UPSTREAM_ERRORS as exc:
-        # 늙어서 다시 물었는데 상류가 못 준다 — 빈 자리보다 옛것이 낫다
+    except (*UPSTREAM_ERRORS, metatile.Busy) as exc:
+        # 늙어서 다시 물었는데 상류가 못 준다 — 빈 자리보다 옛것이 낫다. 메타타일 레이어는 조각에도 옛것이 있다
         old = tilecache.get(cache_key, stale=True)
+        if old is None and last is not False:
+            old = metatile.stale(first, params)
         if old is not None:
             log.info("타일을 못 받아 옛것을 낸다: %s", exc)
             return _tile(old, cached=True)
         log.warning("타일을 받지 못했다: %s", exc)
-        return _tile(tiles.notice_tile(width, height, tiles.NO_MAP), store=False)
+        # 늦은 것(문 한계·잠금 기다림)은 "느리다" 로 가른다 — 다시 보면 나올 수 있다 (wetherilli 300)
+        return _tile(tiles.notice_tile(width, height, tiles.SLOW if metatile.slow(exc) else tiles.NO_MAP), store=False)
 
     # 안내 타일은 캐시에 넣지 않는다 — 위에서 store=False 로 갈라 둔 까닭이다.
     # 자료를 파는 상류(`NO_STORE`)도 담지 않는다 — 그때그때 받아 보여 주기만 한다 (wetherilli 209)
-    if not door.nostore:
+    # 메타타일 조각으로 낸 칸도 다시 담지 않는다 — 조각 열쇠에 이미 있다(두 벌이 되지 않게, wetherilli 297)
+    if not door.nostore and piece is None:
         tilecache.put(cache_key, content)
 
     response = HttpResponse(content, content_type=ctype)
@@ -3383,7 +3440,7 @@ def _geomap_wms(params, width, height):
         content, _ = geomap.get_map(params)
     except geomap.GeomapError as exc:
         log.info("GeoMAP 을 그리지 못했다: %s", exc)
-        return _tile(tiles.notice_tile(width, height, tiles.NO_MAP), store=False)
+        return _tile(tiles.notice_tile(width, height, tiles.SLOW if metatile.slow(exc) else tiles.NO_MAP), store=False)
     return _tile(content)
 
 
@@ -3412,7 +3469,7 @@ def geomap_tile(request, layer, z, x, y, retina=None):
         png, cached = _geomap_png(layer, z, x, y, size)
     except (geomap.GeomapError, OSError, ValueError) as exc:
         log.warning("GeoMAP 타일을 그리지 못했다 (%s %s/%s/%s): %s", layer, z, x, y, exc)
-        return _tile(tiles.notice_tile(size, size, tiles.NO_MAP), store=False)
+        return _tile(tiles.notice_tile(size, size, tiles.SLOW if metatile.slow(exc) else tiles.NO_MAP), store=False)
     response = _immutable(request, _tile(png, cached=cached), geomap_version())
     if not cached:
         response["X-GSM-Cache"] = "miss"
@@ -3466,7 +3523,7 @@ def gsj_tile(request, layer, z, x, y):
         if old is not None:
             return _tile(old, cached=True)
         log.warning("GSJ 타일을 받지 못했다 (%s %s/%s/%s): %s", name, z, x, y, exc)
-        return _tile(tiles.notice_tile(256, 256, tiles.NO_MAP), store=False)
+        return _tile(tiles.notice_tile(256, 256, tiles.SLOW if metatile.slow(exc) else tiles.NO_MAP), store=False)
     # 빈 타일도 담는다 — 바다 한가운데를 다시 물을 까닭이 없다
     tilecache.put(key, png)
     response = _tile(png)
@@ -3487,7 +3544,7 @@ def vworld_tile(request, layer, z, y, x):
         got = vworld.get_wmts_tile(layer, int(z), int(y), int(x))
     except vworld.VWorldError as exc:
         log.warning("VWorld 배경지도를 받지 못했다: %s", exc)
-        return _tile(tiles.notice_tile(256, 256, tiles.NO_MAP), store=False)
+        return _tile(tiles.notice_tile(256, 256, tiles.SLOW if metatile.slow(exc) else tiles.NO_MAP), store=False)
     if got is None:
         return _tile(tiles.blank_tile(256, 256))
     return _tile(got[0], content_type=got[1])
@@ -3515,7 +3572,7 @@ def _open_basemap(key, fetch, size, label):
         if old is not None:
             return _tile(old, cached=True)
         log.warning("%s 배경을 받지 못했다: %s", label, exc)
-        return _tile(tiles.notice_tile(size, size, tiles.NO_MAP), store=False)
+        return _tile(tiles.notice_tile(size, size, tiles.SLOW if metatile.slow(exc) else tiles.NO_MAP), store=False)
     tilecache.put(key, content)
     response = _tile(content)
     response["X-GSM-Cache"] = "miss"
@@ -3576,7 +3633,7 @@ def phyloserver_tile(request, layer, level, x, y):
         png = phyloserver.get_scan_tile(name, level, x, y)
     except phyloserver.PhyloserverError as exc:
         log.warning("phyloserver 타일을 받지 못했다 (%s %s/%s_%s): %s", name, level, x, y, exc)
-        return _tile(tiles.notice_tile(256, 256, tiles.NO_MAP), store=False)
+        return _tile(tiles.notice_tile(256, 256, tiles.SLOW if metatile.slow(exc) else tiles.NO_MAP), store=False)
     if png is None:
         png = tiles.blank_tile(256, 256)
     return _tile(png)
@@ -3772,7 +3829,7 @@ def warp_tile(request, upstream, layer, z, x, y, retina=None):
         png = warp.render(grid, z, x, y, size)
     except (phyloserver.PhyloserverError, geomap.GeomapError, OSError, ValueError) as exc:
         log.warning("다시 펴지 못했다 (%s %s/%s/%s): %s", name, z, x, y, exc)
-        return _tile(tiles.notice_tile(size, size, tiles.NO_MAP), store=False)
+        return _tile(tiles.notice_tile(size, size, tiles.SLOW if metatile.slow(exc) else tiles.NO_MAP), store=False)
     png = png or tiles.blank_tile(size, size)
     if key:
         tilecache.put(key, png)
@@ -3993,7 +4050,7 @@ def ingemmet_tile(request, sheet, z, x, y):
         if old is not None:
             return _tile(old, cached=True)
         log.warning("페루 타일을 받지 못했다 (%s %s/%s/%s): %s", name, z, x, y, exc)
-        return _tile(tiles.notice_tile(256, 256, tiles.NO_MAP), store=False)
+        return _tile(tiles.notice_tile(256, 256, tiles.SLOW if metatile.slow(exc) else tiles.NO_MAP), store=False)
     png = png if png is not None else tiles.blank_tile(256, 256)
     tilecache.put(key, png)
     response = _tile(png)
@@ -4164,7 +4221,7 @@ def mris_legend(request):
 
 
 #: 목록 범례를 내는 문 — `legend_rows(이름)` 과 `LEGEND_LAYERS` 를 갖는다 (wetherilli 228)
-LIST_LEGENDS = (jmg, dmr, calgs, georep, bas)
+LIST_LEGENDS = (jmg, dmr, calgs, georep, bas, usstates, geus)
 
 
 @require_GET
@@ -4485,7 +4542,7 @@ def tile_versions(page: str) -> dict:
     if page == "earth":
         return {"paleo": paleo_version(), "coast": paleocoast_version(), "fossils": fossils_version(),
                 "fossildensity": fossils_version() + fossils.DENSITY_RENDERER,
-                "volcanoes": volcanoes_version(), "pleistocene": volcanoes_version("pleistocene"), "quakes": quakes_version(), "neotoma": neotoma_version(),
+                "volcanoes": volcanoes_version(), "pleistocene": volcanoes_version("pleistocene"), "quakes": quakes_version(), "recentquakes": recentquakes_version(), "neotoma": neotoma_version(),
                 "crust": crust_version(), "ne": ne_version(), "icemargins": icemargins_version(),
                 "glaciers": glaciers_version(),
                 "impacts": impacts_version(),
@@ -4530,6 +4587,11 @@ def volcanoes_version(kind: str = "holocene") -> str:
 
 def quakes_version() -> str:
     return _stamp(quakes.RENDERER, quakes.built(), _file_stamp(quakes.path()))
+
+
+def recentquakes_version() -> str:
+    """최근 지진 (wetherilli 292) — 매시 새 피드를 받으면 판이 바뀌어 주소가 바뀐다"""
+    return _stamp(recentquakes.RENDERER, recentquakes.generated())
 
 
 def neotoma_version() -> str:
@@ -4612,7 +4674,7 @@ def sim3534_tile(request, sheet, z, x, y):
         png = caribmap.render_tile(name, z, x, y)
     except (caribmap.CaribMapError, OSError, ValueError) as exc:
         log.warning("대앤틸리스 타일을 그리지 못했다 (%s %s/%s/%s): %s", name, z, x, y, exc)
-        return _tile(tiles.notice_tile(256, 256, tiles.NO_MAP), store=False)
+        return _tile(tiles.notice_tile(256, 256, tiles.SLOW if metatile.slow(exc) else tiles.NO_MAP), store=False)
     tilecache.put(key, png)
     return _immutable(request, _tile(png), sim3534_version())
 
@@ -4815,6 +4877,8 @@ def feature_info(request):
         elif door.name in ("geosphere", "pig", "tno", "dov", "spw"):
             # 유럽(wetherilli 237) — 값은 그 나라 말 그대로, 시대만 옮긴다(`i18n.age_local`)
             props = {"geosphere": geosphere, "pig": pig, "tno": tno, "dov": dov, "spw": spw}[door.name].friendly(props, lang)
+        elif door.name in usstates.DOORS:
+            props = usstates.friendly(props, lang)   # 네바다·워싱턴·오리건 — 시대만 옮긴다 (wetherilli 291)
         elif door.name in ("bcgs", "calgs"):
             # 브리티시컬럼비아·캘리포니아(wetherilli 231) — 값은 영어 그대로, 시대만 옮긴다
             props = {"bcgs": bcgs, "calgs": calgs}[door.name].friendly(props, lang)

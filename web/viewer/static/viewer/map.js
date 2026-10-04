@@ -1175,6 +1175,10 @@
     spw: { source: npolarSource, info: wmsInfoUrl },
     bcgs: { source: npolarSource, info: wmsInfoUrl },
     calgs: { source: npolarSource, info: wmsInfoUrl },
+    // 네바다·워싱턴·오리건(wetherilli 291) — 캘리포니아와 같은 길
+    nbmg: { source: npolarSource, info: wmsInfoUrl },
+    wadnr: { source: npolarSource, info: wmsInfoUrl },
+    dogami: { source: npolarSource, info: wmsInfoUrl },
     esdm: { source: npolarSource, info: wmsInfoUrl },
     jmg: { source: npolarSource, info: wmsInfoUrl },
     mgb: { source: npolarSource, info: wmsInfoUrl },
@@ -2663,7 +2667,7 @@
   //: 상류의 짧은 이름 — 기관 이름이라 옮기지 않는다
   var UPSTREAM_TAGS = {
     kigam: "KIGAM", vworld: "VWorld", geus: "GEUS", geusarc: "GEUS", grportal: "GRL", npolar: "NPI", janmayen: "NPI",
-    gsj: "GSJ", gsitile: "GSIJ", geonavi: "GSJ", gsjows: "GSJ", ccop: "CCOP", gsmma: "GSMMA", emodnet: "EMOD", ngu: "NGU", gtk: "GTK", sgu: "SGU", natt: "NÍ", bgs: "BGS", bgsgi: "BGS", brgm: "BRGM", egdi: "EGDI", bgr: "BGR", igme: "IGME", gsi: "GSI", gsni: "GSNI", sgc: "SGC", sgb: "SGB", ingemmet: "INGEMMET", iige: "IIGE", cgmw: "CGMW", aga: "BGS", cgs: "CGS", gsn: "GSN", bumigeb: "BUMIGEB", irgm: "IRGM", mrdata: "USGS", sgm: "SGM", nrcan: "NRCan", ogs: "OGS", sigeom: "SIGÉOM", ygs: "YGS", skgs: "SGS-SK", nsgs: "NSNRR", ags: "AGS", bcgs: "BCGS", calgs: "CGS", geosphere: "GSA", georep: "NC", ineter: "INETER", usgscarib: "USGS", bas: "BAS", sim3534: "USGS", stri: "STRI", vmme: "VMME", pig: "PIG", tno: "TNO", dov: "DOV", spw: "SPW", ga: "GA", gsq: "GSQ", gsv: "GSV", gssa: "GSSA", gns: "GNS", mris: "NGS", gsiindia: "GSI-IN", sgs: "SGS", esdm: "ESDM", jmg: "JMG", mgb: "MGB", dmr: "DMR", ispra: "ISPRA", lneg: "LNEG", swisstopo: "swisstopo", segemar: "SEGEMAR", dinamige: "DINAMIGE", geomap: "GeoMAP", geo3al: "USGS", kopri: "KOPRI", pgc: "PGC", ibcso: "IBCSO", admap: "ADMAP",
+    gsj: "GSJ", gsitile: "GSIJ", geonavi: "GSJ", gsjows: "GSJ", ccop: "CCOP", gsmma: "GSMMA", emodnet: "EMOD", ngu: "NGU", gtk: "GTK", sgu: "SGU", natt: "NÍ", bgs: "BGS", bgsgi: "BGS", brgm: "BRGM", egdi: "EGDI", bgr: "BGR", igme: "IGME", gsi: "GSI", gsni: "GSNI", sgc: "SGC", sgb: "SGB", ingemmet: "INGEMMET", iige: "IIGE", cgmw: "CGMW", aga: "BGS", cgs: "CGS", gsn: "GSN", bumigeb: "BUMIGEB", irgm: "IRGM", mrdata: "USGS", sgm: "SGM", nrcan: "NRCan", ogs: "OGS", sigeom: "SIGÉOM", ygs: "YGS", skgs: "SGS-SK", nsgs: "NSNRR", ags: "AGS", bcgs: "BCGS", calgs: "CGS", nbmg: "NBMG", wadnr: "WGS", dogami: "DOGAMI", geosphere: "GSA", georep: "NC", ineter: "INETER", usgscarib: "USGS", bas: "BAS", sim3534: "USGS", stri: "STRI", vmme: "VMME", pig: "PIG", tno: "TNO", dov: "DOV", spw: "SPW", ga: "GA", gsq: "GSQ", gsv: "GSV", gssa: "GSSA", gns: "GNS", mris: "NGS", gsiindia: "GSI-IN", sgs: "SGS", esdm: "ESDM", jmg: "JMG", mgb: "MGB", dmr: "DMR", ispra: "ISPRA", lneg: "LNEG", swisstopo: "swisstopo", segemar: "SEGEMAR", dinamige: "DINAMIGE", geomap: "GeoMAP", geo3al: "USGS", kopri: "KOPRI", pgc: "PGC", ibcso: "IBCSO", admap: "ADMAP",
     phyloserver: "LAB", peninsula: "LAB",
     // 지구 자료 점(wetherilli 185) — 기관이 넷이라 딱지는 하나로 두고 이름은 레이어 제목이 적는다
     earth: "EARTH",
@@ -2680,7 +2684,7 @@
     sgc: T("콜롬비아 지질조사소"), sgb: T("브라질 지질조사소"), ingemmet: T("페루 지질광업야금연구소"), iige: T("에콰도르 지질·에너지 연구소"), mrdata: T("미국 지질조사국"), sgm: T("멕시코 지질조사소"),
     nrcan: T("캐나다 천연자원부"), ogs: T("온타리오 지질조사소"), sigeom: T("퀘벡 지질 광업 정보 체계"), ygs: T("유콘 지질조사소"), bcgs: T("브리티시컬럼비아 지질조사소"),
     georep: T("누벨칼레도니 정부 (Géorep)"),
-    ineter: T("니카라과 국토연구원 (INETER)"), usgscarib: T("미국 지질조사국"), bas: T("영국 남극조사소"), sim3534: T("미국 지질조사국"), stri: T("스미스소니언 열대연구소 (STRI)"), vmme: T("파라과이 광업·에너지 차관실 (VMME)"), geosphere: "GeoSphere Austria", pig: T("폴란드 지질연구소 (PIG-PIB)"), tno: T("네덜란드 지질조사부 (TNO)"), dov: T("플랑드르 지하 자료은행 (DOV)"), spw: T("왈로니아 공공서비스 (SPW)"), calgs: T("캘리포니아 지질조사소"),
+    ineter: T("니카라과 국토연구원 (INETER)"), usgscarib: T("미국 지질조사국"), bas: T("영국 남극조사소"), sim3534: T("미국 지질조사국"), stri: T("스미스소니언 열대연구소 (STRI)"), vmme: T("파라과이 광업·에너지 차관실 (VMME)"), geosphere: "GeoSphere Austria", pig: T("폴란드 지질연구소 (PIG-PIB)"), tno: T("네덜란드 지질조사부 (TNO)"), dov: T("플랑드르 지하 자료은행 (DOV)"), spw: T("왈로니아 공공서비스 (SPW)"), calgs: T("캘리포니아 지질조사소"), nbmg: T("네바다 광산지질국"), wadnr: T("워싱턴 지질조사소"), dogami: T("오리건 지질광물산업부"),
     skgs: T("사스카치원 지질조사소"), nsgs: T("노바스코샤 자연자원·재생에너지부"), ags: T("앨버타 지질조사소"),
     ispra: T("이탈리아 지질조사소 (ISPRA)"), lneg: T("포르투갈 국립 에너지·지질연구소"), swisstopo: T("스위스 연방 지형청"), natt: T("아이슬란드 자연사연구소"), gns: T("뉴질랜드 지질·핵과학연구소 (GNS)"), mris: T("몽골 국가지질조사소 (MonGeoCat)"), gsiindia: T("인도 지질조사소 (그림: BGS)"), sgs: T("사우디 지질조사소"),
     esdm: T("인도네시아 지질청 (ESDM)"), jmg: T("말레이시아 광물지구과학국"), mgb: T("필리핀 광산지질국"), dmr: T("태국 광물자원국"),
@@ -4747,8 +4751,16 @@
         : spec.shape === "triangle"
         ? new ol.style.RegularShape({ points: 3, radius: r + 1.5, angle: 0, fill: fill,
                                       stroke: new ol.style.Stroke({ color: "rgba(30,20,20,0.9)", width: far ? 0.6 : 1 }) })
-        : new ol.style.Circle({ radius: r, fill: fill, stroke: stroke });
-      style = new ol.style.Style({ image: image });
+        : null;
+      if (spec.shape === "ring") {
+        // 최근 지진(wetherilli 292) — 속이 빈 고리. 지난 지진(속을 채운 점, 깊이의 색)과 섞이지 않게. 어두운 테 위에 지난 시간의 색
+        style = [new ol.style.Style({ image: new ol.style.Circle({ radius: r + 1.5,
+                   stroke: new ol.style.Stroke({ color: "rgba(20,20,20,0.75)", width: far ? 2.6 : 3.6 }) }) }),
+                 new ol.style.Style({ image: new ol.style.Circle({ radius: r + 1.5,
+                   stroke: new ol.style.Stroke({ color: color, width: far ? 1.4 : 2 }) }) })];
+      } else {
+        style = new ol.style.Style({ image: image || new ol.style.Circle({ radius: r, fill: fill, stroke: stroke }) });
+      }
     }
     cache[key] = style;
     return style;
@@ -4785,8 +4797,9 @@
         sw.innerHTML = attitudeSvg(r.shape, r.color, 16).replace("<svg ", '<svg aria-hidden="true" ');
       } else if (row.style === "class") {
         sw = document.createElement("span");
-        sw.className = "sw " + ({ square: "box", star: "star", diamond: "diamond", triangle: "triangle" }[r.shape] || "dot");
-        sw.style.background = r.color || "#888";
+        sw.className = "sw " + ({ square: "box", star: "star", diamond: "diamond", triangle: "triangle", ring: "ring" }[r.shape] || "dot");
+        // 최근 지진의 고리(wetherilli 292) — 속을 비우고 테두리에 색
+        if (r.shape === "ring") sw.style.borderColor = r.color || "#888"; else sw.style.background = r.color || "#888";
       } else {
         sw = document.createElement("span");
         sw.className = "sw " + (row.style === "unit" ? "box" : r.shape === "star" ? "star" : "triangle");

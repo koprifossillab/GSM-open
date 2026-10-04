@@ -5,16 +5,18 @@
 
 - **화면이 부르는 주소와 캐시 열쇠는 그대로다.** 칸의 열쇠는 브라우저가 보낸 WMS 변수의 해시(`views.map_cache_key`)라 이웃 칸의 `bbox` 글자를
   서버가 똑같이 지을 수 없다(OpenLayers 가 쓴 소수 자리). 그래서 잘라 둔 조각은 **우리 열쇠**(레이어·칸 크기·z/x/y)로 담고, 칸 요청이 오면
-  `map_cache_key` → 조각 열쇠 차례로 찾는다. 찾은 조각은 `views.wms` 가 제 열쇠로도 담는다
+  `map_cache_key` → 조각 열쇠 차례로 찾는다. 조각으로 낸 칸은 `views.wms` 가 제 열쇠로 **다시 담지 않는다** — 같은 그림을 두 벌 두게 되고,
+  다음에 오면 조각 열쇠에서 곧 나온다(잠금 앞에서 찾는다, wetherilli 297)
 - 칸의 z/x/y 는 3857 의 `bbox` 에서 거꾸로 셈한다(OpenLayers `createXYZ` 의 격자). 격자에 맞지 않는 요청은 `None` — 부르는 쪽이 하던 대로 한 칸을 받는다
 - **같은 메타타일을 동시에 두 번 받지 않는다** — 워커가 프로세스 여럿이라 캐시 자리 밑의 잠금 파일(`fcntl.flock`)로 막는다. 잠금을 얻은 뒤 조각을
-  다시 찾아, 먼저 받은 워커가 담은 것이면 그것을 낸다
+  다시 찾아, 먼저 받은 워커가 담은 것이면 그것을 낸다. 기다림은 `METATILE_LOCK_WAIT` 초까지다 — 넘으면 `Busy` (wetherilli 300)
 - 메타타일의 칸 수는 `META` 칸 × `META` 칸 — 큰 장이 `MAX_PX` 를 넘지 않게 칸 크기에서 정한다(512 px 칸이면 2 × 2, 256 px 칸이면 4 × 4)
 """
 import fcntl
 import io
 import logging
 import math
+import time
 from pathlib import Path
 
 from django.conf import settings
@@ -28,6 +30,34 @@ R = 20037508.342789244
 MAX_PX = 1024
 #: 칸의 bbox 가 격자에서 이만큼(칸 한 변의 비율) 어긋나도 같은 칸으로 본다 — 소수 자리 오차
 TOLERANCE = 1e-6
+
+
+class Busy(RuntimeError):
+    """같은 메타타일을 받는 다른 요청을 `METATILE_LOCK_WAIT` 초 기다려도 끝나지 않았다 — 바깥 한계(nginx) 안에 답하려고 멈춘다 (wetherilli 300).
+    부르는 쪽은 "느리다" 안내 타일을 낸다. 받는 요청은 끝까지 받아 담으므로 다음에 부르면 나온다"""
+
+
+def slow(exc) -> bool:
+    """상류가 늦어서 생긴 오류인가 — 잠금 기다림(`Busy`), 또는 문이 감싼 `requests` 의 시간 초과. 문만 `requests` 를 들이므로 갈래의 이름으로 본다"""
+    seen = 0
+    while exc is not None and seen < 5:
+        if isinstance(exc, Busy) or any(c.__name__ == "Timeout" and c.__module__.startswith("requests") for c in type(exc).__mro__):
+            return True
+        exc, seen = exc.__cause__ or exc.__context__, seen + 1
+    return False
+
+
+def _acquire(lock, wait: float) -> None:
+    """`wait` 초 안에 잠금을 얻지 못하면 `Busy`. 막는 `flock` 에는 한계가 없어 0.2 초마다 되묻는다"""
+    deadline = time.monotonic() + wait
+    while True:
+        try:
+            fcntl.flock(lock, fcntl.LOCK_EX | fcntl.LOCK_NB)
+            return
+        except BlockingIOError:
+            if time.monotonic() >= deadline:
+                raise Busy(f"메타타일 잠금을 {wait:g} 초 기다렸다")
+            time.sleep(0.2)
 
 
 def limit(table: dict, name: str):
@@ -73,6 +103,15 @@ def piece_key(layer: str, px: int, z: int, x: int, y: int) -> str:
     return tilecache.key_text("meta", f"{layer}/{px}/{z}/{x}/{y}")
 
 
+def stale(layer: str, params: dict):
+    """나이가 지난 조각이라도 — 상류가 못 줄 때 빈 자리보다 옛것을 내려고 (`tilecache.get(stale=True)` 의 짝, wetherilli 297)"""
+    tile = tile_of(params) if tilecache.enabled() else None
+    if tile is None:
+        return None
+    z, x, y, px = tile
+    return tilecache.get(piece_key(layer, px, z, x, y), stale=True)
+
+
 def _bbox(z: int, x0: int, y0: int, count: int) -> str:
     span = 2 * R / 2 ** z
     w, n = -R + x0 * span, R - y0 * span
@@ -90,7 +129,7 @@ def serve(layer: str, params: dict, fetch, *, max_zoom=None, errors=()):
 
     `fetch(bbox, width, height)` 는 큰 장의 (바이트, content-type) 를 주는 문의 함수다. 격자에 맞지 않는 칸, `max_zoom` 보다 깊은 칸이면 None —
     부르는 쪽이 하던 대로 받는다. **큰 장이 `errors` 로 실패하면 None** — 부르는 쪽이 칸 하나로 되받는다(EGDI 처럼 예외가 잦은 상류, wetherilli 284).
-    그 밖의 문의 오류는 그대로 올린다."""
+    **시간 초과는 되받지 않고 올린다** — 문 한계를 두 번 기다리면 nginx 한계를 넘는다(wetherilli 300). 그 밖의 문의 오류는 그대로 올린다."""
     from PIL import Image
 
     tile = tile_of(params) if tilecache.enabled() else None     # 담을 곳이 없으면 자를 까닭이 없다
@@ -106,7 +145,7 @@ def serve(layer: str, params: dict, fetch, *, max_zoom=None, errors=()):
     count = min(meta_size(px), 2 ** z)
     mx, my = x // count * count, y // count * count
     with open(_lock_path(layer, px, z, mx, my), "w") as lock:
-        fcntl.flock(lock, fcntl.LOCK_EX)              # 같은 메타타일을 받는 다른 워커를 기다린다
+        _acquire(lock, settings.METATILE_LOCK_WAIT)   # 같은 메타타일을 받는 다른 워커를 기다린다 — 한계까지만
         try:
             hit = tilecache.get(key)
             if hit is not None:
@@ -114,6 +153,8 @@ def serve(layer: str, params: dict, fetch, *, max_zoom=None, errors=()):
             try:
                 content, _ = fetch(_bbox(z, mx, my, count), px * count, px * count)
             except errors as exc:
+                if slow(exc):
+                    raise                                 # 늦은 것은 칸 하나로 되받지 않는다 — 한 번 더 기다리면 바깥 한계를 넘는다 (wetherilli 300)
                 log.info("메타타일 %s z%d (%d,%d) 을 받지 못해 칸 하나로 되받는다: %s", layer, z, mx, my, exc)
                 return None
             big = Image.open(io.BytesIO(content)).convert("RGBA")

@@ -75,6 +75,16 @@ RESOURCES = {
                        "fields": "FRANJA,ETIQUETA,TIPO"},
     "ingemmet:bouguer": {"service": "SERV_GEOFISICA", "show": 5, "min": None, "query": None},
     "ingemmet:aeromag": {"service": "SERV_AEROMAGNETIICO", "show": None, "min": None, "query": None},
+    # 산업 광물·암석(wetherilli 303) — 산지 점과 리튬. 광업 권리(같은 서비스의 2)는 지질과 멀어 싣지 않는다
+    "ingemmet:rmi": {"service": "SERV_ROCAS_MINERALES_INDUSTRIALES", "show": 0, "min": 7, "query": "point",
+                     "fields": "SUSTANCIA,CAT_DEPOSITO,TAM_DEPOSITO,ST_ROCA,EXPLOTACION,UBI_GEOGRAFICA,HOJA,URL_BOLETIN"},
+    "ingemmet:lithium": {"service": "SERV_ROCAS_MINERALES_INDUSTRIALES", "show": 1, "min": 7, "query": "point",
+                         "fields": "NOMBRE,SUSTANCIA,CAT_DEPOSITO,TAM_DEPOSITO,VA_LITIO,DEPARTAMENTO,PROVINCIA,HOJA,URL_ESTUDIO"},
+    # 지화학 지도첩(wetherilli 303) — 원소마다 분산도(래스터)와 주요 이상점. 그림은 둘을 함께, 누르면 이상점(`layer`)을 묻는다
+    **{f"ingemmet:gq_{el}": {"service": "SERV_ATLAS_GEOQUIMICO", "show": f"{disp},{anom}", "layer": anom, "min": None, "query": "point",
+                             "fields": "Anomalía,Depósito,Commodity,Concentrac,Franja_Met,Departamen,Provincia,Hoja"}
+       for el, disp, anom in (("as", 2, 1), ("co", 5, 4), ("cu", 8, 7), ("cr", 11, 10), ("hg", 14, 13), ("mo", 17, 16),
+                              ("ni", 20, 19), ("au", 23, 22), ("ag", 26, 25), ("pb", 29, 28), ("zn", 32, 31))},
 }
 #: 단층·습곡을 그리는 마지막 줌 — 캐시가 아니라 그때그때 그리므로 상류가 정한 끝이 없다
 STRUCTURES_MAX = 18
@@ -214,7 +224,7 @@ def resource_attributes(name: str, lat: float, lon: float, radius: float) -> lis
         geometry = {"geometry": f"{lon - r},{lat - r},{lon + r},{lat + r}", "geometryType": "esriGeometryEnvelope"}
     else:
         geometry = {"geometry": f"{lon},{lat}", "geometryType": "esriGeometryPoint"}
-    res = _get(f"{_service(name)}/{spec['show']}/query", dict(geometry, inSR="4326", outSR="4326",
+    res = _get(f"{_service(name)}/{spec.get('layer', spec['show'])}/query", dict(geometry, inSR="4326", outSR="4326",
                spatialRel="esriSpatialRelIntersects", outFields=spec["fields"], returnGeometry="true" if spec["query"] == "point" else "false",
                f="json"))
     if res.status_code != 200:
@@ -238,6 +248,15 @@ def resource_friendly(name: str, props: dict, lang: str = "ko") -> dict:
     v = lambda k: _clean(props.get(k))          # noqa: E731
     if name == "ingemmet:belts":
         rows = (("이름", v("FRANJA")), ("기호", v("ETIQUETA")), ("갈래", v("TIPO")))
+    elif name.startswith("ingemmet:gq_"):              # 지화학 이상점 (wetherilli 303)
+        rows = (("이상", v("Anomalía")), ("광종", v("Commodity")), ("함량", v("Concentrac")), ("광상", v("Depósito")),
+                ("광화 지역", v("Franja_Met")), ("곳", " / ".join(x for x in (v("Departamen"), v("Provincia")) if x)), ("도폭", v("Hoja")))
+    elif name in ("ingemmet:rmi", "ingemmet:lithium"):  # 산업 광물·리튬
+        link = v("URL_BOLETIN") or v("URL_ESTUDIO")
+        rows = (("이름", v("NOMBRE")), ("광종", v("SUSTANCIA")), ("갈래", v("CAT_DEPOSITO")), ("광상 규모", v("TAM_DEPOSITO")),
+                ("암석", v("ST_ROCA")), ("리튬 (ppm)", v("VA_LITIO")), ("채굴", v("EXPLOTACION")),
+                ("곳", v("UBI_GEOGRAFICA") or " / ".join(x for x in (v("DEPARTAMENTO"), v("PROVINCIA")) if x)), ("도폭", v("HOJA")),
+                ("상세", {"text": "", "links": [{"url": link, "label": "열기"}]} if link.startswith(("http://", "https://")) else ""))
     elif name.startswith("ingemmet:occ_"):
         link = v("LINK")
         rows = (("이름", v("NOMBRE")), ("광종", v("ELEMENTO")), ("광상 형태", v("TIPO_DEPOS")), ("지층", v("FORMACION")),
@@ -247,7 +266,7 @@ def resource_friendly(name: str, props: dict, lang: str = "ko") -> dict:
         rows = (("이름", v("UNIDAD")), ("광종", v("ELE_PRINC")), ("개발 단계", v("ESTADO")), ("갈래", v("COD_TIPO")),
                 ("광상 형태", v("ST_YACIM")), ("광화 지역", v("FRANJAMET")), ("자원량", v("RECURSO")),
                 ("표고 (m)", v("ALTITUD")), ("곳", v("LOCALIDAD")), ("도폭", v("HOJA")))
-    return {k: x for k, x in rows if x}
+    return {k: x for k, x in rows if x and x != "-"}
 
 
 def units_tile(name: str, z: int, x: int, y: int) -> bytes:

@@ -24,6 +24,8 @@ _TEXT = (92, 84, 74, 255)
 #: 타일에 적는 말. 한글을 쓰지 않는 까닭은 이 파일 머리에 적었다.
 NO_KEY = "GSM: no API key"
 NO_MAP = "GSM: upstream gave no map"
+#: 상류가 문 한계 안에 주지 않았다, 또는 같은 큰 장을 받는 다른 요청을 기다리다 멈췄다 — 다시 보면 나온다 (wetherilli 300)
+SLOW = "GSM: upstream is slow - try again"
 #: 남극 지질도(GeoMAP) 파일이 서버에 없다 — geomap.py
 NO_DATA = "GSM: no GeoMAP data file"
 #: 한반도 지질도 음영판·민판을 아직 잘라 두지 않았다 — peninsula.py

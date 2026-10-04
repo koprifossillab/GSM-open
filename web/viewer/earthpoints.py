@@ -10,7 +10,7 @@ import functools
 import json
 import re
 
-from . import fossils, gvp, heatflow, i18n, neotoma, paleoeco, pbdb, quakes, usgs, volcanoes
+from . import fossils, gvp, heatflow, i18n, neotoma, paleoeco, pbdb, quakes, recentquakes, usgs, volcanoes
 from .i18n import msg
 
 #: 지역 → 자르는 네모 (서, 남, 동, 북). 북극은 북극해에 두고 그린란드·스발바르·얀마옌·노르웨이·핀란드가 빌린다(`borrow`) —
@@ -20,7 +20,7 @@ BOXES = {
     "antarctica": (-180.0, -90.0, 180.0, -60.0),
     "arctic": (-180.0, 58.0, 180.0, 90.0),
 }
-SOURCES = ("pbdb", "gvp", "quakes", "neotoma", "heatflow")
+SOURCES = ("pbdb", "gvp", "quakes", "neotoma", "heatflow", "recentquakes")
 #: 레이어 이름 `earth:<자료>_<네모>` → (자료, 네모)
 LAYERS = {f"earth:{src}_{box}": (src, box) for src in SOURCES for box in BOXES}
 
@@ -39,6 +39,8 @@ LABELS = {
     "gvp": {"name": "화산", "type": "화산 종류", "last": "마지막 분화", "evidence": "근거", "country": "나라",
             "elev": "표고 (m)", "tectonic": "지구조 환경", "rock": "주 암석", "link": "GVP 화산 페이지"},
     "quakes": {"mag": "규모", "time": "일시 (UTC)", "depth": "깊이 (km)", "place": "곳", "link": "USGS 지진 페이지"},
+    # 최근 지진(wetherilli 292) — 지난 지진과 같은 열, 색만 지난 시간이다
+    "recentquakes": {"mag": "규모", "time": "일시 (UTC)", "depth": "깊이 (km)", "place": "곳", "link": "USGS 지진 페이지"},
     "neotoma": {"name": "산지", "desc": "설명", "alt": "표고 (m)", "types": "자료", "link": "Neotoma 산지 페이지"},
     # 지열류(wetherilli 275) — IHFC 는 측정마다 쪽이 없어 링크가 없다
     "heatflow": {"q": "지열류 (mW/m²)", "unc": "오차 (mW/m²)", "name": "자리", "env": "환경", "method": "잰 법", "year": "해",
@@ -46,7 +48,7 @@ LABELS = {
 }
 LINKS = ("link",)
 CREDITS = {"pbdb": pbdb.CREDIT, "gvp": gvp.CREDIT, "quakes": usgs.CREDIT, "neotoma": neotoma.CREDIT,
-           "heatflow": heatflow.CREDIT}
+           "heatflow": heatflow.CREDIT, "recentquakes": usgs.CREDIT}
 #: 범례 칸의 원본 자료 글 (화면이 `T()` 로 옮긴다). GVP 는 비상업·인용 조건을 적는다 (wetherilli 134)
 SOURCE_LABELS = {
     "pbdb": msg("원본 자료 — Paleobiology Database, CC BY 4.0"),
@@ -54,10 +56,11 @@ SOURCE_LABELS = {
     "quakes": msg("원본 자료 — USGS ComCat, 공공 영역"),
     "neotoma": msg("원본 자료 — Neotoma, CC BY 4.0"),
     "heatflow": msg("원본 자료 — IHFC 세계 지열류 자료 2024, CC BY 4.0"),
+    "recentquakes": msg("원본 자료 — USGS 실시간 피드(지난 7 일 M2.5 이상, 매시 받음), 공공 영역"),
 }
 SOURCE_URLS = {"pbdb": "https://paleobiodb.org/", "gvp": "https://volcano.si.edu/",
                "quakes": "https://earthquake.usgs.gov/earthquakes/search/", "neotoma": "https://www.neotomadb.org/",
-               "heatflow": heatflow.DOI}
+               "heatflow": heatflow.DOI, "recentquakes": "https://earthquake.usgs.gov/earthquakes/map/"}
 #: 자료가 없을 때 패널에 띄우는 글 — 어느 명령이 모으는지 적는다
 MISSING = {
     "pbdb": msg("화석 산지 자료를 아직 모으지 않았다 (fetch_pbdb)"),
@@ -65,9 +68,10 @@ MISSING = {
     "quakes": msg("지진 자료를 아직 모으지 않았다 (fetch_quakes)"),
     "neotoma": msg("고생태 산지 자료를 아직 모으지 않았다 (fetch_neotoma)"),
     "heatflow": msg("지열류 자료를 아직 굽지 않았다 (build_heatflow)"),
+    "recentquakes": msg("최근 지진 피드를 아직 받지 않았다 (fetch_recent_quakes)"),
 }
 _AVAILABLE = {"pbdb": fossils.available, "gvp": volcanoes.available, "quakes": quakes.available, "neotoma": paleoeco.available,
-              "heatflow": heatflow.available}
+              "heatflow": heatflow.available, "recentquakes": recentquakes.available}
 
 
 def knows(name: str) -> bool:
@@ -97,6 +101,8 @@ def stamp(name: str) -> str:
         return paleoeco.built()
     if src == "heatflow":
         return heatflow.built()
+    if src == "recentquakes":
+        return recentquakes.generated()
     conn = fossils.db()
     row = conn.execute("SELECT v FROM meta WHERE k = 'built'").fetchone() if conn else None
     return row[0] if row else ""
@@ -231,8 +237,22 @@ def _heatflow_features(box, lang):
     return out, legend
 
 
+def _recent_quake_features(box, lang):
+    """최근 지진(wetherilli 292) — 지난 시간의 칸(`r0` 지난 한 시간·`r1` 하루·`r2` 일주일). 최근 것을 뒤에 두어 위에 그린다"""
+    d = recentquakes.data()
+    now = d[0] if d else 0
+    rows = sorted(recentquakes.points(*box), key=lambda q: q["ms"] or 0)
+    out = [_point(q["lon"], q["lat"], {
+        "code": f"r{recentquakes.age_class(q['ms'], now)}", "mag": f"{q['mag']:g} {q['mag_type']}".strip(),
+        "time": recentquakes.when(q["ms"]), "depth": f"{q['depth']:g}" if q["depth"] is not None else "",
+        "place": q["place"], "link": usgs.event_url(q["id"]),
+    }, q["id"]) for q in rows]
+    legend = [(f"r{i}", label, hexa) for i, (_, hexa, label) in enumerate(recentquakes.AGES)]
+    return out, legend
+
+
 _FEATURES = {"pbdb": _fossil_features, "gvp": _volcano_features, "quakes": _quake_features,
-             "neotoma": _neotoma_features, "heatflow": _heatflow_features}
+             "neotoma": _neotoma_features, "heatflow": _heatflow_features, "recentquakes": _recent_quake_features}
 
 
 def body(name: str, lang: str = "ko") -> bytes:
@@ -251,7 +271,7 @@ def _body(name: str, lang: str, _stamp: str) -> bytes:
     for f in features:
         code = f["properties"]["code"]
         counts[code] = counts.get(code, 0) + 1
-    shape = "triangle" if src == "gvp" else "dot"
+    shape = "triangle" if src == "gvp" else "ring" if src == "recentquakes" else "dot"
     legend = [{"code": code, "label": str(label), "color": color, "shape": shape, "count": counts[code]}
               for code, label, color in table if counts.get(code)]
     return json.dumps({"type": "FeatureCollection", "style": "class", "labels": LABELS[src], "links": list(LINKS),

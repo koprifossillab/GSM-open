@@ -1,5 +1,5 @@
 {
- "_주석": "INGEMMET(페루 지질광업야금연구소) 지질도 씨앗이다 — 페루 탭(남미 묶음에도 든다). GEOCATMIN 의 통합판 둘을 REST 타일 캐시로 그린다 — 1:5만(줌 13 까지)·1:10만(줌 16 까지). 레이어명은 ingemmet:<판> 이고 서비스 이름은 문(web/viewer/ingemmet.py)이 안다. 한글 제목과 레이어군은 사람이 붙였다 (wetherilli 195). 단층·습곡은 SERV_GEOLOGIA_FALLAS 를 export 로 따로 받는다 (wetherilli 222). 1:5만 지질 단위만(단층·습곡 없이)은 암상 레이어를 export 로 받는다 (wetherilli 234). 광물 산지·광상·사업·금속 광화대와 부게 이상·항공 자력은 GEOCATMIN 의 다른 서비스를 export 로 타일 칸만큼 받는다 (wetherilli 277).",
+ "_주석": "INGEMMET(페루 지질광업야금연구소) 지질도 씨앗이다 — 페루 탭(남미 묶음에도 든다). GEOCATMIN 의 통합판 둘을 REST 타일 캐시로 그린다 — 1:5만(줌 13 까지)·1:10만(줌 16 까지). 레이어명은 ingemmet:<판> 이고 서비스 이름은 문(web/viewer/ingemmet.py)이 안다. 한글 제목과 레이어군은 사람이 붙였다 (wetherilli 195). 단층·습곡은 SERV_GEOLOGIA_FALLAS 를 export 로 따로 받는다 (wetherilli 222). 1:5만 지질 단위만(단층·습곡 없이)은 암상 레이어를 export 로 받는다 (wetherilli 234). 광물 산지·광상·사업·금속 광화대와 부게 이상·항공 자력은 GEOCATMIN 의 다른 서비스를 export 로 타일 칸만큼 받는다 (wetherilli 277). 지화학 지도첩(원소마다 분산도와 이상점)·산업 광물도 다른 서비스를 export 로 (wetherilli 303).",
  "_뽑은날": "2026-10-04",
  "_출처": "https://geocatmin.ingemmet.gob.pe/arcgis/rest/services/SERV_GEOLOGIA_50K_INTEGRADA/MapServer · …/SERV_GEOLOGIA_100K_INTEGRADA/MapServer",
  "_지역": "peru",
@@ -9,7 +9,8 @@
   "페루 지질도 (INGEMMET)",
   "페루 단층·습곡 (INGEMMET)",
   "페루 광물 자원 (INGEMMET)",
-  "페루 지구물리 (INGEMMET)"
+  "페루 지구물리 (INGEMMET)",
+  "페루 지화학 지도첩 (INGEMMET)"
  ],
  "레이어": [
   {
@@ -185,6 +186,162 @@
    "title": "항공 자력",
    "group": "페루 지구물리 (INGEMMET)",
    "abstract": "SERV_AEROMAGNETIICO (ImageServer) — 조사한 곳만",
+   "bbox": [
+    -81.4,
+    -18.4,
+    -68.6,
+    0.0
+   ]
+  },
+  {
+   "name": "ingemmet:gq_au",
+   "title": "금 (Au) 분산·이상",
+   "group": "페루 지화학 지도첩 (INGEMMET)",
+   "abstract": "Atlas Geoquímico — dispersión geoquímica y principales anomalías",
+   "bbox": [
+    -81.4,
+    -18.4,
+    -68.6,
+    0.0
+   ]
+  },
+  {
+   "name": "ingemmet:gq_ag",
+   "title": "은 (Ag) 분산·이상",
+   "group": "페루 지화학 지도첩 (INGEMMET)",
+   "abstract": "Atlas Geoquímico — dispersión geoquímica y principales anomalías",
+   "bbox": [
+    -81.4,
+    -18.4,
+    -68.6,
+    0.0
+   ]
+  },
+  {
+   "name": "ingemmet:gq_cu",
+   "title": "구리 (Cu) 분산·이상",
+   "group": "페루 지화학 지도첩 (INGEMMET)",
+   "abstract": "Atlas Geoquímico — dispersión geoquímica y principales anomalías",
+   "bbox": [
+    -81.4,
+    -18.4,
+    -68.6,
+    0.0
+   ]
+  },
+  {
+   "name": "ingemmet:gq_mo",
+   "title": "몰리브데넘 (Mo) 분산·이상",
+   "group": "페루 지화학 지도첩 (INGEMMET)",
+   "abstract": "Atlas Geoquímico — dispersión geoquímica y principales anomalías",
+   "bbox": [
+    -81.4,
+    -18.4,
+    -68.6,
+    0.0
+   ]
+  },
+  {
+   "name": "ingemmet:gq_pb",
+   "title": "납 (Pb) 분산·이상",
+   "group": "페루 지화학 지도첩 (INGEMMET)",
+   "abstract": "Atlas Geoquímico — dispersión geoquímica y principales anomalías",
+   "bbox": [
+    -81.4,
+    -18.4,
+    -68.6,
+    0.0
+   ]
+  },
+  {
+   "name": "ingemmet:gq_zn",
+   "title": "아연 (Zn) 분산·이상",
+   "group": "페루 지화학 지도첩 (INGEMMET)",
+   "abstract": "Atlas Geoquímico — dispersión geoquímica y principales anomalías",
+   "bbox": [
+    -81.4,
+    -18.4,
+    -68.6,
+    0.0
+   ]
+  },
+  {
+   "name": "ingemmet:gq_as",
+   "title": "비소 (As) 분산·이상",
+   "group": "페루 지화학 지도첩 (INGEMMET)",
+   "abstract": "Atlas Geoquímico — dispersión geoquímica y principales anomalías",
+   "bbox": [
+    -81.4,
+    -18.4,
+    -68.6,
+    0.0
+   ]
+  },
+  {
+   "name": "ingemmet:gq_hg",
+   "title": "수은 (Hg) 분산·이상",
+   "group": "페루 지화학 지도첩 (INGEMMET)",
+   "abstract": "Atlas Geoquímico — dispersión geoquímica y principales anomalías",
+   "bbox": [
+    -81.4,
+    -18.4,
+    -68.6,
+    0.0
+   ]
+  },
+  {
+   "name": "ingemmet:gq_co",
+   "title": "코발트 (Co) 분산·이상",
+   "group": "페루 지화학 지도첩 (INGEMMET)",
+   "abstract": "Atlas Geoquímico — dispersión geoquímica y principales anomalías",
+   "bbox": [
+    -81.4,
+    -18.4,
+    -68.6,
+    0.0
+   ]
+  },
+  {
+   "name": "ingemmet:gq_ni",
+   "title": "니켈 (Ni) 분산·이상",
+   "group": "페루 지화학 지도첩 (INGEMMET)",
+   "abstract": "Atlas Geoquímico — dispersión geoquímica y principales anomalías",
+   "bbox": [
+    -81.4,
+    -18.4,
+    -68.6,
+    0.0
+   ]
+  },
+  {
+   "name": "ingemmet:gq_cr",
+   "title": "크로뮴 (Cr) 분산·이상",
+   "group": "페루 지화학 지도첩 (INGEMMET)",
+   "abstract": "Atlas Geoquímico — dispersión geoquímica y principales anomalías",
+   "bbox": [
+    -81.4,
+    -18.4,
+    -68.6,
+    0.0
+   ]
+  },
+  {
+   "name": "ingemmet:rmi",
+   "title": "산업 광물·암석 산지",
+   "group": "페루 광물 자원 (INGEMMET)",
+   "abstract": "Rocas y Minerales Industriales — 줌 7 부터",
+   "bbox": [
+    -81.4,
+    -18.4,
+    -68.6,
+    0.0
+   ]
+  },
+  {
+   "name": "ingemmet:lithium",
+   "title": "리튬 산지",
+   "group": "페루 광물 자원 (INGEMMET)",
+   "abstract": "Litio — 줌 7 부터",
    "bbox": [
     -81.4,
     -18.4,

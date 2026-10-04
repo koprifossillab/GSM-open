@@ -1,10 +1,12 @@
 """메타타일 — 큰 장을 한 번 받아 칸으로 잘라 담는다 (wetherilli 282). 상류는 바꿔 끼운다."""
 import io
 import tempfile
+from pathlib import Path
 import threading
 import time
 from unittest import mock
 
+from django.conf import settings
 from django.core.management import call_command
 from django.test import SimpleTestCase, TestCase, override_settings
 from PIL import Image
@@ -85,11 +87,15 @@ class Metatile(SimpleTestCase):
 
 
 class View(TestCase):
+    @classmethod
+    def setUpTestData(cls):
+        # 카탈로그는 반마다 한 번 — 시험마다 넣으면 0.5 초씩 든다 (wetherilli 294)
+        call_command("seed_catalog", stdout=open("/dev/null", "w"))
+
     def setUp(self):
         patch = override_settings(TILE_CACHE_DIR=tempfile.mkdtemp(prefix="gsm-meta-view-"))
         patch.enable()
         self.addCleanup(patch.disable)
-        call_command("seed_catalog", stdout=open("/dev/null", "w"))
 
     def test_지자기는_메타타일로(self):
         sent = []
@@ -106,6 +112,38 @@ class View(TestCase):
         self.assertEqual(sent[0]["size"], "1024,1024")
         rows = {l["name"]: l for g in views._catalog("ko") for l in g["layers"]}
         self.assertEqual((rows["sgm:datos:7"]["minZoom"], rows["sgm:datos:7"]["queryable"]), (8, False))
+
+    def test_끄는_스위치(self):
+        """`GSM_METATILE_OFF` 면 칸 하나씩 받던 앞의 길로 (wetherilli 299)"""
+        sent = []
+
+        def fake(url, params=None, **kw):
+            sent.append(params)
+            return mock.Mock(status_code=200, headers={"content-type": "image/png"}, content=quadrants(256), url=url)
+        with override_settings(METATILE=False), mock.patch.object(sgm.requests, "get", side_effect=fake), \
+             mock.patch.object(sgm.usage, "record"), mock.patch.object(sgm.usage, "paused", return_value=0):
+            self.client.get("/GSM/wms/", {k.upper(): v for k, v in wms(8, 56, 112).items()} | {"SERVICE": "WMS", "REQUEST": "GetMap"})
+        self.assertEqual(sent[0]["size"], "512,512")
+
+    def test_조각을_두_벌_담지_않고_옛것으로_되받는다(self):
+        """조각으로 낸 칸은 브라우저 열쇠로 다시 담지 않는다 — 다음에도 조각에서 나오고, 상류가 못 줄 때는 조각의 옛것이 나온다 (wetherilli 297)"""
+        q = {k.upper(): v for k, v in wms(8, 56, 112).items()} | {"SERVICE": "WMS", "REQUEST": "GetMap"}
+        ok = mock.Mock(status_code=200, headers={"content-type": "image/png"}, content=quadrants(512), url="u")
+        with mock.patch.object(sgm.requests, "get", return_value=ok), \
+             mock.patch.object(sgm.usage, "record"), mock.patch.object(sgm.usage, "paused", return_value=0):
+            self.client.get("/GSM/wms/", q)
+        files = list(Path(settings.TILE_CACHE_DIR).rglob("*.png"))
+        self.assertEqual(len(files), 4)                                               # 조각 넷뿐 — 낸 칸의 둘째 벌이 없다
+        with mock.patch.object(sgm.requests, "get", side_effect=AssertionError("상류를 타면 안 된다")):
+            again = self.client.get("/GSM/wms/", q)
+        self.assertEqual(again.status_code, 200)
+        piece = metatile.piece_key("sgm:datos:7", 512, 8, 56, 112)
+        aged = lambda key, suffix=".png", stale=False, max_age=None: b"OLD" if stale and key == piece else None   # 모두 나이가 지났다
+        with mock.patch.object(views.tilecache, "get", side_effect=aged), \
+             mock.patch.object(sgm.requests, "get", side_effect=sgm.requests.ConnectionError("x")), \
+             mock.patch.object(sgm.usage, "record"), mock.patch.object(sgm.usage, "paused", return_value=0):
+            old = self.client.get("/GSM/wms/", q)
+        self.assertEqual(old.content, b"OLD")
 
     def test_다른_레이어는_그대로(self):
         sent = []

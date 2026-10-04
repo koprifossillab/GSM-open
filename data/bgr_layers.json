@@ -1,5 +1,5 @@
 {
- "_주석": "BGR(독일 연방 지구과학·자원청) 지질도 씨앗이다 — 독일 탭(유럽 묶음에도 든다). 판이 둘(GK1000·GÜK250)이고 ArcGIS 레이어 이름이 번호라 bgr:<판>:<번호> 로 둔다 — 문(web/viewer/bgr.py)이 나눈다. 판마다 그리는 줌이 좁아(GK1000 9–10, GÜK250 10–14, 2026-10-02 에 카셀에서 잰 것) 그보다 멀면 EGDI 1:100만이 밑을 채운다. 한글 제목과 레이어군은 사람이 붙였다 (wetherilli 147). IGME5000(유럽과 이웃 1:500만, 2007)은 같은 문의 셋째 판이다 — 독일 탭에 레이어군을 따로 두고 유럽 묶음이 함께 보인다. 축척마다 갈린 상류 레이어는 + 로 잇는다 (wetherilli 217).",
+ "_주석": "BGR(독일 연방 지구과학·자원청) 지질도 씨앗이다 — 독일 탭(유럽 묶음에도 든다). 판이 둘(GK1000·GÜK250)이고 ArcGIS 레이어 이름이 번호라 bgr:<판>:<번호> 로 둔다 — 문(web/viewer/bgr.py)이 나눈다. 판마다 그리는 줌이 좁아(GK1000 9–10, GÜK250 10–14, 2026-10-02 에 카셀에서 잰 것) 그보다 멀면 EGDI 1:100만이 밑을 채운다. 한글 제목과 레이어군은 사람이 붙였다 (wetherilli 147). IGME5000(유럽과 이웃 1:500만, 2007)은 같은 문의 셋째 판이다 — 독일 탭에 레이어군을 따로 두고 유럽 묶음이 함께 보인다. 축척마다 갈린 상류 레이어는 + 로 잇는다 (wetherilli 217). 원료(KOR250·BSK1000)는 wms/rohstoffe 폴더다 (wetherilli 296).",
  "_뽑은날": "2026-10-02",
  "_출처": "https://services.bgr.de/wms/geologie/guek250/?SERVICE=WMS&REQUEST=GetCapabilities",
  "_지역": "germany",
@@ -7,7 +7,8 @@
  "_레이어군차례": 1,
  "레이어군순서": [
   "독일 지질 (BGR)",
-  "유럽 1:500만 (IGME5000)"
+  "유럽 1:500만 (IGME5000)",
+  "독일 원료 (BGR)"
  ],
  "레이어": [
   {
@@ -140,6 +141,42 @@
     18.7,
     106.4,
     84.5
+   ]
+  },
+  {
+   "name": "bgr:kor250:2+3+4",
+   "title": "광상·채굴지 (KOR250 1:25만)",
+   "group": "독일 원료 (BGR)",
+   "abstract": "Lagerstätte · kleine Lagerstätte · Abbaustelle",
+   "bbox": [
+    5.8,
+    47.2,
+    15.1,
+    55.1
+   ]
+  },
+  {
+   "name": "bgr:kor250:0+1",
+   "title": "원료 산출·유망 지역 (KOR250)",
+   "group": "독일 원료 (BGR)",
+   "abstract": "Vorkommen und Höffigkeitsgebiet · großräumiges Verbreitungsgebiet",
+   "bbox": [
+    5.8,
+    47.2,
+    15.1,
+    55.1
+   ]
+  },
+  {
+   "name": "bgr:bsk1000:0+1+2+3+4",
+   "title": "지하자원 (BSK1000 1:100만)",
+   "group": "독일 원료 (BGR)",
+   "abstract": "Bodenschätze der Bundesrepublik Deutschland 1:1.000.000",
+   "bbox": [
+    5.8,
+    47.2,
+    15.1,
+    55.1
    ]
   }
  ]

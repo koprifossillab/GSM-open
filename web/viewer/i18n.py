@@ -115,6 +115,7 @@ EN = {
     "폴란드 지질연구소 (PIG-PIB)": "Polish Geological Institute (PIG-PIB)", "네덜란드 지질조사부 (TNO)": "Geological Survey of the Netherlands (TNO)",
     "플랑드르 지하 자료은행 (DOV)": "Flanders Subsurface Database (DOV)", "왈로니아 공공서비스 (SPW)": "Public Service of Wallonia (SPW)",
     "브리티시컬럼비아 지질조사소": "British Columbia Geological Survey", "캘리포니아 지질조사소": "California Geological Survey",
+    "네바다 광산지질국": "Nevada Bureau of Mines and Geology", "워싱턴 지질조사소": "Washington Geological Survey", "오리건 지질광물산업부": "Oregon DOGAMI",
     "인도네시아 지질청 (ESDM)": "Geological Agency of Indonesia (ESDM)", "말레이시아 광물지구과학국": "Minerals and Geoscience Department Malaysia",
     "필리핀 광산지질국": "Mines and Geosciences Bureau (Philippines)", "태국 광물자원국": "Department of Mineral Resources (Thailand)",
     # KIGAM 5만 단층·습곡·광종·변질대 (wetherilli 202)
@@ -522,6 +523,14 @@ EN = {
     "깊은 지진 (300 km 넘게)": "Deep (over 300 km)",
     "원의 크기는 규모, 색은 진원 깊이": "Circle size is magnitude, colour is focal depth",
     "M{mag} 지진": "M{mag} earthquake",
+    "M{mag} 최근 지진": "M{mag} recent earthquake",
+    "원본 자료 — USGS 실시간 피드(지난 7 일 M2.5 이상, 매시 받음), 공공 영역": "Source — USGS real-time feed (past 7 days M2.5+, fetched hourly), public domain",
+    "최근 지진 피드를 아직 받지 않았다 (fetch_recent_quakes)": "Recent earthquake feed not fetched yet (fetch_recent_quakes)",
+    "지난 한 시간": "Past hour", "지난 하루": "Past day", "지난 일주일": "Past week",
+    "원본 자료 — IHFC 세계 지열류 자료 2024, CC BY 4.0": "Source — IHFC Global Heat Flow Database 2024, CC BY 4.0",
+    "지열류 자료를 아직 굽지 않았다 (build_heatflow)": "Heat flow data not built yet (build_heatflow)",
+    "최근 지진 (7 일, M2.5 이상)": "Recent earthquakes (7 days, M2.5+)",
+    "속이 빈 고리 — 크기는 규모, 색은 지난 시간 (매시 받음)": "Hollow rings — size is magnitude, colour is time since (fetched hourly)",
     # 관리 화면의 상류 응답 시간 (wetherilli 295)
     "상류 응답 시간": "Upstream response times",
     "지난 7 일의 평균이 느린 차례 — 시간은 상류가 응답의 머리를 보내기까지": "Slowest first by the 7-day mean — time until the upstream sends the response headers",
@@ -2446,8 +2455,12 @@ PROP_EN = {
     # 독일 BGR·스페인 IGME (wetherilli 147)
     "대": "Era",
     "성인": "Genesis",
+    "이상": "Anomaly", "함량": "Concentration", "광상": "Deposit", "리튬 (ppm)": "Lithium (ppm)", "채굴": "Mined",
     "회사": "Company",
     "생산": "Production", "발견": "Discovery",
+    "생산량": "Production", "잠재량": "Potential", "채굴 형태": "Working type", "쓰임": "Uses", "지질시대 (원문)": "Age (original)",
+    "원료": "Raw material", "원료 갈래": "Raw material group", "딸린 원료": "Secondary raw material", "중력 이상 (mGal)": "Gravity anomaly (mGal)",
+    "총 감마선": "Total gamma",
     "광종 (태국어)": "Commodity (Thai)", "군": "District", "탐사 단계": "Exploration status", "광종 갈래": "Commodity group", "조사 단계": "Survey stage",
     "광업 지역": "Mining area",
     "딸린 광종": "Other commodities", "채굴 기간": "Years mined", "총 광량 (Mt)": "Total tonnage (Mt)", "광석 광물": "Ore minerals",
@@ -3131,7 +3144,12 @@ def props_en(props: dict) -> dict:
 # 레이어 이름을 열쇠로 여기 둔다. 없으면 한국어 제목이 뜬다.
 
 GROUP_EN = {
+    "페루 지화학 지도첩 (INGEMMET)": "Peru geochemical atlas (INGEMMET)",
     "캐나다 주 광물 산지": "Canadian provincial mineral occurrences",
+    "네바다 지질도 (NBMG 1:50만)": "Nevada geology (NBMG 1:500k)", "워싱턴 지질도 (DNR)": "Washington geology (DNR)",
+    "오리건 지질도 (DOGAMI OGDC-6)": "Oregon geology (DOGAMI OGDC-6)",
+    "프랑스 광상 (BRGM)": "France mineral deposits (BRGM)", "스페인 광물 (IGME)": "Spain minerals (IGME)",
+    "독일 원료 (BGR)": "Germany raw materials (BGR)", "포르투갈 광상·지구물리 (LNEG)": "Portugal deposits and geophysics (LNEG)",
     "인도네시아 광물 자원 (ESDM)": "Indonesia mineral resources (ESDM)", "필리핀 광물 자원 (MGB)": "Philippines mineral resources (MGB)",
     "태국 광물 (DMR)": "Thailand minerals (DMR)", "사우디 광물 (SGS)": "Saudi Arabia minerals (SGS)", "몽골 광물 (MRIS)": "Mongolia minerals (MRIS)",
     "남아공 광업·자원 지역 (CGS)": "South Africa mining and resource areas (CGS)",
@@ -3139,7 +3157,7 @@ GROUP_EN = {
     "스웨덴 광물·지구물리 (SGU)": "Sweden minerals and geophysics (SGU)",
     "페루 광물 자원 (INGEMMET)": "Peru mineral resources (INGEMMET)", "페루 지구물리 (INGEMMET)": "Peru geophysics (INGEMMET)",
     "영국 지구물리 (BGS)": "UK geophysics (BGS)", "영국 광물 자원 (BGS)": "UK mineral resources (BGS)",
-    "그린란드 지구물리·지질구 (GEUS)": "Greenland geophysics and provinces (GEUS)",
+    "그린란드 지구물리·지질구 (GEUS)": "Greenland geophysics and provinces (GEUS)", "그린란드 지질도 1:250만·1:10만 (GEUS)": "Greenland geological maps 1:2.5M and 1:100k (GEUS)",
     "브라질 광물 자원 (SGB)": "Brazil mineral resources (SGB)", "콜롬비아 금속광상·지구물리 (SGC)": "Colombia metallogeny and geophysics (SGC)",
     "아르헨티나 광상 (SEGEMAR 1:25만)": "Argentina mineral deposits (SEGEMAR 1:250k)",
     "퀸즐랜드 광물·지구물리 (GSQ)": "Queensland minerals and geophysics (GSQ)", "빅토리아 광상 (GSV)": "Victoria mineral deposits (GSV)",
@@ -3200,9 +3218,7 @@ GROUP_EN = {
     "IBCSO 해저지형": "IBCSO bathymetry",
     "지질도": "Geological maps",
     "탄전지질도": "Coalfield geological maps",
-    "원본 자료 — IHFC 세계 지열류 자료 2024, CC BY 4.0": "Source — IHFC Global Heat Flow Database 2024, CC BY 4.0",
-    "지열류 자료를 아직 굽지 않았다 (build_heatflow)": "Heat flow data not built yet (build_heatflow)",
-    "지구물리이상도": "Geophysical anomaly maps", "지구물리": "Geophysics",
+    "지구물리이상도": "Geophysical anomaly maps", "움직이는 지구": "Earth in flux", "지구물리": "Geophysics",
     "지구물리 (ADMAP-2)": "Geophysics (ADMAP-2)",
     "지화학도": "Geochemical maps",
     "좋은물지도": "Groundwater quality maps",
@@ -3282,10 +3298,33 @@ GROUP_EN = {
 }
 
 LAYER_EN = {
+    # 페루 지화학 지도첩·산업 광물 (wetherilli 303)
+    "ingemmet:gq_au": "Gold (Au) dispersion and anomalies",
+    "ingemmet:gq_ag": "Silver (Ag) dispersion and anomalies",
+    "ingemmet:gq_cu": "Copper (Cu) dispersion and anomalies",
+    "ingemmet:gq_mo": "Molybdenum (Mo) dispersion and anomalies",
+    "ingemmet:gq_pb": "Lead (Pb) dispersion and anomalies",
+    "ingemmet:gq_zn": "Zinc (Zn) dispersion and anomalies",
+    "ingemmet:gq_as": "Arsenic (As) dispersion and anomalies",
+    "ingemmet:gq_hg": "Mercury (Hg) dispersion and anomalies",
+    "ingemmet:gq_co": "Cobalt (Co) dispersion and anomalies",
+    "ingemmet:gq_ni": "Nickel (Ni) dispersion and anomalies",
+    "ingemmet:gq_cr": "Chromium (Cr) dispersion and anomalies",
+    "ingemmet:rmi": "Industrial rocks and minerals", "ingemmet:lithium": "Lithium occurrences",
     # 캐나다 주 광물 산지 (wetherilli 288)
     "bcgs:minfile": "British Columbia MINFILE mineral occurrences", "ygs:57": "Yukon MINFILE mineral occurrences",
     "ogs:11": "Ontario mineral deposit inventory (MDI)", "sigeom:mines": "Québec active mines and advanced projects",
     "skgs:smdi": "Saskatchewan mineral deposits index (SMDI)", "skgs:mines": "Saskatchewan mine locations",
+    # 미국 주 지질도 (wetherilli 291)
+    "nbmg:geology": "Geologic map (1:500,000)", "wadnr:500k": "Geologic map (1:500,000)", "wadnr:100k": "Geologic map (1:100,000 GeMS)",
+    "dogami:ogdc": "Oregon Geologic Data Compilation (OGDC-6)",
+    # 유럽 광물 (wetherilli 296)
+    "brgm:GITES_PT": "Deposits and showings (BD Gîtes)", "brgm:MINES_PT": "Mines (main commodities)",
+    "igme:bdmin:0+1": "Mineral occurrences (BDMIN)", "igme:bdminexp:0+1": "Industrial rock and mineral workings (BDMIN)",
+    "bgr:kor250:2+3+4": "Deposits and workings (KOR250 1:250k)", "bgr:kor250:0+1": "Raw material occurrences and prospective areas (KOR250)",
+    "bgr:bsk1000:0+1+2+3+4": "Mineral resources (BSK1000 1:1M)",
+    "lneg:dep200k:4": "Mineral deposits (1:200k)", "lneg:mag:0": "Magnetic anomaly", "lneg:grav:0": "Gravity anomaly (southern part)",
+    "lneg:rad:Radiometria": "Radiometry (total gamma)",
     # 아시아 광물 (wetherilli 280)
     "esdm:metal": "Metallic mineral potential", "esdm:nonmetal": "Non-metallic mineral and rock potential",
     "mgb:metallic": "Metallic mineral resources", "mgb:nonmetallic": "Non-metallic mineral resources",
@@ -3309,6 +3348,10 @@ LAYER_EN = {
     # GEUS ArcGIS (wetherilli 259)
     "geusarc:magnetic": "Magnetic anomaly compilation", "geusarc:bouguer": "Bouguer gravity anomaly (DTU)",
     "geusarc:provinces": "Geological provinces (1:2.5M)",
+    "geusarc:aeromag": "Airborne magnetics AEROMAG 1992–2013", "geusarc:aeromag_tilt": "Airborne magnetics tilt derivative",
+    "geusarc:awi": "Airborne magnetics AWI 1993–96 (east)", "geusarc:aem": "Helicopter magnetic surveys (local)",
+    "geusarc:g2500k": "Geological map 1:2.5M", "geusarc:g100k_ssw": "South-West Greenland geological map 1:100k",
+    "geusarc:g100k_karrat": "Karrat geological map 1:100k",
     # 남미 광물·지구물리 (wetherilli 265)
     "sgb:mineral_occurrences": "Mineral occurrences (SGB)",
     "sgc:met:11": "Mineral deposits (Metallogenic map 2022)", "sgc:met:10": "Metallogenic belts (2022)", "sgc:met:8": "Metallogenic districts (2022)",
@@ -3450,6 +3493,8 @@ LAYER_EN = {
     # 지구 자료 점 (wetherilli 185) — 처음에 제목을 열쇠로 적어 영어판에 한국어가 나왔다(199 에서 이름으로 고쳤다)
     "earth:pbdb_korea": "Fossil collections (PBDB)", "earth:pbdb_antarctica": "Fossil collections (PBDB)", "earth:pbdb_arctic": "Fossil collections (PBDB)",
     "earth:gvp_korea": "Holocene volcanoes (GVP)", "earth:gvp_antarctica": "Holocene volcanoes (GVP)", "earth:gvp_arctic": "Holocene volcanoes (GVP)",
+    "earth:recentquakes_korea": "Recent earthquakes (7 days, M2.5+)", "earth:recentquakes_antarctica": "Recent earthquakes (7 days, M2.5+)",
+    "earth:recentquakes_arctic": "Recent earthquakes (7 days, M2.5+)",
     "earth:heatflow_korea": "Heat flow (IHFC)", "earth:heatflow_antarctica": "Heat flow (IHFC)", "earth:heatflow_arctic": "Heat flow (IHFC)",
     "earth:quakes_korea": "Earthquakes M5+ (USGS)", "earth:quakes_antarctica": "Earthquakes M5+ (USGS)", "earth:quakes_arctic": "Earthquakes M5+ (USGS)",
     "earth:neotoma_korea": "Quaternary paleoecology sites (Neotoma)", "earth:neotoma_antarctica": "Quaternary paleoecology sites (Neotoma)", "earth:neotoma_arctic": "Quaternary paleoecology sites (Neotoma)",

@@ -81,6 +81,10 @@ urlpatterns = [
     re_path(r"^earth/quakes/tiles/(?P<band>quake\d{1,2})/(?P<z>\d{1,2})/(?P<x>\d{1,4})/(?P<y>\d{1,4})\.png$",
             views.earth_quake_tile, name="earth-quake-tile"),
     path("earth/quakes/at/", views.earth_quake_at, name="earth-quake-at"),
+    # 최근 지진 — USGS 실시간 피드 (wetherilli 292)
+    re_path(r"^earth/recentquakes/tiles/(?P<z>\d{1,2})/(?P<x>\d{1,4})/(?P<y>\d{1,4})\.png$", views.earth_recent_quake_tile,
+            name="earth-recent-quake-tile"),
+    path("earth/recentquakes/at/", views.earth_recent_quake_at, name="earth-recent-quake-at"),
     re_path(r"^earth/neotoma/tiles/(?P<band>neo_[a-z]{1,6})/(?P<ka>\d{1,4})/(?P<z>\d{1,2})/(?P<x>\d{1,4})/(?P<y>\d{1,4})\.png$",
             views.earth_neotoma_tile, name="earth-neotoma-tile"),
     path("earth/neotoma/at/", views.earth_neotoma_at, name="earth-neotoma-at"),
@@ -186,7 +190,7 @@ urlpatterns = [
     # 브라질 — 보는 범위의 범례 (sgb.py, wetherilli 191)
     path("sgb/legend/", views.sgb_legend, name="sgb-legend"),
     # 페루 — REST 타일 캐시 중계·누른 자리·보는 범위의 범례 (ingemmet.py, wetherilli 195), 단층·습곡은 export 를 타일 칸으로 (222)
-    re_path(r"^ingemmet/(?P<sheet>50k|50k_units|100k|faults_1m|faults_100k|folds_100k|faults_50k|folds_50k|occ_metal|occ_nonmetal|deposits|projects|belts|bouguer|aeromag)/(?P<z>\d{1,2})/(?P<x>\d{1,6})/(?P<y>\d{1,6})\.png$",
+    re_path(r"^ingemmet/(?P<sheet>50k|50k_units|100k|faults_1m|faults_100k|folds_100k|faults_50k|folds_50k|occ_metal|occ_nonmetal|deposits|projects|belts|bouguer|aeromag|rmi|lithium|gq_[a-z]{2})/(?P<z>\d{1,2})/(?P<x>\d{1,6})/(?P<y>\d{1,6})\.png$",
             views.ingemmet_tile, name="ingemmet-tile"),
     path("ingemmet/info/", views.ingemmet_info, name="ingemmet-info"),
     # 대앤틸리스 — 우리가 구운 USGS SIM 3534 (caribmap.py, wetherilli 254)

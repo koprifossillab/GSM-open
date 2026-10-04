@@ -1,12 +1,13 @@
 {
- "_주석": "지구 자료 점의 씨앗이다 (wetherilli 185). 온 지구 화면에만 있던 화석 산지·홀로세 화산·지진·제4기 고생태 산지를 지역 탭의 점 레이어로 — 모아 둔 sqlite·JSON 에서 지역의 네모만 잘라 낸다(web/viewer/earthpoints.py). 상류를 타지 않는다. 정적 판에는 싣지 않는다. 한국 탭에 둔다. 지열류(IHFC)는 지구물리 레이어군에 둔다 (wetherilli 275).",
+ "_주석": "지구 자료 점의 씨앗이다 (wetherilli 185). 온 지구 화면에만 있던 화석 산지·홀로세 화산·지진·제4기 고생태 산지를 지역 탭의 점 레이어로 — 모아 둔 sqlite·JSON 에서 지역의 네모만 잘라 낸다(web/viewer/earthpoints.py). 상류를 타지 않는다. 정적 판에는 싣지 않는다. 한국 탭에 둔다. 지열류(IHFC)는 지구물리 레이어군에 둔다 (wetherilli 275). 최근 지진(USGS 실시간 피드, 매시)은 '움직이는 지구' 레이어군에 둔다 (wetherilli 292).",
  "_뽑은날": "2026-10-04",
  "_지역": "korea",
  "_상류": "earth",
  "_레이어군차례": 40,
  "레이어군순서": [
   "화석·화산·지진",
-  "지구물리이상도"
+  "지구물리이상도",
+  "움직이는 지구"
  ],
  "레이어": [
   {
@@ -62,6 +63,18 @@
    "title": "지열류 (IHFC)",
    "group": "지구물리이상도",
    "abstract": "IHFC Global Heat Flow Database 2024 — mW/m², colour by value",
+   "bbox": [
+    123.0,
+    32.0,
+    132.5,
+    43.5
+   ]
+  },
+  {
+   "name": "earth:recentquakes_korea",
+   "title": "최근 지진 (7 일, M2.5 이상)",
+   "group": "움직이는 지구",
+   "abstract": "USGS real-time feed — past 7 days M2.5+, fetched hourly. Hollow rings coloured by age",
    "bbox": [
     123.0,
     32.0,

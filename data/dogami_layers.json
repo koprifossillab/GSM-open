@@ -1,0 +1,25 @@
+{
+ "_주석": "오리건 지질광물산업부(DOGAMI) 씨앗이다 — 미국 탭. OGDC 6 판. ArcGIS REST 를 문(web/viewer/usstates.py)이 3978 export 로 옮긴다 (wetherilli 291).",
+ "_뽑은날": "2026-10-05",
+ "_출처": "https://gis.dogami.oregon.gov/arcgis/rest/services/Public/OGDC6/MapServer",
+ "_지역": "usa",
+ "_상류": "dogami",
+ "_레이어군차례": 0,
+ "레이어군순서": [
+  "오리건 지질도 (DOGAMI OGDC-6)"
+ ],
+ "레이어": [
+  {
+   "name": "dogami:ogdc",
+   "title": "지질 자료 편찬 (OGDC-6)",
+   "abstract": "Oregon Geologic Data Compilation, release 6 — 줌 7 부터",
+   "bbox": [
+    -124.7,
+    41.9,
+    -116.4,
+    46.3
+   ],
+   "group": "오리건 지질도 (DOGAMI OGDC-6)"
+  }
+ ]
+}

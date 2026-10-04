@@ -58,12 +58,16 @@
 - 막힌 것: 과테말라·온두라스·벨리즈·쿠바(서비스 없음·DNS·시간 초과), 엘살바도르 SNET(522 — 다시 볼 것), 코스타리카(UCR 여백 붙은 스캔·DGM 빈 응답)
 
 - [ ] 남미 광물·지구물리(wetherilli 265·277) — 브라질 광물 산출·콜롬비아 금속광상도/지구물리·아르헨티나 광상·페루 광물·지구물리는 섰다. 남은 것:
-      브라질 opendata 의 광업 권역(ANM)·항공 지구물리 조사 범위, SEGEMAR 자력 이상(나라 전체 면 47 개뿐이라 뺐다), 페루 광업 권리(`SERV_CATASTRO_MINERO`)·
-      지화학 지도첩(`SERV_ATLAS_GEOQUIMICO`)·산업 광물(`SERV_ROCAS_MINERALES_INDUSTRIALES`)
+      브라질 opendata 의 광업 권역(ANM)·항공 지구물리 조사 범위, SEGEMAR 자력 이상(나라 전체 면 47 개뿐이라 뺐다), 페루 광업 권리(`SERV_CATASTRO_MINERO`)는
+      지질과 멀어 싣지 않기로 했다(wetherilli 303)
 
 - [ ] 캐나다 주 광물(wetherilli 288) — BC·유콘 MINFILE, 온타리오 MDI, 퀘벡 가동 광산·사업, 사스카치원 SMDI 는 섰다. 남은 것: 앨버타 금속·산업 광물 산지는
       ArcGIS Online 피처 서비스(`Metallic_Mineral_Occurrences`·`Industrial_Mineral_Occurrences`)뿐이라 그림 길이 없다 — 파나마(stri)처럼 한 덩이로 받아
       화면이 그릴지. 노바스코샤는 광물 산지 서비스를 찾지 못했다. 퀘벡의 광물 산지(gîte)는 WMS 에 없다(SIGÉOM 의 다른 서비스를 찾을 것)
+
+- [ ] 미국 주 지질도(wetherilli 291) — 네바다·워싱턴·오리건은 섰다. 남은 것: 유타 UGS(`webmaps.geology.utah.gov/arcgis/rest/services/GeolMap/500k_State`)와
+      애리조나 AZGS(`services.azgs.az.gov`)는 이 서버에서 연결이 시간 초과다(나라 밖을 막는 듯) — 미국 안의 길이 생기면. 알래스카 DGGS 는 지질도가
+      SIM 3340(mrdata)과 겹쳐 두지 않았고 광물 산지(`Mineral_Occurrences_2020_MIL1`)는 따로 볼 것. 세 주 모두 조건 문구를 읽지 않았다 — 정적 판에 싣기 전에
 
 - [ ] 아시아 광물(wetherilli 280) — 인도네시아·필리핀·태국·사우디·몽골 희토류는 섰다. 남은 것: 말레이시아 MyGEMS 는 `rest/services` 목록이 허브 쪽으로
       넘어가 광물 서비스를 찾지 못했다, 인도 GSI 는 Bhukosh 가 나라 밖에서 닿지 않는다. 몽골 `Atlas/AtlasPoints` 의 광상 레이어(6–9)는 우물 자료를
@@ -257,6 +261,16 @@ wetherilli 249 — 네팔 DMG GeoServer 는 열렸지만 행정 경계·도폭�
 개발 머신에서 그린란드 포털(`services5.arcgis.com`)을 부르면 인증서가 막힌다(사내망이 끼워 넣는 인증서) —
 `REQUESTS_CA_BUNDLE=/etc/ssl/certs/ca-certificates.crt` 를 주면 돈다. 운영과는 상관없다.
 phyloserver 는 이 저장소만으로 더 할 것이 없다 — 도폭(`MapSheet`) JSON API 를 그쪽에 먼저.
+
+## 레이어 대조에서 나온 것 (2026-10-05 개발 기계, wetherilli 298)
+
+- [ ] **카메룬 IRGM 1:100만 단층(`irgm:CMR_IRGM_1M_Failles`)이 상류에서 깨져 있다** — BRGM mapsref 가 ServiceException
+      "unable to open file /carto/wxs/1GG/THRUSTFAULT" 를 준다(기호 파일이 서버에 없다). 다음 판까지 낫지 않으면 레이어를 끄거나 BRGM 에 알린다
+- [ ] 느린 둘 — `emodnet:cp_wp3_seabed_substrate_folk_7`·`gsmma:attitude_50k` 이 두 번 모두 20 초를 넘겼다. 메타타일 표(`views.METATILE`)에 넣을지 잰다
+- [ ] 빈 그림 35 — 대개 성긴 선·점(단층·습곡·기호·이상·광산)이라 다섯 칸이 비켜 간 것이다. 축척이 갈린 것은 화면에서 한 번 본다:
+      `bgr:igme5000:43+44`·`46+47+48`·`51+53+55+57`(줌 2 에서 비었다), `ispra:100k:1`·`2`, `lneg:500k:1`·`3`·`4`, `brgm:GEOL_PYF_5S`·`6S`·`7S`,
+      `gsmma:fossils_50k`·`sensitive_landslide`
+- [ ] VWorld 레이어(46)는 개발 기계에 열쇠가 없어 보지 못했다 — 운영에서 `verify_layers --redo --upstream vworld`
 
 ## 캐시·미리 받기 (007·010)
 

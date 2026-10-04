@@ -287,11 +287,15 @@ class Seed(TestCase):
 class GsjOws(TestCase):
     """GSJ 의 다른 WMS — 1:200만 지질도·부게 중력·지구화학도 (wetherilli 255)"""
 
+    @classmethod
+    def setUpTestData(cls):
+        # 카탈로그는 반마다 한 번 — 시험마다 넣으면 0.5 초씩 든다 (wetherilli 294)
+        call_command("seed_catalog", stdout=open("/dev/null", "w"))
+
     def setUp(self):
         patch = override_settings(TILE_CACHE_DIR=tempfile.mkdtemp(prefix="gsm-gsjows-"))
         patch.enable()
         self.addCleanup(patch.disable)
-        call_command("seed_catalog", stdout=open("/dev/null", "w"))
         for name, value in (("record", None), ("paused", 0)):
             p = mock.patch.object(gsj.usage, name, return_value=value)
             p.start()

@@ -3,6 +3,7 @@
 GEUS 를 실제로 부르지 않는다. text/plain 속성의 꼴은 2026-09-27 에 받아 본
 그대로다.
 """
+import tempfile
 from unittest import mock
 
 from django.test import SimpleTestCase, TestCase, override_settings
@@ -114,3 +115,39 @@ class GeusArcgis(SimpleTestCase):
         props = got["features"][0]["properties"]
         self.assertEqual(geus.arc_friendly(props), {"갈래": "선캄브리아 기반", "지질구": "Archaean basement"})
         self.assertEqual(geus.arc_get_feature_info({"layers": "geusarc:bouguer"}), {"features": []})
+
+
+class GreenlandMore(TestCase):
+    """공중 자력 셋·지질도 1:250만·1:10만 둘 (wetherilli 301)"""
+    def setUp(self):
+        patch = override_settings(TILE_CACHE_DIR=tempfile.mkdtemp(prefix="gsm-geusarc-"))
+        patch.enable()
+        self.addCleanup(patch.disable)
+
+    def test_지질도는_면에만_묻고_열을_고른다(self):
+        sent = []
+        body = {"results": [{"layerName": "g100_geology", "attributes": {"gm_label": "Q8", "Legend_Heading": "Quaternary",
+                                                                         "Description": "Marine deposits and terrace (Q8)"}}]}
+
+        def fake(url, params=None, **kw):
+            sent.append(params)
+            return mock.Mock(status_code=200, url=url, content=b"{}", json=lambda: body, elapsed=None)
+        with mock.patch.object(geus.requests, "get", side_effect=fake), mock.patch.object(geus.usage, "paused", return_value=0):
+            got = geus.arc_get_feature_info({"layers": "geusarc:g100k_ssw", "crs": "EPSG:3413", "bbox": "0,0,1,1",
+                                             "width": 256, "height": 256, "i": 1, "j": 1})
+        self.assertEqual(sent[0]["layers"], "all:5")                                   # 경계·구조선(3·0)은 묻지 않는다
+        self.assertEqual(geus.arc_friendly(got["features"][0]["properties"]),
+                         {"기호": "Q8", "단위": "Quaternary", "설명": "Marine deposits and terrace (Q8)"})
+
+    def test_목록_범례는_그_면의_것만(self):
+        legend = {"layers": [{"layerId": 0, "legend": [{"label": "AXcal", "imageData": "AA==", "contentType": "image/png"}]},
+                             {"layerId": 4, "legend": [{"label": "Dundas Group", "imageData": "AA==", "contentType": "image/png"}]}]}
+        ok = mock.Mock(status_code=200, url="u", content=b"{}", json=lambda: legend, elapsed=None)
+        with mock.patch.object(geus.requests, "get", return_value=ok) as get, mock.patch.object(geus.usage, "paused", return_value=0):
+            rows = geus.legend_rows("geusarc:g2500k")
+            again = geus.legend_rows("geusarc:g2500k")
+        self.assertEqual([r["lithology"] for r in rows], ["Dundas Group"])
+        self.assertEqual((rows, get.call_count), (again, 1))                           # 담아 둔 것을 다시 낸다
+        with self.assertRaises(geus.GeusError):
+            geus.legend_rows("geusarc:aeromag")                                        # 지구물리는 범례가 없다
+

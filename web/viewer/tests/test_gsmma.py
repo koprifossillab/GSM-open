@@ -64,11 +64,15 @@ class Door(SimpleTestCase):
 
 
 class Views(TestCase):
+    @classmethod
+    def setUpTestData(cls):
+        # 카탈로그는 반마다 한 번 — 시험마다 넣으면 0.5 초씩 든다 (wetherilli 294)
+        call_command("seed_catalog", stdout=io.StringIO())
+
     def setUp(self):
         patch = override_settings(TILE_CACHE_DIR=tempfile.mkdtemp(prefix="gsm-gsmma-"))
         patch.enable()
         self.addCleanup(patch.disable)
-        call_command("seed_catalog", stdout=io.StringIO())
 
     def test_씨앗과_영어(self):
         rows = Layer.objects.filter(upstream="gsmma")
@@ -127,11 +131,15 @@ class Views(TestCase):
 class Second(TestCase):
     """둘째 판 (wetherilli 141) — 점 속성, 3857 로 펴기, 3D."""
 
+    @classmethod
+    def setUpTestData(cls):
+        # 카탈로그는 반마다 한 번 — 시험마다 넣으면 0.5 초씩 든다 (wetherilli 294)
+        call_command("seed_catalog", stdout=io.StringIO())
+
     def setUp(self):
         patch = override_settings(TILE_CACHE_DIR=tempfile.mkdtemp(prefix="gsm-gsmma2-"))
         patch.enable()
         self.addCleanup(patch.disable)
-        call_command("seed_catalog", stdout=io.StringIO())
 
     def _answer(self, data):
         answer = mock.Mock(status_code=200, content=b"", url="…", headers={"content-type": "application/json"})
@@ -198,11 +206,15 @@ class Second(TestCase):
 class Legend(TestCase):
     """범례 (wetherilli 142) — 지층 면과 그림을 맞대어 견본을 뜬다."""
 
+    @classmethod
+    def setUpTestData(cls):
+        # 카탈로그는 반마다 한 번 — 시험마다 넣으면 0.5 초씩 든다 (wetherilli 294)
+        call_command("seed_catalog", stdout=io.StringIO())
+
     def setUp(self):
         patch = override_settings(TILE_CACHE_DIR=tempfile.mkdtemp(prefix="gsm-gsmma3-"))
         patch.enable()
         self.addCleanup(patch.disable)
-        call_command("seed_catalog", stdout=io.StringIO())
 
     def _answers(self):
         """지질운: 왼쪽 반 沖積層·오른쪽 반 南港層. 그림: 왼쪽 반 노랑·오른쪽 반 초록."""

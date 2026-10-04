@@ -56,11 +56,15 @@ def answer(**kw):
 
 
 class Views(TestCase):
+    @classmethod
+    def setUpTestData(cls):
+        # 카탈로그는 반마다 한 번 — 시험마다 넣으면 0.5 초씩 든다 (wetherilli 294)
+        call_command("seed_catalog", stdout=io.StringIO())
+
     def setUp(self):
         patch = override_settings(TILE_CACHE_DIR=tempfile.mkdtemp(prefix="gsm-africa-c-"))
         patch.enable()
         self.addCleanup(patch.disable)
-        call_command("seed_catalog", stdout=io.StringIO())
         for mod in (bgs, cgs):
             for name, value in (("record", None), ("paused", 0)):
                 p = mock.patch.object(mod.usage, name, return_value=value)
@@ -121,11 +125,15 @@ BFA_PLAIN = ("GetFeatureInfo results:\n\nLayer 'BFA_BUMIGEB_FR_1M_BLS'\n  Featur
 class SecondCountries(TestCase):
     """부르키나파소 BUMIGEB·카메룬 IRGM 1:100만 (wetherilli 246) — 2026-10-05 에 받은 꼴."""
 
+    @classmethod
+    def setUpTestData(cls):
+        # 카탈로그는 반마다 한 번 — 시험마다 넣으면 0.5 초씩 든다 (wetherilli 294)
+        call_command("seed_catalog", stdout=io.StringIO())
+
     def setUp(self):
         patch = override_settings(TILE_CACHE_DIR=tempfile.mkdtemp(prefix="gsm-africa2-"))
         patch.enable()
         self.addCleanup(patch.disable)
-        call_command("seed_catalog", stdout=io.StringIO())
         from viewer import brgm
         self.brgm = brgm
         for mod in (bgs, brgm):

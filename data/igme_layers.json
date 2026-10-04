@@ -1,12 +1,13 @@
 {
- "_주석": "IGME(스페인 지질광물연구소) 지질도 씨앗이다 — 스페인 탭(유럽 묶음에도 든다). 판이 둘(1:100만·MAGNA 1:5만)이고 레이어 이름이 번호라 igme:<판>:<번호> 로 둔다(web/viewer/igme.py). 1:100만은 3857 을 그려 주지 않아 4326 으로 받는다. MAGNA 는 줌 11 부터 그린다. 범위는 카나리아까지 (wetherilli 147).",
+ "_주석": "IGME(스페인 지질광물연구소) 지질도 씨앗이다 — 스페인 탭(유럽 묶음에도 든다). 판이 둘(1:100만·MAGNA 1:5만)이고 레이어 이름이 번호라 igme:<판>:<번호> 로 둔다(web/viewer/igme.py). 1:100만은 3857 을 그려 주지 않아 4326 으로 받는다. MAGNA 는 줌 11 부터 그린다. 범위는 카나리아까지 (wetherilli 147). 광물 산지·채굴지는 BasesDatos 폴더다 (wetherilli 296).",
  "_뽑은날": "2026-10-02",
  "_출처": "https://mapas.igme.es/gis/services/Cartografia_Geologica/IGME_MAGNA_50/MapServer/WMSServer?request=GetCapabilities&service=WMS",
  "_지역": "spain",
  "_상류": "igme",
  "_레이어군차례": 1,
  "레이어군순서": [
-  "스페인 지질 (IGME)"
+  "스페인 지질 (IGME)",
+  "스페인 광물 (IGME)"
  ],
  "레이어": [
   {
@@ -41,6 +42,30 @@
    "bbox": [
     -18.2,
     27.6,
+    4.4,
+    43.9
+   ]
+  },
+  {
+   "name": "igme:bdmin:0+1",
+   "title": "광물 산지 (BDMIN)",
+   "group": "스페인 광물 (IGME)",
+   "abstract": "Indicios minerales — BasesDatos/IGME_BDMIN_Indicios",
+   "bbox": [
+    -9.4,
+    35.9,
+    4.4,
+    43.9
+   ]
+  },
+  {
+   "name": "igme:bdminexp:0+1",
+   "title": "산업 광물·암석 채굴지 (BDMIN)",
+   "group": "스페인 광물 (IGME)",
+   "abstract": "Explotaciones de rocas y minerales industriales",
+   "bbox": [
+    -9.4,
+    35.9,
     4.4,
     43.9
    ]

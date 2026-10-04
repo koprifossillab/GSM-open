@@ -26,10 +26,12 @@ log = logging.getLogger(__name__)
 PREFIX = "igme:"
 ATTRIBUTION = '<a href="https://info.igme.es/" target="_blank" rel="noopener">© IGME</a> (CN IGME-CSIC)'
 #: 판 → 서비스. `/` 가 든 것은 `Cartografia_Geologica` 밖의 폴더다(서비스 뿌리에서 센다)
-SHEETS = {"geologico1m": "IGME_Geologico_1M", "magna50": "IGME_MAGNA_50", "sgnrd": "PSysmin/IGME_SGN_EN_Geology"}
+SHEETS = {"geologico1m": "IGME_Geologico_1M", "magna50": "IGME_MAGNA_50", "sgnrd": "PSysmin/IGME_SGN_EN_Geology",
+          # 광물 산지(BDMIN Indicios)·산업 광물·암석 채굴지(BDMIN Explotaciones) — `BasesDatos` 폴더 (wetherilli 296)
+          "bdmin": "BasesDatos/IGME_BDMIN_Indicios", "bdminexp": "BasesDatos/IGME_BDMIN_Explotaciones"}
 #: 판마다 받는 투영과 그리는 화면 줌
-PROJECTION = {"geologico1m": "EPSG:4326", "magna50": "EPSG:3857", "sgnrd": "EPSG:3857"}
-ZOOMS = {"geologico1m": (None, None), "magna50": (11, None), "sgnrd": (None, None)}
+PROJECTION = {"geologico1m": "EPSG:4326", "magna50": "EPSG:3857", "sgnrd": "EPSG:3857", "bdmin": "EPSG:3857", "bdminexp": "EPSG:3857"}
+ZOOMS = {"geologico1m": (None, None), "magna50": (11, None), "sgnrd": (None, None), "bdmin": (None, None), "bdminexp": (None, None)}
 #: 범례 그림을 두지 않는 판 — 너무 크다
 NO_LEGEND = ("sgnrd",)
 ATTRIBUTIONS = {"sgnrd": '<a href="https://info.igme.es/" target="_blank" rel="noopener">SGN República Dominicana · BGR · IGME</a> '
@@ -42,7 +44,7 @@ class IgmeError(RuntimeError):
 
 
 def split(name: str):
-    """`igme:magna50:0` → ("magna50", "0")."""
+    """`igme:magna50:0` → ("magna50", "0"). 상류 레이어 여럿은 `+` 로 잇는다(`igme:bdmin:0+1`, wetherilli 296 — BGR 과 같다)."""
     sheets, layers = set(), []
     for one in str(name or "").split(","):
         one = one.strip()
@@ -52,7 +54,7 @@ def split(name: str):
         if sheet not in SHEETS or not layer:
             raise IgmeError(f"모르는 레이어다: {one}")
         sheets.add(sheet)
-        layers.append(layer)
+        layers.append(layer.replace("+", ","))
     if len(sheets) != 1:
         raise IgmeError("판이 다른 레이어를 한 번에 물을 수 없다")
     return sheets.pop(), ",".join(layers)
@@ -158,7 +160,26 @@ FRIENDLY = (
 )
 
 
+#: 광물 산지·채굴지(wetherilli 296) — ESRI XML 의 열 이름(별칭)
+MINERAL_FRIENDLY = (("Nombre Mina", "이름"), ("NombreMina", "이름"), ("Sustancia", "광종"), ("Asociación Mineral", "광물 조합"),
+                    ("AsociaciónMineral", "광물 조합"), ("Morfología", "광상 형태"), ("Tamaño indicio", "광상 규모"), ("Tamañoindicio", "광상 규모"),
+                    ("Estado_Explotacion", "개발 단계"), ("Estado Explotacion", "개발 단계"), ("Forma_Explotacion", "채굴 형태"),
+                    ("Forma Explotacion", "채굴 형태"), ("Usos", "쓰임"), ("Municipio", "곳"), ("Provincia", "주"))
+
+
 def friendly(props: dict, lang: str = "ko") -> dict:
+    if "Sustancia" in props:
+        out = {}
+        for key, label in MINERAL_FRIENDLY:
+            value = str(props.get(key) or "").strip()
+            if value and value.lower() != "null" and label not in out:
+                out[label] = value
+        lo = str(props.get("EdadInferior") or props.get("Edad Inferior") or props.get("Edad_inferior") or "").strip()
+        hi = str(props.get("EdadSuperior") or props.get("Edad Superior") or props.get("Edad_superior") or "").strip()
+        age = " - ".join(x.capitalize() for x in (lo, hi) if x and x.lower() != "null")
+        if age:
+            out["지질시대 (원문)"] = age
+        return out
     out = {}
     for key, label in FRIENDLY:
         value = str(props.get(key) or "").strip()

@@ -8,6 +8,7 @@
 #   fetch_gfs_wind   지금의 바람·구름 (GFS 분석과 +12 시간까지 예보, koprifossillab 003·008·011)
 #   fetch_gmgsi      위성 구름 (NOAA GMGSI, koprifossillab 012)
 #   fetch_araon      아라온호 위치 (극지연구소, koprifossillab 004)
+#   fetch_recent_quakes  최근 지진 — USGS 실시간 피드, 지난 7 일 M2.5 이상 (wetherilli 292)
 #
 # 한 일이 멈추거나 늦어도 다음 일은 부른다. 일마다 timeout 이 있다.
 #
@@ -20,7 +21,7 @@ set -uo pipefail
 HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 STATUS="${GSM_HOURLY_STATUS:-/srv/GSM/db/hourly_status.json}"
 LOG="${GSM_HOURLY_LOG:-/data/GSM/logs/hourly.log}"
-JOBS=(fetch_gfs_wind fetch_gmgsi fetch_araon)
+JOBS=(fetch_gfs_wind fetch_gmgsi fetch_araon fetch_recent_quakes)
 [[ $# -gt 0 ]] && JOBS=("$@")
 LIMIT=900                    # 일 하나에 주는 초 — 판이 오른 뒤 첫 차례는 venv 를 새로 만들어 길다
 
