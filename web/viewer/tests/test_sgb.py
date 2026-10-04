@@ -1,4 +1,4 @@
-"""브라질 — SGB GeoServer 의 1:250만(2025)·1:100만·1:25만 (wetherilli 191). 상류를 부르지 않는다.
+"""브라질 — SGB GeoServer 의 1:250만(2025)·1:100만·1:25만 (wetherilli 191), 노두·연대측정·화석 산지 점 (215). 상류를 부르지 않는다.
 
 속성과 범례의 꼴은 2026-10-04 에 브라질리아 둘레에서 받은 그대로다(`propertyName` 을 붙인 GetFeatureInfo, `hideEmptyRules` 를 단
 GetLegendGraphic JSON).
@@ -67,6 +67,34 @@ class Friendly(SimpleTestCase):
                          {"갈래": "Zona de cisalhamento"})
 
 
+class PointFriendly(SimpleTestCase):
+    """점 레이어(wetherilli 215) — 2026-10-04 에 받은 GetFeatureInfo 의 꼴 그대로"""
+
+    def test_노두(self):
+        got = sgb.friendly({"numero_campo": "CA 441", "toponimia": "Saída de Zabelê", "municipio": "Zabelê", "uf": "PB",
+                            "tipo_afloramento": "Corte de estrada", "rochas": "Xisto", "descricao": "Rocha com  granada.",
+                            "projeto": "Geologia da Folha Sertânia", "folha": "Sertânia", "codigo_folha": "SC.24-X-B-I"})
+        self.assertEqual(got, {"야외 번호": "CA 441", "노두 갈래": "Corte de estrada", "암석": "Xisto",
+                               "설명": "Rocha com granada.", "장소": "Saída de Zabelê", "지자체": "Zabelê, PB",
+                               "과제": "Geologia da Folha Sertânia", "도폭": "Sertânia (SC.24-X-B-I)"})
+
+    def test_연대측정(self):
+        got = sgb.friendly({"amostra": "Nanuque", "rocha": "Enderbito", "metodos": "Sm-Nd - Idade modelo",
+                            "materiais_analisados": "Rocha total", "toponimia": None, "nivel_acesso": "Acesso restrito"})
+        self.assertEqual(list(got), ["시료 번호", "암석", "측정법", "분석 재료", "자료 공개"])
+
+    def test_화석의_시대는_원문을_편다(self):
+        got = sgb.friendly({"identificacao": "CPDG000009", "sistematica": "Icnofóssil", "taxon": None, "material": "pegadas",
+                            "unidade_cronoestratigrafica": "ERA CENOZOICO  \r\nPERIODO TERCIARIO\r\nEPOCA PLIOCENO",
+                            "litologia": "Arenito", "observacao": "null"})
+        self.assertEqual(got, {"번호": "CPDG000009", "분류": "Icnofóssil", "재료": "pegadas",
+                               "층서 시대": "ERA CENOZOICO PERIODO TERCIARIO EPOCA PLIOCENO", "암석": "Arenito"})
+
+    def test_점_레이어는_범례가_없고_노두만_가까이서(self):
+        self.assertEqual([sgb.zooms(n)[0] for n in ("sgb:outcrops", "sgb:geochronology", "sgb:fossils")], [8, None, None])
+        self.assertFalse({"sgb:outcrops", "sgb:geochronology", "sgb:fossils"} & set(sgb.legend_layers()))
+
+
 class Views(TestCase):
     def setUp(self):
         tmp = tempfile.mkdtemp(prefix="gsm-sgb-")
@@ -111,6 +139,21 @@ class Views(TestCase):
         self.assertIn("sigla", sent["propertyName"].split(","))
         self.assertNotIn("geom", sent["propertyName"])
         self.assertEqual(data["features"][0]["props"]["이름"], "Formação Três Marias")
+
+    def test_점_레이어(self):
+        self.assertEqual(Layer.objects.get(name="sgb:fossils").group.region, "brazil")
+        self.assertEqual(self.layers["sgb:outcrops"]["minZoom"], 8)
+        self.assertTrue(self.layers["sgb:geochronology"]["noLegend"])
+        body = {"type": "FeatureCollection", "features": [{"type": "Feature", "geometry": None,
+                                                           "properties": {"identificacao": "CPDG000009", "taxon": "Mesosaurus"}}]}
+        with mock.patch.object(sgb.requests, "get", return_value=answer(json=lambda: body)) as get:
+            data = self.client.get(reverse("viewer:featureinfo"), {
+                "layers": "sgb:fossils", "query_layers": "sgb:fossils", "i": 256, "j": 256, "request": "GetFeatureInfo",
+                **MERC}).json()
+        sent = get.call_args.kwargs["params"]
+        self.assertEqual(sent["query_layers"], "geosgb:ocorrencias_fossiliferas")
+        self.assertIn("taxon", sent["propertyName"].split(","))
+        self.assertEqual(data["features"][0]["props"]["분류군"], "Mesosaurus")
 
     def test_보는_범위의_범례(self):
         Path(sgb.units_path()).write_text(json.dumps({"layers": {"sgb:1m": {

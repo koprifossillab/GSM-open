@@ -1513,6 +1513,12 @@ button.proplink { font-family: inherit; line-height: inherit; cursor: pointer; }
                list-style: none; background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius);
                box-shadow: var(--shadow); }
 .region-menu[hidden] { display: none; }
+/* 지역이 서른을 넘어 "그 외" 의 차림이 길다 — 화면에 붙여 세우고 그 안에서 굴린다 (wetherilli 214) */
+#regions .region-menu { position: fixed; z-index: 60; max-width: calc(100vw - 16px);
+                        overflow-y: auto; }
+.region-fold { white-space: nowrap; }
+.region-menu li.added { display: flex; justify-content: space-between; align-items: center; }
+.region-menu li.on { color: var(--on-hi); background: var(--hi); font-weight: 600; }
 .region-menu li { padding: 7px 10px; font-size: 12.5px; border-radius: calc(var(--radius) - 2px); cursor: pointer; }
 .region-menu li:hover { color: var(--on-hi); background: var(--hi); }
 /* 묶음 밑의 지역은 들여 세운다. 이미 더한 묶음은 누를 수 없는 제목으로만 (wetherilli 111) */
@@ -2448,6 +2454,66 @@ a.tool { text-decoration: none; }                /* 3D 단추는 링크다 */
   --hi: #3f2508; --hi-deep: #281604; --on-hi: #fdf8f0; --hi-ink: #9c5e12;
   --glass: rgba(254, 251, 246, .95); --glass-line: #e7d7bd;
 
+/* ── 이탈리아 (wetherilli 211) — 카라라 대리석의 흰빛에 테라코타 ── */
+:root[data-region="italy"] {
+  --bg: #16120f; --panel: #1d1814; --panel-tint: #110e0b; --raise: #29221c;
+  --ink: #f3f1ee; --ink-soft: #c4beb5; --ink-faint: #857f76;
+  --line: #3a3029; --line-soft: #29221c;
+  --gold: #c9683f; --gold-bright: #e8a07f; --gold-muted: #a85532;
+  --gold-wash: rgba(201, 104, 63, .13); --gold-edge: rgba(201, 104, 63, .42);
+  --hi: #c9683f; --hi-deep: #e8a07f; --on-hi: #110e0b; --hi-ink: #e8a07f;
+  --glass: rgba(17, 14, 11, .93); --glass-line: rgba(201, 104, 63, .42);
+}
+:root[data-region="italy"][data-theme="light"] {
+  --bg: #f8f4f0; --panel: #fefcfa; --panel-tint: #faf6f2; --raise: #eee5dc;
+  --ink: #1f1c18; --ink-soft: #4f4a42; --ink-faint: #8a847a;
+  --line: #e5d9cd; --line-soft: #eee5dc;
+  --gold: #a4471f; --gold-bright: #7e3415; --gold-muted: #9b6046;
+  --gold-wash: #f6e4d9; --gold-edge: #e6b9a3;
+  --hi: #3a1a0c; --hi-deep: #250f06; --on-hi: #fefcfa; --hi-ink: #a4471f;
+  --glass: rgba(253, 252, 250, .95); --glass-line: #e5d9cd;
+}
+
+/* ── 포르투갈 (wetherilli 211) — 아줄레주 타일의 코발트 청 ── */
+:root[data-region="portugal"] {
+  --bg: #0f1218; --panel: #151a22; --panel-tint: #0b0e13; --raise: #1f2531;
+  --ink: #f3f1ee; --ink-soft: #c4beb5; --ink-faint: #857f76;
+  --line: #2b3343; --line-soft: #1f2531;
+  --gold: #3f72c4; --gold-bright: #8fb0e6; --gold-muted: #3460a6;
+  --gold-wash: rgba(63, 114, 196, .13); --gold-edge: rgba(63, 114, 196, .42);
+  --hi: #3f72c4; --hi-deep: #8fb0e6; --on-hi: #0b0e13; --hi-ink: #8fb0e6;
+  --glass: rgba(11, 14, 19, .93); --glass-line: rgba(63, 114, 196, .42);
+}
+:root[data-region="portugal"][data-theme="light"] {
+  --bg: #f0f3f8; --panel: #fbfcfe; --panel-tint: #f4f6fa; --raise: #e0e6f0;
+  --ink: #1f1c18; --ink-soft: #4f4a42; --ink-faint: #8a847a;
+  --line: #d2dbea; --line-soft: #e0e6f0;
+  --gold: #1f4f9e; --gold-bright: #173b77; --gold-muted: #4d6896;
+  --gold-wash: #dfe8f6; --gold-edge: #a9c0e6;
+  --hi: #0f2147; --hi-deep: #081430; --on-hi: #fbfcfe; --hi-ink: #1f4f9e;
+  --glass: rgba(253, 252, 250, .95); --glass-line: #d2dbea;
+}
+
+/* ── 스위스 (wetherilli 211) — 알프스 빙하 호수의 옥빛 ── */
+:root[data-region="switzerland"] {
+  --bg: #0e1514; --panel: #141c1b; --panel-tint: #0a100f; --raise: #1e2928;
+  --ink: #f3f1ee; --ink-soft: #c4beb5; --ink-faint: #857f76;
+  --line: #2a3836; --line-soft: #1e2928;
+  --gold: #3fb39b; --gold-bright: #8fdcca; --gold-muted: #33937f;
+  --gold-wash: rgba(63, 179, 155, .13); --gold-edge: rgba(63, 179, 155, .42);
+  --hi: #3fb39b; --hi-deep: #8fdcca; --on-hi: #0a100f; --hi-ink: #8fdcca;
+  --glass: rgba(10, 16, 15, .93); --glass-line: rgba(63, 179, 155, .42);
+}
+:root[data-region="switzerland"][data-theme="light"] {
+  --bg: #eff6f4; --panel: #fbfdfd; --panel-tint: #f4f9f8; --raise: #dfece9;
+  --ink: #1f1c18; --ink-soft: #4f4a42; --ink-faint: #8a847a;
+  --line: #d0e2dd; --line-soft: #dfece9;
+  --gold: #1d7f6c; --gold-bright: #155f50; --gold-muted: #4a8579;
+  --gold-wash: #dcf0eb; --gold-edge: #a3d6ca;
+  --hi: #0c3b31; --hi-deep: #062520; --on-hi: #fbfdfd; --hi-ink: #1d7f6c;
+  --glass: rgba(253, 252, 250, .95); --glass-line: #d0e2dd;
+}
+
 /* ── 캐나다 (wetherilli 204) — 단풍잎의 붉은빛: 캐나다 순상지 화강암의 회색 바탕 ── */
 :root[data-region="canada"] {
   --bg: #151313; --panel: #1c1919; --panel-tint: #110f0f; --raise: #282323;
@@ -2466,6 +2532,26 @@ a.tool { text-decoration: none; }                /* 3D 단추는 링크다 */
   --gold-wash: #f7e3e0; --gold-edge: #e7b3ad;
   --hi: #3b0f0a; --hi-deep: #250805; --on-hi: #fdf8f7; --hi-ink: #b22a1e;
   --glass: rgba(253, 251, 251, .95); --glass-line: #e4d9d7;
+}
+
+/* ── 북미(묶음, wetherilli 210) — 대평원의 밀빛: 프레리의 밤 바탕 ── */
+:root[data-region="north_america"] {
+  --bg: #12110c; --panel: #1a1912; --panel-tint: #0d0c08; --raise: #25231a;
+  --ink: #f5f2e6; --ink-soft: #cdc6a8; --ink-faint: #8a8468;
+  --line: #36321f; --line-soft: #25231a;
+  --gold: #c9b05a; --gold-bright: #e6d496; --gold-muted: #a8924c;
+  --gold-wash: rgba(201, 176, 90, .13); --gold-edge: rgba(201, 176, 90, .42);
+  --hi: #c9b05a; --hi-deep: #e6d496; --on-hi: #0d0c08; --hi-ink: #e6d496;
+  --glass: rgba(13, 12, 8, .93); --glass-line: rgba(201, 176, 90, .35);
+}
+:root[data-region="north_america"][data-theme="light"] {
+  --bg: #f6f3e7; --panel: #fdfcf6; --panel-tint: #f9f7ee; --raise: #ebe5cf;
+  --ink: #1f1c10; --ink-soft: #565036; --ink-faint: #8d876a;
+  --line: #e0d9bd; --line-soft: #ebe5cf;
+  --gold: #8a7428; --gold-bright: #6a591c; --gold-muted: #857647;
+  --gold-wash: #f3ecd0; --gold-edge: #ddcd8f;
+  --hi: #2f2a10; --hi-deep: #1c1907; --on-hi: #fbfaf2; --hi-ink: #8a7428;
+  --glass: rgba(253, 252, 246, .95); --glass-line: #e0d9bd;
 }
 
 /* ── 호주 (wetherilli 212) — 그레이트배리어리프의 산호빛: 산호해의 깊은 바다 바탕 ── */

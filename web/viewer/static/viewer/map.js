@@ -140,15 +140,15 @@
                     basemap: "gibs_bm_n", example: "71.5, -156.8",
                     base: [],
                     first: "kopri:kpdc_ocean_arctic_ocean" },
-    // ── 노르웨이·핀란드 (wetherilli 140) ──
-    // NGU(노르웨이)·GTK(핀란드)의 기반암 지질도를 중계한다. 스발바르와 같은 3413 이라 북극 묶음에 든다.
-    // GTK 는 3413 을 그대로 받고, NGU 는 3413 을 그려 주지 않아 북극 람베르트(3575)로 받아 옮겨 그린다
-    fennoscandia: { title: "노르웨이·핀란드", proj: "EPSG:3413", center: [18.0, 65.0], zoom: 4, vworld: false,
+    // ── 노르웨이·스웨덴·핀란드 (wetherilli 140·213) ──
+    // NGU(노르웨이)·SGU(스웨덴)·GTK(핀란드)의 기반암 지질도를 중계한다. 스발바르와 같은 3413 이라 북극 묶음에 든다.
+    // GTK·SGU 는 3413 을 그대로 받고, NGU 는 3413 을 그려 주지 않아 북극 람베르트(3575)로 받아 옮겨 그린다
+    fennoscandia: { title: "노르웨이·스웨덴·핀란드", proj: "EPSG:3413", center: [18.0, 65.0], zoom: 4, vworld: false,
                     home: [1525000, -2371000, 3522000, -455000],
                     basemap: "eox_terrain", example: "69.649, 18.956 · Tromsø",
                     base: ["ngu:Berggrunn_nasjonal_bergartsenheter", "ngu:Berggrunn_regional_hovedbergarter",
-                           "gtk:kalliopera_1m_kivilajiseurueet", "gtk:Litologiset_yksiköt_200k25132"],
-                    first: ["ngu:Berggrunn_nasjonal_bergartsenheter", "gtk:kalliopera_1m_kivilajiseurueet"],
+                           "gtk:kalliopera_1m_kivilajiseurueet", "gtk:Litologiset_yksiköt_200k25132", "sgu:bedrock"],
+                    first: ["ngu:Berggrunn_nasjonal_bergartsenheter", "gtk:kalliopera_1m_kivilajiseurueet", "sgu:bedrock"],
                     borrow: { arctic_ocean: ["earth"] } },
     arctic: { title: "북극", proj: "EPSG:3413", center: [-20.0, 76.0], zoom: 3, vworld: false,
               includes: ["greenland", "svalbard", "jan_mayen", "arctic_ocean", "fennoscandia"],
@@ -232,6 +232,26 @@
                       "gsni:5"],
                first: "gsi:1m:IE_GSI_GSNI_Bedrock_Geology_1M_IE32_ITM",
                borrow: { uk: ["egdi", "emodnet"], arctic_ocean: ["emodnet"] } },
+    // ── 이탈리아·포르투갈·스위스 (wetherilli 211) ──
+    // ISPRA 1:100만·1:10만, LNEG 1:50만, swisstopo 1:50만·GeoCover. EGDI 1:100만(과 바다를 낀 둘은 EMODnet)은 영국에서 빌린다
+    italy: { title: "이탈리아", proj: "EPSG:3857", center: [12.5, 42.0], zoom: 6, vworld: false,
+             home: [723577, 4369641, 2070543, 5958412],
+             basemap: "eox_terrain", example: "41.902, 12.496 · Roma",
+             base: ["ispra:1m:0", "ispra:100k:1"],
+             first: "ispra:1m:0",
+             borrow: { uk: ["egdi", "emodnet"], arctic_ocean: ["emodnet"] } },
+    portugal: { title: "포르투갈", proj: "EPSG:3857", center: [-8.0, 39.6], zoom: 7, vworld: false,
+                home: [-1068667, 4425177, -679049, 5190986],
+                basemap: "eox_terrain", example: "38.722, -9.139 · Lisboa",
+                base: ["lneg:500k:2", "lneg:500k:4"],
+                first: "lneg:500k:2",
+                borrow: { uk: ["egdi", "emodnet"], arctic_ocean: ["emodnet"] } },
+    switzerland: { title: "스위스", proj: "EPSG:3857", center: [8.2, 46.8], zoom: 8, vworld: false,
+                   home: [656785, 5748357, 1168855, 6073646],
+                   basemap: "eox_terrain", example: "46.948, 7.447 · Bern",
+                   base: ["swisstopo:geologische_karte", "swisstopo:geocover"],
+                   first: "swisstopo:geologische_karte",
+                   borrow: { uk: ["egdi"] } },
     // ── 남미 (wetherilli 188·191) ──
     // 나라 탭 둘(콜롬비아·브라질)과 묶음 "남미". SGC 가 내는 남미 1:500만(CGMW 2019)이 대륙 바탕이다 — 콜롬비아 지역에 두고
     // 브라질이 그 레이어군만 빌린다(`borrow` 의 `sgc:sa:` — 이름 앞머리로). 칠레·페루처럼 나라 판이 없는 곳은 묶음에서 1:500만이 메운다
@@ -279,8 +299,17 @@
     canada: { title: "캐나다", proj: "EPSG:3978", center: [-96.0, 60.0], zoom: 4, vworld: false,
               home: [-2400000, -900000, 3100000, 4600000],
               basemap: "eox_terrain", example: "45.42, -75.70 · Ottawa",
-              base: ["nrcan:wheeler", "ogs:3", "ogs:1"],
+              base: ["nrcan:wheeler", "ogs:3", "ogs:1", "sigeom:generale", "sigeom:regionale", "ygs:47"],
               first: "nrcan:wheeler" },
+    // 북미 묶음(wetherilli 210) — 캐나다·미국·멕시코를 캐나다 람베르트(3978) 한 화면에 모은다. 알래스카와 북극 섬이 부풀지 않고 멕시코(북위
+    // 15° 남짓)도 크게 비틀리지 않는다. 처음 켜는 것은 나라마다 넓게 봐도 그려지는 판 하나 — 캐나다 1:500만·미국 SGMC·멕시코 1:25만.
+    // 셋은 국경에서만 겹친다. 주 판(온타리오·퀘벡·유콘)과 알래스카는 목록에서 켠다
+    north_america: { title: "북미", proj: "EPSG:3978", center: [-100.0, 45.0], zoom: 3, vworld: false,
+                     includes: ["canada", "usa", "mexico"],
+                     home: [-3995000, -4275000, 3052000, 3777000],
+                     basemap: "eox_terrain", example: "45.42, -75.70 · Ottawa",
+                     base: ["nrcan:wheeler", "mrdata:sgmc2:sgmc2", "sgm:8", "mrdata:sim3340:units"],
+                     first: ["nrcan:wheeler", "mrdata:sgmc2:sgmc2", "sgm:8"] },
     // 남미 묶음 — 레이어군은 북에서 남으로(콜롬비아·에콰도르·페루·브라질·우루과이·아르헨티나) 선다. **처음 켜는 것**은 대륙 바탕
     // 1:500만을 맨 밑에 두고, 나라마다 넓게 봐도 빨리 그려지는 판 하나씩을 그 위에 얹는다 — 브라질 1:250만(1:100만은 줌 6 부터)·
     // 아르헨티나 1:250만·페루 1:5만(타일 캐시)·콜롬비아 1:50만·우루과이 1:50만. 나라 판끼리는 국경에서만 겹친다. 에콰도르는 넓은 줌의
@@ -312,17 +341,18 @@
                  base: ["ga:lithostratigraphy", "ga:age", "ga:lithology", "ga:faults"],
                  first: "ga:lithostratigraphy" },
     europe: { title: "유럽", proj: "EPSG:3857", center: [0.0, 50.0], zoom: 5, vworld: false,
-              includes: ["uk", "ireland", "france", "germany", "spain"],
-              home: [-1225000, 4232000, 1781000, 8626000],
+              includes: ["uk", "ireland", "france", "germany", "spain", "portugal", "italy", "switzerland"],
+              // 이탈리아(풀리아·시칠리아)까지 — 동쪽을 넓혔다 (wetherilli 211)
+              home: [-1225000, 4232000, 2100000, 8626000],
               basemap: "eox_terrain",
               base: ["egdi:GeologicUnitView_Age", "bgs:BGS.50k.Bedrock", "brgm:SCAN_F_GEOL1M"],
               first: "egdi:GeologicUnitView_Age",
               borrow: { arctic_ocean: ["emodnet"] } },
-    // ── 북미 (wetherilli 205) ──
-    // 미국 — USGS SGMC(본토 48 주, 주 지질도 합본)와 알래스카 SIM 3340. 공공 도메인. 3857 이라 알래스카는 부풀어 보인다 — 북미 묶음은
-    // 캐나다 탭(gsm-57)이 들어오면 그 투영에 맞춰 세운다
-    usa: { title: "미국", proj: "EPSG:3857", center: [-98.0, 39.0], zoom: 4, vworld: false,
-           home: [-13971000, 2753000, -7403000, 6412000],
+    // ── 북미 (wetherilli 205·210) ──
+    // 미국 — USGS SGMC(본토 48 주, 주 지질도 합본)와 알래스카 SIM 3340. 공공 도메인. 화면은 캐나다와 같은 캐나다 람베르트(3978) —
+    // 3857 이면 알래스카가 본토만큼 부푼다. 레이어는 3857 로 받아 화면이 옮겨 그린다(카탈로그 행의 `projection`, wetherilli 210)
+    usa: { title: "미국", proj: "EPSG:3978", center: [-105.0, 45.0], zoom: 3, vworld: false,
+           home: [-4204000, -2746000, 3309000, 3650000],
            basemap: "eox_terrain", example: "39.74, -104.99 · Denver",
            base: ["mrdata:sgmc2:sgmc2", "mrdata:sgmc2:sgmc2structure", "mrdata:sim3340:units"],
            first: "mrdata:sgmc2:sgmc2" },
@@ -393,7 +423,7 @@
     return g.region === "antarctica" && g.layers.length;
   });
   //: 스발바르·북극·일본·중국도 카탈로그에 레이어군이 하나도 없으면 "준비 중" 이다 (씨앗을 안 넣은 DB)
-  ["svalbard", "arctic", "arctic_ocean", "fennoscandia", "japan", "china", "taiwan", "uk", "france", "germany", "spain", "ireland", "europe", "colombia", "brazil", "peru", "argentina", "uruguay", "ecuador", "south_america", "canada", "africa", "usa", "mexico", "australia"].forEach(function (key) {
+  ["svalbard", "arctic", "arctic_ocean", "fennoscandia", "japan", "china", "taiwan", "uk", "france", "germany", "spain", "ireland", "europe", "colombia", "brazil", "peru", "argentina", "uruguay", "ecuador", "south_america", "canada", "africa", "italy", "portugal", "switzerland", "usa", "mexico", "north_america", "australia"].forEach(function (key) {
     if (!REGIONS[key]) return;            // 정적 판이 싣지 않은 지역
     var keys = REGIONS[key].includes || [key];
     REGIONS[key].pending = !catalog.some(function (g) {
@@ -429,6 +459,8 @@
     return Math.log2(MERC_RES0 * Math.cos(lat * Math.PI / 180) / resolution);
   }
   var addedRegions = ["korea"];
+  /** 탭 줄에 늘 서는 지역 — 나머지는 "그 외" 로 접는다 (wetherilli 214) */
+  var PINNED = ["korea", "arctic", "antarctica"];
 
   // ── 공유 링크 (wetherilli 189) ──
   // 주소의 해시(`share.js`)로 들어오면 그 지역·자리·레이어·배경을 덧층에 깔고 연다. 아래의 기억(지역·자리·레이어·배경)은 모두
@@ -829,6 +861,8 @@
     // 노르웨이 NGU(3575)·핀란드 GTK(3413) 기반암(wetherilli 140) — 카탈로그 행의 투영으로 받는다
     ngu: { source: npolarSource, info: wmsInfoUrl },
     gtk: { source: npolarSource, info: wmsInfoUrl },
+    // 스웨덴 SGU(wetherilli 213) — GeoServer 가 3413 을 그린다. 레이어 하나가 1:100만·5만 판을 함께 부른다
+    sgu: { source: npolarSource, info: wmsInfoUrl },
     // 영국 BGS·프랑스 BRGM·범유럽 EGDI(wetherilli 143) — 3857 이지만 출처를 카탈로그 행에서 받으려고 같은 틀을 쓴다
     bgs: { source: npolarSource, info: wmsInfoUrl },
     brgm: { source: npolarSource, info: wmsInfoUrl },
@@ -862,8 +896,15 @@
     // 캐나다 NRCan·온타리오 OGS(wetherilli 204) — 카탈로그 행의 투영(3978)으로 서버 문을 거쳐 받는다. OGS 속성은 문이 REST identify 로 바꾼다
     nrcan: { source: npolarSource, info: wmsInfoUrl },
     ogs: { source: npolarSource, info: wmsInfoUrl },
+    // 퀘벡 SIGÉOM·유콘 YGS(wetherilli 210) — 카탈로그 행의 투영(3978)으로 서버 문을 거쳐 받는다. 퀘벡은 Origin 을 보내면 403 이라 문으로만
+    sigeom: { source: npolarSource, info: wmsInfoUrl },
+    ygs: { source: npolarSource, info: wmsInfoUrl },
     // 호주 GA(wetherilli 212) — ArcGIS WMS 를 3857 로. 범례는 보는 범위의 것(`ga/legend/`)
     ga: { source: npolarSource, info: wmsInfoUrl },
+    // 이탈리아 ISPRA·포르투갈 LNEG·스위스 swisstopo(wetherilli 211) — 유럽 문처럼 카탈로그 행의 투영(3857)으로 서버 문을 거친다
+    ispra: { source: npolarSource, info: wmsInfoUrl },
+    lneg: { source: npolarSource, info: wmsInfoUrl },
+    swisstopo: { source: npolarSource, info: wmsInfoUrl },
     phyloserver: { source: phyloserverSource, info: null },
     peninsula: { source: peninsulaSource, info: null },
     // 남극 IBCSO 자료 출처(071) — GeoMAP 과 같은 3031 격자에 우리가 잘라 둔 것
@@ -1333,14 +1374,16 @@
     title: T("Sentinel-2 위성 (EOX)"),
     note: T("EOX · Copernicus Sentinel-2 (2023). 비상업 이용만 된다. 북위 82° 위는 해안선이 거칠다 — ArcticDEM 을 쓴다"),
     regions: ["greenland", "jan_mayen", "svalbard", "arctic_ocean", "fennoscandia", "japan", "china", "taiwan", "uk", "france",
-              "germany", "spain", "ireland", "colombia", "brazil", "peru", "argentina", "uruguay", "ecuador", "usa", "mexico", "africa", "canada", "australia"],
+              "germany", "spain", "ireland", "colombia", "brazil", "peru", "argentina", "uruguay", "ecuador", "usa", "mexico", "africa", "canada", "australia",
+              "italy", "portugal", "switzerland"],
     make: function () { return eoxLayer("s2cloudless-2023_3857", 16, EOX_S2); },
   };
   BASEMAPS.eox_terrain = {
     title: T("지형 음영 (EOX)"),
     note: T("EOX · OpenStreetMap. 비상업 이용만 된다. 북위 82° 위는 해안선이 거칠다 — ArcticDEM 을 쓴다"),
     regions: ["greenland", "jan_mayen", "svalbard", "arctic_ocean", "fennoscandia", "japan", "china", "taiwan", "uk", "france",
-              "germany", "spain", "ireland", "colombia", "brazil", "peru", "argentina", "uruguay", "ecuador", "usa", "mexico", "africa", "canada", "australia"],
+              "germany", "spain", "ireland", "colombia", "brazil", "peru", "argentina", "uruguay", "ecuador", "usa", "mexico", "africa", "canada", "australia",
+              "italy", "portugal", "switzerland"],
     make: function () { return eoxLayer("terrain-light_3857", 13, EOX_TERRAIN); },
   };
   BASEMAPS.arcticdem = {
@@ -2334,7 +2377,7 @@
   //: 상류의 짧은 이름 — 기관 이름이라 옮기지 않는다
   var UPSTREAM_TAGS = {
     kigam: "KIGAM", vworld: "VWorld", geus: "GEUS", grportal: "GRL", npolar: "NPI", janmayen: "NPI",
-    gsj: "GSJ", gsitile: "GSIJ", geonavi: "GSJ", ccop: "CCOP", gsmma: "GSMMA", emodnet: "EMOD", ngu: "NGU", gtk: "GTK", bgs: "BGS", brgm: "BRGM", egdi: "EGDI", bgr: "BGR", igme: "IGME", gsi: "GSI", gsni: "GSNI", sgc: "SGC", sgb: "SGB", ingemmet: "INGEMMET", iige: "IIGE", cgmw: "CGMW", aga: "BGS", cgs: "CGS", gsn: "GSN", mrdata: "USGS", sgm: "SGM", nrcan: "NRCan", ogs: "OGS", ga: "GA", segemar: "SEGEMAR", dinamige: "DINAMIGE", geomap: "GeoMAP", geo3al: "USGS", kopri: "KOPRI", pgc: "PGC", ibcso: "IBCSO",
+    gsj: "GSJ", gsitile: "GSIJ", geonavi: "GSJ", ccop: "CCOP", gsmma: "GSMMA", emodnet: "EMOD", ngu: "NGU", gtk: "GTK", sgu: "SGU", bgs: "BGS", brgm: "BRGM", egdi: "EGDI", bgr: "BGR", igme: "IGME", gsi: "GSI", gsni: "GSNI", sgc: "SGC", sgb: "SGB", ingemmet: "INGEMMET", iige: "IIGE", cgmw: "CGMW", aga: "BGS", cgs: "CGS", gsn: "GSN", mrdata: "USGS", sgm: "SGM", nrcan: "NRCan", ogs: "OGS", sigeom: "SIGÉOM", ygs: "YGS", ga: "GA", ispra: "ISPRA", lneg: "LNEG", swisstopo: "swisstopo", segemar: "SEGEMAR", dinamige: "DINAMIGE", geomap: "GeoMAP", geo3al: "USGS", kopri: "KOPRI", pgc: "PGC", ibcso: "IBCSO",
     phyloserver: "LAB", peninsula: "LAB",
     // 지구 자료 점(wetherilli 185) — 기관이 넷이라 딱지는 하나로 두고 이름은 레이어 제목이 적는다
     earth: "EARTH",
@@ -2345,11 +2388,12 @@
     npolar: T("노르웨이 극지연구소"), janmayen: T("노르웨이 극지연구소"), gsj: T("일본 지질조사종합센터"), gsitile: T("일본 국토지리원"), geonavi: T("일본 지질조사종합센터"), ccop: "CCOP",
     gsmma: T("대만 지질조사·광업관리중심"),
     emodnet: "EMODnet Geology",
-    ngu: T("노르웨이 지질조사소"), gtk: T("핀란드 지질조사소"),
+    ngu: T("노르웨이 지질조사소"), gtk: T("핀란드 지질조사소"), sgu: T("스웨덴 지질조사소"),
     bgs: T("영국 지질조사소"), brgm: T("프랑스 지질광물조사소"), egdi: "EGDI (EuroGeoSurveys)",
     bgr: T("독일 연방 지구과학·자원청"), igme: T("스페인 지질광물연구소"), gsi: T("아일랜드 지질조사소"),
     sgc: T("콜롬비아 지질조사소"), sgb: T("브라질 지질조사소"), ingemmet: T("페루 지질광업야금연구소"), iige: T("에콰도르 지질·에너지 연구소"), mrdata: T("미국 지질조사국"), sgm: T("멕시코 지질조사소"),
-    nrcan: T("캐나다 천연자원부"), ogs: T("온타리오 지질조사소"),
+    nrcan: T("캐나다 천연자원부"), ogs: T("온타리오 지질조사소"), sigeom: T("퀘벡 지질 광업 정보 체계"), ygs: T("유콘 지질조사소"),
+    ispra: T("이탈리아 지질조사소 (ISPRA)"), lneg: T("포르투갈 국립 에너지·지질연구소"), swisstopo: T("스위스 연방 지형청"),
     segemar: T("아르헨티나 지질광업조사소"), dinamige: T("우루과이 광업지질국"),
     cgmw: T("세계지질도위원회·프랑스 지질광물조사소"), aga: T("영국 지질조사소 — 아프리카 지하수 지도책"),
     cgs: T("남아프리카공화국 지질조사소"), gsn: T("나미비아 지질조사소"), ga: "Geoscience Australia",
@@ -6063,14 +6107,14 @@
         addedRegions = ["korea"].concat(added.filter(function (r) { return REGIONS[r] && r !== "korea"; }));
       }
       var saved = stored("gsm.region");
-      if (saved && addedRegions.indexOf(saved) >= 0) region = saved;
+      if (saved && REGIONS[saved] && (addedRegions.indexOf(saved) >= 0 || PINNED.indexOf(saved) >= 0)) region = saved;
     } catch (e) { /* 사생활 모드 */ }
     // 소개 화면의 "이 지도로" 가 지역을 주소로 넘긴다(`?region=`). 탭이 없으면 더하고, 주소에서는
     // 지운다 — 새로 고칠 때마다 그 지역으로 끌려가지 않게 (wetherilli 113)
     var params = new URLSearchParams(location.search);
     var wanted = params.get("region");
     if (wanted && REGIONS[wanted]) {
-      if (addedRegions.indexOf(wanted) < 0) addedRegions.push(wanted);
+      if (addedRegions.indexOf(wanted) < 0 && PINNED.indexOf(wanted) < 0) addedRegions.push(wanted);
       region = wanted;
       params.delete("region");
       var qs = params.toString();
@@ -6085,47 +6129,70 @@
     } catch (e) { /* 사생활 모드 */ }
   }
 
-  /** 지역 탭 — 더한 지역들과 "+ 추가 지역". */
+  /** 지역 탭 — 늘 보이는 셋(한국·북극·남극)과, 나머지를 접은 "그 외" 하나 (wetherilli 214).
+   *  지역이 서른을 넘어 탭 줄이 몇 줄로 늘어났다. 더한 지역은 "그 외" 의 위 칸에, 아직 안 더한 것은
+   *  그 밑의 "+ 추가 지역" 칸에 묶음째 선다. 접힌 지역을 보는 동안에는 "그 외" 단추가 그 지역 이름이 된다 */
+  var foldCloser = false;
   function renderRegions() {
     var host = document.getElementById("regions");
     host.innerHTML = "";
-    addedRegions.forEach(function (key) {
+    var pinned = PINNED.filter(function (k) { return REGIONS[k]; });
+    pinned.forEach(function (key) {
       var tab = document.createElement("button");
       tab.type = "button";
       tab.className = "region-tab" + (key === region ? " on" : "");
       tab.dataset.region = key;
       tab.textContent = T(REGIONS[key].title);
       tab.addEventListener("click", function () { switchRegion(key); });
-      if (key !== "korea") {
-        var x = document.createElement("span");
-        x.className = "region-x";
-        x.textContent = "×";
-        x.title = T("이 지역을 탭에서 뺀다");
-        x.addEventListener("click", function (e) {
-          e.stopPropagation();
-          addedRegions = addedRegions.filter(function (r) { return r !== key; });
-          if (region === key) switchRegion("korea"); else { saveRegions(); renderRegions(); }
-        });
-        tab.appendChild(x);
-      }
       host.appendChild(tab);
     });
-    var more = Object.keys(REGIONS).filter(function (k) { return addedRegions.indexOf(k) < 0; });
-    if (!more.length) return;
+    var folded = addedRegions.filter(function (k) { return pinned.indexOf(k) < 0; });
+    var more = Object.keys(REGIONS).filter(function (k) { return addedRegions.indexOf(k) < 0 && pinned.indexOf(k) < 0; });
+    if (!folded.length && !more.length) return;
+    var inFold = pinned.indexOf(region) < 0;
     var wrap = document.createElement("div");
     wrap.className = "region-more";
     var btn = document.createElement("button");
     btn.type = "button";
-    btn.className = "region-add";
-    btn.textContent = "+ " + T("추가 지역");
+    btn.className = "region-tab region-fold" + (inFold ? " on" : "");
+    btn.dataset.region = inFold ? region : "";
+    btn.setAttribute("aria-haspopup", "true");
+    btn.textContent = (inFold ? T(REGIONS[region].title) : T("그 외")) + " ▾";
     var menu = document.createElement("ul");
     menu.className = "region-menu";
     menu.hidden = true;
+    function head(text) {
+      var li = document.createElement("li");
+      li.className = "head";
+      li.textContent = text;
+      menu.appendChild(li);
+    }
+    // 더한 지역 — 누르면 그리로, × 로 뺀다
+    folded.forEach(function (key) {
+      var li = document.createElement("li");
+      li.className = "added" + (key === region ? " on" : "");
+      li.dataset.region = key;
+      li.textContent = T(REGIONS[key].title);
+      li.addEventListener("click", function () { switchRegion(key); });
+      var x = document.createElement("span");
+      x.className = "region-x";
+      x.textContent = "×";
+      x.title = T("이 지역을 탭에서 뺀다");
+      x.addEventListener("click", function (e) {
+        e.stopPropagation();
+        addedRegions = addedRegions.filter(function (r) { return r !== key; });
+        if (region === key) switchRegion("korea"); else { saveRegions(); renderRegions(); }
+      });
+      li.appendChild(x);
+      menu.appendChild(li);
+    });
+    if (more.length) head("+ " + T("추가 지역"));
     // 묶음(`includes` — 동아시아·북극) 밑에 딸린 지역을 들여 세운다 (wetherilli 111). 묶음을 이미 더했으면 머리는
-    // 누를 수 없는 제목으로만 남는다. 어느 묶음에도 들지 않는 지역(남극)은 그대로
+    // 누를 수 없는 제목으로만 남는다. 어느 묶음에도 들지 않는 지역은 그대로
     function item(key, cls) {
       var li = document.createElement("li");
       li.className = cls || "";
+      li.dataset.region = key;
       li.textContent = T(REGIONS[key].title) + (REGIONS[key].pending ? " — " + T("준비 중") : "");
       if (more.indexOf(key) >= 0) {
         li.addEventListener("click", function () {
@@ -6146,8 +6213,27 @@
       item(key, kids.length ? "group" : "");
       kids.forEach(function (c) { item(c, "sub"); });
     });
-    btn.addEventListener("click", function (e) { e.stopPropagation(); menu.hidden = !menu.hidden; });
-    document.addEventListener("click", function () { menu.hidden = true; });
+    // 차림은 화면에 붙여(fixed) 단추 밑에 세운다 — 패널과 휴대폰의 탭 줄(가로 굴림)이 넘친 것을 잘라서다
+    btn.addEventListener("click", function (e) {
+      e.stopPropagation();
+      menu.hidden = !menu.hidden;
+      if (menu.hidden) return;
+      var r = btn.getBoundingClientRect();
+      menu.style.top = (r.bottom + 4) + "px";
+      menu.style.maxHeight = Math.min(560, Math.max(160, window.innerHeight - r.bottom - 12)) + "px";
+      menu.style.left = Math.max(8, Math.min(r.left, window.innerWidth - menu.offsetWidth - 8)) + "px";
+    });
+    menu.addEventListener("click", function (e) { e.stopPropagation(); });
+    if (!foldCloser) {
+      foldCloser = true;
+      var closeFold = function (e) {
+        var open = document.querySelector("#regions .region-menu");
+        if (open && !(e && e.type === "scroll" && open.contains(e.target))) open.hidden = true;
+      };
+      document.addEventListener("click", closeFold);
+      document.addEventListener("scroll", closeFold, true);
+      window.addEventListener("resize", closeFold);
+    }
     wrap.append(btn, menu);
     host.appendChild(wrap);
   }

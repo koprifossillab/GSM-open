@@ -1,0 +1,37 @@
+{
+ "_주석": "swisstopo(스위스 연방 지형청) 씨앗이다 — 스위스 탭(유럽 묶음에도 든다). 1:50만 지질도와 GeoCover(지질 아틀라스 1:2.5만을 벡터로 이은 것). 이름은 swisstopo:<뒷부분> (web/viewer/swisstopo.py). 한글 제목은 사람이 붙였다 (wetherilli 211).",
+ "_뽑은날": "2026-10-04",
+ "_출처": "https://wms.geo.admin.ch/?SERVICE=WMS&REQUEST=GetCapabilities",
+ "_지역": "switzerland",
+ "_상류": "swisstopo",
+ "_레이어군차례": 0,
+ "레이어군순서": [
+  "스위스 지질도 (swisstopo)"
+ ],
+ "레이어": [
+  {
+   "name": "swisstopo:geologische_karte",
+   "title": "스위스 지질도 (1:50만)",
+   "group": "스위스 지질도 (swisstopo)",
+   "abstract": "Geologische Karte der Schweiz 1:500 000",
+   "bbox": [
+    5.9,
+    45.8,
+    10.5,
+    47.8
+   ]
+  },
+  {
+   "name": "swisstopo:geocover",
+   "title": "GeoCover (1:2.5만)",
+   "group": "스위스 지질도 (swisstopo)",
+   "abstract": "GeoCover — vector geological maps from the Geological Atlas of Switzerland 1:25 000",
+   "bbox": [
+    5.9,
+    45.8,
+    10.5,
+    47.8
+   ]
+  }
+ ]
+}

@@ -1,0 +1,61 @@
+{
+ "_주석": "LNEG(포르투갈 국립 에너지·지질연구소) 씨앗이다 — 포르투갈 탭(유럽 묶음에도 든다). 1:50만 지질도. 이름은 lneg:500k:<WMS 번호> — 0 은 기호라 싣지 않는다 (web/viewer/lneg.py). 한글 제목은 사람이 붙였다 (wetherilli 211).",
+ "_뽑은날": "2026-10-04",
+ "_출처": "https://sig.lneg.pt/server/rest/services/CGP500k/MapServer",
+ "_지역": "portugal",
+ "_상류": "lneg",
+ "_레이어군차례": 0,
+ "레이어군순서": [
+  "포르투갈 지질도 (LNEG 1:50만)"
+ ],
+ "레이어": [
+  {
+   "name": "lneg:500k:2",
+   "title": "포르투갈 지질 (1:50만)",
+   "group": "포르투갈 지질도 (LNEG 1:50만)",
+   "abstract": "Geologia do Continente — Carta Geológica de Portugal 1:500 000",
+   "bbox": [
+    -9.6,
+    36.9,
+    -6.1,
+    42.2
+   ]
+  },
+  {
+   "name": "lneg:500k:1",
+   "title": "포르투갈 구조선 (1:50만)",
+   "group": "포르투갈 지질도 (LNEG 1:50만)",
+   "abstract": "Estruturas do Continente, drawn closer than 1:1,000,000",
+   "bbox": [
+    -9.6,
+    36.9,
+    -6.1,
+    42.2
+   ]
+  },
+  {
+   "name": "lneg:500k:4",
+   "title": "포르투갈 대륙붕 지질 (1:50만)",
+   "group": "포르투갈 지질도 (LNEG 1:50만)",
+   "abstract": "Geologia da Plataforma",
+   "bbox": [
+    -11.0,
+    36.0,
+    -6.5,
+    42.5
+   ]
+  },
+  {
+   "name": "lneg:500k:3",
+   "title": "포르투갈 대륙붕 구조선 (1:50만)",
+   "group": "포르투갈 지질도 (LNEG 1:50만)",
+   "abstract": "Estruturas da Plataforma, drawn closer than 1:1,000,000",
+   "bbox": [
+    -11.0,
+    36.0,
+    -6.5,
+    42.5
+   ]
+  }
+ ]
+}

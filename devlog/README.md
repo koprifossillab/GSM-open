@@ -253,6 +253,11 @@
 | wetherilli 207 | 2026-10-04 | [아프리카 — CGMW–BRGM 1:1000만과 BGS 아프리카 지하수 지도책으로 탭을 연다](20261004_wetherilli_207_africa.md) |
 | wetherilli 209 | 2026-10-04 | [아프리카 나라 판 — 남아공 CGS·나미비아 GSN 1:100만 (탄자니아는 TLS 로 막혔다)](20261004_wetherilli_209_africa_countries.md) |
 | wetherilli 212 | 2026-10-04 | [호주 — Geoscience Australia 지표 지질도 1:250만·1:100만](20261004_wetherilli_212_australia_ga.md) |
+| wetherilli 210 | 2026-10-04 | [캐나다의 주 판 — 퀘벡 SIGÉOM·유콘 YGS, 그리고 북미 묶음](20261004_wetherilli_210_canada_provinces.md) |
+| wetherilli 211 | 2026-10-04 | [유럽 — 이탈리아 ISPRA·포르투갈 LNEG·스위스 swisstopo](20261004_wetherilli_211_italy_portugal_switzerland.md) |
+| wetherilli 213 | 2026-10-04 | [스웨덴 — SGU 기반암 1:100만·1:5만–25만을 노르웨이·핀란드 탭에](20261004_wetherilli_213_sweden_sgu.md) |
+| wetherilli 214 | 2026-10-04 | [지역 탭 접기 — 한국·북극·남극만 서고 나머지는 "그 외"](20261004_wetherilli_214_region_fold.md) |
+| wetherilli 215 | 2026-10-04 | [브라질 — SGB 의 노두·연대측정·화석 산지 점](20261004_wetherilli_215_brazil_points.md) |
 | koprifossillab P01 | 2026-09-30 | [백업 — WegenersDream 의 틀로, 바뀌는 빠르기에 따라 넷으로 (계획)](20260930_koprifossillab_P01_backup_plan.md) |
 | koprifossillab 001 | 2026-09-30 | [매주 월요일 새벽: 운영 자료 백업과 KPDC 목록 갱신](20260930_koprifossillab_001_weekly_backup.md) |
 | koprifossillab 002 | 2026-09-30 | [`/healthz/` — 판·DB·백업 상태를 한 장으로](20260930_koprifossillab_002_healthz.md) |

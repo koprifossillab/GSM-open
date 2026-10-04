@@ -52,7 +52,11 @@ REGIONS = (("korea", "한국"), ("greenland", "그린란드"), ("antarctica", "�
            # 캐나다 — NRCan 1:500만·온타리오 OGS (wetherilli 204). 화면은 캐나다 람베르트(3978)다. 묶음 "북미" 는 DB 에 없다(남미와 같다)
            ("canada", "캐나다"),
            # 호주 — Geoscience Australia 1:250만·1:100만 (wetherilli 212)
-           ("australia", "호주"))
+           ("australia", "호주"),
+           # 이탈리아 ISPRA·포르투갈 LNEG·스위스 swisstopo (wetherilli 211). 유럽 묶음에 들고 EGDI 1:100만은 영국에서 빌린다
+           ("italy", "이탈리아"),
+           ("portugal", "포르투갈"),
+           ("switzerland", "스위스"))
 
 
 class LayerGroup(models.Model):
@@ -105,7 +109,7 @@ class Layer(models.Model):
     #: phyloserver → `phyloserver.py` (연구실 암맥 기록·한반도 지질도 — devlog 026),
     #: peninsula → `peninsula.py` (한반도 지질도 음영판 PDF 를 잘라 둔 타일 — devlog 027),
     #: gsmma → `gsmma.py` (대만 지질도 — 4326 WMS 를 받고 속성은 지질운 GeoJSON, wetherilli 136),
-    #: ngu → `ngu.py`·gtk → `gtk.py` (노르웨이·핀란드 기반암 지질도 — 3575·3413 으로 곧장, wetherilli 140),
+    #: ngu → `ngu.py`·gtk → `gtk.py` (노르웨이·핀란드 기반암 지질도 — 3575·3413 으로 곧장, wetherilli 140), sgu → `sgu.py` (스웨덴, 3413 으로 곧장, wetherilli 213),
     #: bgs → `bgs.py`·brgm → `brgm.py`·egdi → `egdi.py` (영국·프랑스·범유럽 1:100만 지질도, wetherilli 143),
     #: bgr → `bgr.py`·igme → `igme.py`·gsi → `gsi.py`·gsni → `bgs.py` 의 GSNI (독일·스페인·아일랜드, wetherilli 147),
     #: sgc → `sgc.py` (남미·콜롬비아 지질도, wetherilli 188), sgb → `sgb.py` (브라질 지질도, wetherilli 191),
@@ -113,8 +117,10 @@ class Layer(models.Model):
     #: segemar → `segemar.py` (아르헨티나 지질도), dinamige → `dinamige.py` (우루과이 지질도, wetherilli 196)
     #: iige → `iige.py` (에콰도르 지질도, wetherilli 198),
     #: mrdata → `mrdata.py` (미국 지질도 — USGS SGMC·알래스카, wetherilli 205), sgm → `sgm.py` (멕시코 지질도 — REST export, wetherilli 206),
+    #: sigeom → `sigeom.py`·ygs → `ygs.py` (퀘벡·유콘 지질도, wetherilli 210),
     #: cgmw → `brgm.py` 의 CGMW (아프리카 1:1000만), aga → `bgs.py` 의 AGA (아프리카 지하수 지도책 나라별 지질, wetherilli 207)
     #: nrcan → `nrcan.py` (캐나다 1:500만), ogs → `ogs.py` (온타리오 1:25만, wetherilli 204)
+    #: ispra → `ispra.py`·lneg → `lneg.py`·swisstopo → `swisstopo.py` (이탈리아·포르투갈·스위스 지질도, wetherilli 211)
     upstream = models.CharField("상류", max_length=20, default="kigam")
     #: 어떻게 그리나. wms → 상류가 그린 타일을 얹는다. vector → 모양을 받아
     #: 우리가 그린다 (단층, devlog 020). 거의 전부가 wms 다

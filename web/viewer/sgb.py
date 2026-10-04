@@ -12,6 +12,8 @@
 - 조건: GetCapabilities 의 Fees·AccessConstraints 는 `NONE`. GeoSGB 사이트는 **CC BY-NC 4.0**(비상업, 출처 SGB)이라 적는다
   (`geosgb.sgb.gov.br/geosgb/footer.html`, 2026-10-04) — EOX 처럼 밖에 열 때 다시 본다. 정적 판에는 싣지 않았다
 - 응답이 1–5 초로 들쭉날쭉하다 — 받은 것은 캐시에 담는다
+- **점 레이어**(wetherilli 215) — 노두(35 만 9 천)·연대측정(3 158)·화석 산지(9 512)도 geoservicos 의 WMS 로 그린다. 노두는
+  가까이서만(줌 8 부터). 값은 포르투갈어 그대로 — 화석의 시대 칸은 손으로 적은 글이라 옮기지 않는다. 연대측정 레이어에는 연대 값이 없다
 """
 import json
 import logging
@@ -43,6 +45,17 @@ LAYERS = {
     "sgb:250k": ("geoservicos", "geosgb:litoestratigrafia_250k",
                  ("sigla", "hierarquia", "nome", "legenda", "litotipos", "idade_min", "idade_max", "era_min", "era_max",
                   "sistema_min", "sistema_max", "ambiente_tectonico", "mapa"), "sigla", 9, 5),
+    # 점 레이어(wetherilli 215) — 같은 GeoServer 의 WMS 로 받는다. 노두는 35 만 9 천 점이라 한 덩이(`kind: points`)로 받을 수 없고,
+    # 나라 전체 한 장이 12 초에 새카맣다 — 가까이서만 그린다. 연대측정 3 158 점·화석 9 512 점은 나라 전체도 2–3 초다
+    "sgb:outcrops": ("geoservicos", "geosgb:afloramentos",
+                     ("numero_campo", "tipo_afloramento", "rochas", "descricao", "toponimia", "municipio", "uf", "projeto",
+                      "folha", "codigo_folha"), None, 8, None),
+    "sgb:geochronology": ("geoservicos", "geosgb:geocronologia",
+                          ("amostra", "rocha", "metodos", "materiais_analisados", "toponimia", "nivel_acesso"), None, None, None),
+    "sgb:fossils": ("geoservicos", "geosgb:ocorrencias_fossiliferas",
+                    ("identificacao", "sistematica", "taxon", "material", "unidade_litoestratigrafica",
+                     "unidade_cronoestratigrafica", "litologia", "modo_ocorrencia", "localidade", "ambiente_deposicao",
+                     "observacao", "referencia_bibliografica"), None, None, None),
 }
 SERVERS = {"geoservicos": "SGB_GEOSERVICOS_URL", "opendata": "SGB_OPENDATA_URL"}
 #: 범례 칸을 몇 개까지 싣나 — 넘치면 "그 밖 N 칸" 이다
@@ -178,6 +191,8 @@ def _ma(old: str, young: str) -> str:
 def friendly(props: dict, lang: str = "ko") -> dict:
     """열 이름을 한국어로. 이름·설명·암석은 포르투갈어 그대로 두고 지질시대만 옮긴다."""
     v = lambda k: _value(props, k)          # noqa: E731
+    if "numero_campo" in props or "metodos" in props or "identificacao" in props:
+        return point_friendly(props)
     if "tipo_estru" in props:                                          # 1:250만 구조선
         return {k: x for k, x in (("이름", v("nmestrutur")), ("갈래", v("tipo_estru"))) if x}
     if "sigla_unid" in props:                                          # 1:250만 (2025)
@@ -190,6 +205,31 @@ def friendly(props: dict, lang: str = "ko") -> dict:
         rows = (("기호", v("sigla")), ("이름", v("nome")), ("위계", v("hierarquia")), ("지질시대", age),
                 ("연대 (Ma)", _ma(v("idade_max"), v("idade_min"))), ("암석", v("litotipos")), ("설명", v("legenda")),
                 ("지구조 환경", v("ambiente_tectonico")), ("도폭", v("mapa")))
+    return {k: x for k, x in rows if x}
+
+
+def _text(props: dict, key: str) -> str:
+    """점 레이어의 값 — 손으로 적은 글이라 줄바꿈·겹친 빈칸이 섞여 있다. 하나로 편다"""
+    return " ".join(_value(props, key).split())
+
+
+def point_friendly(props: dict) -> dict:
+    """노두·연대측정·화석 산지(wetherilli 215). 값은 포르투갈어 그대로다 — 화석의 시대 칸(`unidade_cronoestratigrafica`)도
+    손으로 적은 글이라("ERA CENOZOICO PERIODO TERCIARIO EPOCA PLIOCENO", "SEM REGISTRO" 따위 800 가지 남짓) 옮기지 않는다"""
+    t = lambda k: _text(props, k)           # noqa: E731
+    if "numero_campo" in props:                                        # 노두
+        place = ", ".join(x for x in (t("municipio"), t("uf")) if x)
+        sheet = f"{t('folha')} ({t('codigo_folha')})" if t("folha") and t("codigo_folha") else t("folha") or t("codigo_folha")
+        rows = (("야외 번호", t("numero_campo")), ("노두 갈래", t("tipo_afloramento")), ("암석", t("rochas")),
+                ("설명", t("descricao")), ("장소", t("toponimia")), ("지자체", place), ("과제", t("projeto")), ("도폭", sheet))
+    elif "metodos" in props:                                           # 연대측정 — 연대 값은 이 레이어에 없다
+        rows = (("시료 번호", t("amostra")), ("암석", t("rocha")), ("측정법", t("metodos")),
+                ("분석 재료", t("materiais_analisados")), ("장소", t("toponimia")), ("자료 공개", t("nivel_acesso")))
+    else:                                                              # 화석 산지
+        rows = (("번호", t("identificacao")), ("분류", t("sistematica")), ("분류군", t("taxon")), ("재료", t("material")),
+                ("암층서 단위", t("unidade_litoestratigrafica")), ("층서 시대", t("unidade_cronoestratigrafica")),
+                ("암석", t("litologia")), ("산출 양상", t("modo_ocorrencia")), ("장소", t("localidade")),
+                ("퇴적 환경", t("ambiente_deposicao")), ("비고", t("observacao")), ("문헌", t("referencia_bibliografica")))
     return {k: x for k, x in rows if x}
 
 

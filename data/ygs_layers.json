@@ -1,0 +1,37 @@
+{
+ "_주석": "유콘 지질조사소(YGS) 기반암 지질도 씨앗이다 — 캐나다 탭. ArcGIS WMS(47 기반암·50 단층)를 3978 로 받는다. 레이어명은 ygs:<WMS 번호> (web/viewer/ygs.py). 한글 제목과 레이어군은 사람이 붙였다 (wetherilli 210).",
+ "_뽑은날": "2026-10-04",
+ "_출처": "https://mapservices.gov.yk.ca/arcgis/services/GeoYukon/GY_Geological/MapServer/WMSServer?request=GetCapabilities&service=WMS",
+ "_지역": "canada",
+ "_상류": "ygs",
+ "_레이어군차례": 0,
+ "레이어군순서": [
+  "유콘 지질도 (YGS 1:25만)"
+ ],
+ "레이어": [
+  {
+   "name": "ygs:47",
+   "title": "기반암 (유콘 1:25만)",
+   "group": "유콘 지질도 (YGS 1:25만)",
+   "abstract": "Bedrock Geology",
+   "bbox": [
+    -141.0,
+    60.0,
+    -123.8,
+    69.7
+   ]
+  },
+  {
+   "name": "ygs:50",
+   "title": "단층 (유콘)",
+   "group": "유콘 지질도 (YGS 1:25만)",
+   "abstract": "Faults",
+   "bbox": [
+    -141.0,
+    60.0,
+    -123.8,
+    69.7
+   ]
+  }
+ ]
+}

@@ -573,6 +573,49 @@
   KINDS.sgc = wmsKind(sgcUrl, function (name) { return String(name).split(":")[2]; }, function () { return "EPSG:3857"; },
                       sgcFriendly, sgcT.attribution, "application/geo+json");
 
+  // ── 스웨덴 — SGU GeoServer (wetherilli 213) ──
+  // CC0, CORS `*`. 서버 판(`sgu.py`)처럼 레이어 하나가 1:100만·5만 판을 함께 부르고, 3413 으로 곧장 받는다.
+  // 누르면 자세한 판부터 묻고(둘레 1 픽셀) 판마다 첫 하나만 남긴다. 범례는 1:100만 판의 것
+  var sguT = T.sgu || {};
+  function sguParts(name) { return (sguT.layers || {})[name] || []; }
+  /** `sgu.clean` — `;` 로 이은 값에서 `Null:…` 칸을 뺀다 */
+  function sguClean(value) {
+    return String(value == null ? "" : value).split(";").map(function (p) { return p.trim(); })
+      .filter(function (p) { return p && p.toLowerCase().indexOf("null") !== 0; }).join("; ");
+  }
+  /** `sgu.friendly` — 표(`sguT.friendly`)의 차례로, 같은 이름은 앞의 것이 이긴다 */
+  function sguFriendly(props) {
+    var out = {};
+    (sguT.friendly || []).forEach(function (pair) {
+      var value = sguClean(props[pair[0]]);
+      if (value && out[pair[1]] == null) out[pair[1]] = value;
+    });
+    return out;
+  }
+  KINDS.sgu = wmsKind(sguT.url, function (name) { return sguParts(name).join(","); }, function () { return "EPSG:3413"; },
+                      sguFriendly, sguT.attribution);
+  KINDS.sgu.info = function (source, coordinate, view) {
+    var name = source.get("gsmName"), names = sguParts(name).slice().reverse().join(",");
+    if ((sguT.queryable || []).indexOf(name) < 0) return null;
+    var u = source.getFeatureInfoUrl(coordinate, view.getResolution(), view.getProjection(),
+                                     { INFO_FORMAT: "application/json", FEATURE_COUNT: 5, BUFFER: 1, QUERY_LAYERS: names, LAYERS: names });
+    if (!u) return null;
+    return getJson(u).then(function (data) {
+      var seen = {};
+      return tidy((data.features || []).filter(function (f) {
+        var layer = String(f.id || "").split(".fid")[0];
+        if (seen[layer]) return false;
+        seen[layer] = true;
+        return true;
+      }).map(function (f) { return { id: f.id, props: forLang(sguFriendly(f.properties || {})) }; }));
+    });
+  };
+  KINDS.sgu.legend = function (name) {
+    var layer = (sguT.legend || {})[name];
+    return Promise.resolve(layer ? { img: query(sguT.url, { service: "WMS", version: "1.1.1", request: "GetLegendGraphic",
+                                                            format: "image/png", layer: layer }) } : null);
+  };
+
   // ── 미국 — USGS mrdata 의 SGMC·알래스카 (wetherilli 205) ──
   // 공공 도메인, CORS `*`. 그림은 WMS 그대로. 본토(SGMC)의 WMS 는 GetFeatureInfo 가 막혀 있어 서버 판(`mrdata.get_feature_info`)처럼
   // WFS 1.0 에 작은 경위도 네모로 묻고 GML 을 읽는다. 알래스카는 WMS 의 `text/plain`(GEUS 와 같은 MapServer 꼴)
@@ -669,6 +712,7 @@
   // 시험·다른 화면이 같은 손질을 쓰게 — 정적 판의 다른 파일(개인 레이어 따위)도 지질시대를 옮길 수 있다
   window.GSM_STATIC_HELPERS = { ageKo: ageKo, parsePlain: parsePlain, compact: compact, classOf: classOf, pointBody: pointBody,
                                 npiFriendly: npiFriendly, emodFriendly: emodFriendly, geusFriendly: geusFriendly, sgcFriendly: sgcFriendly,
+                                sguFriendly: sguFriendly,
                                 usgsFriendly: usgsFriendly, usgsGml: usgsGml, gaFriendly: gaFriendly,
                                 tidy: tidy };
 })();

@@ -163,6 +163,38 @@ class PhoneScreenTests(StaticLiveServerTestCase):
                 page = self.check_map_screen(f"map/?region={region}")
                 page.context.close()
 
+    def test_지역_접기(self):
+        """탭 줄에는 한국·북극·남극만 서고 나머지는 "그 외" 하나로 접힌다. 접힌 지역을 보면 단추가 그 이름이 되고,
+        차림이 휴대폰 화면 안에 선다 (wetherilli 214)"""
+        call_command("seed_catalog", stdout=open(os.devnull, "w"))
+        page, errors = self.open("map/?region=canada")
+        page.tap("#panel-handle")
+        page.wait_for_timeout(300)
+        tabs = page.evaluate("[...document.querySelectorAll('#regions > .region-tab')].map(b => b.dataset.region)")
+        self.assertEqual(tabs, ["korea", "arctic", "antarctica"])
+        fold = page.locator("#regions .region-fold")
+        self.assertTrue(fold.inner_text().startswith("캐나다"), "접힌 지역을 보는데 단추가 그 이름이 아니다")
+        self.assertIn("on", fold.get_attribute("class"))
+        fold.tap()
+        page.wait_for_timeout(200)
+        menu = page.locator("#regions .region-menu")
+        self.assertTrue(menu.is_visible())
+        box = menu.bounding_box()
+        self.assertLessEqual(box["x"] + box["width"], 390 + 0.5, "차림이 화면 밖으로 넘친다")
+        self.assertLessEqual(box["y"] + box["height"], 844 + 0.5, "차림이 화면 밑으로 넘친다")
+        # 휴대폰의 탭 줄은 가로로 굴러 넘친 것을 자른다 — 차림이 그 밑에 묻히지 않는다
+        self.assertTrue(page.evaluate("""() => { const m = document.querySelector('#regions .region-menu'), b = m.getBoundingClientRect();
+            const hit = document.elementFromPoint(b.left + 20, b.top + 15); return m.contains(hit); }"""), "차림이 다른 것에 덮인다")
+        page.locator('#regions .region-menu li[data-region="mexico"]').tap()       # "+ 추가 지역" 칸에서 더한다
+        page.wait_for_timeout(800)
+        self.assertEqual(page.evaluate("document.documentElement.dataset.region"), "mexico")
+        self.assertTrue(page.locator("#regions .region-fold").inner_text().startswith("멕시코"))
+        self.assertIn("mexico", page.evaluate("JSON.parse(localStorage.getItem('gsm.regions'))"))
+        page.locator('#regions > .region-tab[data-region="arctic"]').tap()
+        page.wait_for_timeout(800)
+        self.assertTrue(page.locator("#regions .region-fold").inner_text().startswith("그 외"))
+        self.assertEqual(errors, [])
+
     def test_팝업이_화면_안에_선다(self):
         """속성 팝업 하나를 띄워 390 px 안에 서는지, 닫기 단추가 손에 닿는지 본다. 상류를 끊으므로 점묶음의 점을 지도
         한가운데(한국 탭의 처음 자리)에 두고 누른다"""

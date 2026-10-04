@@ -70,6 +70,7 @@ class Command(BaseCommand):
                 # 노르웨이·핀란드 — NGU·GTK 기반암 지질도. 북극 묶음에도 든다 (wetherilli 140)
                 (settings.NGU_CATALOG_SEED, "노르웨이 (NGU)", "fennoscandia", "ngu"),
                 (settings.GTK_CATALOG_SEED, "핀란드 (GTK)", "fennoscandia", "gtk"),
+                (settings.SGU_CATALOG_SEED, "스웨덴 (SGU)", "fennoscandia", "sgu"),   # wetherilli 213
                 # 영국·프랑스 — BGS·BRGM, 그리고 넓게 볼 때 까는 EGDI 1:100만(영국에 두고 프랑스가 빌린다) (wetherilli 143)
                 (settings.EGDI_CATALOG_SEED, "유럽 (EGDI)", "uk", "egdi"),
                 (settings.BGS_CATALOG_SEED, "영국 (BGS)", "uk", "bgs"),
@@ -107,6 +108,13 @@ class Command(BaseCommand):
                 # 캐나다 — NRCan 1:500만(Wheeler)·온타리오 OGS 1:25만 (wetherilli 204)
                 (settings.NRCAN_CATALOG_SEED, "캐나다 (NRCan)", "canada", "nrcan"),
                 (settings.OGS_CATALOG_SEED, "온타리오 (OGS)", "canada", "ogs"),
+                # 퀘벡 SIGÉOM·유콘 YGS (wetherilli 210)
+                (settings.SIGEOM_CATALOG_SEED, "퀘벡 (SIGÉOM)", "canada", "sigeom"),
+                (settings.YGS_CATALOG_SEED, "유콘 (YGS)", "canada", "ygs"),
+                # 이탈리아 ISPRA·포르투갈 LNEG·스위스 swisstopo (wetherilli 211)
+                (settings.ISPRA_CATALOG_SEED, "이탈리아 (ISPRA)", "italy", "ispra"),
+                (settings.LNEG_CATALOG_SEED, "포르투갈 (LNEG)", "portugal", "lneg"),
+                (settings.SWISSTOPO_CATALOG_SEED, "스위스 (swisstopo)", "switzerland", "swisstopo"),
                 # 중국 — USGS geo3al, 우리 디스크의 셰이프파일 (025)
                 (settings.GEO3AL_CATALOG_SEED, "중국 (USGS)", "china", "geo3al"),
                 # KIGAM 5만 구조 요소 — 받아 둔 WFS 파일의 화석산지·시료·광산·도폭 틀 (wetherilli 199, jikhanjung P01)

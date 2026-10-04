@@ -43,7 +43,8 @@
     try {
       var v = JSON.parse(localStorage.getItem(VIEW_KEY) || "null");
       // 극지 탭이 적은 줌은 극 평사도법의 줌이라 3D(메르카토르)에 그대로 쓰지 않는다
-      if (v && isFinite(v.lon) && (!v.proj || v.proj === "EPSG:3857")) {
+      // 캐나다 람베르트(3978, 캐나다·미국 탭)는 범위를 3857 과 같은 너비로 잡아 줌이 같은 해상도다 — 그대로 쓴다 (wetherilli 210)
+      if (v && isFinite(v.lon) && (!v.proj || v.proj === "EPSG:3857" || v.proj === "EPSG:3978")) {
         return { center: [v.lon, v.lat], zoom: Math.max(8, v.zoom) - 1 };
       }
     } catch (e) { /* 사생활 모드 */ }
@@ -57,14 +58,14 @@
   var asked = new URLSearchParams(location.search).get("layer");
   // 목록은 **지금 지역의 레이어군만** 남긴다 (050). 서버는 모든 지역의 것을 싣는다 — 남극을 보는데 한국
   // 지질도가 뜨지 않게. 묶음 탭은 품은 지역들이다(2D 의 `REGIONS.*.includes` 와 같다)
-  var BUNDLES = { arctic: ["greenland", "svalbard", "jan_mayen", "arctic_ocean"], eastasia: ["korea", "japan", "china", "taiwan"],
-                  europe: ["uk", "ireland", "france", "germany", "spain"], south_america: ["colombia", "ecuador", "peru", "brazil", "uruguay", "argentina"] };
+  var BUNDLES = { arctic: ["greenland", "svalbard", "jan_mayen", "arctic_ocean", "fennoscandia"], eastasia: ["korea", "japan", "china", "taiwan"],
+                  europe: ["uk", "ireland", "france", "germany", "spain", "portugal", "italy", "switzerland"], south_america: ["colombia", "ecuador", "peru", "brazil", "uruguay", "argentina"], north_america: ["canada", "usa", "mexico"] };
   var ALLOWED = BUNDLES[REGION] || [REGION];
   [].slice.call(select.querySelectorAll("optgroup")).forEach(function (g) {
     if (ALLOWED.indexOf(g.getAttribute("data-region")) < 0) g.remove();
   });
   if (!select.options.length) {
-    // 3D 로 얹을 지질 레이어가 없는 지역(노르웨이·핀란드처럼 극지 투영으로만 받는 것) — 지형만 본다
+    // 3D 로 얹을 지질 레이어가 없는 지역(극지 투영으로만 받는 것) — 지형만 본다
     var none = document.createElement("option");
     none.value = "";
     none.textContent = T("이 지역에는 3D 로 얹을 지질 레이어가 없다");
