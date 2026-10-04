@@ -153,12 +153,17 @@ GEBCO_WMS_URL = env("GSM_GEBCO_WMS_URL", "https://wms.gebco.net/mapserv")
 #: 노르웨이·핀란드 기반암 지질도 — NGU MapServer·GTK ArcGIS WMS (`viewer/ngu.py`·`viewer/gtk.py`, wetherilli 140). 열쇠가 없다
 NGU_WMS_URL = env("GSM_NGU_WMS_URL", "https://geo.ngu.no/mapserver/BerggrunnWMS3")
 GTK_WMS_URL = env("GSM_GTK_WMS_URL", "https://gtkdata.gtk.fi/arcgis/services/Rajapinnat/GTK_Kalliopera_WMS/MapServer/WMSServer")
+#: GTK 의 다른 서비스 — 지구물리 영상, 북유럽 광상 FODD 가 든 모음 (wetherilli 270)
+GTK_GEOPHYSICS_URL = env("GSM_GTK_GEOPHYSICS_URL", "https://gtkdata.gtk.fi/arcgis/services/Rajapinnat/GTK_Geofysiikka_WMS/MapServer/WMSServer")
+GTK_KOKOAVA_URL = env("GSM_GTK_KOKOAVA_URL", "https://gtkdata.gtk.fi/arcgis/services/Rajapinnat/kokoavaWMS/MapServer/WMSServer")
 #: 스웨덴 기반암 지질도 — SGU GeoServer (`viewer/sgu.py`, wetherilli 213). 열쇠가 없다. 안내 문서의 resource.sgu.se 주소는 Capabilities 만 준다
-SGU_WMS_URL = env("GSM_SGU_WMS_URL", "https://maps3.sgu.se/geoserver/berg/ows")
+SGU_WMS_URL = env("GSM_SGU_WMS_URL", "https://maps3.sgu.se/geoserver/ows")
 #: 아이슬란드 지질도 — 자연사연구소(NÍ) GeoServer WMS (`viewer/natt.py`, wetherilli 216). 열쇠가 없다
 NATT_WMS_URL = env("GSM_NATT_WMS_URL", "https://gis.natt.is/geoserver/wms")
 #: 뉴질랜드·남빅토리아랜드 지질도 — GNS Science GeoServer WMS (`viewer/gns.py`, wetherilli 218). 열쇠가 없다
 GNS_WMS_URL = env("GSM_GNS_WMS_URL", "https://maps.gns.cri.nz/geology/wms")
+#: GNS 전체 서비스 — 지질 서비스에 없는 중력 이상 따위 (wetherilli 269)
+GNS_ALL_WMS_URL = env("GSM_GNS_ALL_WMS_URL", "https://maps.gns.cri.nz/gns/wms")
 #: 몽골 국가지질도첩 — MonGeoCat ArcGIS 의 앞 주소 (`viewer/mris.py`, wetherilli 221). 열쇠가 없다. 문서에 없는 주소다
 MRIS_URL = env("GSM_MRIS_URL", "https://gismap.mris.mn/arcgis")
 #: 인도 1:200만 — 그림은 BGS 가 여는 OneGeology WMS, 속성은 GSI 의 ArcGIS Online 피처 서비스 (`viewer/gsiindia.py`, wetherilli 226)
@@ -279,6 +284,8 @@ MARS_ZHURONG_FILE = BASE_DIR.parent / "data" / "mars_zhurong.json"
 PALEOMAP_FILE = BASE_DIR.parent / "data" / "paleomap2016.json"
 #: 지각 두께 CRUST 2.0 — 1° 격자 (`viewer/crust.py`, wetherilli 101, `manage.py build_crust <zip>`). CC BY 4.0 이라 저장소에 둔다
 CRUST_FILE = BASE_DIR.parent / "data" / "crust2_thickness.json"
+#: 판 경계·세계 지질구 Hasterok 외 2022 (wetherilli 272) — `manage.py build_tectonics` 가 굽는다. CC BY 4.0
+TECTONICS_FILE = BASE_DIR.parent / "data" / "earth_tectonics.json"
 #: 세계 암상 GLiM 0.5° 격자 (wetherilli 267) — `manage.py build_glim` 이 굽는다. CC BY 3.0
 GLIM_FILE = BASE_DIR.parent / "data" / "glim_05deg.json"
 #: 온 지구의 지명·강·호수·빙하 — Natural Earth 10 m (`viewer/naturalearth.py`, wetherilli 102, `manage.py build_natural_earth`).
@@ -464,6 +471,8 @@ CATALOG_SEED = REPO_DIR / "data" / "kigam_layers.json"
 KIGAM_COMPOSED_CATALOG_SEED = REPO_DIR / "data" / "kigam_composed_layers.json"
 #: 그린란드(GEUS) 카탈로그 씨앗. seed_catalog 가 KIGAM 씨앗과 함께 넣는다
 GEUS_CATALOG_SEED = REPO_DIR / "data" / "geus_layers.json"
+#: 그린란드 — GEUS ArcGIS 의 자력·중력·지질구 (wetherilli 259)
+GEUSARC_CATALOG_SEED = REPO_DIR / "data" / "geusarc_layers.json"
 #: 한국의 "지질 참고" 레이어군(VWorld WMS·WFS) 씨앗. 이것도 함께 넣는다 (devlog 020)
 VWORLD_CATALOG_SEED = REPO_DIR / "data" / "vworld_layers.json"
 #: 그린란드 정부 포털의 점 레이어 씨앗. 역시 seed_catalog 가 함께 넣는다
@@ -495,6 +504,8 @@ SGU_CATALOG_SEED = REPO_DIR / "data" / "sgu_layers.json"
 NATT_CATALOG_SEED = REPO_DIR / "data" / "natt_layers.json"
 #: 영국·프랑스 — BGS·BRGM 지질도, 그리고 둘이 함께 까는 EGDI 1:100만 (wetherilli 143)
 BGS_CATALOG_SEED = REPO_DIR / "data" / "bgs_layers.json"
+#: 영국 GeoIndex — 자력·중력·광산·광물 산지 (wetherilli 258)
+BGSGI_CATALOG_SEED = REPO_DIR / "data" / "bgsgi_layers.json"
 BRGM_CATALOG_SEED = REPO_DIR / "data" / "brgm_layers.json"
 EGDI_CATALOG_SEED = REPO_DIR / "data" / "egdi_layers.json"
 #: 독일·스페인·아일랜드 (wetherilli 147)

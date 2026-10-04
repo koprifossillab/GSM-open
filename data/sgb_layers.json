@@ -1,5 +1,5 @@
 {
- "_주석": "SGB(브라질 지질조사소, 옛 CPRM) 지질도 씨앗이다 — 브라질 탭(남미 묶음에도 든다). 서버가 둘이다 — 2025 년판 1:250만은 opendata, 1:100만·1:25만은 geoservicos. 레이어명은 sgb:<판> 이고 상류의 이름과 주소는 문(web/viewer/sgb.py)이 안다. 한글 제목과 레이어군은 사람이 붙였다 (wetherilli 191). 노두·연대측정·화석 산지 점도 같은 GeoServer 의 WMS 로 받는다 (wetherilli 215).",
+ "_주석": "SGB(브라질 지질조사소, 옛 CPRM) 지질도 씨앗이다 — 브라질 탭(남미 묶음에도 든다). 서버가 둘이다 — 2025 년판 1:250만은 opendata, 1:100만·1:25만은 geoservicos. 레이어명은 sgb:<판> 이고 상류의 이름과 주소는 문(web/viewer/sgb.py)이 안다. 한글 제목과 레이어군은 사람이 붙였다 (wetherilli 191). 노두·연대측정·화석 산지 점도 같은 GeoServer 의 WMS 로 받는다 (wetherilli 215). 광물 산출은 같은 GeoServer 의 점이다 (wetherilli 265).",
  "_뽑은날": "2026-10-04",
  "_출처": "https://geoservicos.sgb.gov.br/geoserver/ows?service=WMS&request=GetCapabilities · https://opendata.sgb.gov.br/geoserver/ows?service=WMS&request=GetCapabilities",
  "_지역": "brazil",
@@ -8,7 +8,8 @@
  "레이어군순서": [
   "브라질 지질도 (SGB 1:250만, 2025)",
   "브라질 지질도 (SGB 1:100만·1:25만)",
-  "브라질 지질 자료 점 (SGB)"
+  "브라질 지질 자료 점 (SGB)",
+  "브라질 광물 자원 (SGB)"
  ],
  "레이어": [
   {
@@ -93,6 +94,18 @@
     -34.8,
     -33.75,
     5.28
+   ]
+  },
+  {
+   "name": "sgb:mineral_occurrences",
+   "title": "광물 산출",
+   "group": "브라질 광물 자원 (SGB)",
+   "abstract": "Ocorrências de Recursos Minerais (GeoSGB) — 줌 6 부터",
+   "bbox": [
+    -74.0,
+    -34.0,
+    -34.0,
+    5.5
    ]
   }
  ]

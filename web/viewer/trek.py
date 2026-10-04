@@ -916,6 +916,28 @@ MARS_DEM_MAX_ZOOM = 9
 #: 화성의 표고는 −8.2 km(헬라스)에서 +21.2 km(올림푸스 몬스)다. 자료 밖은 S16 의 −32768
 MARS_ELEV_RANGE = (-9000.0, 22000.0)
 MARS_ELEV_SOURCE = "mola-hrsc-200m"
+#: 가까이서 쓰는 고운 표고 판 (wetherilli 274) — 달의 `DEM_PARTS`(wetherilli 107·240)와 같은 틀: (서비스, (서, 남, 동, 북), 줌 끝).
+#: 줌 `MARS_DEM_MAX_ZOOM` 너머는 이 판이 걸친 장만 서버가 준다. 판의 빈 칸은 200 m 판으로 메운다. 줌 끝은 판의 한 칸이 격자 한 칸
+#: (장 ÷ 64)보다 거칠지 않은 줌까지, 15 를 넘지 않게. 2026-10-05 에 판의 바깥 테(10%)를 200 m 판과 맞댔다(차의 평균·흩어짐)
+MARS_DEM_PARTS = (
+    ("DEM_1m_ColumbiaHills", (175.4437, -14.6817, 175.5607, -14.4953), 15),                         # 스피릿 — −0.5 m, 6.6 m
+    ("DEM_1m_Endeavour_Crater_isis3_2017_04_14", (-5.4467, -2.4905, -5.3102, -2.1237), 15),        # 오퍼튜니티 — +5.1 m, 14.2 m
+    ("Gale_DEM_SMG_1m", (137.1225, -4.9255, 137.7298, -4.2490), 15),                                # 큐리오시티 — −6.6 m, 23.4 m
+    ("InSight_HiRISE_CTX_HRSC_dem_mosaic_50pix_sigma5_exp3_gcs", (133.9356, 3.7286, 137.2759, 5.0698), 13),  # 인사이트 20 m — +0.3 m, 23.9 m
+)
+#: 넣지 않은 판 — 빅토리아 분화구 1 m(`DEM_1m_VictoriaCrater`)는 바깥 테에서 −19 m·흩어짐 7 m 로 턱이 일정하다. 기준면이 다른 판으로 보이나
+#: 까닭을 몰라 턱을 넣지 않았다(달의 아르테미스 C·G 와 같은 원칙). 수성은 665 m 판(과 그 극 투영 짝)뿐이라 고운 판이 없다
+MARS_DEM_FINE_MAX = max(part[2] for part in MARS_DEM_PARTS)
+
+
+def mars_dem_part(z: int, x: int, y: int):
+    """줌 `MARS_DEM_MAX_ZOOM` 너머의 한 장에 쓸 고운 판 — 걸치고 줌 끝이 넉넉한 것 가운데 가장 고운 것. 없으면 None (달의 `dem_part`)"""
+    if z <= MARS_DEM_MAX_ZOOM:
+        return None
+    w, s, e, n = tile_bbox(z, x, y)
+    got = [part for part in MARS_DEM_PARTS
+           if part[2] >= z and part[1][0] < e and part[1][2] > w and part[1][1] < n and part[1][3] > s]
+    return max(got, key=lambda part: part[2]) if got else None
 MARS_ELEV_DATUM = "mars-areoid"
 
 MARS_FIELDS = (("Unit", "단위"), ("UnitDesc", "이름"))
@@ -1082,14 +1104,12 @@ def mars_legend() -> list:
     return out
 
 
-def mars_dem_tile(z: int, x: int, y: int) -> bytes:
-    """화성 표고 격자 한 장 — 65×65 Terrarium PNG. 달의 `dem_tile` 과 같은 수(반 칸 넓혀 묻기)다.
-    줌 `MARS_DEM_FINE_ZOOM` 밑은 MOLA 128 ppd, 그 위는 MOLA–HRSC 200 m 다."""
+def _mars_dem_values(service: str, box: tuple) -> list:
+    """`exportImage` 로 65×65 화성 표고 — 자료 밖(−32767·−3.4e38)이나 범위 밖은 None"""
     from PIL import Image
 
-    w, s, e, n = tile_bbox(z, x, y)
+    w, s, e, n = box
     half = (e - w) / (DEM_SIZE - 1) / 2
-    service = MARS_DEM if z >= MARS_DEM_FINE_ZOOM else MARS_DEM_COARSE
     r = _mars(f"{service}/ImageServer/exportImage", {
         "bbox": f"{w - half},{s - half},{e + half},{n + half}", "bboxSR": MARS_SR, "imageSR": MARS_SR,
         "size": f"{DEM_SIZE},{DEM_SIZE}", "format": "tiff", "pixelType": "F32",
@@ -1103,8 +1123,30 @@ def mars_dem_tile(z: int, x: int, y: int) -> bytes:
     if image.mode != "F" or image.size != (DEM_SIZE, DEM_SIZE):
         raise TrekError(f"표고의 꼴이 다르다 ({image.mode}, {image.size})")
     lo, hi = MARS_ELEV_RANGE
+    return [v if lo < v < hi and not math.isnan(v) else None for v in image.getdata()]
+
+
+def mars_dem_source(z: int, x: int, y: int) -> str:
+    """그 장을 받을 판 — 고운 판이 걸치면 그 판, 아니면 줌에 따라 200 m·128 ppd. 캐시 열쇠도 이것을 쓴다"""
+    part = mars_dem_part(z, x, y)
+    if part:
+        return part[0]
+    return MARS_DEM if z >= MARS_DEM_FINE_ZOOM else MARS_DEM_COARSE
+
+
+def mars_dem_tile(z: int, x: int, y: int) -> bytes:
+    """화성 표고 격자 한 장 — 65×65 Terrarium PNG. 달의 `dem_tile` 과 같은 수(반 칸 넓혀 묻기)다.
+    줌 `MARS_DEM_FINE_ZOOM` 밑은 MOLA 128 ppd, 그 위는 MOLA–HRSC 200 m, 줌 9 너머는 고운 판(`MARS_DEM_PARTS`)이고 그 판의
+    빈 칸은 200 m 판으로 메운다 (wetherilli 274)"""
+    from PIL import Image
+
+    box = tile_bbox(z, x, y)
+    values = _mars_dem_values(mars_dem_source(z, x, y), box)
+    if mars_dem_part(z, x, y) and any(v is None for v in values):
+        base = _mars_dem_values(MARS_DEM, box)
+        values = [v if v is not None else b for v, b in zip(values, base)]
     out = Image.new("RGB", (DEM_SIZE, DEM_SIZE))
-    out.putdata([_terrarium_rgb(v if lo < v < hi and not math.isnan(v) else 0.0) for v in image.getdata()])
+    out.putdata([_terrarium_rgb(v if v is not None else 0.0) for v in values])
     buf = io.BytesIO()
     out.save(buf, "PNG")
     return buf.getvalue()

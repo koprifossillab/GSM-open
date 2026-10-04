@@ -1,5 +1,5 @@
 {
- "_주석": "SGC(콜롬비아 지질조사소) 지질도 씨앗이다 — 콜롬비아 탭(남미 묶음에도 든다). 남미 1:500만(CGMW 2019, SGC·SGB 가 냄)이 대륙 바탕이고 콜롬비아 1:50만(2023)을 얹는다. 1:500만 레이어군은 브라질 탭이 빌린다(wetherilli 191). 레이어명은 sgc:<판>:<WMS 번호> (web/viewer/sgc.py). 번호는 WMS 의 것이라 ArcGIS REST 와 다르다 (wetherilli 188).",
+ "_주석": "SGC(콜롬비아 지질조사소) 지질도 씨앗이다 — 콜롬비아 탭(남미 묶음에도 든다). 남미 1:500만(CGMW 2019, SGC·SGB 가 냄)이 대륙 바탕이고 콜롬비아 1:50만(2023)을 얹는다. 1:500만 레이어군은 브라질 탭이 빌린다(wetherilli 191). 레이어명은 sgc:<판>:<WMS 번호> (web/viewer/sgc.py). 번호는 WMS 의 것이라 ArcGIS REST 와 다르다 (wetherilli 188). 금속광상도 2022·지구물리 이상 2022 는 sgc:met:·sgc:geof: — WMS 번호다 (wetherilli 265).",
  "_뽑은날": "2026-10-04",
  "_출처": "https://srvags.sgc.gov.co/arcgis/services/Mapa_Geologico_Sur_America/GeologicalMapSouthAmerican/MapServer/WMSServer?request=GetCapabilities&service=WMS · …/Mapa_Geologico_Colombia/Mapa_Geologico_Colombia_V2023/MapServer/WMSServer",
  "_지역": "colombia",
@@ -7,7 +7,8 @@
  "_레이어군차례": 1,
  "레이어군순서": [
   "남미 지질도 (CGMW 1:500만)",
-  "콜롬비아 지질도 (SGC 1:50만)"
+  "콜롬비아 지질도 (SGC 1:50만)",
+  "콜롬비아 금속광상·지구물리 (SGC)"
  ],
  "레이어": [
   {
@@ -149,6 +150,66 @@
    "abstract": "Volcanes de Lodo",
    "bbox": [
     -79.5,
+    -4.3,
+    -66.8,
+    13.5
+   ]
+  },
+  {
+   "name": "sgc:met:11",
+   "title": "광상 (금속광상도 2022)",
+   "group": "콜롬비아 금속광상·지구물리 (SGC)",
+   "abstract": "Mapa Metalogénico de Colombia 2022 — Depósitos",
+   "bbox": [
+    -79.1,
+    -4.3,
+    -66.8,
+    13.5
+   ]
+  },
+  {
+   "name": "sgc:met:10",
+   "title": "금속광화대 (2022)",
+   "group": "콜롬비아 금속광상·지구물리 (SGC)",
+   "abstract": "Cinturones metalogénicos",
+   "bbox": [
+    -79.1,
+    -4.3,
+    -66.8,
+    13.5
+   ]
+  },
+  {
+   "name": "sgc:met:8",
+   "title": "금속광상 지구 (2022)",
+   "group": "콜롬비아 금속광상·지구물리 (SGC)",
+   "abstract": "Distritos metalogénicos",
+   "bbox": [
+    -79.1,
+    -4.3,
+    -66.8,
+    13.5
+   ]
+  },
+  {
+   "name": "sgc:geof:8",
+   "title": "자력 총강도 (항공 지구물리 2022)",
+   "group": "콜롬비아 금속광상·지구물리 (SGC)",
+   "abstract": "Anomalías Geofísicas 2022 — IMT",
+   "bbox": [
+    -79.1,
+    -4.3,
+    -66.8,
+    13.5
+   ]
+  },
+  {
+   "name": "sgc:geof:1",
+   "title": "감마선 3색 (K·Th·U, 2022)",
+   "group": "콜롬비아 금속광상·지구물리 (SGC)",
+   "abstract": "Anomalías Geofísicas 2022 — ternario gamma",
+   "bbox": [
+    -79.1,
     -4.3,
     -66.8,
     13.5

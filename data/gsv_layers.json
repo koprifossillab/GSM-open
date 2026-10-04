@@ -1,12 +1,13 @@
 {
- "_주석": "빅토리아 지질조사소(GSV) 이음매 없는 지질도 씨앗이다 — 호주 탭. GeoServer WMS(web/viewer/austates.py). 1:25만은 줌 8, 1:5만은 줌 11 부터. 한글 제목과 레이어군은 사람이 붙였다 (wetherilli 225).",
+ "_주석": "빅토리아 지질조사소(GSV) 이음매 없는 지질도 씨앗이다 — 호주 탭. GeoServer WMS(web/viewer/austates.py). 1:25만은 줌 8, 1:5만은 줌 11 부터. 한글 제목과 레이어군은 사람이 붙였다 (wetherilli 225). 광상 면·점도 같은 GeoServer 다 (wetherilli 269).",
  "_뽑은날": "2026-10-04",
  "_출처": "https://opendata.maps.vic.gov.au/geoserver/wms?service=WMS&request=GetCapabilities",
  "_지역": "australia",
  "_상류": "gsv",
  "_레이어군차례": 11,
  "레이어군순서": [
-  "빅토리아 지질도 (GSV)"
+  "빅토리아 지질도 (GSV)",
+  "빅토리아 광상 (GSV)"
  ],
  "레이어": [
   {
@@ -31,6 +32,30 @@
     -38.86,
     149.5,
     -35.93
+   ]
+  },
+  {
+   "name": "gsv:mineral",
+   "title": "광상 (면)",
+   "group": "빅토리아 광상 (GSV)",
+   "abstract": "Mineral deposits — 면 237. 줌 7 부터",
+   "bbox": [
+    140.9,
+    -39.2,
+    150.0,
+    -33.9
+   ]
+  },
+  {
+   "name": "gsv:mineralp",
+   "title": "광상 (점)",
+   "group": "빅토리아 광상 (GSV)",
+   "abstract": "Mineral deposits — 점 620. 줌 7 부터",
+   "bbox": [
+    140.9,
+    -39.2,
+    150.0,
+    -33.9
    ]
   }
  ]

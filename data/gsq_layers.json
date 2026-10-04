@@ -1,12 +1,13 @@
 {
- "_주석": "퀸즐랜드 지질조사소(GSQ) 지질도 씨앗이다 — 호주 탭. REST export 로 그린다(web/viewer/austates.py). 1:10만 상세판은 1:150만보다 가까울 때만 그린다. 한글 제목과 레이어군은 사람이 붙였다 (wetherilli 225). 구조선은 wetherilli 232 에서 더했다.",
+ "_주석": "퀸즐랜드 지질조사소(GSQ) 지질도 씨앗이다 — 호주 탭. REST export 로 그린다(web/viewer/austates.py). 1:10만 상세판은 1:150만보다 가까울 때만 그린다. 한글 제목과 레이어군은 사람이 붙였다 (wetherilli 225). 구조선은 wetherilli 232 에서 더했다. 광산·광물 산지와 지구물리 영상도 같은 폴더다 (wetherilli 269).",
  "_뽑은날": "2026-10-04",
  "_출처": "https://spatial-gis.information.qld.gov.au/arcgis/rest/services/GeoscientificInformation/GeologyState/MapServer · …/GeologyDetailed/MapServer",
  "_지역": "australia",
  "_상류": "gsq",
  "_레이어군차례": 10,
  "레이어군순서": [
-  "퀸즐랜드 지질도 (GSQ)"
+  "퀸즐랜드 지질도 (GSQ)",
+  "퀸즐랜드 광물·지구물리 (GSQ)"
  ],
  "레이어": [
   {
@@ -62,6 +63,54 @@
    "title": "퀸즐랜드 습곡 (1:10만)",
    "group": "퀸즐랜드 지질도 (GSQ)",
    "abstract": "Queensland Detailed folds 1:100k",
+   "bbox": [
+    137.9,
+    -29.2,
+    153.6,
+    -9.0
+   ]
+  },
+  {
+   "name": "gsq:mines",
+   "title": "광산·광물 산지 (MINOCC)",
+   "group": "퀸즐랜드 광물·지구물리 (GSQ)",
+   "abstract": "Mines and mineral occurrence by status — 줌 7 부터",
+   "bbox": [
+    137.9,
+    -29.2,
+    153.6,
+    -9.0
+   ]
+  },
+  {
+   "name": "gsq:tmi",
+   "title": "자력 총강도 (TMI)",
+   "group": "퀸즐랜드 광물·지구물리 (GSQ)",
+   "abstract": "Qld TMI magnetic image",
+   "bbox": [
+    137.9,
+    -29.2,
+    153.6,
+    -9.0
+   ]
+  },
+  {
+   "name": "gsq:radiometric",
+   "title": "방사능 3색",
+   "group": "퀸즐랜드 광물·지구물리 (GSQ)",
+   "abstract": "Qld radiometric image",
+   "bbox": [
+    137.9,
+    -29.2,
+    153.6,
+    -9.0
+   ]
+  },
+  {
+   "name": "gsq:gravity",
+   "title": "완전 부게 중력 이상",
+   "group": "퀸즐랜드 광물·지구물리 (GSQ)",
+   "abstract": "Qld complete Bouguer anomaly gravity image",
    "bbox": [
     137.9,
     -29.2,

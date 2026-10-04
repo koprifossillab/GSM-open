@@ -1,0 +1,62 @@
+{
+ "_주석": "BGS GeoIndex 씨앗이다 — 영국 탭(유럽 묶음에도 든다). 자력·중력 이상(1:62만 5천 색 음영)과 광산·채석장(BritPits)·광물 산지(MINGOL). 문은 web/viewer/bgs.py 의 GEOINDEX(상류 bgsgi). OGL. 한글 제목과 레이어군은 사람이 붙였다 (wetherilli 258).",
+ "_뽑은날": "2026-10-05",
+ "_출처": "https://map.bgs.ac.uk/arcgis/rest/services/GeoIndex_Onshore",
+ "_지역": "uk",
+ "_상류": "bgsgi",
+ "_레이어군차례": 3,
+ "레이어군순서": [
+  "영국 지구물리 (BGS)",
+  "영국 광물 자원 (BGS)"
+ ],
+ "레이어": [
+  {
+   "name": "bgsgi:magnetic",
+   "title": "자력 이상 (색 음영)",
+   "group": "영국 지구물리 (BGS)",
+   "abstract": "BGS Magnetic anomalies colour shaded (1:625 000) — 줌 9 까지",
+   "bbox": [
+    -8.7,
+    49.8,
+    2.0,
+    60.9
+   ]
+  },
+  {
+   "name": "bgsgi:gravity",
+   "title": "중력 이상 (색 음영)",
+   "group": "영국 지구물리 (BGS)",
+   "abstract": "BGS Gravity anomalies colour shaded (1:625 000; 육지 부게·바다 프리에어) — 줌 9 까지",
+   "bbox": [
+    -8.7,
+    49.8,
+    2.0,
+    60.9
+   ]
+  },
+  {
+   "name": "bgsgi:mines",
+   "title": "광산·채석장 (BritPits)",
+   "group": "영국 광물 자원 (BGS)",
+   "abstract": "Mines and quarries — 줌 10 부터",
+   "bbox": [
+    -8.7,
+    49.8,
+    2.0,
+    60.9
+   ]
+  },
+  {
+   "name": "bgsgi:occurrences",
+   "title": "광물 산지 (MINGOL)",
+   "group": "영국 광물 자원 (BGS)",
+   "abstract": "Mineral occurrences",
+   "bbox": [
+    -8.7,
+    49.8,
+    2.0,
+    60.9
+   ]
+  }
+ ]
+}

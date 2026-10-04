@@ -28,9 +28,14 @@ WORKSPACE = "sigam:"
 ATTRIBUTION = ('<a href="https://sigam.segemar.gov.ar/" target="_blank" rel="noopener">SEGEMAR</a> '
                '(Servicio Geológico Minero Argentino) · SIGAM — CC Argentina, atribución')
 #: 판 → (첫 줌, 끝 줌). 1:25만은 간행 도폭만 덮어 멀리서는 빈 데가 많다 — 가까이서만
-ZOOMS = {"e250K_UnidadGeologica": (9, None), "e250K.Fallas": (9, None)}
+ZOOMS = {"e250K_UnidadGeologica": (9, None), "e250K.Fallas": (9, None),
+         # 광상 1:25만(wetherilli 265) — 간행 도폭만 덮는다
+         "e250K.DepositMetalif": (7, None), "e250K.DepositMinIndust": (7, None)}
 #: 속성으로 받을 열 — 기하를 떼려고 `propertyName` 에 넣는다
 PROPERTIES = {
+    # 광상 1:25만 (wetherilli 265)
+    "e250K.DepositMetalif": "nombre,distrito_minero,otros_nombres,modelo,commodity,tamaño,estilo_min,asoc_min,alt_hidrotermal,lito_caja",
+    "e250K.DepositMinIndust": "nombre,distrito_minero,otros_nombres,modelo,commodity,tamaño,estilo_min,asoc_min,lito_caja",
     "e2.5M.UnidadesGeologicas": "sigla,nombre,ambiente,edad_inf,edad_sup,litologia,region",
     "e250K_UnidadGeologica": "nro_hoja,nom_hoja,nombre,descrip_litologica,edad_inf,edad_sup,jerarquia",
     # 다른 판(wetherilli 220). 국경 1:50만의 암석 열 이름에는 `Í` 가 들어 있다(상류가 그렇게 지었다)
@@ -141,6 +146,14 @@ FRIENDLY = (
     ("nombre", "이름"),
     ("nom_unidad", "이름"),
     ("otros_nombres", "다른 이름"),
+    ("commodity", "광종"),                       # 광상 1:25만 (wetherilli 265)
+    ("distrito_minero", "광산 지구"),
+    ("modelo", "광상 형태"),
+    ("tamaño", "광상 규모"),
+    ("estilo_min", "광화 양식"),
+    ("asoc_min", "광물 조합"),
+    ("alt_hidrotermal", "변질"),
+    ("lito_caja", "모암"),
     ("tipo_traza", "갈래"),
     ("tipo_estructura", "구조 갈래"),
     ("tipo", "갈래"),                            # 단층·구조선

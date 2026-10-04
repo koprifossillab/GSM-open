@@ -529,3 +529,100 @@ def bumigeb_friendly(props: dict, lang: str = "ko") -> dict:
 
 
 BUMIGEB = _NS(get_map=bumigeb_get_map, get_feature_info=bumigeb_get_feature_info, get_legend=bumigeb_get_legend)
+
+
+# ── 영국 GeoIndex — 자력·중력 이상, 광산·채석장, 광물 산지 (wetherilli 258) ───────────────
+#
+# BGS 의 GeoIndex 지도(`map.bgs.ac.uk/arcgis/services/GeoIndex_Onshore/<서비스>/MapServer/WMSServer`). 상류 이름은 `bgsgi` 로 따로 두되 문은 여기다.
+#
+# - 조건: BGS WMS 의 "Terms of use" — **Open Government Licence**, "Contains British Geological Survey materials © UKRI [해]" 를 붙인다.
+#   광물 서비스의 copyrightText 는 "Geological Materials Copyright NERC. All rights reserved." 지만 WMS 로 내준 것의 조건은 위의 것이다
+# - 자력·중력 이상(1:62만 5천 지도의 색 음영)은 상류 maxScale 이 62만 5천이라 **화면 줌 9 까지** 그린다(그 위는 빈 그림 — 화면이 늘린다)
+# - 광산·채석장(BritPits)은 minScale 60만이라 **줌 10 부터**. 광물 산지(MINGOL)는 넓게도 그린다
+# - 속성은 `application/geo+json`. 지구물리는 그림이라 누르지 않는다
+GEOINDEX_PREFIX = "bgsgi:"
+GEOINDEX_ATTRIBUTION = ('Contains <a href="https://www.bgs.ac.uk/technologies/web-map-services-wms/" target="_blank" rel="noopener">'
+                        "British Geological Survey</a> materials © UKRI 2026 (OGL)")
+#: 레이어 → (GeoIndex 서비스, WMS 레이어, 누르기가 되나)
+GEOINDEX_LAYERS = {
+    "bgsgi:magnetic": ("geophysics", "Magnetic.anomalies.colour.shaded", False),
+    "bgsgi:gravity": ("geophysics", "Gravity.anomalies.colour.shaded", False),
+    "bgsgi:mines": ("minerals_wms", "Mines.and.quarries", True),
+    "bgsgi:occurrences": ("minerals_wms", "Mineral.Occurrences", True),
+}
+#: 그리는 화면 줌 — (처음, 끝)
+GEOINDEX_ZOOMS = {"bgsgi:magnetic": (None, 9), "bgsgi:gravity": (None, 9), "bgsgi:mines": (10, None)}
+#: BritPits 의 운영 상태 약호
+PIT_STATUS = {"A": "Active", "C": "Ceased", "I": "Inactive", "P": "Proposed"}
+
+
+def geoindex_knows(name: str) -> bool:
+    return name in GEOINDEX_LAYERS
+
+
+def _geoindex(name: str):
+    if name not in GEOINDEX_LAYERS:
+        raise BgsError(f"모르는 레이어다: {name}")
+    service, layer, queryable = GEOINDEX_LAYERS[name]
+    root = settings.BGS_WMS_URL.split("/arcgis/services/", 1)[0]
+    return f"{root}/arcgis/services/GeoIndex_Onshore/{service}/MapServer/WMSServer", layer, queryable
+
+
+def _geoindex_get(url: str, params: dict):
+    left = usage.paused()
+    if left:
+        raise BgsError(f"차단 조짐이 있어 {int(left)}초 동안 상류에 묻지 않는다")
+    try:
+        r = requests.get(url, params=params, timeout=settings.UPSTREAM_TIMEOUT, verify=settings.CA_BUNDLE or True,
+                         headers={"User-Agent": "GSM/0.1"})
+    except requests.RequestException as exc:
+        usage.record("bgsgi", ok=False)
+        raise BgsError(f"BGS GeoIndex 에 닿지 못했다: {exc}") from exc
+    log.info("BGS-GeoIndex %s -> %s", r.url, r.status_code)
+    usage.record("bgsgi", ok=r.status_code == 200, blocked=usage.looks_blocked(r.status_code, r.content[:1000]))
+    return r
+
+
+def geoindex_get_map(params: dict):
+    url, layer, _ = _geoindex(str(params.get("layers") or "").strip())
+    r = _geoindex_get(url, dict(params, service="WMS", request="GetMap", layers=layer, styles=""))
+    ctype = r.headers.get("content-type", "")
+    if r.status_code != 200 or not ctype.startswith("image/"):
+        raise BgsError(f"그림이 아닌 것이 왔다 (status={r.status_code}, type={ctype})")
+    return r.content, ctype
+
+
+def geoindex_get_legend(layer: str):
+    url, name, _ = _geoindex(layer)
+    r = _geoindex_get(url, {"service": "WMS", "version": "1.3.0", "request": "GetLegendGraphic", "format": "image/png", "layer": name})
+    if r.status_code != 200 or not r.headers.get("content-type", "").startswith("image/"):
+        raise BgsError(f"범례가 아닌 것이 왔다 (status={r.status_code})")
+    return r.content, r.headers.get("content-type")
+
+
+def geoindex_get_feature_info(params: dict) -> dict:
+    url, layer, queryable = _geoindex(str(params.get("query_layers") or params.get("layers") or "").strip())
+    if not queryable:
+        return {"features": []}
+    q = dict(params, service="WMS", request="GetFeatureInfo", layers=layer, query_layers=layer, styles="",
+             info_format="application/geo+json")
+    r = _geoindex_get(url, q)
+    if r.status_code != 200:
+        raise BgsError(f"속성을 읽지 못했다 (status={r.status_code})")
+    try:
+        return {"features": r.json().get("features") or []}
+    except ValueError as exc:
+        raise BgsError("속성이 JSON 이 아니다") from exc
+
+
+def geoindex_friendly(props: dict, lang: str = "ko") -> dict:
+    v = lambda k: str(props.get(k) or "").strip()          # noqa: E731
+    if "PIT_NAME" in props:                     # 광산·채석장 (BritPits)
+        status = v("PIT_STATUS")
+        rows = (("이름", v("PIT_NAME")), ("운영", PIT_STATUS.get(status, status)), ("영국 격자", f"E {v('EASTING')} · N {v('NORTHING')}"))
+    else:                                       # 광물 산지 (MINGOL)
+        rows = (("이름", v("OCCURRENCE")), ("광종", v("COMMODITY")), ("영국 격자", f"E {v('EASTING')} · N {v('NORTHING')}"))
+    return {k: x for k, x in rows if x and x != "E  · N "}
+
+
+GEOINDEX = _NS(get_map=geoindex_get_map, get_feature_info=geoindex_get_feature_info, get_legend=geoindex_get_legend)

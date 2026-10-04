@@ -1,5 +1,5 @@
 {
- "_주석": "SEGEMAR(아르헨티나 지질광업조사소) SIGAM 지질도 씨앗이다 — 아르헨티나 탭(남미 묶음에도 든다). 1:250만은 나라 전체, 1:25만은 간행된 도폭만 덮어 가까이서만 그린다. 레이어명은 segemar:<상류 이름에서 sigam: 을 뗀 것> (web/viewer/segemar.py). 한글 제목과 레이어군은 사람이 붙였다 (wetherilli 196). 지역 판(1:100만 북서부·코리엔테스, 주별 1:75만, 국경 1:50만, 포클랜드(말비나스) 1:25만)과 제4기 변형·화산 위험도를 더했다 — `segemar:e750K.ProvEstr` 는 주별 구조선 여섯을 묶은 것이다 (wetherilli 220).",
+ "_주석": "SEGEMAR(아르헨티나 지질광업조사소) SIGAM 지질도 씨앗이다 — 아르헨티나 탭(남미 묶음에도 든다). 1:250만은 나라 전체, 1:25만은 간행된 도폭만 덮어 가까이서만 그린다. 레이어명은 segemar:<상류 이름에서 sigam: 을 뗀 것> (web/viewer/segemar.py). 한글 제목과 레이어군은 사람이 붙였다 (wetherilli 196). 지역 판(1:100만 북서부·코리엔테스, 주별 1:75만, 국경 1:50만, 포클랜드(말비나스) 1:25만)과 제4기 변형·화산 위험도를 더했다 — `segemar:e750K.ProvEstr` 는 주별 구조선 여섯을 묶은 것이다 (wetherilli 220). 광상 1:25만도 같은 GeoServer 다 (wetherilli 265).",
  "_뽑은날": "2026-10-04",
  "_출처": "https://sigam.segemar.gov.ar/geoserver217/ows?service=WMS&request=GetCapabilities",
  "_지역": "argentina",
@@ -9,7 +9,8 @@
   "아르헨티나 지질도 (SEGEMAR 1:250만)",
   "아르헨티나 지질도 (SEGEMAR 1:25만, 간행 도폭)",
   "아르헨티나 지역 지질도 (SEGEMAR 1:100만·1:75만·1:50만)",
-  "아르헨티나 지질 위험 (SEGEMAR)"
+  "아르헨티나 지질 위험 (SEGEMAR)",
+  "아르헨티나 광상 (SEGEMAR 1:25만)"
  ],
  "레이어": [
   {
@@ -274,6 +275,30 @@
     -55.1,
     -53.6,
     -21.7
+   ]
+  },
+  {
+   "name": "segemar:e250K.DepositMetalif",
+   "title": "금속 광상 (1:25만)",
+   "group": "아르헨티나 광상 (SEGEMAR 1:25만)",
+   "abstract": "Depósitos minerales metalíferos 250K — 줌 7 부터",
+   "bbox": [
+    -73.6,
+    -55.1,
+    -53.6,
+    -21.8
+   ]
+  },
+  {
+   "name": "segemar:e250K.DepositMinIndust",
+   "title": "산업 광물 광상 (1:25만)",
+   "group": "아르헨티나 광상 (SEGEMAR 1:25만)",
+   "abstract": "Depósitos minerales industriales 250K — 줌 7 부터",
+   "bbox": [
+    -73.6,
+    -55.1,
+    -53.6,
+    -21.8
    ]
   }
  ]

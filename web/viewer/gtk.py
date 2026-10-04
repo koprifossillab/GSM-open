@@ -20,6 +20,15 @@ ATTRIBUTION = ('<a href="https://www.gtk.fi/en/open-licence/" target="_blank" re
                " (GTK Open Licence, CC BY 4.0)")
 
 
+#: 기반암 말고 다른 서비스의 레이어 → 그 주소의 설정 이름 (wetherilli 270). 지구물리 영상은 누르지 않는다
+SERVICES = {
+    "gtk:aeromagneettinen_anomaliakartta": "GTK_GEOPHYSICS_URL",
+    "gtk:aeroradiometrinen_yhdistelmakartta": "GTK_GEOPHYSICS_URL",
+    "gtk:fennoscandia_mineral_deposit": "GTK_KOKOAVA_URL",
+}
+NOT_QUERYABLE = ("gtk:aeromagneettinen_anomaliakartta", "gtk:aeroradiometrinen_yhdistelmakartta")
+
+
 class GtkError(RuntimeError):
     pass
 
@@ -29,12 +38,18 @@ def upstream_name(name: str) -> str:
                     for n in str(name or "").split(","))
 
 
-def _get(params: dict):
+def _url(names) -> str:
+    first = str(names or "").split(",")[0].strip()
+    first = first if first.startswith(PREFIX) else PREFIX + first
+    return getattr(settings, SERVICES[first]) if first in SERVICES else settings.GTK_WMS_URL
+
+
+def _get(params: dict, url: str = ""):
     left = usage.paused()
     if left:
         raise GtkError(f"차단 조짐이 있어 {int(left)}초 동안 상류에 묻지 않는다")
     try:
-        r = requests.get(settings.GTK_WMS_URL, params=params, timeout=settings.UPSTREAM_TIMEOUT,
+        r = requests.get(url or settings.GTK_WMS_URL, params=params, timeout=settings.UPSTREAM_TIMEOUT,
                          verify=settings.CA_BUNDLE or True, headers={"User-Agent": "GSM/0.1"})
     except requests.RequestException as exc:
         usage.record("gtk", ok=False)
@@ -55,7 +70,7 @@ def _wms(params: dict, request: str) -> dict:
 
 
 def get_map(params: dict):
-    r = _get(_wms(params, "GetMap"))
+    r = _get(_wms(params, "GetMap"), _url(params.get("layers")))
     ctype = r.headers.get("content-type", "")
     if r.status_code != 200 or not ctype.startswith("image/"):
         raise GtkError(f"그림이 아닌 것이 왔다 (status={r.status_code}, type={ctype})")
@@ -64,18 +79,19 @@ def get_map(params: dict):
 
 def get_legend(layer: str):
     r = _get({"service": "WMS", "version": "1.1.1", "request": "GetLegendGraphic", "format": "image/png",
-              "layer": upstream_name(layer)})
+              "layer": upstream_name(layer)}, _url(layer))
     if r.status_code != 200 or not r.headers.get("content-type", "").startswith("image/"):
         raise GtkError(f"범례가 아닌 것이 왔다 (status={r.status_code})")
     return r.content, r.headers.get("content-type")
 
 
 def get_feature_info(params: dict) -> dict:
+    url = _url(params.get("query_layers") or params.get("layers"))
     params = _wms(params, "GetFeatureInfo")
     params["info_format"] = "application/geo+json"
     if "i" in params and "x" not in params:
         params["x"], params["y"] = params.pop("i"), params.pop("j", "0")
-    r = _get(params)
+    r = _get(params, url)
     if r.status_code != 200:
         raise GtkError(f"속성을 읽지 못했다 (status={r.status_code})")
     try:
@@ -105,7 +121,32 @@ _EMPTY = {"null", "not determined", "undefined", "-1"}
 _AGES = ("EPOCH_", "ERA_")
 
 
+#: 북유럽 광상 FODD 의 열 (wetherilli 270) — 노르웨이·스웨덴·핀란드·러시아 북서부를 한 표로 묶은 것
+FODD_FRIENDLY = (
+    ("NAME", "이름"),
+    ("COUNTRY", "나라"),
+    ("MAIN_COMMODITIES", "광종"),
+    ("OTHER_COMMODITES", "딸린 광종"),
+    ("STATUS", "광산"),
+    ("WHEN_MINED", "채굴 기간"),
+    ("SIZE_CATEGORY", "광상 규모"),
+    ("TOTAL_TONNAGE_MT", "총 광량 (Mt)"),
+    ("GENETIC_TYPE", "성인"),
+    ("HOST_ROCKS", "모암"),
+    ("ORE_MINERALS", "광석 광물"),
+    ("AGE_OF_MINERALISATION", "광화 시기"),
+    ("METALLOGENIC_AREA", "광화 지역"),
+)
+
+
 def friendly(props: dict, lang: str = "ko") -> dict:
+    if "MAIN_COMMODITIES" in props:
+        out = {}
+        for key, label in FODD_FRIENDLY:
+            value = str(props.get(key) or "").strip()
+            if value and value.lower() not in _EMPTY:
+                out[label] = value
+        return out
     out = {}
     for key, label in FRIENDLY:
         value = str(props.get(key) or "").strip()

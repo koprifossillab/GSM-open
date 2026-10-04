@@ -88,3 +88,29 @@ class Routing(TestCase):
     def test_카탈로그에_지역이_실린다(self):
         regions = {g["region"] for g in self.client.get("/GSM/catalog/").json()["groups"]}
         self.assertEqual(regions, {"greenland", "korea"})
+
+
+class GeusArcgis(SimpleTestCase):
+    """GEUS 의 ArcGIS — 자력 편찬·DTU 부게 중력·지질구 (wetherilli 259)"""
+
+    def resp(self, body=None, ctype="image/png"):
+        r = mock.Mock(status_code=200, content=b"\x89PNG", url="https://data.geus.dk/x?whoami=me@x", headers={"content-type": ctype})
+        r.json = lambda: body
+        return r
+
+    def test_3413_으로_export_측선은_뺀다(self):
+        with mock.patch("viewer.geus.requests.get", return_value=self.resp()) as get:
+            geus.arc_get_map({"layers": "geusarc:magnetic", "crs": "EPSG:3413", "bbox": "0,0,1,1", "width": 256, "height": 256})
+        self.assertTrue(get.call_args.args[0].endswith("/Greenland/Magnetic_compilation/MapServer/export"))
+        sent = get.call_args.kwargs["params"]
+        self.assertEqual((sent["bboxSR"], sent["layers"]), ("3413", "show:0"))
+        self.assertIn("whoami", sent)
+
+    def test_지질구(self):
+        body = {"results": [{"layerName": "Precambrian_basement", "attributes": {"OBJECTID": "3", "Description": "Archaean basement"}}]}
+        with mock.patch("viewer.geus.requests.get", return_value=self.resp(body, "application/json")):
+            got = geus.arc_get_feature_info({"layers": "geusarc:provinces", "crs": "EPSG:3413", "bbox": "0,0,1,1",
+                                             "width": 256, "height": 256, "i": 128, "j": 128})
+        props = got["features"][0]["properties"]
+        self.assertEqual(geus.arc_friendly(props), {"갈래": "선캄브리아 기반", "지질구": "Archaean basement"})
+        self.assertEqual(geus.arc_get_feature_info({"layers": "geusarc:bouguer"}), {"features": []})

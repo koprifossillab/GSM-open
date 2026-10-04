@@ -1,11 +1,12 @@
 {
- "_주석": "지구 자료 점의 씨앗이다 (wetherilli 185). 온 지구 화면에만 있던 화석 산지·홀로세 화산·지진·제4기 고생태 산지를 지역 탭의 점 레이어로 — 모아 둔 sqlite·JSON 에서 지역의 네모만 잘라 낸다(web/viewer/earthpoints.py). 상류를 타지 않는다. 정적 판에는 싣지 않는다. 남극 탭(60°S 남쪽)에 둔다.",
+ "_주석": "지구 자료 점의 씨앗이다 (wetherilli 185). 온 지구 화면에만 있던 화석 산지·홀로세 화산·지진·제4기 고생태 산지를 지역 탭의 점 레이어로 — 모아 둔 sqlite·JSON 에서 지역의 네모만 잘라 낸다(web/viewer/earthpoints.py). 상류를 타지 않는다. 정적 판에는 싣지 않는다. 남극 탭(60°S 남쪽)에 둔다. 지열류(IHFC)는 지구물리 레이어군에 둔다 (wetherilli 275).",
  "_뽑은날": "2026-10-04",
  "_지역": "antarctica",
  "_상류": "earth",
  "_레이어군차례": 40,
  "레이어군순서": [
-  "화석·화산·지진"
+  "화석·화산·지진",
+  "지구물리"
  ],
  "레이어": [
   {
@@ -49,6 +50,18 @@
    "title": "제4기 고생태 산지 (Neotoma)",
    "group": "화석·화산·지진",
    "abstract": "Neotoma Paleoecology Database sites — pollen, vertebrates, plant macrofossils …",
+   "bbox": [
+    -180.0,
+    -90.0,
+    180.0,
+    -60.0
+   ]
+  },
+  {
+   "name": "earth:heatflow_antarctica",
+   "title": "지열류 (IHFC)",
+   "group": "지구물리",
+   "abstract": "IHFC Global Heat Flow Database 2024 — mW/m², colour by value",
    "bbox": [
     -180.0,
     -90.0,

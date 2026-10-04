@@ -308,6 +308,17 @@
 | wetherilli 266 | 2026-10-05 | [일본 셋째 판 — 지구화학도 53 원소, 공중 자력 편집도 셋](20261005_wetherilli_266_japan_more.md) |
 | wetherilli 267 | 2026-10-05 | [온 지구 — 지열류(IHFC 2024)와 세계 암상(GLiM)](20261005_wetherilli_267_earth_heatflow.md) |
 | wetherilli 268 | 2026-10-05 | ['그 외' 차림을 대륙 머리로 묶는다](20261005_wetherilli_268_region_menu_groups.md) |
+| wetherilli 258 | 2026-10-05 | [유럽 — BGS GeoIndex 의 자력·중력·광산·광물 산지 (EGDI 광물은 못 붙였다)](20261005_wetherilli_258_europe_resources.md) |
+| wetherilli 259 | 2026-10-05 | [그린란드 — GEUS ArcGIS 의 자력 편찬·DTU 부게 중력·지질구](20261005_wetherilli_259_greenland_more.md) |
+| wetherilli 265 | 2026-10-05 | [남미 — 브라질 광물 산출·콜롬비아 금속광상도와 지구물리·아르헨티나 광상](20261005_wetherilli_265_south_america_resources.md) |
+| wetherilli 269 | 2026-10-05 | [오세아니아 — 호주 세 주의 광물·지구물리, 뉴질랜드 중력](20261005_wetherilli_269_oceania_resources.md) |
+| wetherilli 270 | 2026-10-05 | [북유럽 — 핀란드 지구물리, 북유럽 광상 FODD, 스웨덴 산지·자력](20261005_wetherilli_270_nordic_resources.md) |
+| wetherilli 271 | 2026-10-05 | [레이어가 오백을 넘은 뒤의 성능 점검](20261005_wetherilli_271_catalog_perf.md) |
+| wetherilli 272 | 2026-10-05 | [온 지구 — 판 경계와 세계 지질구 (Hasterok 2022)](20261005_wetherilli_272_earth_plates.md) |
+| wetherilli 273 | 2026-10-05 | [온 지구 — 지각 응력(World Stress Map 2025)](20261005_wetherilli_273_earth_stress.md) |
+| wetherilli 274 | 2026-10-05 | [화성·수성을 달과 맞추기 — 화성의 고운 지형](20261005_wetherilli_274_mars_parity.md) |
+| wetherilli 275 | 2026-10-05 | [한국 탭 다시 보기 — 빠진 것은 지열류 하나](20261005_wetherilli_275_korea_more.md) |
+| wetherilli 276 | 2026-10-05 | [온 지구 — 세계 광상 (USGS MRDS·세계 광상 표)](20261005_wetherilli_276_earth_minerals.md) |
 | koprifossillab P01 | 2026-09-30 | [백업 — WegenersDream 의 틀로, 바뀌는 빠르기에 따라 넷으로 (계획)](20260930_koprifossillab_P01_backup_plan.md) |
 | koprifossillab 001 | 2026-09-30 | [매주 월요일 새벽: 운영 자료 백업과 KPDC 목록 갱신](20260930_koprifossillab_001_weekly_backup.md) |
 | koprifossillab 002 | 2026-09-30 | [`/healthz/` — 판·DB·백업 상태를 한 장으로](20260930_koprifossillab_002_healthz.md) |

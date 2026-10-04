@@ -200,6 +200,30 @@
     CATALOG.splice(CATALOG.findIndex(function (g) { return g.layers[0].name === "crust"; }) + 1, 0,
       { group: "바다 밑 (Seton 2020 · GlobSed)", layers: SEA_LAYERS });
   }
+  // 지각 응력 — World Stress Map 2025 의 S_Hmax 막대(품질 A–D). 오늘의 레이어다. 누르면 가까운 측정 (wetherilli 273)
+  if (THEN.stress && THEN.stress.length) {
+    CATALOG.splice(CATALOG.findIndex(function (g) { return g.layers[0].name === "fossils"; }) + 1, 0,
+      { group: "지각 응력 (World Stress Map)", layers: [
+        { name: "stress", title: "최대 수평 응력 방향", grid: "ll", legend: "stress", src: "World Stress Map 2025 · CC BY 4.0" }] });
+  }
+  // 판 경계·세계 지질구 — Hasterok 2022. 오늘의 지구다(판 회전의 조각 경계 `plates` 와 다른 모형). 지각 두께 앞에 둔다 (wetherilli 272)
+  var TECT = THEN.tectonics || {};
+  if (TECT.boundaries) {
+    CATALOG.splice(CATALOG.findIndex(function (g) { return g.layers[0].name === "crust"; }), 0,
+      { group: "판·지질구 (Hasterok 2022)", layers: [
+        { name: "tbound", title: "판 경계", grid: "ll", legend: "tbound", max: 7, src: "Hasterok et al. 2022 · CC BY 4.0" },
+        { name: "tprov", title: "세계 지질구", grid: "ll", info: "tectonics", legend: "tprov", max: 7,
+          src: "Hasterok et al. 2022 · CC BY 4.0" }] });
+  }
+  // 세계 광상 — USGS MRDS 와 세계 광상 표, 첫 광종으로 칸 여섯. 오늘의 레이어다. 누르면 가까운 곳 (wetherilli 276)
+  //   mineral  타일 주소의 칸(`earth/minerals/tiles/<칸>/…`)이자 누를 때 묻는 칸
+  if (THEN.minerals && THEN.minerals.length) {
+    var MIN_SRC = "USGS MRDS · Global Mineral Resource Assessment · public domain";
+    CATALOG.splice(CATALOG.findIndex(function (g) { return g.layers[0].name === "fossils"; }) + 1, 0,
+      { group: "세계 광상 (USGS)", layers: THEN.minerals.map(function (row) {
+        return { name: row.band, title: row.name, grid: "ll", mineral: true, legend: "mineral", legendTitle: "세계 광상 (USGS)", src: MIN_SRC };
+      }) });
+  }
   if (THEN.araon) {
     CATALOG.filter(function (g) { return g.flux; })[0].layers.push(
       { name: "araon", title: "아라온호 항적", track: true, src: "KOPRI · RV Araon live position" });
@@ -213,6 +237,9 @@
     if (name === "plates") return paleoUrl("edge", 0);
     if (name === "coast") return paleoUrl("coast", paleoOn() ? age : 0);
     if (name === "crust") return BASE + "earth/crust/tiles/{z}/{x}/{y}.png" + vq("crust");
+    if (LAYER[name] && LAYER[name].mineral) return BASE + "earth/minerals/tiles/" + name + "/{z}/{x}/{y}.png" + vq("minerals");
+    if (name === "stress") return BASE + "earth/stress/tiles/{z}/{x}/{y}.png" + vq("stress");
+    if (name === "tbound" || name === "tprov") return BASE + "earth/tectonics/" + name + "/{z}/{x}/{y}.png" + vq("tectonics");
     if (name === "glim") return BASE + "earth/glim/tiles/{z}/{x}/{y}.png" + vq("glim");
     if (name === "heatflow") return BASE + "earth/heatflow/tiles/{z}/{x}/{y}.png" + vq("heatflow");
     if (name === "seaage" || name === "sediment") return BASE + "earth/seafloor/" + name + "/{z}/{x}/{y}.png" + vq(name);
@@ -230,6 +257,8 @@
   var COAST_CREDIT = "PaleoCoastlines v7.1 (CC BY 4.0) · Kocsis & Scotese 2021, Earth-Science Reviews";
   var PBDB_CREDIT = "Paleobiology Database (CC BY 4.0) · paleobiodb.org";
   var CRUST_CREDIT = "CRUST 2.0 (CC BY 4.0) · Laske, Masters & Reif 2000 · EarthByte GPlates 2.3";
+  var STRESS_CREDIT = "World Stress Map 2025 (CC BY 4.0) · Heidbach et al., GFZ";
+  var TECT_CREDIT = "Hasterok et al. 2022, Earth-Science Reviews (CC BY 4.0)";
   var GLIM_CREDIT = "GLiM (CC BY 3.0) · Hartmann & Moosdorf 2012, G-cubed";
   var HEATFLOW_CREDIT = "IHFC Global Heat Flow Database 2024 (CC BY 4.0) · GFZ Data Services";
   var SEAAGE_CREDIT = "Seton et al. 2020, G-cubed · EarthByte (CC BY 4.0)";
@@ -240,9 +269,11 @@
   var NE_CREDIT = "Natural Earth 10 m (public domain)";
   var ICE_CREDIT = "NADI-1 (Dalton et al. 2023, CC BY 4.0) · DATED-1 (Hughes et al. 2016, CC BY 3.0)";
   var MANTLE_CREDIT = "Müller et al. (2022) OPT1, Solid Earth (CC BY 4.0)";
+  var MIN_CREDIT = "USGS Mineral Resources Data System · Global Mineral Resource Assessment (public domain)";
   function creditOf(name) {
+    if (LAYER[name] && LAYER[name].mineral) return MIN_CREDIT;
     if (LAYER[name] && LAYER[name].neo) return NEO_CREDIT;
-    return { geology: GEO_CREDIT, plates: PALEO_CREDIT, coast: COAST_CREDIT, fossils: PBDB_CREDIT, volcanoes: GVP_CREDIT, pleistocene: GVP_CREDIT, quake6: QUAKE_CREDIT, quake55: QUAKE_CREDIT, quake5: QUAKE_CREDIT, crust: CRUST_CREDIT, glim: GLIM_CREDIT, heatflow: HEATFLOW_CREDIT, seaage: SEAAGE_CREDIT, sediment: SEDIMENT_CREDIT,
+    return { geology: GEO_CREDIT, plates: PALEO_CREDIT, coast: COAST_CREDIT, fossils: PBDB_CREDIT, volcanoes: GVP_CREDIT, pleistocene: GVP_CREDIT, quake6: QUAKE_CREDIT, quake55: QUAKE_CREDIT, quake5: QUAKE_CREDIT, crust: CRUST_CREDIT, stress: STRESS_CREDIT, tbound: TECT_CREDIT, tprov: TECT_CREDIT, glim: GLIM_CREDIT, heatflow: HEATFLOW_CREDIT, seaage: SEAAGE_CREDIT, sediment: SEDIMENT_CREDIT,
              names: NE_CREDIT, water: NE_CREDIT, ice: NE_CREDIT, icemargins: ICE_CREDIT, mantle: MANTLE_CREDIT }[name];
   }
   // 판 조각 타일 — 서버가 연대마다 돌려 그린다(`paleo.render_tile`). 경위도 격자, 줌 0 이 180° 두 장이다
@@ -2195,7 +2226,7 @@
     var mine = ++asked;
     showPopup(head + '<p class="none">' + esc(T("읽는 중")) + "</p>", pixel);
     var at = "?lon=" + ll[0].toFixed(4) + "&lat=" + ll[1].toFixed(4) + "&z=" + hereZoom();
-    var ASK = { geology: "earth/info/", crust: "earth/crust/at/", seafloor: "earth/seafloor/at/", glim: "earth/glim/at/" };
+    var ASK = { geology: "earth/info/", crust: "earth/crust/at/", tectonics: "earth/tectonics/at/", seafloor: "earth/seafloor/at/", glim: "earth/glim/at/" };
     Promise.all(layers.map(function (l) {
       return fetch(BASE + ASK[l.info] + at + (l.info === "seafloor" ? "&layer=" + l.name : "")).then(function (r) { return r.json(); }).catch(function () { return { error: true }; });
     })).then(function (all) {
@@ -2204,6 +2235,12 @@
       all.forEach(function (data, i) {
         html += "<h3>" + esc(T(layers[i].title)) + "</h3>";
         if (data.error) { html += '<p class="none">' + esc(T("속성을 받지 못했다")) + "</p>"; return; }
+        if (layers[i].info === "tectonics") {
+          html += data.province ? "<p><b>" + esc(data.province.name) + "</b></p><table>" + data.province.rows.map(function (row) {
+            return "<tr><th>" + esc(row[0]) + "</th><td>" + esc(row[1]) + "</td></tr>";
+          }).join("") + "</table>" : '<p class="none">' + esc(data.text) + "</p>";
+          return;
+        }
         if (layers[i].info === "crust" || layers[i].info === "seafloor" || layers[i].info === "glim") { html += '<p class="none">' + esc(data.text) + "</p>"; return; }
         if (!data.units || !data.units.length) {
           html += '<p class="none">' + esc(T("여기에는 지질 단위가 없다")) + "</p>";
@@ -2331,6 +2368,26 @@
       legends[kind] = (SEA[kind === "seaage" ? "age" : "sediment"] || []).map(function (row) {
         return '<li><span class="chip" style="background:' + esc(row.color) + '"></span>' + esc(row.name) + "</li>";
       }).join("");
+      return Promise.resolve(legends[kind]);
+    }
+    if (kind === "stress") {
+      legends[kind] = '<li class="empty">' + esc(T("막대는 최대 수평 응력 방향, 길이는 품질(A–D)")) + "</li>" +
+        (THEN.stress || []).map(function (row) {
+          return '<li><span class="chip" style="background:' + esc(row.color) + '"></span>' + esc(row.name) + "</li>";
+        }).join("");
+      return Promise.resolve(legends[kind]);
+    }
+    if (kind === "tbound" || kind === "tprov") {
+      legends[kind] = (TECT[kind === "tbound" ? "boundaries" : "provinces"] || []).map(function (row) {
+        return '<li><span class="chip" style="background:' + esc(row.color) + (row.dash ? ";opacity:.6" : "") + '"></span>' + esc(row.name) + "</li>";
+      }).join("");
+      return Promise.resolve(legends[kind]);
+    }
+    if (kind === "mineral") {
+      legends[kind] = '<li class="empty">' + esc(T("마름모는 세계 광상 표와 대규모 광산, 큰 원은 생산한 곳, 작은 원은 산지·탐사지(줌 4 부터)")) + "</li>" +
+        (THEN.minerals || []).map(function (row) {
+          return '<li><span class="chip" style="background:' + esc(row.color) + '"></span>' + esc(row.name) + "</li>";
+        }).join("");
       return Promise.resolve(legends[kind]);
     }
     if (kind === "crust") {
@@ -2877,16 +2934,64 @@
   function askQuake(ll, pixel, perPx) {
     var bands = active.filter(function (e) { return LAYER[e.name].quake && visibleNow(e.name); })
                       .map(function (e) { return e.name; });
-    if (!bands.length) { askHeat(ll, pixel, perPx, askFossil); return; }
+    if (!bands.length) { askHeat(ll, pixel, perPx, function (l, p, q) { askStress(l, p, q, function (a, b, c) { askMinerals(a, b, c, askFossil); }); }); return; }
     var mine = ++asked;
     fetch(BASE + "earth/quakes/at/?lon=" + ll[0].toFixed(4) + "&lat=" + ll[1].toFixed(4) +
           "&r=" + Math.max(0.002, perPx * 7).toFixed(4) + "&bands=" + bands.join(","))
       .then(function (r) { return r.json(); })
       .then(function (d) {
         if (mine !== asked) return;
-        if (d.hits && d.hits.length) showQuakes(d.hits, pixel); else askHeat(ll, pixel, perPx, askNeotoma);
+        if (d.hits && d.hits.length) showQuakes(d.hits, pixel); else askHeat(ll, pixel, perPx, afterHeat);
       })
-      .catch(function () { if (mine === asked) askHeat(ll, pixel, perPx, askNeotoma); });
+      .catch(function () { if (mine === asked) askHeat(ll, pixel, perPx, afterHeat); });
+  }
+  // 지열류 다음은 응력, 그다음 고생태 (wetherilli 273)
+  function afterHeat(ll, pixel, perPx) { askStress(ll, pixel, perPx, afterStress); }
+  // 응력 다음은 광상, 그다음 고생태 (wetherilli 276)
+  function afterStress(ll, pixel, perPx) { askMinerals(ll, pixel, perPx, askNeotoma); }
+  // 세계 광상 — 켠 칸에서만. 없으면 `next` (wetherilli 276)
+  function askMinerals(ll, pixel, perPx, next) {
+    var on = active.filter(function (e) { return LAYER[e.name].mineral && visibleNow(e.name); }).map(function (e) { return e.name; });
+    if (!on.length) { next(ll, pixel, perPx); return; }
+    var mine = ++asked;
+    fetch(BASE + "earth/minerals/at/?lon=" + ll[0].toFixed(4) + "&lat=" + ll[1].toFixed(4) +
+          "&r=" + Math.max(0.002, perPx * 7).toFixed(4) + "&bands=" + on.join(","))
+      .then(function (r) { return r.json(); })
+      .then(function (d) {
+        if (mine !== asked) return;
+        if (!(d.hits && d.hits.length)) { next(ll, pixel, perPx); return; }
+        markAt(d.hits[0].at);
+        var html = coordHead(d.hits[0].at);
+        if (d.hits.length > 1) html += '<p class="none">' + esc(T("광상 {n} 곳 가운데 크고 가까운 것부터 (USGS)", { n: d.hits.length })) + "</p>";
+        html += d.hits.map(function (h) {
+          return '<h3><span class="chip" style="background:' + esc(h.color) + '"></span> ' + esc(h.name) + "</h3><table>" +
+            h.rows.map(function (row) { return "<tr><th>" + esc(row[0]) + "</th><td>" + esc(row[1]) + "</td></tr>"; }).join("") + "</table>" +
+            (h.link ? '<p><a class="ett-link" target="_blank" rel="noopener" href="' + esc(h.link) + '">' + esc(T("USGS 에서 보기")) + "</a></p>" : "");
+        }).join("");
+        showPopup(html, pixel);
+      })
+      .catch(function () { if (mine === asked) next(ll, pixel, perPx); });
+  }
+  // 지각 응력 — 켜져 있고 보이면 누른 자리 둘레의 측정. 없으면 `next` (wetherilli 273)
+  function askStress(ll, pixel, perPx, next) {
+    if (!(isOn("stress") && LAYER.stress && visibleNow("stress"))) { next(ll, pixel, perPx); return; }
+    var mine = ++asked;
+    fetch(BASE + "earth/stress/at/?lon=" + ll[0].toFixed(4) + "&lat=" + ll[1].toFixed(4) +
+          "&r=" + Math.max(0.002, perPx * 8).toFixed(4))
+      .then(function (r) { return r.json(); })
+      .then(function (d) {
+        if (mine !== asked) return;
+        if (!(d.hits && d.hits.length)) { next(ll, pixel, perPx); return; }
+        markAt(d.hits[0].at);
+        var html = coordHead(d.hits[0].at);
+        if (d.hits.length > 1) html += '<p class="none">' + esc(T("측정 {n} 곳 가운데 가까운 것부터 (WSM)", { n: d.hits.length })) + "</p>";
+        html += d.hits.map(function (h) {
+          return '<h3><span class="chip" style="background:' + esc(h.color) + '"></span> ' + esc(h.name) + "</h3><table>" +
+            h.rows.map(function (row) { return "<tr><th>" + esc(row[0]) + "</th><td>" + esc(row[1]) + "</td></tr>"; }).join("") + "</table>";
+        }).join("") + '<p><a class="ett-link" target="_blank" rel="noopener" href="' + esc(d.link) + '">' + esc(T("World Stress Map (GFZ)")) + "</a></p>";
+        showPopup(html, pixel);
+      })
+      .catch(function () { if (mine === asked) next(ll, pixel, perPx); });
   }
   // 지열류 — 켜져 있고 보이면 누른 자리 둘레의 측정. 없으면 `next` (wetherilli 267)
   function askHeat(ll, pixel, perPx, next) {

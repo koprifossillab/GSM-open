@@ -23,8 +23,11 @@ ATTRIBUTION = ('Geological Map of South America 2019 (Gómez, Schobbenhaus & Mon
                '<a href="https://www.sgc.gov.co/" target="_blank" rel="noopener">Servicio Geológico Colombiano</a> · SGB) · '
                'Mapa Geológico de Colombia 2023 (SGC, CC BY 4.0)')
 SHEETS = {"sa": "Mapa_Geologico_Sur_America/GeologicalMapSouthAmerican",
-          "co": "Mapa_Geologico_Colombia/Mapa_Geologico_Colombia_V2023"}
-ZOOMS = {"sa": (None, None), "co": (None, None)}
+          "co": "Mapa_Geologico_Colombia/Mapa_Geologico_Colombia_V2023",
+          # 금속광상도 2022·지구물리 이상 2022 (wetherilli 265) — WMS 번호가 REST 와 거꾸로다(광상 REST 1700 = WMS 11)
+          "met": "Mapa_Metalogenico_2022/Mapa_Metalogenico_Colombia_2022",
+          "geof": "Geofisica/Anomalias_Geofisicas_V2022"}
+ZOOMS = {"sa": (None, None), "co": (None, None), "met": (None, None), "geof": (None, None)}
 #: 정적 판(GitHub Pages)에 실을 수 있는 판 — 조건이 열린 콜롬비아 1:50만(SGC 열린자료, CC BY 4.0)만이다 (wetherilli 201).
 #: 남미 1:500만은 CGMW 의 지도라 사람이 조건을 읽기 전에는 싣지 않는다. 싣는 것은 굽는 사람이 고른다(`static_site.py --with colombia`)
 STATIC_SHEETS = ("co",)
@@ -137,12 +140,22 @@ FRIENDLY = (
     ("Nombre", "이름"),
     ("Tipo", "갈래"),
     ("Type", "갈래"),
+    # 금속광상도 2022 의 광상 (wetherilli 265)
+    ("ID_NOM_DEP", "이름"),
+    ("D_PR_PAL1", "광종"),
+    ("D_MI_PAL1", "광물"),
+    ("D_TIP_DEP1", "광상 형태"),
+    ("D_EST_MIN1", "광화 양식"),
+    ("IG_EST", "운영"),
+    ("IG_MUN", "곳"),
+    ("R_TIP_ROC", "모암"),
+    ("R_UG_MGC", "모암 단위"),
 )
 
 
 def _value(props: dict, key: str) -> str:
     value = str(props.get(key) or "").strip()
-    return "" if value.lower() == "null" else value
+    return "" if value.lower() in ("null", "sin información", "desconocida") else value
 
 
 def friendly(props: dict, lang: str = "ko") -> dict:

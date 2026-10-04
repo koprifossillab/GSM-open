@@ -101,6 +101,11 @@ GSQ_LAYERS = {
     "gsq:state_structure": ("GeologyState", "3,4", 7, False),
     "gsq:faults": ("GeologyDetailed", "4", 9, False),
     "gsq:folds": ("GeologyDetailed", "5", 9, False),
+    # 광산·광물 산지(MINOCC)와 지구물리 영상 (wetherilli 269)
+    "gsq:mines": ("MiningResources", "12", 7, True),
+    "gsq:tmi": ("GeophysicalImagery", "0", None, False),
+    "gsq:radiometric": ("GeophysicalImagery", "30", None, False),
+    "gsq:gravity": ("GeophysicalImagery", "40", None, False),
 }
 #: 범례 — 단위 면의 통계로 묶을 열. 첫 열(들)이 칠하기 규칙의 열이다
 GSQ_LEGEND_FIELDS = {"gsq:state": ("ru_name", "map_symbol", "age"), "gsq:detailed": ("legend", "age")}
@@ -183,6 +188,10 @@ def gsq_get_legend(layer: str):
 def gsq_friendly(props: dict, lang: str = "ko") -> dict:
     """identify 의 열은 사람이 읽는 이름이다(`Rock Unit Name`). 값은 영어 그대로, 시대(`DEVONIAN - CARBONIFEROUS`)만 옮긴다."""
     v = lambda k: _text(props.get(k))       # noqa: E731
+    if "Occurrence name" in props:          # 광산·광물 산지 MINOCC (wetherilli 269)
+        rows = (("이름", v("Occurrence name")), ("광종", v("Main commodity").capitalize()), ("모든 광종", v("All commodities")),
+                ("광산", v("Mine status").capitalize()), ("광상 규모", v("Deposit size").capitalize()), ("곳", v("Site locality")))
+        return {k: x for k, x in rows if x}
     age = v("Age").title()
     rows = (("기호", v("Map Symbol")), ("이름", v("Rock Unit Name")), ("암석", v("Lithological Summary")),
             ("주 암석", v("Dominant Rock").capitalize()), ("갈래", v("Rock Type").capitalize()),
@@ -203,11 +212,16 @@ GSSA_ATTRIBUTION = ('<a href="https://www.energymining.sa.gov.au/industry/geolog
 GSV_LAYERS = {
     "gsv:250k": ("open-data-platform:sg_geological_unit_250k", 8, True),
     "gsv:50k": ("open-data-platform:sg_geological_unit_50k", 11, True),
+    # 광상(면 237)·광상 점(620) (wetherilli 269)
+    "gsv:mineral": ("open-data-platform:mineral", 7, True),
+    "gsv:mineralp": ("open-data-platform:mineralp", 7, True),
 }
 GSSA_LAYERS = {
     "gssa:units": ("gsmlp:GeologicUnitView", 9, True),
     # 단층 — 1:200만보다 넓으면 빈 그림이다 (wetherilli 232)
     "gssa:faults": ("gsmlp:ShearDisplacementStructureView", 10, False),
+    # 광물 산지 — EarthResourceML 라이트 (wetherilli 269)
+    "gssa:minocc": ("erl:MineralOccurrenceView", 7, True),
 }
 #: 속성으로 받을 열 — 빅토리아는 작은 글자, 남호주는 낙타 꼴이다
 GSV_PROPERTIES = "name,description,rank,lithology,geologichistory,representativeage_uri,representativelowerage_uri,representativeupperage_uri"
@@ -218,6 +232,14 @@ MAX_LEGEND = 60
 LEGEND_SPAN = {"gsq": 6.0, "gsv": 4.0, "gssa": 0.5}
 #: 남호주 범례 — WFS 로 받는 면의 수 끝
 GSSA_LEGEND_FEATURES = 3000
+
+
+#: 지질 단위가 아닌 레이어의 속성 열 — 단위의 열(`GSV_PROPERTIES` 따위)을 물으면 상류가 예외를 낸다 (wetherilli 269)
+LAYER_PROPERTIES = {
+    "gsv:mineral": "name,commdsc,commgrp,resclad,rescladf,locaccd",
+    "gsv:mineralp": "name,commdsc,commgrp,resclad,rescladf,locaccd",
+    "gssa:minocc": "name,commodity,mineralOccurrenceType,mineralDepositModel,hostGeologicUnit,source",
+}
 
 
 def _gs(upstream: str):
@@ -241,7 +263,7 @@ def _gs_get_feature_info(upstream: str, params: dict) -> dict:
     url, layers, columns = _gs(upstream)
     name = _one(params, layers, "query_layers", "layers")
     params = dict(params, service="WMS", request="GetFeatureInfo", layers=layers[name][0], query_layers=layers[name][0],
-                  styles="", info_format="application/json", feature_count=3, propertyName=columns)
+                  styles="", info_format="application/json", feature_count=3, propertyName=LAYER_PROPERTIES.get(name, columns))
     r = _get(upstream, url, params)
     if r.status_code != 200:
         raise AuStatesError(f"속성을 읽지 못했다 (status={r.status_code})")
@@ -260,6 +282,15 @@ def gs_friendly(props: dict, lang: str = "ko") -> dict:
     """GeoSciML 포트레이얼의 열(빅토리아는 작은 글자, 남호주는 낙타 꼴). 이름·설명·암석은 영어 그대로, 시대만 옮긴다."""
     low = {str(k).lower(): v for k, v in props.items()}
     v = lambda k: _text(low.get(k))         # noqa: E731
+    if "commdsc" in low:                    # 빅토리아 광상 (wetherilli 269)
+        rows = (("이름", v("name")), ("광종", v("commdsc")), ("광상 규모", v("rescladf") or v("resclad")), ("위치 정확도", v("locaccd")))
+        return {k: x for k, x in rows if x}
+    if "commodity" in low:                  # 남호주 광물 산지
+        src = v("source")
+        rows = (("이름", v("name")), ("광종", v("commodity")), ("갈래", v("mineraloccurrencetype")), ("광상 형태", v("mineraldepositmodel")),
+                ("모암", v("hostgeologicunit")),
+                ("상세", {"text": "", "links": [{"url": src, "label": "열기"}]} if src.startswith(("http://", "https://")) else ""))
+        return {k: x for k, x in rows if x}
     old = age_of_uri(low.get("representativeolderage_uri") or low.get("representativelowerage_uri")
                      or low.get("representativeage_uri"))
     young = age_of_uri(low.get("representativeyoungerage_uri") or low.get("representativeupperage_uri"))
@@ -414,9 +445,17 @@ def _gssa_legend(name: str, bbox: tuple) -> list:
     return sorted(rows.values(), key=lambda r: -r["count"])
 
 
-def is_unit(upstream: str, name: str) -> bool:
+#: 누를 수 있지만 지질 단위가 아닌 레이어 — 광산·광물 산지. 범위 범례를 뜨지 않는다 (wetherilli 269)
+RESOURCES = ("gsq:mines", "gsv:mineral", "gsv:mineralp", "gssa:minocc")
+
+
+def queryable(upstream: str, name: str) -> bool:
     spec = UPSTREAMS[upstream][1][name]
     return bool(spec[3] if upstream == "gsq" else spec[2])
+
+
+def is_unit(upstream: str, name: str) -> bool:
+    return queryable(upstream, name) and name not in RESOURCES
 
 
 def extent_legend(upstream: str, name: str, bbox: tuple, lang: str = "ko") -> list:

@@ -56,6 +56,10 @@ LAYERS = {
                     ("identificacao", "sistematica", "taxon", "material", "unidade_litoestratigrafica",
                      "unidade_cronoestratigrafica", "litologia", "modo_ocorrencia", "localidade", "ambiente_deposicao",
                      "observacao", "referencia_bibliografica"), None, None, None),
+    # 광물 산출(wetherilli 265) — 같은 GeoServer 의 점. 나라 전체로 보면 점이 빽빽해 줌 6 부터
+    "sgb:mineral_occurrences": ("geoservicos", "geosgb:ocorrencias_recursos_minerais",
+                                ("toponimia", "municipio", "uf", "substancias", "status_economico", "importancia", "situacao_mina",
+                                 "situacao_garimpo", "rochas_hospedeiras", "morfologia", "tipos_alteracao", "provincia"), None, 6, None),
 }
 SERVERS = {"geoservicos": "SGB_GEOSERVICOS_URL", "opendata": "SGB_OPENDATA_URL"}
 #: 범례 칸을 몇 개까지 싣나 — 넘치면 "그 밖 N 칸" 이다
@@ -191,6 +195,13 @@ def _ma(old: str, young: str) -> str:
 def friendly(props: dict, lang: str = "ko") -> dict:
     """열 이름을 한국어로. 이름·설명·암석은 포르투갈어 그대로 두고 지질시대만 옮긴다."""
     v = lambda k: _value(props, k)          # noqa: E731
+    if "substancias" in props:                                         # 광물 산출 (wetherilli 265)
+        t = lambda k: _text(props, k)           # noqa: E731
+        place = ", ".join(x for x in (t("toponimia"), t("municipio"), t("uf")) if x)
+        rows = (("광종", t("substancias")), ("곳", place), ("경제성", t("status_economico")), ("중요도", t("importancia")),
+                ("광산", t("situacao_mina") or t("situacao_garimpo")), ("모암", t("rochas_hospedeiras")),
+                ("광체 형태", t("morfologia")), ("변질", t("tipos_alteracao")), ("광화 지역", t("provincia")))
+        return {k: x for k, x in rows if x}
     if "numero_campo" in props or "metodos" in props or "identificacao" in props:
         return point_friendly(props)
     if "tipo_estru" in props:                                          # 1:250만 구조선

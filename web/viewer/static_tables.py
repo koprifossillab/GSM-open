@@ -131,7 +131,9 @@ def tables() -> dict:
         "sgu": {
             "url": settings.SGU_WMS_URL, "attribution": sgu.ATTRIBUTION,
             "layers": {name: list(parts) for name, parts in sgu.LAYERS.items()}, "legend": sgu.LEGEND,
-            "queryable": list(sgu.QUERYABLE), "friendly": [list(pair) for pair in sgu.FRIENDLY],
+            "queryable": list(sgu.QUERYABLE),
+            # 기반암·산지(wetherilli 270)의 열은 겹치지 않아 한 표로 잇는다
+            "friendly": [list(pair) for pair in sgu.FRIENDLY + sgu.MINERAL_FRIENDLY + (("mag_anom", "자력 이상 (nT)"),)],
         },
         # 호주 GA(wetherilli 212) — CC BY 4.0. 싣는 것은 굽는 사람이 고른다(`static_site.py --with australia`)
         "ga": {

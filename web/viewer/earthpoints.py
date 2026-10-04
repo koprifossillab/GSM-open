@@ -1,4 +1,5 @@
-"""지역 탭의 지구 자료 점 — 화석 산지(PBDB)·홀로세 화산(GVP)·지진(USGS)·제4기 고생태 산지(Neotoma) (wetherilli 185).
+"""지역 탭의 지구 자료 점 — 화석 산지(PBDB)·홀로세 화산(GVP)·지진(USGS)·제4기 고생태 산지(Neotoma) (wetherilli 185),
+지열류(IHFC, wetherilli 275).
 
 온 지구 화면이 경위도 타일로 그리는 것을, 지역 탭은 **점 레이어**(`kind: points`)로 받는다 — 지역의 네모 안만 잘라
 극지연구소 파일 레이어(`kopri.file_body`)와 같은 꼴의 GeoJSON 으로 낸다. 화면이 제 투영(3857·3413·3031)으로 옮겨 그리고,
@@ -9,7 +10,7 @@ import functools
 import json
 import re
 
-from . import fossils, gvp, i18n, neotoma, paleoeco, pbdb, quakes, usgs, volcanoes
+from . import fossils, gvp, heatflow, i18n, neotoma, paleoeco, pbdb, quakes, usgs, volcanoes
 from .i18n import msg
 
 #: 지역 → 자르는 네모 (서, 남, 동, 북). 북극은 북극해에 두고 그린란드·스발바르·얀마옌·노르웨이·핀란드가 빌린다(`borrow`) —
@@ -19,7 +20,7 @@ BOXES = {
     "antarctica": (-180.0, -90.0, 180.0, -60.0),
     "arctic": (-180.0, 58.0, 180.0, 90.0),
 }
-SOURCES = ("pbdb", "gvp", "quakes", "neotoma")
+SOURCES = ("pbdb", "gvp", "quakes", "neotoma", "heatflow")
 #: 레이어 이름 `earth:<자료>_<네모>` → (자료, 네모)
 LAYERS = {f"earth:{src}_{box}": (src, box) for src in SOURCES for box in BOXES}
 
@@ -39,26 +40,34 @@ LABELS = {
             "elev": "표고 (m)", "tectonic": "지구조 환경", "rock": "주 암석", "link": "GVP 화산 페이지"},
     "quakes": {"mag": "규모", "time": "일시 (UTC)", "depth": "깊이 (km)", "place": "곳", "link": "USGS 지진 페이지"},
     "neotoma": {"name": "산지", "desc": "설명", "alt": "표고 (m)", "types": "자료", "link": "Neotoma 산지 페이지"},
+    # 지열류(wetherilli 275) — IHFC 는 측정마다 쪽이 없어 링크가 없다
+    "heatflow": {"q": "지열류 (mW/m²)", "unc": "오차 (mW/m²)", "name": "자리", "env": "환경", "method": "잰 법", "year": "해",
+                 "quality": "품질", "ref": "문헌"},
 }
 LINKS = ("link",)
-CREDITS = {"pbdb": pbdb.CREDIT, "gvp": gvp.CREDIT, "quakes": usgs.CREDIT, "neotoma": neotoma.CREDIT}
+CREDITS = {"pbdb": pbdb.CREDIT, "gvp": gvp.CREDIT, "quakes": usgs.CREDIT, "neotoma": neotoma.CREDIT,
+           "heatflow": heatflow.CREDIT}
 #: 범례 칸의 원본 자료 글 (화면이 `T()` 로 옮긴다). GVP 는 비상업·인용 조건을 적는다 (wetherilli 134)
 SOURCE_LABELS = {
     "pbdb": msg("원본 자료 — Paleobiology Database, CC BY 4.0"),
     "gvp": msg("원본 자료 — 스미스소니언 GVP, 비상업·인용 조건"),
     "quakes": msg("원본 자료 — USGS ComCat, 공공 영역"),
     "neotoma": msg("원본 자료 — Neotoma, CC BY 4.0"),
+    "heatflow": msg("원본 자료 — IHFC 세계 지열류 자료 2024, CC BY 4.0"),
 }
 SOURCE_URLS = {"pbdb": "https://paleobiodb.org/", "gvp": "https://volcano.si.edu/",
-               "quakes": "https://earthquake.usgs.gov/earthquakes/search/", "neotoma": "https://www.neotomadb.org/"}
+               "quakes": "https://earthquake.usgs.gov/earthquakes/search/", "neotoma": "https://www.neotomadb.org/",
+               "heatflow": heatflow.DOI}
 #: 자료가 없을 때 패널에 띄우는 글 — 어느 명령이 모으는지 적는다
 MISSING = {
     "pbdb": msg("화석 산지 자료를 아직 모으지 않았다 (fetch_pbdb)"),
     "gvp": msg("홀로세 화산 자료를 아직 모으지 않았다 (fetch_gvp)"),
     "quakes": msg("지진 자료를 아직 모으지 않았다 (fetch_quakes)"),
     "neotoma": msg("고생태 산지 자료를 아직 모으지 않았다 (fetch_neotoma)"),
+    "heatflow": msg("지열류 자료를 아직 굽지 않았다 (build_heatflow)"),
 }
-_AVAILABLE = {"pbdb": fossils.available, "gvp": volcanoes.available, "quakes": quakes.available, "neotoma": paleoeco.available}
+_AVAILABLE = {"pbdb": fossils.available, "gvp": volcanoes.available, "quakes": quakes.available, "neotoma": paleoeco.available,
+              "heatflow": heatflow.available}
 
 
 def knows(name: str) -> bool:
@@ -86,6 +95,8 @@ def stamp(name: str) -> str:
         return quakes.built()
     if src == "neotoma":
         return paleoeco.built()
+    if src == "heatflow":
+        return heatflow.built()
     conn = fossils.db()
     row = conn.execute("SELECT v FROM meta WHERE k = 'built'").fetchone() if conn else None
     return row[0] if row else ""
@@ -200,8 +211,28 @@ def _neotoma_features(box, lang):
     return out, legend
 
 
+def _heatflow_class(q) -> int:
+    v = 0 if q is None else q
+    for i, (below, _, _) in enumerate(heatflow.CLASSES):
+        if v < below:
+            return i
+    return len(heatflow.CLASSES) - 1
+
+
+def _heatflow_features(box, lang):
+    """지열류 측정(wetherilli 275) — 온 지구 화면의 점 타일(`heatflow.render_tile`)과 같은 칸·색. 높은 값을 뒤에 두어 위에 그린다"""
+    num = lambda v: f"{v:g}" if v is not None else ""      # noqa: E731
+    rows = sorted(heatflow.points(*box), key=lambda r: r["q"] if r["q"] is not None else -1)
+    out = [_point(r["lon"], r["lat"], {
+        "code": f"h{_heatflow_class(r['q'])}", "q": num(r["q"]), "unc": num(r["q_unc"]), "name": r["name"],
+        "env": r["environment"], "method": r["method"], "year": r["year"], "quality": r["quality"], "ref": r["reference"],
+    }, r["n"]) for r in rows]
+    legend = [(f"h{i}", label, hexa) for i, (_, hexa, label) in enumerate(heatflow.CLASSES)]
+    return out, legend
+
+
 _FEATURES = {"pbdb": _fossil_features, "gvp": _volcano_features, "quakes": _quake_features,
-             "neotoma": _neotoma_features}
+             "neotoma": _neotoma_features, "heatflow": _heatflow_features}
 
 
 def body(name: str, lang: str = "ko") -> bytes:

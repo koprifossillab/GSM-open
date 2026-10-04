@@ -41,6 +41,8 @@ LAYERS = {
     "gns:ATA_SVL_GNS_250K_geological_units": {"wms": "gns:ATA_SVL_GNS_250K_geological_units",
                                               "query": "gns:ATA_SVL_GNS_250K_geological_units", "crs": "EPSG:3031"},
     "gns:ATA_SVL_GNS_250K_faults": {"wms": "gns:ATA_SVL_GNS_250K_faults", "crs": "EPSG:3031"},
+    # 중력 이상(wetherilli 269) — 지질 서비스(`/geology/wms`)가 아니라 GNS 전체 서비스(`/gns/wms`)에만 있다. 그림이라 누르지 않는다
+    "gns:gravity": {"wms": "gns:NZGravity", "crs": "EPSG:3857", "service": "all"},
 }
 #: 범례 그림을 두지 않는 레이어 — 합본은 칸이 수천이라 그림이 쓸모없이 크다. 누르면 단위가 뜬다
 NO_LEGEND = ("gns:qmap",)
@@ -75,12 +77,18 @@ def _names(names: str, key: str = "wms") -> str:
     return ",".join(LAYERS[n.strip()][key] for n in names.split(","))
 
 
-def _get(params: dict):
+def _url(names: str) -> str:
+    """지질 서비스와 GNS 전체 서비스 — 레이어의 `service` 가 가른다 (wetherilli 269)"""
+    first = str(names or "").split(",")[0].strip()
+    return settings.GNS_ALL_WMS_URL if LAYERS.get(first, {}).get("service") == "all" else settings.GNS_WMS_URL
+
+
+def _get(params: dict, url: str = ""):
     left = usage.paused()
     if left:
         raise GnsError(f"차단 조짐이 있어 {int(left)}초 동안 상류에 묻지 않는다")
     try:
-        r = requests.get(settings.GNS_WMS_URL, params=params, timeout=max(settings.UPSTREAM_TIMEOUT, 45),
+        r = requests.get(url or settings.GNS_WMS_URL, params=params, timeout=max(settings.UPSTREAM_TIMEOUT, 45),
                          verify=settings.CA_BUNDLE or True, headers={"User-Agent": "GSM/0.1"})
     except requests.RequestException as exc:
         usage.record("gns", ok=False)
@@ -100,7 +108,8 @@ def _wms(params: dict, request: str) -> dict:
 
 
 def get_map(params: dict):
-    r = _get(_wms(params, "GetMap"))
+    url = _url(params.get("layers"))
+    r = _get(_wms(params, "GetMap"), url)
     ctype = r.headers.get("content-type", "")
     if r.status_code != 200 or not ctype.startswith("image/"):
         raise GnsError(f"그림이 아닌 것이 왔다 (status={r.status_code}, type={ctype})")
@@ -111,7 +120,7 @@ def get_legend(layer: str):
     if layer in NO_LEGEND:
         raise GnsError("이 레이어는 범례 그림을 두지 않는다")
     r = _get({"service": "WMS", "version": "1.1.1", "request": "GetLegendGraphic", "format": "image/png",
-              "layer": _names(layer)})
+              "layer": _names(layer)}, _url(layer))
     if r.status_code != 200 or not r.headers.get("content-type", "").startswith("image/"):
         raise GnsError(f"범례가 아닌 것이 왔다 (status={r.status_code})")
     return r.content, r.headers.get("content-type")

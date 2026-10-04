@@ -1,0 +1,49 @@
+{
+ "_주석": "GEUS ArcGIS 씨앗이다 — 그린란드 탭(북극 묶음에도 든다). 자력 편찬·DTU 부게 중력·지질구 1:250만을 REST export 로 3413 에 받는다. 문은 web/viewer/geus.py 의 ARC(상류 geusarc). GEUS 이용 조건(개인 용도·출처). 한글 제목과 레이어군은 사람이 붙였다 (wetherilli 259).",
+ "_뽑은날": "2026-10-05",
+ "_출처": "https://data.geus.dk/arcgis/rest/services/Greenland",
+ "_지역": "greenland",
+ "_상류": "geusarc",
+ "_레이어군차례": 2,
+ "레이어군순서": [
+  "그린란드 지구물리·지질구 (GEUS)"
+ ],
+ "레이어": [
+  {
+   "name": "geusarc:magnetic",
+   "title": "자력 이상 편찬",
+   "group": "그린란드 지구물리·지질구 (GEUS)",
+   "abstract": "GEUS Magnetic compilation — 측선은 뺐다",
+   "bbox": [
+    -74.0,
+    59.0,
+    -10.0,
+    84.0
+   ]
+  },
+  {
+   "name": "geusarc:bouguer",
+   "title": "부게 중력 이상 (DTU)",
+   "group": "그린란드 지구물리·지질구 (GEUS)",
+   "abstract": "DTU Space Bouguer anomaly — 관측점은 뺐다",
+   "bbox": [
+    -74.0,
+    59.0,
+    -10.0,
+    84.0
+   ]
+  },
+  {
+   "name": "geusarc:provinces",
+   "title": "지질구 (1:250만)",
+   "group": "그린란드 지구물리·지질구 (GEUS)",
+   "abstract": "Geological provinces 2500k — 제4기·퇴적분지·표성암·화성구·선캄브리아 기반",
+   "bbox": [
+    -74.0,
+    59.0,
+    -10.0,
+    84.0
+   ]
+  }
+ ]
+}

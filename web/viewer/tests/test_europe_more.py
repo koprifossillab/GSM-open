@@ -110,3 +110,24 @@ class Views(TestCase):
         self.assertIn("GeoIndex_GSNI", get.call_args.args[0])
         self.assertEqual(get.call_args.kwargs["params"]["query_layers"], "5")
         self.assertEqual(data["features"][0]["props"]["지층명"], "LOWER BASALT FORMATION")
+
+
+class BgsGeoIndex(SimpleTestCase):
+    """영국 GeoIndex — 자력·중력·광산·광물 산지 (wetherilli 258). 꼴은 2026-10-05 에 받은 그대로"""
+
+    def test_서비스_주소와_레이어(self):
+        with mock.patch.object(bgs.requests, "get", return_value=answer(content=b"\x89PNG", ctype="image/png")) as get:
+            bgs.geoindex_get_map({"layers": "bgsgi:magnetic", "crs": "EPSG:3857", "bbox": "0,0,1,1", "width": 256, "height": 256})
+        self.assertTrue(get.call_args.args[0].endswith("/arcgis/services/GeoIndex_Onshore/geophysics/MapServer/WMSServer"))
+        self.assertEqual(get.call_args.kwargs["params"]["layers"], "Magnetic.anomalies.colour.shaded")
+
+    def test_지구물리는_누르지_않는다(self):
+        with mock.patch.object(bgs.requests, "get") as get:
+            self.assertEqual(bgs.geoindex_get_feature_info({"layers": "bgsgi:gravity"}), {"features": []})
+        get.assert_not_called()
+
+    def test_광산과_광물_산지(self):
+        self.assertEqual(bgs.geoindex_friendly({"PIT_NAME": "Mullion Gravel Pit", "PIT_STATUS": "C", "EASTING": "167795", "NORTHING": "19141"}),
+                         {"이름": "Mullion Gravel Pit", "운영": "Ceased", "영국 격자": "E 167795 · N 19141"})
+        self.assertEqual(bgs.geoindex_friendly({"OCCURRENCE": "Trenance", "COMMODITY": "Copper", "EASTING": "167400", "NORTHING": "17300"})["광종"],
+                         "Copper")

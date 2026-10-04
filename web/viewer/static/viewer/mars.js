@@ -172,7 +172,7 @@
   // 지형 — MOLA–HRSC 표고(200 m), 서버가 65×65 Terrarium 으로 옮겨 준다. 화성 기준면(아레오이드)에서 잰 높이를
   // 구 위에 세운다 — 적도와 극의 기준면 차이(수 km)는 지형에 비하면 작아 그대로 둔다
   var DEM_SIZE = 65;
-  var DEM_MAX = 9;             // 서버의 `trek.MARS_DEM_MAX_ZOOM`. 그 너머는 부모 격자를 늘려 쓴다
+  var DEM_MAX = 9;             // 서버의 `trek.MARS_DEM_MAX_ZOOM`. 그 너머는 고운 판이 걸친 자리만, 나머지는 부모 격자를 늘려 쓴다
   var demMemo = {};
   function demGrid(x, y, level) {
     var id = level + "/" + x + "/" + y;
@@ -200,13 +200,29 @@
     }
     return demMemo[id];
   }
+  // 가까이서 쓰는 고운 표고 판(착륙지의 HiRISE 따위, wetherilli 274) — [서, 남, 동, 북, 줌 끝]. 서버의 `trek.MARS_DEM_PARTS`.
+  // 달(`moon.js` 의 `demLevel`)과 같은 틀이다
+  var DEM_PARTS = JSON.parse(($("dem-parts") || {}).textContent || "[]");
+  /** 그 장(또는 조상)을 서버가 줄 수 있는 가장 깊은 줌. 고운 판이 걸친 자리만 `DEM_MAX` 너머로 간다 */
+  function demLevel(x, y, level) {
+    for (var L = level; L > DEM_MAX; L--) {
+      var k = Math.pow(2, level - L), step = 180 / Math.pow(2, L);
+      var w = -180 + Math.floor(x / k) * step, n = 90 - Math.floor(y / k) * step;
+      for (var i = 0; i < DEM_PARTS.length; i++) {
+        var p = DEM_PARTS[i];
+        if (p[4] >= L && p[0] < w + step && p[2] > w && p[1] < n && p[3] > n - step) return L;
+      }
+    }
+    return Math.min(level, DEM_MAX);
+  }
   function heights(x, y, level) {
-    if (level <= DEM_MAX) return demGrid(x, y, level);
-    // 부모(줌 9) 격자의 한 조각을 겹선형으로 늘린다
-    var k = Math.pow(2, level - DEM_MAX);
+    var top = demLevel(x, y, level);
+    if (level === top) return demGrid(x, y, level);
+    // 조상(서버가 주는 가장 깊은 줌) 격자의 한 조각을 겹선형으로 늘린다
+    var k = Math.pow(2, level - top);
     var ax = Math.floor(x / k), ay = Math.floor(y / k);
     var ox = (x - ax * k) / k, oy = (y - ay * k) / k, span = 1 / k, n = DEM_SIZE - 1;
-    return demGrid(ax, ay, DEM_MAX).then(function (src) {
+    return demGrid(ax, ay, top).then(function (src) {
       var out = new Float32Array(DEM_SIZE * DEM_SIZE);
       for (var j = 0; j < DEM_SIZE; j++) {
         var fy = (oy + span * j / n) * n, y0 = Math.min(n - 1, Math.floor(fy)), ty = fy - y0;

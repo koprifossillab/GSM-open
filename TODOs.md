@@ -57,6 +57,15 @@
 - [ ] **(사람)** 자메이카 MGD 웹맵의 지질 면(조건 없음)·트리니다드 Latinum(교육용 한정) — 조건을 묻는다
 - 막힌 것: 과테말라·온두라스·벨리즈·쿠바(서비스 없음·DNS·시간 초과), 엘살바도르 SNET(522 — 다시 볼 것), 코스타리카(UCR 여백 붙은 스캔·DGM 빈 응답)
 
+- [ ] 남미 광물·지구물리(wetherilli 265) — 브라질 광물 산출·콜롬비아 금속광상도/지구물리·아르헨티나 광상은 섰다. 남은 것: 페루 INGEMMET 의
+      `SERV_OCURRENCIA_MINERAL`·`SERV_METALOGENETICO`(MapServer, 4326)·`SERV_AEROMAGNETIICO`(ImageServer) — 페루 문은 타일 칸 기계(`ingemmet/<판>/z/x/y`)라
+      서비스를 하나 더 얹는 손이 든다. 브라질 opendata 의 광업 권역(ANM)·항공 지구물리 조사 범위, SEGEMAR 자력 이상(나라 전체 면 47 개뿐이라 뺐다)
+
+- [ ] 오세아니아 광물·지구물리(wetherilli 269) — 퀸즐랜드·빅토리아·남호주·뉴질랜드 중력은 섰다. 남은 것: 뉴질랜드 광물 산지 GERM(`gns:GERM_ERML_VIEW`)은
+      가까이 봐도 빈 그림이다(스타일이 없거나 축척 제한) — GNS 에 물을지. 빅토리아 중력 측점(`gravity`)·자력 선형(`lineaments_tmi`), 남호주 지구물리(SARIG 영상)
+
+- [ ] 북유럽 광물·지구물리(wetherilli 270) — GTK·FODD·SGU 는 섰다. 노르웨이 NGU 의 광물·지구물리 서비스 주소를 못 찾았다(`geo.ngu.no/mapserver/*` 이름 짐작은 404·빈 map). 스웨덴 중력은 측정 범위뿐
+
 ### 아프리카
 
 - [ ] **(사람) 아프리카 1:1000만의 CGMW 이용 조건** — 아프리카 탭은 CGMW–BRGM 1:1000만과 BGS 지하수 지도책으로 섰다(wetherilli 207).
@@ -86,6 +95,9 @@ wetherilli 249 — 네팔 DMG GeoServer 는 열렸지만 행정 경계·도폭�
 
 ## 지역 — 극지 (016·017·018·019·021·022)
 
+- [ ] 그린란드 지구물리(wetherilli 259) — GEUS ArcGIS 의 방사능(`Geophysics_Radiometry`)은 국지 조사 몇 곳뿐이라, 공중 자력(`Geophysics_Aeromag_Magnetic`·
+      `_AWI`·`Aem_Magnetic`)·1:250만·1:10만 지질도(`Geological_map_2500k`·`_100k_SSW`·`_100k_Karrat`)는 같은 서버에 있어 더할 수 있다.
+      지도 화면의 광물 산지 v3(`mineral_occurrences_v3_external`)는 WMS 이름이 403 — 포털(grportal)의 광물 산지가 같은 뿌리다
 - [ ] **(사람)** 그린란드 50만 지질도는 GEUS 가 추린 판(`_search`)이다. 원본
       (`grl_g500_lithostr_units`)을 WMS 로 열어 주는지 GEUS 에 묻는다 —
       써 보고 빈 곳이 거슬리면 사람이 메일을 쓴다. 같은 메일에 정부 포털 시료가
@@ -144,6 +156,9 @@ wetherilli 249 — 네팔 DMG GeoServer 는 열렸지만 행정 경계·도폭�
 
 (2026-09-30 운영 `/srv/GSM/db/earth/` 에 옛 해안선·화석 산지·맨틀을 두었다. 화석 산지는 가끔 `fetch_pbdb` 로 새로 받는다)
 
+- [ ] **(사람)** 전 지구 변형률 GSRM v2.1(Kreemer 외 2014, `geodesy.unr.edu/GSRM/` — 0.1° 격자 87 MB·셀 평균 3.7 MB, 압축 `.Z`)은
+      README 가 "인용해 달라" 고만 하고 **이용 조건을 적지 않는다**. 저자(UNR)에게 묻거나 조건이 적힌 판을 찾으면 지각 두께 꼴의 격자로 둔다 (wetherilli 273)
+
 
 ## 인증키 뒤에 남은 것
 
@@ -167,6 +182,8 @@ wetherilli 249 — 네팔 DMG GeoServer 는 열렸지만 행정 경계·도폭�
 
 조사는 끝났고 **쏴 보고 확인한 것들**이다. 자세한 것은 devlog 004.
 
+- [ ] (운영) VWorld GetCapabilities 를 2026-09-27 의 187 종과 다시 견준다 — 개발 기계에는 열쇠가 없어 보지 못했다 (wetherilli 275)
+
 ### 품이 좀 드는 것
 
 - [ ] 단층 `legend` 1·2 의 뜻 — VWorld 가 밝히지 않았다. 알면 `VECTOR_STYLES` 와
@@ -189,6 +206,8 @@ wetherilli 249 — 네팔 DMG GeoServer 는 열렸지만 행정 경계·도폭�
       기준면이 다른 까닭을 알면 맞춰 넣는다. 그 밖에 뺀 것 — 아르테미스 C(+91 m)·G(−10 m)는 턱이 일정해 기준면만 다른 판으로 보인다(까닭을 알면 배율·턱을 넣는다). B·북위 89° NAC·IM-1 은
       흩어짐 51–65 m. 피카르·말굽·`20191118_demmos` 는 수 km 다르다. 남극 85° 10·20 m(`ldem_85s_*`)는 한 점씩은 같은데 `exportImage` 로는
       흩어짐 1.3 km — 극 판(`_SP`)으로 받는 길을 본다. 후보 D(`LRO_NAC_DEM_4_57mpp_SiteD`)는 기준면을 모른다
+- [ ] 화성 고운 지형 — 남은 것(wetherilli 274). 빅토리아 분화구 1 m(`DEM_1m_VictoriaCrater`)는 200 m 판과 바깥 테에서 −19 m·흩어짐 7 m 로
+      턱이 일정하다 — 기준면이 다른 까닭을 알면 턱을 넣는다. 수성은 665 m 판뿐이라 고운 판이 없다
 
 ### 한국 — 시료 지점 칸·KIGAM 자료
 
@@ -232,6 +251,8 @@ phyloserver 는 이 저장소만으로 더 할 것이 없다 — 도폭(`MapShee
 - [ ] (사람) 국토지반정보 시추공을 한국 레이어로 올릴지 — 공공데이터포털 지층 파일이 엑셀 행 한계에서 잘려 있다.
       검토는 [docs/국토지반정보_시추공.md](docs/국토지반정보_시추공.md) §6
 
+- [ ] 유럽 광물·지구물리 — BGS GeoIndex(영국)는 섰다(wetherilli 258). EGDI 의 광물 목록 MIN4EU 는 공개 WMS 를 찾지 못했다(뷰어가 안쪽 경로로만
+      부른다)이고 조건이 **CC BY-NC-ND 4.0** 이다. ProMine·EGDI 지구물리도 WMS 주소를 못 찾았다. BGS 의 지화학(G-BASE)·지하수는 같은 서버에 있다
 - [ ] 유럽 — EGDI 1:100만의 시대 판 속성이
       되살아나면(2026-10-04 에도 DB 오류, 지금은 암상 판에 묻는다 — wetherilli 177) 그쪽으로. BGS 1:62만 5천이 WMS 로 열리면 영국 탭의 넓은 줌을 그것으로. 독일의 줌 9 전은 EGDI·IGME5000(1:500만)이다 —
       그 사이 축척의 BGR 판(GÜK 2000?)이 있는지. **(사람)** BGR 판(GÜK·GK·IGME5000)을 정적 판에 실을지 — BGR 약관(AGB 3조)은 공중에 내놓을

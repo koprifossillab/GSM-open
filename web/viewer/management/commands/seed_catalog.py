@@ -49,6 +49,7 @@ class Command(BaseCommand):
                 # KIGAM 낱레이어를 엮은 것(층리 뺀 5만 지질도) — 같은 "지질도" 레이어군에 든다
                 (settings.KIGAM_COMPOSED_CATALOG_SEED, "KIGAM 엮은 레이어", "korea", "kigam"),
                 (settings.GEUS_CATALOG_SEED, "그린란드", "greenland", "geus"),
+                (settings.GEUSARC_CATALOG_SEED, "그린란드 (GEUS ArcGIS)", "greenland", "geusarc"),
                 (settings.VWORLD_CATALOG_SEED, "VWorld", "korea", "vworld"),
                 (settings.GRPORTAL_CATALOG_SEED, "그린란드 정부 포털", "greenland", "grportal"),
                 (settings.GEOMAP_CATALOG_SEED, "남극", "antarctica", "geomap"),
@@ -77,6 +78,7 @@ class Command(BaseCommand):
                 # 영국·프랑스 — BGS·BRGM, 그리고 넓게 볼 때 까는 EGDI 1:100만(영국에 두고 프랑스가 빌린다) (wetherilli 143)
                 (settings.EGDI_CATALOG_SEED, "유럽 (EGDI)", "uk", "egdi"),
                 (settings.BGS_CATALOG_SEED, "영국 (BGS)", "uk", "bgs"),
+                (settings.BGSGI_CATALOG_SEED, "영국 (BGS GeoIndex)", "uk", "bgsgi"),
                 # 유럽 바다 — EMODnet 의 제4기 퇴적층·지질 사건. 영국에 두고 유럽 탭들이 빌린다 (wetherilli 176)
                 (settings.EMODNET_EUROPE_CATALOG_SEED, "유럽 바다 (EMODnet)", "uk", "emodnet"),
                 (settings.BRGM_CATALOG_SEED, "프랑스 (BRGM)", "france", "brgm"),

@@ -20,7 +20,7 @@ from pathlib import Path
 from django.conf import settings
 from django.contrib.staticfiles import finders
 from django.db import transaction
-from django.db.models import Q
+from django.db.models import Prefetch, Q
 from django.http import Http404, HttpResponse, JsonResponse
 from django.utils.cache import patch_vary_headers
 from django.shortcuts import get_object_or_404, render
@@ -32,7 +32,7 @@ from gsmweb.version import VERSION
 from . import (coords, crs, geo3al, geomap, geus, grportal, gsj, gsmma, i18n, ibcso, janmayen, kigam, kopri, npolar,
                patchnotes, elevation, moonmap, peninsula, phyloserver, pointsets, tilecache, tiles, trek, vworld, warp,
                marscraters, marsmap, mercurymap, zhurong)
-from . import admap, arcpoints, caribmap, crust, seafloor, glim, heatflow, fossils, gvp, icemargins, kigam50k, macrostrat, mantle, naturalearth, neotoma, paleo, paleoeco, paleocoast, pbdb, quakes, spamap, ocean, usgs, volcanoes, wind
+from . import admap, arcpoints, caribmap, crust, minerals, stress, tectonics, seafloor, glim, heatflow, fossils, gvp, icemargins, kigam50k, macrostrat, mantle, naturalearth, neotoma, paleo, paleoeco, paleocoast, pbdb, quakes, spamap, ocean, usgs, volcanoes, wind
 from . import ags, austates, bas, basemaps, bcgs, bgr, bgs, brgm, calgs, cgs, dinamige, dmr, dov, egdi, emodnet, esdm, ga, geosphere, georep, gns, gsi, gsiindia, gtk, igme, iige, ineter, ingemmet, ispra, jmg, linked, lneg, mgb, mrdata, mris, natt, ngu, nrcan, nsgs, ogs, pig, segemar, sgb, sgc, sgm, sgs, sgu, sigeom, skgs, spw, stri, swisstopo, tno, usage, usgscarib, vmme, ygs
 from . import earthpoints, pointvalues, profileband, static_tables, tilegrid
 from .i18n import msg
@@ -360,8 +360,8 @@ def map_view(request):
 
 
 #: 3D 가 `wms/` 의 3857 타일로 얹는 상류 (`map3d.js` 의 `wmsTiles`)
-MAP3D_WMS = ("kigam", "geus", "vworld", "ccop", "gsjows", "gsmma",
-             "emodnet", "bgs", "gsni", "brgm", "egdi", "bgr", "igme", "gsi",
+MAP3D_WMS = ("kigam", "geus", "geusarc", "vworld", "ccop", "gsjows", "gsmma",
+             "emodnet", "bgs", "bgsgi", "gsni", "brgm", "egdi", "bgr", "igme", "gsi",
              # 남미 SGC(wetherilli 188)·브라질 SGB(191)·아르헨티나 SEGEMAR·우루과이 DINAMIGE(196) — 3857 로 그린다
              "sgc", "sgb", "segemar", "dinamige",
              # 에콰도르 IIGE(wetherilli 198) — ArcGIS WMS 가 3857 로 그린다
@@ -420,20 +420,21 @@ def map3d_view(request):
     # 유럽 상류(wetherilli 187)도 2D 처럼 `wms/` 로 3857 을 받는다. IGME 1:100만은 2D 가 4326 으로 받지만 문(1.1.1)으로 3857 을
     # 물어도 그려 준다(2026-10-04 마드리드). EMODnet 의 GeoServer 는 어느 투영이든 그린다. 일본 GSJ·지리원 주제 타일은 3857 z/x/y 라
     # 카탈로그 행의 `tiles` 를 MapLibre 가 그대로 받는다
+    catalog = _catalog(lang)          # 한 번만 짓는다 — 아래 둘이 같은 것을 훑는다 (wetherilli 271)
     groups = [dict(g, layers=[l for l in g["layers"] if l.get("kind") not in ("vector", "points")
                               and (l.get("upstream") in MAP3D_WMS
                                    or (l.get("upstream") == "npolar" and npolar.knows(l["name"]))
                                    or (l.get("upstream") == "geomap" and l["name"] in geomap.LAYERS)
                                    or (l.get("upstream") in ("gsj", "gsitile", "ingemmet", "ags", "sim3534", "gsjows") and l.get("tiles")))])
-              for g in _catalog(lang)]
+              for g in catalog]
     # 커스텀 지질도 — 한반도 지질도 셋은 서버가 3857 로 다시 펴 주고(`warp/`), 암맥은
     # 모양 한 덩이(`points/`)라 3D 가 그대로 그린다. 밖에 열면 `_catalog` 가 이미 뺐다
     custom = [{"name": l["name"], "title": l["title"], "kind": l.get("kind"), "group": g["name"]}
-              for g in _catalog(lang) for l in g["layers"] if l.get("upstream") in ("peninsula", "phyloserver")]
+              for g in catalog for l in g["layers"] if l.get("upstream") in ("peninsula", "phyloserver")]
     return render(request, "viewer/map3d.html", {
         "lang": lang,
         "i18n_json": json.dumps(i18n.client_table(lang), ensure_ascii=False),
-        "catalog_groups": [g for g in groups if g["layers"]],
+        "catalog_groups": [dict(g, options=_options_3d(g["layers"])) for g in groups if g["layers"]],
         "custom_layers": _script_json(custom),
         # 점묶음 요약 — 2D 와 같은 것이다. 모양은 `pointsets/<번호>/geojson/` 으로 받는다 (P02)
         "pointsets": _script_json(_pointset_list()),
@@ -499,7 +500,9 @@ def mars_tile_key(layer, z, x, y):
 
 
 def mars_dem_key(z, x, y):
-    return tilecache.key_text("trek-mars-dem", f"{z}/{x}/{y}")
+    """화성 표고 격자의 캐시 열쇠. 고운 판(wetherilli 274)의 장만 판 이름이 든다 — 줌 9 까지의 열쇠는 예전 그대로다"""
+    part = trek.mars_dem_part(z, x, y)
+    return tilecache.key_text("trek-mars-dem", f"{part[0]}/{z}/{x}/{y}" if part else f"{z}/{x}/{y}")
 
 
 @require_GET
@@ -1055,6 +1058,8 @@ def mars_view(request):
         "lang": lang,
         "pointsets": _script_json(_pointset_list("mars")),
         "trek_catalog": _script_json(trek.client_catalog("mars")),   # Trek 판 목록 (060)
+        # 가까이서 쓰는 고운 표고 판의 범위·줌 끝 — 달처럼 그 자리에서만 깊은 줌을 묻는다 (wetherilli 274)
+        "dem_parts": _script_json([[*part[1], part[2]] for part in trek.MARS_DEM_PARTS]),
         "i18n_json": json.dumps(i18n.client_table(lang), ensure_ascii=False),
         # 화면이 주소를 짓는 우리 타일의 판 — `?v=` 로 붙여 길게 캐시한다 (wetherilli 183)
         "tile_versions": _script_json(tile_versions("mars")),
@@ -1160,7 +1165,9 @@ def _mars_crater_tile(render):
 def mars_dem(request, z, x, y):
     """화성 표고 격자 — `mars/dem/<z>/<x>/<y>.png`, 65×65 Terrarium (MOLA–HRSC). 못 받으면 502 (달과 같다)."""
     z, x, y = int(z), int(x), int(y)
-    if not trek.valid_tile(z, x, y, trek.MARS_DEM_MAX_ZOOM):
+    # 줌 `MARS_DEM_MAX_ZOOM` 너머는 고운 판(탐사 착륙지의 HiRISE 따위)이 걸친 장만 있다 (wetherilli 274)
+    part = trek.mars_dem_part(z, x, y) if trek.valid_tile(z, x, y, trek.MARS_DEM_FINE_MAX) else None
+    if not trek.valid_tile(z, x, y, trek.MARS_DEM_MAX_ZOOM) and part is None:
         return JsonResponse({"error": i18n.t(msg("그런 타일은 없다"), i18n.lang_of(request))}, status=404)
     key = mars_dem_key(z, x, y)
     hit = tilecache.get(key)
@@ -1479,6 +1486,13 @@ def earth_view(request):
                                    # 제4기 고생태 산지 (wetherilli 139) — 구운 것이 있을 때만. 자료형 칸 다섯이 레이어가 된다
                                    "neotoma": paleoeco.legend(lang) if paleoeco.available() else [],
                                    "crust": crust.legend() if crust.grid() else [],
+                                   # 세계 광상 USGS (wetherilli 276) — 구운 것이 있을 때만. 광종 칸 여섯이 레이어가 된다
+                                   "minerals": minerals.legend(lang) if minerals.available() else [],
+                                   # 지각 응력 World Stress Map 2025 (wetherilli 273) — 구운 것이 있을 때만 레이어가 선다
+                                   "stress": stress.legend(lang) if stress.available() else [],
+                                   # 판 경계·세계 지질구 Hasterok 2022 (wetherilli 272) — 파일이 있을 때만 레이어가 선다
+                                   "tectonics": ({"boundaries": tectonics.legend("boundaries", lang),
+                                                  "provinces": tectonics.legend("provinces", lang)} if tectonics.available() else {}),
                                    # 세계 암상 GLiM·지열류 IHFC (wetherilli 267) — 구운 것이 있을 때만 레이어가 선다
                                    "glim": glim.legend(lang) if glim.grid() else [],
                                    "heatflow": heatflow.legend(lang) if heatflow.available() else [],
@@ -1959,6 +1973,42 @@ def earth_seafloor_at(request):
     return JsonResponse({"value": value, "text": text, "credit": seafloor.KINDS[kind][4]})
 
 
+#: 온 지구 화면의 레이어 이름 → 판 (wetherilli 272). `plates` 는 판 회전의 조각 경계라 이름을 갈랐다
+TECTONIC_LAYERS = {"tbound": "boundaries", "tprov": "provinces"}
+
+
+@require_GET
+def earth_tectonics_tile(request, layer, z, x, y):
+    """`earth/tectonics/<tbound|tprov>/<z>/<x>/<y>.png` — Hasterok 2022 판 경계·세계 지질구, 경위도 격자 (`tectonics.render_tile`)"""
+    kind, z, x, y = TECTONIC_LAYERS.get(layer), int(z), int(x), int(y)
+    if kind is None or not tectonics.valid_tile(z, x, y):
+        return JsonResponse({"error": i18n.t(msg("그런 타일은 없다"), i18n.lang_of(request))}, status=404)
+    if not tectonics.available():
+        return _tile(tiles.notice_tile(256, 256, tiles.NO_MAP), store=False)
+    version = tectonics_version()
+    key = tilecache.key_text("tectonics", f"{kind}/{version}/{z}/{x}/{y}")
+    hit = tilecache.get(key)
+    if hit is not None:
+        return _immutable(request, _tile(hit, cached=True), version)
+    png = tectonics.render_tile(kind, z, x, y)
+    tilecache.put(key, png)
+    response = _tile(png)
+    response["X-GSM-Cache"] = "miss"
+    return _immutable(request, response, version)
+
+
+@require_GET
+def earth_tectonics_at(request):
+    """`?lon=&lat=` — 누른 자리의 세계 지질구(Hasterok 2022)"""
+    lang = i18n.lang_of(request)
+    lat, lon = _float(request.GET.get("lat")), _float(request.GET.get("lon"))
+    if lat is None or lon is None:
+        return JsonResponse({"error": i18n.t(msg("lat·lon 이 없다"), lang)}, status=400)
+    got = tectonics.province_at(lon, lat, lang)
+    text = "" if got else i18n.t(msg("여기에는 지질구가 없다"), lang)
+    return JsonResponse({"province": got, "text": text, "credit": tectonics.CITE})
+
+
 @require_GET
 def earth_glim_tile(request, z, x, y):
     """`earth/glim/tiles/<z>/<x>/<y>.png` — GLiM 세계 암상 0.5° 격자, 경위도 격자 (`glim.render_tile`, wetherilli 267)"""
@@ -2030,6 +2080,89 @@ def earth_heatflow_at(request):
         out.append({"id": h["id"], "name": i18n.t(msg("지열류 {q} mW/m²", q=f"{h['q']:g}"), lang), "rows": rows,
                     "at": [h["lon"], h["lat"]]})
     return JsonResponse({"hits": out, "credit": heatflow.CREDIT, "link": heatflow.DOI})
+
+
+@require_GET
+def earth_stress_tile(request, z, x, y):
+    """`earth/stress/tiles/<z>/<x>/<y>.png` — World Stress Map 2025 의 S_Hmax 막대 (`stress.render_tile`, wetherilli 273)"""
+    z, x, y = int(z), int(x), int(y)
+    if not paleo.valid_tile(z, x, y):
+        return JsonResponse({"error": i18n.t(msg("그런 타일은 없다"), i18n.lang_of(request))}, status=404)
+    if not stress.available():
+        return _tile(tiles.blank_tile(), store=False)
+    version = stress_version()
+    key = tilecache.key_text("stress", f"{version}/{z}/{x}/{y}")
+    hit = tilecache.get(key)
+    if hit is not None:
+        return _immutable(request, _tile(hit, cached=True), version)
+    png = stress.render_tile(z, x, y)
+    tilecache.put(key, png)
+    response = _tile(png)
+    response["X-GSM-Cache"] = "miss"
+    return _immutable(request, response, version)
+
+
+@require_GET
+def earth_stress_at(request):
+    """`?lon=&lat=&r=` — 누른 자리 둘레(`r`°)의 응력 측정, 가까운 것부터 다섯"""
+    lang = i18n.lang_of(request)
+    lat, lon = _float(request.GET.get("lat")), _float(request.GET.get("lon"))
+    r = min(5.0, max(0.001, _float(request.GET.get("r")) or 0.1))
+    if lat is None or lon is None:
+        return JsonResponse({"error": i18n.t(msg("lat·lon 이 없다"), lang)}, status=400)
+    out = []
+    for s in stress.near(lon, lat, r):
+        regime = stress.REGIMES.get(s["regime"], stress.REGIMES["U"])[1]
+        kind = stress.TYPES.get(s["type"])
+        rows = [("최대 수평 응력 방향", f"N{s['azi']:.0f}°E"), ("응력 체제", i18n.t(regime, lang)), ("품질", s["quality"]),
+                ("측정법", i18n.t(kind, lang) if kind else s["type"]), ("깊이 (km)", f"{s['depth']:g}" if s["depth"] is not None else ""),
+                ("곳", " · ".join(x for x in (s["locality"], s["country"]) if x)), ("규모", s["mag"]), ("일시", s["date"]),
+                ("참고 문헌", s["ref"])]
+        rows = [[i18n.PROP_EN.get(k, k) if lang == "en" else k, v] for k, v in rows if v]
+        out.append({"id": s["id"], "name": i18n.t(msg("응력 N{azi}°E", azi=f"{s['azi']:.0f}"), lang), "rows": rows,
+                    "at": [s["lon"], s["lat"]], "color": "#%02x%02x%02x" % stress.colour(s["regime"])})
+    return JsonResponse({"hits": out, "credit": stress.CREDIT, "link": stress.DOI})
+
+
+@require_GET
+def earth_minerals_tile(request, band, z, x, y):
+    """`earth/minerals/tiles/<칸>/<z>/<x>/<y>.png` — USGS 세계 광상, 광종 칸 하나(`minerals.BANDS`) (wetherilli 276)"""
+    z, x, y = int(z), int(x), int(y)
+    if not paleo.valid_tile(z, x, y) or band not in minerals.BANDS:
+        return JsonResponse({"error": i18n.t(msg("그런 타일은 없다"), i18n.lang_of(request))}, status=404)
+    if not minerals.available():
+        return _tile(tiles.blank_tile(), store=False)
+    version = minerals_version()
+    key = tilecache.key_text("minerals", f"{version}/{band}/{z}/{x}/{y}")
+    hit = tilecache.get(key)
+    if hit is not None:
+        return _immutable(request, _tile(hit, cached=True), version)
+    png = minerals.render_tile(band, z, x, y)
+    tilecache.put(key, png)
+    response = _tile(png)
+    response["X-GSM-Cache"] = "miss"
+    return _immutable(request, response, version)
+
+
+@require_GET
+def earth_minerals_at(request):
+    """`?lon=&lat=&r=&bands=min_cu,min_au` — 누른 자리 둘레(`r`°)의 광상, 켠 칸에서 무겁고 가까운 것부터 다섯"""
+    lang = i18n.lang_of(request)
+    lat, lon = _float(request.GET.get("lat")), _float(request.GET.get("lon"))
+    r = min(5.0, max(0.001, _float(request.GET.get("r")) or 0.1))
+    bands = [b for b in (request.GET.get("bands") or "").split(",") if b in minerals.BANDS]
+    if lat is None or lon is None:
+        return JsonResponse({"error": i18n.t(msg("lat·lon 이 없다"), lang)}, status=400)
+    out = []
+    for d in minerals.near(bands, lon, lat, r):
+        rows = []
+        for key, value in json.loads(d["rows"]):
+            if key in minerals.TRANSLATED:
+                value = i18n.t(msg(value), lang)
+            rows.append([i18n.PROP_EN.get(key, key) if lang == "en" else key, value])
+        out.append({"name": d["name"] or i18n.t(msg("이름 없는 곳"), lang), "rows": rows, "at": [d["lon"], d["lat"]],
+                    "color": minerals.BANDS[d["band"]][0], "link": d["url"], "table": d["src"] != "mrds"})
+    return JsonResponse({"hits": out, "credit": minerals.CREDIT})
 
 
 @require_GET
@@ -2302,11 +2435,32 @@ def _lab_only(name: str) -> bool:
     return settings.PUBLIC and str(name).split(":", 1)[0] in LAB_ONLY
 
 
+def _options_3d(layers: list):
+    """3D 의 레이어 고르개 `<option>` 들(wetherilli 271). 템플릿 루프와 한 글자까지 같은 것을 파이썬이 짓는다 — 레이어가 오백을 넘어
+    템플릿이 `{% if %}` 를 오천 번 남짓 돌리는 데 이 화면 시간의 절반이 들었다. 이스케이프는 템플릿과 같은 `conditional_escape`"""
+    from django.utils.html import conditional_escape as esc
+    from django.utils.safestring import mark_safe
+    out = []
+    for l in layers:
+        attrs = f' data-upstream="{esc(l.get("upstream"))}"'
+        for key, data in (("attribution", "attribution"), ("tiles", "tiles"), ("minZoom", "min"), ("maxZoom", "max"),
+                          ("lastZoom", "last")):
+            if l.get(key):
+                attrs += f' data-{data}="{esc(l[key])}"'
+        if l.get("bbox"):
+            attrs += f' data-bbox="{esc(",".join(str(v) for v in l["bbox"]))}"'
+        out.append(f'<option value="{esc(l["name"])}"{attrs}>{esc(l["title"])}</option>')
+    return mark_safe("".join(out))
+
+
 def _catalog(lang="ko"):
     """레이어 패널의 목록. 영어판이면 제목만 `i18n.LAYER_EN` 으로 바꾼다."""
     en = lang == "en"
     groups = []
-    for group in LayerGroup.objects.prefetch_related("layers").all():
+    # 켠 레이어만 한 번에 받아 둔다(wetherilli 271) — 예전에는 `prefetch_related("layers")` 뒤에 레이어군마다 `.filter(enabled=True)` 를
+    # 다시 불러 미리 받은 것을 버리고 레이어군 수(160)만큼 물었다. 차례는 Layer 의 기본 차례(레이어군 안에서 order·title) 그대로다
+    enabled = Prefetch("layers", queryset=Layer.objects.filter(enabled=True), to_attr="enabled_layers")
+    for group in LayerGroup.objects.prefetch_related(enabled).all():
         layers = [{
             "name": l.name,
             "title": i18n.LAYER_EN.get(l.name, l.title) if en else l.title,
@@ -2325,7 +2479,7 @@ def _catalog(lang="ko"):
                if l.kind == "vector" else {}),
             **_point_fields(l),
             **_layer_extra(l, lang),
-        } for l in group.layers.filter(enabled=True)
+        } for l in group.enabled_layers
             # VWorld 열쇠가 없으면 "지질 참고" 는 그릴 길이 없다 — 목록에서 뺀다
             if (l.upstream != "vworld" or vworld.enabled()) and not _lab_only(l.name)]
         if layers:
@@ -2449,6 +2603,10 @@ GSI_ATTRIBUTION = ('<a href="https://maps.gsi.go.jp/development/ichiran.html" ta
 def _layer_extra(layer, lang: str = "ko") -> dict:
     """상류마다 화면에 더 알려야 하는 것. 남극(GeoMAP)은 타일 주소와 출처,
     NPI 는 타일을 받을 투영과 출처 (devlog 021)."""
+    if layer.upstream == "geusarc" and geus.arc_knows(layer.name):
+        # 그린란드 GEUS ArcGIS(wetherilli 259) — 화면의 투영(3413)으로 REST export. 범례는 따로 받지 않고, 지질구만 누른다
+        return {"attribution": geus.ARC_ATTRIBUTION.get(layer.name, geus.GEUS_ATTRIBUTION), "projection": "EPSG:3413", "noLegend": True,
+                **({} if geus.ARC_LAYERS[layer.name][2] else {"queryable": False})}
     if layer.upstream == "vworld" and layer.name in vworld.MIN_ZOOM:
         # 가까이서만 그려 주는 VWorld 레이어(토양·산림·국가유산, wetherilli 084·193) — 멀리서는 묻지 않는다
         return {"minZoom": vworld.MIN_ZOOM[layer.name]}
@@ -2519,6 +2677,7 @@ def _layer_extra(layer, lang: str = "ko") -> dict:
     if layer.upstream == "sgu" and sgu.knows(layer.name):
         # 스웨덴 SGU(wetherilli 213) — GeoServer 가 3413 도 그려 준다. 레이어 하나가 1:100만·5만 판을 함께 부른다
         return {"attribution": sgu.ATTRIBUTION, "projection": "EPSG:3413",
+                **({"minZoom": sgu.MIN_ZOOM[layer.name]} if layer.name in sgu.MIN_ZOOM else {}),
                 **({} if layer.name in sgu.QUERYABLE else {"queryable": False})}
     if layer.upstream == "natt" and natt.knows(layer.name):
         # 아이슬란드 NÍ(wetherilli 216) — GeoServer 가 3413 으로 다시 그려 준다. 선·점 레이어는 속성이 부호뿐이라 누르지 않는다
@@ -2526,7 +2685,15 @@ def _layer_extra(layer, lang: str = "ko") -> dict:
                 **({} if natt.queryable(layer.name) else {"queryable": False})}
     if layer.upstream == "gtk":
         # 핀란드 GTK(wetherilli 140) — ArcGIS 가 3413 도 그려 준다
-        return {"attribution": gtk.ATTRIBUTION, "projection": "EPSG:3413"}
+        return {"attribution": gtk.ATTRIBUTION, "projection": "EPSG:3413",
+                **({"queryable": False} if layer.name in gtk.NOT_QUERYABLE else {})}
+    if layer.upstream == "bgsgi" and bgs.geoindex_knows(layer.name):
+        # 영국 GeoIndex(wetherilli 258) — 3857 로. 지구물리는 줌 9 까지(상류 1:62만 5천), 광산은 줌 10 부터. 범례는 상류 그림
+        first, last = bgs.GEOINDEX_ZOOMS.get(layer.name, (None, None))
+        return {"attribution": bgs.GEOINDEX_ATTRIBUTION, "projection": "EPSG:3857",
+                **({"minZoom": first} if first else {}), **({"lastZoom": last} if last else {}),
+                # 지구물리의 범례 그림은 "RGB 밴드" 세 줄뿐이라 두지 않는다
+                **({} if bgs.GEOINDEX_LAYERS[layer.name][2] else {"queryable": False, "noLegend": True})}
     if layer.upstream == "bgs":
         # 영국 BGS(wetherilli 143) — 1:5만은 줌 13 부터만 그린다. 그보다 멀면 화면이 묻지 않는다
         return {"attribution": bgs.ATTRIBUTION, "projection": "EPSG:3857", "minZoom": bgs.MIN_ZOOM}
@@ -2634,7 +2801,8 @@ def _layer_extra(layer, lang: str = "ko") -> dict:
         # 처음 줌을 둔다. 단위 면은 보는 범위의 범례(`austates/legend/`, 232), 구조선은 범례·누르기가 없다
         first = austates.first_zoom(layer.upstream, layer.name)
         legend = ({"legend": "extent", "legendUrl": "austates/legend/"} if austates.is_unit(layer.upstream, layer.name)
-                  else {"noLegend": True, "queryable": False})
+                  # 광산·광물 산지(wetherilli 269)는 누르기만, 지구물리 영상·구조선은 범례·누르기가 없다
+                  else {"noLegend": True} if austates.queryable(layer.upstream, layer.name) else {"noLegend": True, "queryable": False})
         return {"attribution": austates.UPSTREAMS[layer.upstream][2], "projection": "EPSG:3857", **legend,
                 **({"minZoom": first} if first else {})}
     if layer.upstream == "nrcan" and nrcan.knows(layer.name):
@@ -2858,7 +3026,7 @@ class _Door:
     판을 갈면 곧바로 새 것이 보인다.
     """
 
-    MODULES = {"kigam": kigam, "geus": geus, "vworld": vworld, "geomap": geomap, "npolar": npolar, "kopri": kopri,
+    MODULES = {"kigam": kigam, "geus": geus, "geusarc": geus.ARC, "vworld": vworld, "geomap": geomap, "npolar": npolar, "kopri": kopri,
                # PGC 경사·등고선(wetherilli 099) — 문은 표고와 같은 elevation.py 다
                "pgc": elevation,
                # CCOP 200만 지질도(wetherilli 108) — GSJ 새 호스트의 WMS. 문은 gsj.py 다
@@ -2873,6 +3041,8 @@ class _Door:
                "ngu": ngu, "gtk": gtk, "sgu": sgu,
                # 영국·프랑스·범유럽(wetherilli 143)
                "bgs": bgs, "brgm": brgm, "egdi": egdi,
+               # 영국 GeoIndex — 자력·중력·광산·광물 산지(wetherilli 258)
+               "bgsgi": bgs.GEOINDEX,
                # 독일·스페인·아일랜드(wetherilli 147). GSNI 는 BGS 서버가 내주어 문이 bgs.py 다
                "bgr": bgr, "igme": igme, "gsi": gsi, "gsni": bgs.GSNI,
                # 남미·콜롬비아(wetherilli 188)·브라질(191)
@@ -2931,7 +3101,7 @@ class _Door:
         self.local = self.name == "geomap"
         #: 받은 것을 서버 캐시에 담지 않는다 — 우리가 그리는 것(GeoMAP)과, 자료를 파는 상류(`NO_STORE`, wetherilli 209)
         self.nostore = self.local or self.name in NO_STORE
-        if self.name in ("geus", "npolar", "kopri", "pgc", "ccop", "gsjows", "gsmma", "emodnet", "ngu", "gtk", "bgs", "brgm", "egdi", "bgr", "igme", "gsi", "gsni", "sgc", "sgb", "ingemmet", "segemar", "dinamige", "iige", "mrdata", "sgm", "cgmw", "aga", "cgs", "gsn", "bumigeb", "irgm", "nrcan", "ogs", "sigeom", "ygs", "skgs", "nsgs", "ags", "ga", "gsq", "gsv", "gssa", "ispra", "lneg", "swisstopo", "sgu", "natt", "gns", "mris", "gsiindia", "sgs", "esdm", "jmg", "mgb", "dmr", "bcgs", "calgs", "geosphere", "pig", "tno", "dov", "spw", "ineter", "georep"):    # 열쇠가 없는 공개 서비스다
+        if self.name in ("geus", "geusarc", "npolar", "kopri", "pgc", "ccop", "gsjows", "gsmma", "emodnet", "ngu", "gtk", "bgs", "bgsgi", "brgm", "egdi", "bgr", "igme", "gsi", "gsni", "sgc", "sgb", "ingemmet", "segemar", "dinamige", "iige", "mrdata", "sgm", "cgmw", "aga", "cgs", "gsn", "bumigeb", "irgm", "nrcan", "ogs", "sigeom", "ygs", "skgs", "nsgs", "ags", "ga", "gsq", "gsv", "gssa", "ispra", "lneg", "swisstopo", "sgu", "natt", "gns", "mris", "gsiindia", "sgs", "esdm", "jmg", "mgb", "dmr", "bcgs", "calgs", "geosphere", "pig", "tno", "dov", "spw", "ineter", "georep"):    # 열쇠가 없는 공개 서비스다
             self.ready = True
         elif self.name == "vworld":
             self.ready = vworld.enabled()
@@ -4093,6 +4263,9 @@ def tile_versions(page: str) -> dict:
         return {"paleo": paleo_version(), "coast": paleocoast_version(), "fossils": fossils_version(),
                 "volcanoes": volcanoes_version(), "pleistocene": volcanoes_version("pleistocene"), "quakes": quakes_version(), "neotoma": neotoma_version(),
                 "crust": crust_version(), "ne": ne_version(), "icemargins": icemargins_version(),
+                "minerals": minerals_version(),
+                "stress": stress_version(),
+                "tectonics": tectonics_version(),
                 "seaage": seafloor_version("age"), "sediment": seafloor_version("sediment"),
                 "glim": glim_version(), "heatflow": heatflow_version()}
     return {}
@@ -4146,6 +4319,16 @@ def heatflow_version() -> str:
 
 def seafloor_version(kind: str) -> str:
     return _stamp(seafloor.RENDERER, *(_content_stamp(p) for p in seafloor.files(kind)[::2]))
+
+
+def stress_version() -> str:
+    return _stamp(stress.RENDERER, stress.built(), _file_stamp(stress.path()))
+def tectonics_version() -> str:
+    return _stamp(tectonics.RENDERER, _content_stamp(settings.TECTONICS_FILE))
+
+
+def minerals_version() -> str:
+    return _stamp(minerals.RENDERER, minerals.built(), _file_stamp(minerals.path()))
 
 
 def crust_version() -> str:
@@ -4313,7 +4496,9 @@ def feature_info(request):
             continue
         seen.add(mark)
         props = {k: _split_links(v) for k, v in props.items()}
-        if door.name == "geus":
+        if door.name == "geusarc":
+            props = geus.arc_friendly(props, lang)     # 그린란드 지질구 (wetherilli 259)
+        elif door.name == "geus":
             props = geus.friendly(props)          # gu_name → 지질 단위 …
         elif door.name == "vworld":
             # riv_nm → 하천명 …. 토양도처럼 레이어마다 뜻이 다른 열이 있어 레이어를 넘긴다
@@ -4343,6 +4528,8 @@ def feature_info(request):
             props = natt.friendly(props, lang)       # 아이슬란드 — 1:60만의 부호를 범례 이름으로, 시대를 옮긴다 (wetherilli 216)
         elif door.name == "gtk":
             props = gtk.friendly(props, lang)        # ROCK_NAME_ → 암석 …, 시대를 옮긴다
+        elif door.name == "bgsgi":
+            props = bgs.geoindex_friendly(props, lang)   # 영국 광산·광물 산지 (wetherilli 258)
         elif door.name == "bgs":
             props = bgs.friendly(props, lang)        # LEX_D → 지층명 …, 시대를 옮긴다
         elif door.name == "brgm":

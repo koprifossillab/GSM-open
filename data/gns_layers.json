@@ -1,5 +1,5 @@
 {
- "_주석": "GNS Science(뉴질랜드) 지질도 씨앗이다 — 뉴질랜드 탭(오세아니아 묶음에도 든다). 2026-10-04 에 maps.gns.cri.nz GeoServer 의 Capabilities 에서 골랐다. 이름은 우리 것이고(`gns:`), 문(web/viewer/gns.py)이 상류 이름으로 바꾼다. 합본(gns:qmap)은 넓게 보면 느려 줌 7 부터다. 한글 제목과 레이어군은 사람이 붙였다 (wetherilli 218).",
+ "_주석": "GNS Science(뉴질랜드) 지질도 씨앗이다 — 뉴질랜드 탭(오세아니아 묶음에도 든다). 2026-10-04 에 maps.gns.cri.nz GeoServer 의 Capabilities 에서 골랐다. 이름은 우리 것이고(`gns:`), 문(web/viewer/gns.py)이 상류 이름으로 바꾼다. 합본(gns:qmap)은 넓게 보면 느려 줌 7 부터다. 한글 제목과 레이어군은 사람이 붙였다 (wetherilli 218). 중력 이상은 GNS 전체 서비스에 있다 (wetherilli 269).",
  "_뽑은날": "2026-10-04",
  "_출처": "https://maps.gns.cri.nz/geology/wms?SERVICE=WMS&REQUEST=GetCapabilities",
  "_지역": "new_zealand",
@@ -7,7 +7,8 @@
  "_레이어군차례": 1,
  "레이어군순서": [
   "뉴질랜드 지질도 (GNS)",
-  "뉴질랜드 구조 (GNS 1:25만)"
+  "뉴질랜드 구조 (GNS 1:25만)",
+  "뉴질랜드 지구물리 (GNS)"
  ],
  "레이어": [
   {
@@ -80,6 +81,18 @@
     -49.4,
     180.0,
     -32.0
+   ]
+  },
+  {
+   "name": "gns:gravity",
+   "title": "중력 이상",
+   "group": "뉴질랜드 지구물리 (GNS)",
+   "abstract": "NZ Gravity Anomaly — GNS 전체 서비스(/gns/wms)",
+   "bbox": [
+    165.8,
+    -47.4,
+    179.0,
+    -34.0
    ]
   }
  ]

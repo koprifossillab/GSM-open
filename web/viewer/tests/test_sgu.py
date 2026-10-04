@@ -32,11 +32,11 @@ STHLM = {"crs": "EPSG:3413", "bbox": "2995000,-1560000,3025000,-1530000", "width
 class Door(SimpleTestCase):
     def test_레이어_하나가_판_둘을(self):
         self.assertEqual(sgu.upstream_names("sgu:bedrock"),
-                         "SE.GOV.SGU.BERGGRUND_NA10,SE.GOV.SGU.BERG.GEOLOGISK_ENHET.YTA.50K")       # 1:100만 위에 5만
+                         "berg:SE.GOV.SGU.BERGGRUND_NA10,berg:SE.GOV.SGU.BERG.GEOLOGISK_ENHET.YTA.50K")       # 1:100만 위에 5만
         self.assertEqual(sgu.upstream_names("sgu:bedrock", reverse=True).split(",")[0],
-                         "SE.GOV.SGU.BERG.GEOLOGISK_ENHET.YTA.50K")                                 # 속성은 자세한 것부터
+                         "berg:SE.GOV.SGU.BERG.GEOLOGISK_ENHET.YTA.50K")                                 # 속성은 자세한 것부터
         with self.assertRaises(sgu.SguError):
-            sgu.upstream_names("SE.GOV.SGU.BERGGRUND_NA10")                                         # 상류 이름을 곧장 받지 않는다
+            sgu.upstream_names("berg:SE.GOV.SGU.BERGGRUND_NA10")                                         # 상류 이름을 곧장 받지 않는다
 
     def test_판마다_첫_하나(self):
         got = sgu.first_per_layer(GFI["features"])
@@ -81,9 +81,9 @@ class Views(TestCase):
             r = self.client.get(reverse("viewer:wms"), {"layers": "sgu:bedrock", "version": "1.3.0", "request": "GetMap", **STHLM})
         self.assertEqual(r.status_code, 200)
         sent = get.call_args.kwargs["params"]
-        self.assertEqual(get.call_args.args[0], "https://maps3.sgu.se/geoserver/berg/ows")
+        self.assertEqual(get.call_args.args[0], "https://maps3.sgu.se/geoserver/ows")
         self.assertEqual((sent["layers"], sent["srs"], sent["version"]),
-                         ("SE.GOV.SGU.BERGGRUND_NA10,SE.GOV.SGU.BERG.GEOLOGISK_ENHET.YTA.50K", "EPSG:3413", "1.1.1"))
+                         ("berg:SE.GOV.SGU.BERGGRUND_NA10,berg:SE.GOV.SGU.BERG.GEOLOGISK_ENHET.YTA.50K", "EPSG:3413", "1.1.1"))
 
     def test_속성은_자세한_것부터_판마다_하나(self):
         with mock.patch.object(sgu.requests, "get", return_value=answer(json=lambda: GFI)) as get:
@@ -91,14 +91,14 @@ class Views(TestCase):
                 "layers": "sgu:bedrock", "query_layers": "sgu:bedrock", "i": 128, "j": 128, "request": "GetFeatureInfo", **STHLM}).json()
         sent = get.call_args.kwargs["params"]
         self.assertEqual((sent["buffer"], sent["x"], sent["info_format"]), (1, "128", "application/json"))
-        self.assertTrue(sent["query_layers"].startswith("SE.GOV.SGU.BERG.GEOLOGISK_ENHET.YTA.50K,"))
+        self.assertTrue(sent["query_layers"].startswith("berg:SE.GOV.SGU.BERG.GEOLOGISK_ENHET.YTA.50K,"))
         self.assertEqual([f["props"]["암석"] for f in data["features"]], ["Granit", "Metagreywacke, mica schist (c. 1.96-1.87 Ga)"])
 
     def test_범례는_1_100만_판(self):
         with mock.patch.object(sgu.requests, "get", return_value=answer()) as get:
             r = self.client.get(reverse("viewer:legend"), {"layer": "sgu:bedrock"})
         self.assertEqual(r.status_code, 200)
-        self.assertEqual(get.call_args.kwargs["params"]["layer"], "SE.GOV.SGU.BERGGRUND_NA10")
+        self.assertEqual(get.call_args.kwargs["params"]["layer"], "berg:SE.GOV.SGU.BERGGRUND_NA10")
 
     def test_정적_판은_고르면_싣는다(self):
         spec = importlib.util.spec_from_file_location("static_site", pathlib.Path(__file__).resolve().parents[3] / "deploy" / "static_site.py")
@@ -108,5 +108,5 @@ class Views(TestCase):
         self.assertEqual(site.OPTIONAL["sweden"], (["fennoscandia"], ["sgu"]))
         with override_settings(STATIC_SITE={"regions": ["fennoscandia"], "upstreams": ["sgu"]}):
             names = {l["name"] for g in views._static_catalog(views._catalog("ko")) for l in g["layers"]}
-        self.assertEqual(names, {"sgu:bedrock", "sgu:deformation"})                                 # NGU·GTK 는 서버 판에만
-        self.assertEqual(static_tables.tables()["sgu"]["legend"]["sgu:bedrock"], "SE.GOV.SGU.BERGGRUND_NA10")
+        self.assertEqual(names, {"sgu:bedrock", "sgu:deformation", "sgu:minerals", "sgu:magnetic"})  # NGU·GTK 는 서버 판에만
+        self.assertEqual(static_tables.tables()["sgu"]["legend"]["sgu:bedrock"], "berg:SE.GOV.SGU.BERGGRUND_NA10")
