@@ -33,13 +33,10 @@
 ### 북미
 
 - [ ] **(사람)** 캐나다 탭(NRCan 1:500만·온타리오 OGS, wetherilli 204)을 정적 판에 실을지 — OGL 이고 CORS 가 되비친다(#153)
-- [ ] 알래스카 SIM 3340 이 북위 51.5° 남짓에 하늘색 띠를 그린다 — 상류 MapServer 의 그림이다. 잘라 내 보다 되돌렸다(wetherilli 210)
 - [ ] 브리티시컬럼비아(BCGS) — 줌 12 남짓부터만 색이 들고 CORS 가 없고 첫 요청이 9.5 초라 미뤘다(wetherilli 210). 다른 주(앨버타·서스캐처원·매니토바·노바스코샤…)도 아직
-- [ ] 퀘벡 시대(`Néoarchéen` 따위)는 프랑스어 그대로다 — 옮기려면 `i18n` 에 프랑스어 → ICS 표가 든다(wetherilli 210)
-      (지금은 3857 이라 부푼다). 하와이(`services/hi`)·푸에르토리코(`services/pr`)는 같은 서버에 있다
+- [ ] 미국 — 하와이(`services/hi`)·푸에르토리코(`services/pr`)는 USGS mrdata 같은 서버에 있다
 - [ ] 멕시코 SGM — 지질 연대·고생물·광상 1:25만은 섰다(wetherilli 219). 남은 것: 같은 서버의 지화학(`SUNGeoquimica`)·자기 이상
       (`SUNAnomalias250`)·광산 1:5만(`SUNYacimientosMinerales`, 4 만 6 천 점). 고생물·광산 점은 그림 기호라 범례가 없다
-- [ ] 퀘벡 SIGÉOM — CC BY 4.0, Macrostrat 의 빈 자리. Origin 헤더가 붙으면 403 이라 서버 문으로만. 반나절. 그다음 캘리포니아·유콘·BC
 - 막힌 것: USGS 북미 지질도 GMNA(403), ScienceBase(503), NGMDB(지도 API 없음)
 
 ### 아프리카
@@ -59,7 +56,7 @@
 
 조건이 글로 열린 것부터 붙인다 — (1) 아이슬란드 NÍ 는 섰다(wetherilli 216 — 북극 묶음에 든다. 정적 판에 실을지는 사람이, CC BY 4.0·CORS `*`) → (2) 뉴질랜드 GNS 와 남극 남빅토리아랜드는 섰다(wetherilli 218 — 오세아니아 묶음. 정적 판은 속성 CORS 가 막혀 타일만 된다, 사람이 정한다) →
 (3) **BGR IGME5000**(`bgr.py` 에 판 하나 — 러시아 유럽부·우랄·카자흐스탄 서북) → (4) 몽골 MonGeoCat 은 섰다(wetherilli 221 — 동아시아 묶음. **(사람)** 조건이 적혀 있지 않아 밖에 열기 전에 읽는다) →
-(5) 인도 GSI 1:200만은 섰다(wetherilli 226 — 그림 BGS, 속성 GSI. **(사람)** GSI 의 조건을 읽는다 — Bhukosh 가 막혀 못 읽었다) → (6) **사우디 SGS 1:25만** → (7) 동남아 넷(인도네시아 ESDM 1:10만·말레이시아
+(5) 인도 GSI 1:200만은 섰다(wetherilli 226 — 그림 BGS, 속성 GSI. **(사람)** GSI 의 조건을 읽는다 — Bhukosh 가 막혀 못 읽었다) → (6) 사우디 SGS 1:25만은 섰다(wetherilli 227 — 서부 도폭만. **(사람)** 조건이 적혀 있지 않다) → (7) 동남아 넷(인도네시아 ESDM 1:10만·말레이시아
 JMG·필리핀 MGB·태국 DMR — 동남아 묶음을 세울지 먼저). (4)부터는 조건 문서가 없어 **(사람)** 밖에 열기 전에 읽는다. ÍSOR 1:10만·페로
 Jarðfeingi 는 조건을 묻고 나서. 막힌 것: 인도 Bhukosh·러시아 VSEGEI·카자흐스탄·튀르키예 MTA·이란·이스라엘(나라 밖 차단), 파푸아뉴기니 MRA(등록제),
 베트남·라오스·캄보디아·미얀마·오만(서비스 없음 — CCOP 200만으로)
@@ -114,8 +111,6 @@ Jarðfeingi 는 조건을 묻고 나서. 막힌 것: 인도 Bhukosh·러시아 V
 - [ ] (사람) 달 Trek 판 한글 제목 초안(몸 전체를 덮는 114 판)을 읽고 고친다 — `data/moon_trek_layers.json` 의 `ko` (060)
 - [ ] (사람) SPA 지질도 원본(Zenodo 10.5281/zenodo.19728952 의 `GeoMap.tif.zip`·`Mapplate.zip`)을 NAS `sources/moon/` 에 둔다.
       운영 `db/moon/` 에는 두었다 (wetherilli 081)
-- [ ] 달 화면의 Lunar Orbiter·Clementine 배경 — USGS Astrogeology WMS ([docs/새_상류_후보.md](docs/새_상류_후보.md) §1).
-      수성 화면은 섰다(wetherilli P10·137·144)
 
 ## 온 지구 (P06·P07)
 
@@ -160,7 +155,6 @@ Jarðfeingi 는 조건을 묻고 나서. 막힌 것: 인도 Bhukosh·러시아 V
 
 ### 빨리 되는 것 — 씨앗·배경 한 줄
 
-- [ ] 일본 좌표→주소(`mreversegeocoder`) — 시군구 코드만 줘 표가 들고 문도 든다(반나절). 주소 찾기는 섰다(wetherilli 155)
 
 ### 달 — Trek ImageServer
 
@@ -217,8 +211,13 @@ phyloserver 는 이 저장소만으로 더 할 것이 없다 — 도폭(`MapShee
 - [ ] 유럽 — 영국·프랑스(143)·독일·스페인·아일랜드(147) 탭과 유럽 묶음이 섰다. 남은 것: EGDI 1:100만의 시대 판 속성이
       되살아나면(2026-10-04 에도 DB 오류, 지금은 암상 판에 묻는다 — wetherilli 177) 그쪽으로. BGS 1:62만 5천이 WMS 로 열리면 영국 탭의 넓은 줌을 그것으로. 독일은 줌 9 전에 EGDI 뿐이다 —
       BGR GÜK1000 보다 넓은 판(GÜK 2000?)이 있는지. 이탈리아(ISPRA)·포르투갈(LNEG)·스위스(swisstopo)는 섰다(wetherilli 211) — 밖에 열기 전에 LNEG 의 조건(적힌 것이 없다)과 ISPRA 의 "열람 자유" 를 사람이 읽는다
-- [ ] 다른 나라 지질도 — 호주 GA 탭은 섰다(wetherilli 212 — 주 지질조사소 판·GA 의 다른 서비스는 다음). 스웨덴 SGU 는
+- [ ] 다른 나라 지질도 — 호주 GA 탭은 섰다(wetherilli 212). 주 판은 퀸즐랜드·빅토리아·남호주가 섰다(225). 스웨덴 SGU 는
       노르웨이·스웨덴·핀란드 탭에 섰다(wetherilli 213).
+- [ ] (사람) 서호주 GSWA 지질도 — SLIP 공개 서비스(`services.slip.wa.gov.au/public/…/Geology_and_Soils_Map/MapServer`, 1:250만·1:50만·1:10만
+      해석 기반암)는 열려 있지만 저작권 칸이 "SLIP Transaction — Personal Use Licence" 다. 같은 자료가 다른 곳에서 CC BY 4.0 으로 열렸는지 읽고 정한다 (wetherilli 225)
+- [ ] 호주의 남은 것 — 뉴사우스웨일스(GSNSW GeoServer 에는 시추공·광산·광업권뿐, 이음매 없는 지질도의 주소를 못 찾았다)·태즈메이니아
+      (MRT 서비스에 지질도가 없다, 도폭 색인뿐)·노던테리토리(NTGS GeoServer 에 시추공·광산뿐)는 지질도 서비스를 찾지 못했다. GA 의 다른 서비스는
+      서비스 목록이 403 이라 이름을 알아야 부른다 (wetherilli 225). 범례·구조선은 섰다(232)
       **OneGeology 포털이 GSJ 아래에서 다시 열리면**(2026 년 중) 각국 WMS 를 한 목록에서 고른다. 중국 GeoCloud WMS 주소,
       VSEGEI(403)는 막혀 있다 ([docs/새_상류_후보.md](docs/새_상류_후보.md) §2·§3)
 

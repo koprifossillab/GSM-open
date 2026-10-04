@@ -1,0 +1,37 @@
+{
+ "_주석": "남호주 지질조사소(GSSA, SARIG) 지질도 씨앗이다 — 호주 탭. GeoServer WMS 의 GeoSciML 포트레이얼(web/viewer/austates.py). 1:250만보다 넓으면 빈 그림이라 줌 9 부터. 한글 제목과 레이어군은 사람이 붙였다 (wetherilli 225). 구조선은 wetherilli 232 에서 더했다.",
+ "_뽑은날": "2026-10-04",
+ "_출처": "https://sarigdata.pir.sa.gov.au/geoserver/ows?service=WMS&request=GetCapabilities",
+ "_지역": "australia",
+ "_상류": "gssa",
+ "_레이어군차례": 12,
+ "레이어군순서": [
+  "남호주 지질도 (GSSA)"
+ ],
+ "레이어": [
+  {
+   "name": "gssa:units",
+   "title": "남호주 지질 단위",
+   "group": "남호주 지질도 (GSSA)",
+   "abstract": "Geologic Units of South Australia (GeoSciML-Portrayal)",
+   "bbox": [
+    128.5,
+    -38.1,
+    141.5,
+    -25.5
+   ]
+  },
+  {
+   "name": "gssa:faults",
+   "title": "남호주 단층",
+   "group": "남호주 지질도 (GSSA)",
+   "abstract": "Shear Displacement Structures of South Australia (GeoSciML-Portrayal)",
+   "bbox": [
+    128.5,
+    -38.1,
+    141.5,
+    -25.5
+   ]
+  }
+ ]
+}

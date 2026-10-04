@@ -2677,3 +2677,24 @@ a.tool { text-decoration: none; }                /* 3D 단추는 링크다 */
   --hi: #3f1d06; --hi-deep: #281103; --on-hi: #fff8f1; --hi-ink: #c26a0d;
   --glass: rgba(255, 252, 250, .95); --glass-line: #ead8cd;
 }
+
+/* ── 사우디아라비아 (wetherilli 227) — 하랏 현무암의 검정 위 홍해 산호의 청록: 붉은 사막(나푸드) 모래의 바탕 ──
+   오세아니아(석호 청록)보다 푸르고 짙다 */
+:root[data-region="saudi"] {
+  --bg: #161211; --panel: #1d1817; --panel-tint: #110e0d; --raise: #292221;
+  --ink: #f6f0ec; --ink-soft: #cbbdb4; --ink-faint: #8c7e76;
+  --line: #3a302c; --line-soft: #292221;
+  --gold: #1fa6b8; --gold-bright: #7fd3de; --gold-muted: #1d8a99;
+  --gold-wash: rgba(31, 166, 184, .13); --gold-edge: rgba(31, 166, 184, .42);
+  --hi: #1fa6b8; --hi-deep: #7fd3de; --on-hi: #110e0d; --hi-ink: #7fd3de;
+  --glass: rgba(17, 14, 13, .93); --glass-line: rgba(31, 166, 184, .35);
+}
+:root[data-region="saudi"][data-theme="light"] {
+  --bg: #f8f2ee; --panel: #fefcfa; --panel-tint: #fbf6f3; --raise: #efe4dd;
+  --ink: #201917; --ink-soft: #574a44; --ink-faint: #94847c;
+  --line: #e6d8cf; --line-soft: #efe4dd;
+  --gold: #0f7a89; --gold-bright: #0a5c67; --gold-muted: #3f7f88;
+  --gold-wash: #d9eff2; --gold-edge: #9bd2da;
+  --hi: #08343a; --hi-deep: #042227; --on-hi: #fefcfa; --hi-ink: #0f7a89;
+  --glass: rgba(254, 252, 250, .95); --glass-line: #e6d8cf;
+}

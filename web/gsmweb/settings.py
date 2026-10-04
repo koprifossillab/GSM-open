@@ -162,6 +162,8 @@ MRIS_URL = env("GSM_MRIS_URL", "https://gismap.mris.mn/arcgis")
 GSIINDIA_WMS_URL = env("GSM_GSIINDIA_WMS_URL", "https://ogc.bgs.ac.uk/cgi-bin/BGS_GSI_Geology/wms")
 GSIINDIA_FEATURE_URL = env("GSM_GSIINDIA_FEATURE_URL", "https://services7.arcgis.com/MpVV35eHXsBYcufv/arcgis/rest/services/"
                                                        "Geology_2M_WFL1/FeatureServer")
+#: 사우디 1:25만 — SGS 국가 지질 자료(NGD) ArcGIS 의 앞 주소 (`viewer/sgs.py`, wetherilli 227). 열쇠가 없다
+SGS_URL = env("GSM_SGS_URL", "https://ngdgis.sgs.gov.sa/ngdgis")
 #: 영국·프랑스·범유럽 지질도 — BGS ArcGIS·BRGM MapServer·EGDI GeoServer WMS (`viewer/bgs.py`·`brgm.py`·`egdi.py`, wetherilli 143). 열쇠가 없다
 BGS_WMS_URL = env("GSM_BGS_WMS_URL", "https://map.bgs.ac.uk/arcgis/services/BGS_Detailed_Geology/MapServer/WMSServer")
 BRGM_WMS_URL = env("GSM_BRGM_WMS_URL", "https://geoservices.brgm.fr/geologie")
@@ -193,6 +195,10 @@ IIGE_URL = env("GSM_IIGE_URL", "https://capas.geoenergia.gob.ec/arcgis")
 #: 미국 지질도 — USGS mrdata 의 서비스 앞 주소(`<서비스>` WMS·`wfs/<서비스>` WFS) (wetherilli 205). 열쇠가 없다
 MRDATA_URL = env("GSM_MRDATA_URL", "https://mrdata.usgs.gov/services")
 #: 멕시코 지질도 — SGM ArcGIS REST 서비스 주소 (wetherilli 206). WMS 는 400 이라 export·identify 를 쓴다. 열쇠가 없다
+#: 호주의 주 판 — 퀸즐랜드 GSQ(ArcGIS REST)·빅토리아 GSV·남호주 GSSA(GeoServer) (wetherilli 225). 열쇠가 없다
+GSQ_REST_URL = env("GSM_GSQ_REST_URL", "https://spatial-gis.information.qld.gov.au/arcgis/rest/services/GeoscientificInformation")
+GSV_WMS_URL = env("GSM_GSV_WMS_URL", "https://opendata.maps.vic.gov.au/geoserver/wms")
+GSSA_WMS_URL = env("GSM_GSSA_WMS_URL", "https://sarigdata.pir.sa.gov.au/geoserver/ows")
 SGM_URL = env("GSM_SGM_URL", "https://portal.sgm.gob.mx/arcgis/rest/services/SGM/SUNGeologiaContinuoMineDatosEs/MapServer")
 #: 캐나다 — NRCan 1:500만(Wheeler) WMS·온타리오 OGS ArcGIS 의 앞 주소 (wetherilli 204). 열쇠가 없다
 NRCAN_WMS_URL = env("GSM_NRCAN_WMS_URL", "https://maps-cartes.services.geo.ca/server_serveur/services/NRCan/"
@@ -474,6 +480,10 @@ SIGEOM_CATALOG_SEED = REPO_DIR / "data" / "sigeom_layers.json"
 YGS_CATALOG_SEED = REPO_DIR / "data" / "ygs_layers.json"
 #: 호주 (wetherilli 212)
 GA_CATALOG_SEED = REPO_DIR / "data" / "ga_layers.json"
+#: 호주의 주 판 — 퀸즐랜드·빅토리아·남호주 (wetherilli 225)
+GSQ_CATALOG_SEED = REPO_DIR / "data" / "gsq_layers.json"
+GSV_CATALOG_SEED = REPO_DIR / "data" / "gsv_layers.json"
+GSSA_CATALOG_SEED = REPO_DIR / "data" / "gssa_layers.json"
 #: 뉴질랜드, 남극 남빅토리아랜드 (wetherilli 218)
 GNS_CATALOG_SEED = REPO_DIR / "data" / "gns_layers.json"
 GNS_ANTARCTICA_CATALOG_SEED = REPO_DIR / "data" / "gns_antarctica_layers.json"
@@ -481,6 +491,8 @@ GNS_ANTARCTICA_CATALOG_SEED = REPO_DIR / "data" / "gns_antarctica_layers.json"
 MRIS_CATALOG_SEED = REPO_DIR / "data" / "mris_layers.json"
 #: 인도 (wetherilli 226)
 GSIINDIA_CATALOG_SEED = REPO_DIR / "data" / "gsiindia_layers.json"
+#: 사우디아라비아 (wetherilli 227)
+SGS_CATALOG_SEED = REPO_DIR / "data" / "sgs_layers.json"
 #: 이탈리아·포르투갈·스위스 (wetherilli 211)
 ISPRA_CATALOG_SEED = REPO_DIR / "data" / "ispra_layers.json"
 LNEG_CATALOG_SEED = REPO_DIR / "data" / "lneg_layers.json"

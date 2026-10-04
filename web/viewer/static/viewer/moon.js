@@ -70,6 +70,13 @@
   // (한 픽셀 약 21 m)까지라 WAC(약 100 m)보다 다섯 배 촘촘하지만 틈이 있다 — 위도 75° 안쪽도 곳곳이 비고
   // (0–2 %), 극 둘레는 40 % 넘게 빈다. 넓게 볼 때는 해가 낮은 WAC 쪽이 지형이 산다. 그래서 `under` 로 WAC 를
   // 늘 밑에 깔고 Kaguya 는 줌 `min`(8, WAC 가 원자료를 다 쓰는 줌)부터 얹는다 — 틈에는 WAC 가 비친다
+  // USGS Astrogeology 의 WMS(wetherilli 229) — 옛 탐사선의 모자이크. 열쇠가 없고 CORS `*`, 미국 정부 자료(공공 도메인).
+  // 칸의 경위도 범위로 묻는다(`{westDegrees}` …, Cesium 과 `tileSource` 가 채운다). 한 칸 1 초 남짓(2026-10-04)
+  function usgsWms(map, layer) {
+    return "https://planetarymaps.usgs.gov/cgi-bin/mapserv?map=/maps/" + map + "&service=WMS&version=1.1.1&request=GetMap" +
+      "&styles=&srs=EPSG:4326&width=256&height=256&format=image/png&layers=" + layer +
+      "&bbox={westDegrees},{southDegrees},{eastDegrees},{northDegrees}";
+  }
   var BASES = {
     kaguya: { url: TREK + "Kaguya_TCortho_Mosaic_Global_4096ppd/1.0.0/default/default028mm/{z}/{y}/{x}.png",
               max: 10, min: 8, under: "wac", credit: "SELENE (Kaguya) TC · JAXA" },
@@ -77,6 +84,12 @@
            max: 8, credit: "LRO LROC WAC · NASA/GSFC/Arizona State University" },
     lola: { url: TREK + "LRO_LOLA_Shade_Global_256ppd_v06/1.0.0/default/default028mm/{z}/{y}/{x}.png",
             max: 6, credit: "LRO LOLA · NASA/GSFC" },
+    // 옛 탐사선 (wetherilli 229) — 루나 오비터(1966–67)는 해가 낮아 지형이 서고 띠가 남았다. 클레멘타인(1994) 750 nm 는
+    // 해가 높아 바다·고지의 밝기(조성)가 선다. 극 평면에서는 USGS 의 극 판이 우리 극 격자와 맞지 않아(축척·방향) WAC 를 쓴다
+    lo: { url: usgsWms("earth/moon_simp_cyl.map", "LO"), max: 9,
+          credit: "Lunar Orbiter global mosaic · NASA/USGS Astrogeology" },
+    clementine: { url: usgsWms("earth/moon_simp_cyl.map", "uv_v2"), max: 8,
+                  credit: "Clementine UVVIS 750 nm mosaic v2 · NRL/NASA/USGS Astrogeology" },
   };
   // 지질 레이어 목록 — 2D 의 카탈로그처럼 골라 켜면 "켠 지질 레이어" 로 올라온다(오버레이).
   // 레이어군을 더하면(원소·광물 …) 목록에 저절로 선다. 이름은 서버 `trek.LAYERS` 의 열쇠다
@@ -419,7 +432,11 @@
           var step = 180 / Math.pow(2, z), w = -180 + x * step, north = 90 - y * step;
           if (w > box[2] || w + step < box[0] || north < box[1] || north - step > box[3]) return undefined;
         }
-        return template.replace("{z}", z + (z0 || 0)).replace("{x}", x).replace("{y}", y);
+        // WMS 배경(USGS Astrogeology, wetherilli 229)은 칸의 경위도 범위로 묻는다 — Cesium 의 자리표(`{westDegrees}` …)와 같은 이름
+        var deg = 180 / Math.pow(2, z), west = -180 + x * deg, top = 90 - y * deg;
+        return template.replace("{z}", z + (z0 || 0)).replace("{x}", x).replace("{y}", y)
+          .replace("{westDegrees}", west).replace("{southDegrees}", top - deg)
+          .replace("{eastDegrees}", west + deg).replace("{northDegrees}", top);
       },
     });
   }
@@ -445,7 +462,7 @@
       { name: "LRO_LOLA_Shade_{P}Pole45_100mp_v04", max: 4 }] },
   };
   // 극에서 고른 배경 — 고해상은 가구야가 극에 없어(40 % 넘게 빈다, 043) 창어 2 호 정사 모자이크(7 m)를 쓴다
-  var POLAR_BASE = { kaguya: "ce2", wac: "wac", lola: "lola" };
+  var POLAR_BASE = { kaguya: "ce2", wac: "wac", lola: "lola", lo: "wac", clementine: "wac" };
   /** 여러 판을 한 격자로 잇는 극 타일. 한 장마다 **그 타일을 다 덮는 가장 촘촘한 판**을 고르고, 판의 줌 끝을
    *  넘으면 조상 타일을 잘라 늘린다(`#crop=`) — OpenLayers 는 한 소스 안에서 판마다 줌 끝이 다른 것을 모른다 */
   function polarSource(pole, key) {

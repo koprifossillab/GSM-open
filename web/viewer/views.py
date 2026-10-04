@@ -33,7 +33,7 @@ from . import (coords, crs, geo3al, geomap, geus, grportal, gsj, gsmma, i18n, ib
                patchnotes, elevation, moonmap, peninsula, phyloserver, pointsets, tilecache, tiles, trek, vworld, warp,
                marscraters, marsmap, mercurymap, zhurong)
 from . import arcpoints, crust, fossils, gvp, icemargins, kigam50k, macrostrat, mantle, naturalearth, neotoma, paleo, paleoeco, paleocoast, pbdb, quakes, spamap, ocean, usgs, volcanoes, wind
-from . import basemaps, bgr, bgs, brgm, cgs, dinamige, egdi, emodnet, ga, gns, gsi, gsiindia, gtk, igme, iige, ingemmet, ispra, linked, lneg, mrdata, mris, natt, ngu, nrcan, ogs, segemar, sgb, sgc, sgm, sgu, sigeom, swisstopo, usage, ygs
+from . import austates, basemaps, bgr, bgs, brgm, cgs, dinamige, egdi, emodnet, ga, gns, gsi, gsiindia, gtk, igme, iige, ingemmet, ispra, linked, lneg, mrdata, mris, natt, ngu, nrcan, ogs, segemar, sgb, sgc, sgm, sgs, sgu, sigeom, swisstopo, usage, ygs
 from . import earthpoints, pointvalues, profileband, static_tables, tilegrid
 from .i18n import msg
 from .models import Layer, LayerGroup, Point, PointSet, PointSetDeletion, Shape
@@ -376,8 +376,8 @@ MAP3D_WMS = ("kigam", "geus", "vworld", "ccop", "gsmma",
              "nrcan", "ogs",
              # 퀘벡 SIGÉOM·유콘 YGS(wetherilli 210) — 둘 다 3857 도 그린다
              "sigeom", "ygs",
-             # 호주 GA(wetherilli 212) — ArcGIS WMS 가 3857 로 그린다
-             "ga",
+             # 호주 GA(wetherilli 212) — ArcGIS WMS 가 3857 로 그린다. 주 판 셋(225)도 3857 이다
+             "ga", "gsq", "gsv", "gssa",
              # 이탈리아 ISPRA·포르투갈 LNEG·스위스 swisstopo(wetherilli 211) — 3857 로 그린다
              "ispra", "lneg", "swisstopo",
              # 스웨덴 SGU(wetherilli 213) — 2D 는 3413 이지만 GeoServer 가 3857 도 그린다
@@ -389,7 +389,9 @@ MAP3D_WMS = ("kigam", "geus", "vworld", "ccop", "gsmma",
              # 몽골 MonGeoCat(wetherilli 221) — ArcGIS WMS 가 3857 로 그린다
              "mris",
              # 인도 GSI(wetherilli 226) — BGS 의 MapServer WMS 가 3857 로 그린다
-             "gsiindia")
+             "gsiindia",
+             # 사우디 SGS(wetherilli 227) — 원본이 3857 이다
+             "sgs")
 
 
 @require_GET
@@ -2325,6 +2327,9 @@ def _layer_extra(layer, lang: str = "ko") -> dict:
     if layer.upstream == "ngu":
         # 노르웨이 NGU(wetherilli 140) — 3413 을 그려 주지 않아 북극 람베르트(3575)로 받고 화면이 옮겨 그린다
         return {"attribution": ngu.ATTRIBUTION, "projection": "EPSG:3575"}
+    if layer.upstream == "sgs" and sgs.knows(layer.name):
+        # 사우디 SGS(wetherilli 227) — ArcGIS WMS(원본 3857). 범례는 1 337 칸이라 보는 범위의 것(`sgs/legend/`)
+        return {"attribution": sgs.ATTRIBUTION, "projection": "EPSG:3857", "legend": "extent", "legendUrl": "sgs/legend/"}
     if layer.upstream == "gsiindia" and gsiindia.knows(layer.name):
         # 인도 GSI(wetherilli 226) — 그림은 BGS WMS 를 3857 로, 속성은 GSI 피처 서비스(문이 바꾼다). BGS 범례는 번호뿐이라 두지 않는다
         return {"attribution": gsiindia.ATTRIBUTION, "projection": "EPSG:3857", "noLegend": True,
@@ -2397,6 +2402,14 @@ def _layer_extra(layer, lang: str = "ko") -> dict:
         unit = layer.name in ga.legend_layers()
         return {"attribution": ga.ATTRIBUTION, "projection": "EPSG:3857",
                 **({"legend": "extent", "legendUrl": "ga/legend/"} if unit else {"noLegend": True, "queryable": False})}
+    if austates.knows(layer.upstream, layer.name):
+        # 호주의 주 판(wetherilli 225) — 퀸즐랜드는 REST export, 빅토리아·남호주는 GeoServer. 모두 3857. 넓게 보면 비거나 느려
+        # 처음 줌을 둔다. 단위 면은 보는 범위의 범례(`austates/legend/`, 232), 구조선은 범례·누르기가 없다
+        first = austates.first_zoom(layer.upstream, layer.name)
+        legend = ({"legend": "extent", "legendUrl": "austates/legend/"} if austates.is_unit(layer.upstream, layer.name)
+                  else {"noLegend": True, "queryable": False})
+        return {"attribution": austates.UPSTREAMS[layer.upstream][2], "projection": "EPSG:3857", **legend,
+                **({"minZoom": first} if first else {})}
     if layer.upstream == "nrcan" and nrcan.knows(layer.name):
         # 캐나다 NRCan 1:500만(wetherilli 204) — 캐나다 탭의 투영(3978, 캐나다 람베르트)으로 곧장 받는다. 범례는 상류의 그림
         return {"attribution": nrcan.ATTRIBUTION, "projection": "EPSG:3978"}
@@ -2545,8 +2558,8 @@ UPSTREAM_ERRORS = (kigam.UpstreamError, geus.GeusError, vworld.VWorldError, geom
                    gsmma.GsmmaError, emodnet.EmodnetError, ngu.NguError, gtk.GtkError, sgu.SguError,
                    bgs.BgsError, brgm.BrgmError, egdi.EgdiError,
                    bgr.BgrError, igme.IgmeError, gsi.GsiError, sgc.SgcError, sgb.SgbError, cgs.CgsError, ingemmet.IngemmetError,
-                   segemar.SegemarError, dinamige.DinamigeError, iige.IigeError, mrdata.MrdataError, sgm.SgmError, nrcan.NrcanError, ogs.OgsError, sigeom.SigeomError, ygs.YgsError, ga.GaError,
-                   ispra.IspraError, lneg.LnegError, swisstopo.SwisstopoError, natt.NattError, gns.GnsError, mris.MrisError, gsiindia.GsiIndiaError,
+                   segemar.SegemarError, dinamige.DinamigeError, iige.IigeError, mrdata.MrdataError, sgm.SgmError, nrcan.NrcanError, ogs.OgsError, sigeom.SigeomError, ygs.YgsError, ga.GaError, austates.AuStatesError,
+                   ispra.IspraError, lneg.LnegError, swisstopo.SwisstopoError, natt.NattError, gns.GnsError, mris.MrisError, gsiindia.GsiIndiaError, sgs.SgsError,
                    basemaps.BasemapError)
 
 
@@ -2611,6 +2624,8 @@ class _Door:
                "sigeom": sigeom, "ygs": ygs,
                # 호주(wetherilli 212)
                "ga": ga,
+               # 호주의 주 판(wetherilli 225) — 한 파일(`austates.py`)에 문 셋
+               "gsq": austates.GSQ, "gsv": austates.GSV, "gssa": austates.GSSA,
                # 이탈리아·포르투갈·스위스(wetherilli 211)
                "ispra": ispra, "lneg": lneg, "swisstopo": swisstopo,
                # 아이슬란드(wetherilli 216)
@@ -2620,7 +2635,9 @@ class _Door:
                # 몽골(wetherilli 221)
                "mris": mris,
                # 인도(wetherilli 226)
-               "gsiindia": gsiindia}
+               "gsiindia": gsiindia,
+               # 사우디아라비아(wetherilli 227)
+               "sgs": sgs}
 
     def __init__(self, upstream):
         self.name = upstream if upstream in self.MODULES else "kigam"
@@ -2629,7 +2646,7 @@ class _Door:
         self.local = self.name == "geomap"
         #: 받은 것을 서버 캐시에 담지 않는다 — 우리가 그리는 것(GeoMAP)과, 자료를 파는 상류(`NO_STORE`, wetherilli 209)
         self.nostore = self.local or self.name in NO_STORE
-        if self.name in ("geus", "npolar", "kopri", "pgc", "ccop", "gsmma", "emodnet", "ngu", "gtk", "bgs", "brgm", "egdi", "bgr", "igme", "gsi", "gsni", "sgc", "sgb", "ingemmet", "segemar", "dinamige", "iige", "mrdata", "sgm", "cgmw", "aga", "cgs", "gsn", "nrcan", "ogs", "sigeom", "ygs", "ga", "ispra", "lneg", "swisstopo", "sgu", "natt", "gns", "mris", "gsiindia"):    # 열쇠가 없는 공개 서비스다
+        if self.name in ("geus", "npolar", "kopri", "pgc", "ccop", "gsmma", "emodnet", "ngu", "gtk", "bgs", "brgm", "egdi", "bgr", "igme", "gsi", "gsni", "sgc", "sgb", "ingemmet", "segemar", "dinamige", "iige", "mrdata", "sgm", "cgmw", "aga", "cgs", "gsn", "nrcan", "ogs", "sigeom", "ygs", "ga", "gsq", "gsv", "gssa", "ispra", "lneg", "swisstopo", "sgu", "natt", "gns", "mris", "gsiindia", "sgs"):    # 열쇠가 없는 공개 서비스다
             self.ready = True
         elif self.name == "vworld":
             self.ready = vworld.enabled()
@@ -2642,6 +2659,13 @@ class _Door:
         if self.local:
             return msg("남극 지질도 자료(GeoMAP)가 서버에 없다")
         return msg("인증키가 없다")
+
+
+def map_cache_key(params: dict) -> str:
+    """타일의 캐시 열쇠. 받은 그림을 문이 고쳐 내는 레이어(알래스카의 물 면, wetherilli 224)는 고침의 판이 든다 — 미리 데우기도 이것을 쓴다"""
+    key = tilecache.key_for("map", params)
+    tag = mrdata.redraw_tag(params.get("layers"))
+    return tilecache.key_text("map", f"{key}/r{tag}") if tag else key
 
 
 @require_GET
@@ -2665,7 +2689,7 @@ def wms(request):
 
     # 들고 있으면 상류에 묻지 않는다. **인증키가 없어도 캐시는 내준다** —
     # 이미 받아둔 그림이고, 다시 받을 일이 없으니 막을 까닭이 없다.
-    cache_key = tilecache.key_for("map", params)
+    cache_key = map_cache_key(params)
     hit = tilecache.get(cache_key)
     if hit is not None:
         return _tile(hit, cached=True)
@@ -3432,6 +3456,36 @@ def mris_legend(request):
 
 @require_GET
 @browser_cached
+def sgs_legend(request):
+    """`?layer=sgs:geology&bbox=서,남,동,북` — 사우디 지질도의 보는 범위 범례 (wetherilli 227). 칠하기 규칙의 두 열(`Symbol`·`Label`)로
+    범위 안의 단위를 센다. 꼴은 호주(`ga_legend`)와 같다"""
+    lang = i18n.lang_of(request)
+    name = request.GET.get("layer", "")
+    if not sgs.knows(name):
+        return JsonResponse({"error": i18n.t(msg("범례가 없는 레이어다"), lang), "rows": []}, status=400)
+    parts = [_float(v) for v in (request.GET.get("bbox") or "").split(",")]
+    if len(parts) != 4 or None in parts:
+        return JsonResponse({"error": i18n.t(msg("bbox 가 없다"), lang), "rows": []}, status=400)
+    bbox = [round(v, 2) for v in parts]
+    if bbox[2] - bbox[0] > sgs.SPAN or bbox[3] - bbox[1] > sgs.SPAN:
+        return JsonResponse({"error": i18n.t(msg("범위가 넓다 — 더 들어오면 범례가 뜬다"), lang), "rows": []},
+                            status=422)
+    key = tilecache.key_text("sgs-legend", f"{name}/{bbox}")
+    held = _cached_json(key)
+    try:
+        if held is None:
+            held = {"rows": sgs.extent_legend(tuple(bbox))}
+            tilecache.put(key, json.dumps(held, ensure_ascii=False).encode("utf-8"), ".json")
+        table = sgs.swatches()
+    except sgs.SgsError as exc:
+        log.info("사우디 범례를 받지 못했다 (%s): %s", name, exc)
+        return JsonResponse({"error": i18n.t(msg("범례를 받지 못했다"), lang), "rows": []}, status=502)
+    shown = [sgs.legend_row(r, table, lang) for r in held["rows"][:sgs.MAX_LEGEND]]
+    return JsonResponse({"rows": shown, "more": max(0, len(held["rows"]) - len(shown))})
+
+
+@require_GET
+@browser_cached
 def ga_legend(request):
     """`?layer=ga:lithostratigraphy&bbox=서,남,동,북` — 호주 지질도의 보는 범위 범례 (wetherilli 212). 범위가 넓으면 1:250만 판,
     좁으면 1:100만 판의 단위를 센다 — 상류가 그 축척에 그리는 판과 같게. 꼴은 페루(`ingemmet_legend`)와 같다"""
@@ -3458,6 +3512,37 @@ def ga_legend(request):
         return JsonResponse({"error": i18n.t(msg("범례를 받지 못했다"), lang), "rows": []}, status=502)
     shown = [ga.legend_row(r, held["table"], lang) for r in held["rows"][:ga.MAX_LEGEND]]
     return JsonResponse({"rows": shown, "more": max(0, len(held["rows"]) - len(shown))})
+
+
+@require_GET
+@browser_cached
+def austates_legend(request):
+    """`?layer=gsq:state&bbox=서,남,동,북` — 호주 주 판의 보는 범위 범례 (wetherilli 225·232). 빅토리아는 GeoServer 의 빈 규칙 빼기,
+    퀸즐랜드는 REST 통계와 칠하기 규칙, 남호주는 WFS 와 SLD 의 규칙으로 뜬다(`austates.extent_legend`). 꼴은 브라질(`sgb_legend`)과 같다"""
+    lang = i18n.lang_of(request)
+    name = request.GET.get("layer", "")
+    upstream = name.split(":", 1)[0]
+    if not austates.knows(upstream, name) or not austates.is_unit(upstream, name):
+        return JsonResponse({"error": i18n.t(msg("범례가 없는 레이어다"), lang), "rows": []}, status=400)
+    parts = [_float(v) for v in (request.GET.get("bbox") or "").split(",")]
+    if len(parts) != 4 or None in parts:
+        return JsonResponse({"error": i18n.t(msg("bbox 가 없다"), lang), "rows": []}, status=400)
+    bbox = [round(v, 2) for v in parts]
+    span = austates.LEGEND_SPAN[upstream]
+    if bbox[2] - bbox[0] > span or bbox[3] - bbox[1] > span:
+        return JsonResponse({"error": i18n.t(msg("범위가 넓다 — 더 들어오면 범례가 뜬다"), lang), "rows": []},
+                            status=422)
+    key = tilecache.key_text("austates-legend", f"{name}/{bbox}/{lang}")
+    rows = _cached_json(key)
+    if rows is None:
+        try:
+            rows = austates.extent_legend(upstream, name, tuple(bbox), lang)
+        except austates.AuStatesError as exc:
+            log.info("호주 주 판 범례를 받지 못했다 (%s): %s", name, exc)
+            return JsonResponse({"error": i18n.t(msg("범례를 받지 못했다"), lang), "rows": []}, status=502)
+        tilecache.put(key, json.dumps(rows, ensure_ascii=False).encode("utf-8"), ".json")
+    shown = rows[:austates.MAX_LEGEND]
+    return JsonResponse({"rows": shown, "more": max(0, len(rows) - len(shown))})
 
 
 @require_GET
@@ -3779,6 +3864,8 @@ def feature_info(request):
             props = emodnet.friendly(props, lang)    # 마흔 남짓한 열에서 추린다. 시대를 옮긴다
         elif door.name == "ngu":
             props = ngu.friendly(props)              # 노르웨이어 열 이름 → 한국어. 그리지 않은 칸은 비운다
+        elif door.name == "sgs":
+            props = sgs.friendly(props, lang)        # 사우디 — 이름·암석은 영어 그대로, 기(ICS)만 옮긴다 (wetherilli 227)
         elif door.name == "gsiindia":
             props = gsiindia.friendly(props, lang)   # 인도 — 단위 이름은 영어 그대로, 시대만 옮긴다 (wetherilli 226)
         elif door.name == "mris":
@@ -3813,6 +3900,8 @@ def feature_info(request):
             props = sgc.friendly(props, lang)        # 남미 판의 ICS 시대는 옮기고, 콜롬비아 판의 값은 에스파냐어 그대로
         elif door.name == "ga":
             props = ga.friendly(props, lang)         # 호주 — 시대만 옮기고 이름·설명은 영어 그대로 (wetherilli 212)
+        elif door.name in ("gsq", "gsv", "gssa"):
+            props = austates.UPSTREAMS[door.name][0].friendly(props, lang)     # 호주의 주 판 — 시대만 옮긴다 (wetherilli 225)
         elif door.name in ("ispra", "lneg", "swisstopo"):
             # 이탈리아·포르투갈·스위스(wetherilli 211) — 열 이름만 한국어로, 값은 그 나라 말 그대로
             props = {"ispra": ispra, "lneg": lneg, "swisstopo": swisstopo}[door.name].friendly(props, lang)

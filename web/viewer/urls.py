@@ -157,6 +157,8 @@ urlpatterns = [
     path("dinamige/legend/", views.dinamige_legend, name="dinamige-legend"),
     # 몽골 — REST 범례를 목록으로, 시대는 층서 지수에서 푼다 (mris.py, wetherilli 221)
     path("mris/legend/", views.mris_legend, name="mris-legend"),
+    # 사우디 — 보는 범위의 범례 (sgs.py, wetherilli 227)
+    path("sgs/legend/", views.sgs_legend, name="sgs-legend"),
     # 남아공 — REST 범례를 목록으로 (cgs.py, wetherilli 209)
     path("cgs/legend/", views.cgs_legend, name="cgs-legend"),
     # 에콰도르 — 보는 범위의 범례 (iige.py, wetherilli 198)
@@ -165,6 +167,7 @@ urlpatterns = [
     path("sgm/legend/", views.sgm_legend, name="sgm-legend"),
     # 호주 — 보는 범위의 범례 (ga.py, wetherilli 212)
     path("ga/legend/", views.ga_legend, name="ga-legend"),
+    path("austates/legend/", views.austates_legend, name="austates-legend"),
     path("gsj/info/", views.gsj_info, name="gsj-info"),
     path("gsj/legend/", views.gsj_legend, name="gsj-legend"),
     # 지질도Navi 판 목록 (wetherilli 171) — 일본 탭이 판 목록을 펼 때 받는다

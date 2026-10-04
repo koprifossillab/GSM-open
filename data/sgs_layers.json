@@ -1,0 +1,25 @@
+{
+ "_주석": "사우디 지질조사소(SGS) 국가 지질 자료(NGD)의 1:25만 합본 씨앗이다 — 사우디아라비아 탭. 2026-10-04 에 ngdgis.sgs.gov.sa 의 WMS Capabilities 에서 골랐다. 나라 전체가 아니라 서부와 둘레의 도폭이다. 한글 제목과 레이어군은 사람이 붙였다 (wetherilli 227).",
+ "_뽑은날": "2026-10-04",
+ "_출처": "https://ngdgis.sgs.gov.sa/ngdgis/services/Geology/Geology_250K/MapServer/WMSServer?SERVICE=WMS&REQUEST=GetCapabilities",
+ "_지역": "saudi",
+ "_상류": "sgs",
+ "_레이어군차례": 1,
+ "레이어군순서": [
+  "사우디 지질도 1:25만 (SGS)"
+ ],
+ "레이어": [
+  {
+   "name": "sgs:geology",
+   "title": "지질도 (1:25만 합본)",
+   "group": "사우디 지질도 1:25만 (SGS)",
+   "abstract": "Saudi Arabian Standard Geological Map at 250K Scale — 서부(아라비아 순상지)와 둘레의 도폭을 이어 붙였다",
+   "bbox": [
+    34.5,
+    16.3,
+    48.0,
+    32.2
+   ]
+  }
+ ]
+}

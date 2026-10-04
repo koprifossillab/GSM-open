@@ -51,7 +51,17 @@ class Parse(SimpleTestCase):
         self.assertEqual(feats[0]["properties"]["AGE"], "Néoarchéen")
         self.assertNotIn("GEOMETRIE", feats[0]["properties"])                       # 기하 줄은 뺀다
         got = sigeom.friendly(feats[0]["properties"])
-        self.assertEqual((got["기호"], got["지층"], got["지질시대"]), ("V3B", "Formation de Dubuisson 1([narc]du1)", "Néoarchéen"))
+        self.assertEqual((got["기호"], got["지층"], got["지질시대"]), ("V3B", "Formation de Dubuisson 1([narc]du1)", "신시생대"))
+        self.assertEqual(sigeom.friendly(feats[0]["properties"], "en")["지질시대"], "Neoarchean")
+
+    def test_퀘벡_시대의_꼴(self):
+        """2026-10-04 에 퀘벡 곳곳을 눌러 모은 꼴 (wetherilli 224)"""
+        for fr, ko in (("Ordovicien supérieur", "오르도비스기 후기"), ("Silurien à Dévonien", "실루리아기~데본기"),
+                       ("Néoprotérozoïque ? Ordovicien supérieur", "신원생대~오르도비스기 후기(?)"),
+                       ("Mésoprotérozoïque ou Paléoprotérozoïque", "중원생대 또는 고원생대"), ("Crétacé inférieur", "백악기 전기")):
+            self.assertEqual(sigeom.age(fr), ko)
+        self.assertEqual(sigeom.age("Ordovicien moyen", "en"), "Middle Ordovician")
+        self.assertEqual(sigeom.age("Grenvillien tardif ?"), "Grenvillien tardif ?")       # 모르는 꼴은 원문 그대로
 
     def test_유콘_시대는_가장_자세한_것(self):
         got = ygs.friendly(YK)

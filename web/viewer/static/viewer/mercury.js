@@ -66,6 +66,12 @@
   var TREK = "https://trek.nasa.gov/tiles/Mercury/EQ/";
   // 줌 끝은 2026-10-02 에 WMTSCapabilities 로 읽었다 — 모자이크 셋은 7(한 픽셀 약 170 m), 표고 음영 둘은 5
   var MDIS_CREDIT = "MESSENGER MDIS · NASA/JHUAPL/Carnegie Institution of Washington";
+  // USGS Astrogeology 의 WMS(wetherilli 229) — 달 화면과 같은 길. 칸의 경위도 범위로 묻는다
+  function usgsWms(map, layer) {
+    return "https://planetarymaps.usgs.gov/cgi-bin/mapserv?map=/maps/" + map + "&service=WMS&version=1.1.1&request=GetMap" +
+      "&styles=&srs=EPSG:4326&width=256&height=256&format=image/png&layers=" + layer +
+      "&bbox={westDegrees},{southDegrees},{eastDegrees},{northDegrees}";
+  }
   var BASES = {
     mdis: { url: TREK + "Mercury_MESSENGER_mosaic_global_250m_2013/1.0.0/default/default028mm/{z}/{y}/{x}.png",
             max: 7, credit: MDIS_CREDIT },
@@ -77,6 +83,9 @@
             max: 5, credit: "MESSENGER DEM color hillshade · USGS" },
     shade: { url: TREK + "Mercury_Messenger_USGS_DEM_665m_v2_Hillshade/1.0.0/default/default028mm/{z}/{y}/{x}.png",
              max: 5, credit: "MESSENGER DEM hillshade · USGS" },
+    // 마리너 10 (1974–75, wetherilli 229) — 지질도(USGS 1:500만 도폭 아홉)가 이 영상으로 그려졌다. 반쪽 남짓만 찍었다
+    mariner: { url: usgsWms("mercury/mercury_simp_cyl.map", "MARINER"), max: 6,
+               credit: "Mariner 10 global mosaic · NASA/USGS Astrogeology" },
   };
   // 지질 레이어 목록 — 달·화성과 같은 꼴이다. 이름은 서버 `mercury/tiles/<이름>` 의 것
   //   info    누르면 읽는 갈래 (`mercury/info/`)   legend  범례 칸의 갈래   src  카드 밑의 출처
@@ -394,7 +403,11 @@
           var step = 180 / Math.pow(2, z), w = -180 + x * step, north = 90 - y * step;
           if (w > box[2] || w + step < box[0] || north < box[1] || north - step > box[3]) return undefined;
         }
-        return template.replace("{z}", z + (z0 || 0)).replace("{x}", x).replace("{y}", y);
+        // WMS 배경(USGS Astrogeology, wetherilli 229)은 칸의 경위도 범위로 묻는다 — Cesium 의 자리표(`{westDegrees}` …)와 같은 이름
+        var deg = 180 / Math.pow(2, z), west = -180 + x * deg, top = 90 - y * deg;
+        return template.replace("{z}", z + (z0 || 0)).replace("{x}", x).replace("{y}", y)
+          .replace("{westDegrees}", west).replace("{southDegrees}", top - deg)
+          .replace("{eastDegrees}", west + deg).replace("{northDegrees}", top);
       },
     });
   }

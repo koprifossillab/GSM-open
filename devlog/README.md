@@ -266,6 +266,12 @@
 | wetherilli 222 | 2026-10-04 | [페루 — INGEMMET 의 단층·습곡을 따로 켜는 레이어](20261004_wetherilli_222_ingemmet_structures.md) |
 | wetherilli 223 | 2026-10-04 | [한국 — KIGAM 5만의 선구조·신장광물·습곡축·유동구조를 방향 기호로](20261004_wetherilli_223_kigam50k_attitudes.md) |
 | wetherilli 226 | 2026-10-04 | [인도 — GSI 1:200만, 그림은 BGS 의 OneGeology WMS·속성은 GSI 피처 서비스](20261004_wetherilli_226_india.md) |
+| wetherilli 224 | 2026-10-04 | [퀘벡 시대 표와 알래스카의 물 띠](20261004_wetherilli_224_quebec_ages_alaska_water.md) |
+| wetherilli 225 | 2026-10-04 | [호주 — 주 지질조사소 판 셋(퀸즐랜드·빅토리아·남호주)](20261004_wetherilli_225_australia_states.md) |
+| wetherilli 227 | 2026-10-04 | [사우디아라비아 — SGS 1:25만 합본, 보는 범위의 범례](20261004_wetherilli_227_saudi.md) |
+| wetherilli 229 | 2026-10-04 | [달·수성 — USGS Astrogeology WMS 의 옛 탐사선 배경 (루나 오비터·클레멘타인·마리너 10)](20261004_wetherilli_229_moon_astro_basemaps.md) |
+| wetherilli 230 | 2026-10-04 | [일본의 좌표 → 주소 — 국토지리원 역지오코더를 브라우저가 곧장](20261004_wetherilli_230_japan_reverse_geocode.md) |
+| wetherilli 232 | 2026-10-04 | [호주 주 판 — 퀸즐랜드·남호주의 범례와 구조선](20261004_wetherilli_232_australia_states_legends.md) |
 | koprifossillab P01 | 2026-09-30 | [백업 — WegenersDream 의 틀로, 바뀌는 빠르기에 따라 넷으로 (계획)](20260930_koprifossillab_P01_backup_plan.md) |
 | koprifossillab 001 | 2026-09-30 | [매주 월요일 새벽: 운영 자료 백업과 KPDC 목록 갱신](20260930_koprifossillab_001_weekly_backup.md) |
 | koprifossillab 002 | 2026-09-30 | [`/healthz/` — 판·DB·백업 상태를 한 장으로](20260930_koprifossillab_002_healthz.md) |

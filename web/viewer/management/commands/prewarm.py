@@ -227,7 +227,7 @@ class WmsPlan:
         return (self.grid.tiles_for if self.grid else tilegrid.tiles_for)(bbox, z)
 
     def key(self, z, x, y):
-        return tilecache.key_for("map", kigam.clean_params(self.params(z, x, y)))
+        return views.map_cache_key(kigam.clean_params(self.params(z, x, y)))
 
     def _last(self, z):
         return self.grid.last(z) if self.grid else (2 ** z - 1, 2 ** z - 1)
@@ -430,7 +430,7 @@ NOT_LAYERS = {
 #: (wetherilli 182). 같은 상류도 판마다(IGME 1:100만 4326·MAGNA 3857), 레이어군마다(EMODnet 북극해 3413·유럽 바다 3857) 다르다.
 #: PGC 경사·등고선(wetherilli 099)도 같은 길이다 — 182 가 "더하면 된다" 고 남긴 것 (wetherilli 203)
 PROJECTED = ("pgc", "emodnet", "ngu", "gtk", "bgs", "brgm", "egdi", "bgr", "igme", "gsi", "gsni", "sgc", "sgb", "segemar", "dinamige",
-             "iige", "mrdata", "sgm", "cgmw", "aga", "nrcan", "ogs", "sigeom", "ygs", "ga", "ispra", "lneg", "swisstopo", "sgu", "natt", "gns", "mris", "gsiindia")
+             "iige", "mrdata", "sgm", "cgmw", "aga", "nrcan", "ogs", "sigeom", "ygs", "ga", "gsq", "gsv", "gssa", "ispra", "lneg", "swisstopo", "sgu", "natt", "gns", "mris", "gsiindia", "sgs")
 
 
 def _projected_plan(name, upstream):

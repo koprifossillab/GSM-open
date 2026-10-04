@@ -1,0 +1,37 @@
+{
+ "_주석": "빅토리아 지질조사소(GSV) 이음매 없는 지질도 씨앗이다 — 호주 탭. GeoServer WMS(web/viewer/austates.py). 1:25만은 줌 8, 1:5만은 줌 11 부터. 한글 제목과 레이어군은 사람이 붙였다 (wetherilli 225).",
+ "_뽑은날": "2026-10-04",
+ "_출처": "https://opendata.maps.vic.gov.au/geoserver/wms?service=WMS&request=GetCapabilities",
+ "_지역": "australia",
+ "_상류": "gsv",
+ "_레이어군차례": 11,
+ "레이어군순서": [
+  "빅토리아 지질도 (GSV)"
+ ],
+ "레이어": [
+  {
+   "name": "gsv:250k",
+   "title": "빅토리아 지질 (1:25만, 이음매 없는 판)",
+   "group": "빅토리아 지질도 (GSV)",
+   "abstract": "Victoria Seamless Geology — geological units 1:250 000",
+   "bbox": [
+    140.96,
+    -39.16,
+    149.98,
+    -33.98
+   ]
+  },
+  {
+   "name": "gsv:50k",
+   "title": "빅토리아 지질 (1:5만, 이음매 없는 판)",
+   "group": "빅토리아 지질도 (GSV)",
+   "abstract": "Victoria Seamless Geology — geological units 1:50 000",
+   "bbox": [
+    140.97,
+    -38.86,
+    149.5,
+    -35.93
+   ]
+  }
+ ]
+}

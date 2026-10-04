@@ -6,8 +6,9 @@
 - Capabilities 에 3978 이 없지만 **3978 로 물어도 그린다**(2026-10-04) — 캐나다 탭처럼 3978 로 곧장 받는다
 - 축척에 따라 그린다 — `SGM:Geologie_generale` 은 512 격자 줌 4(화면 줌 5)부터, `SGM:Geologie_regionale` 은 격자 줌 7(화면 줌 8)부터.
   그보다 멀면 빈 그림이다
+- 시대는 프랑스어로 온다 — `i18n.age_fr` 가 ICS 이름으로 옮긴다(wetherilli 224)
 - 속성은 `text/plain` 으로 받는다 — `application/json` 은 기하가 붙어 415 KB, `text/plain` 은 2 KB. GeoServer 의 `propertyName` 은
-  앞단을 지나며 깨진다(ClassCastException). 값은 프랑스어 그대로다(지층·시대·암석). `REF_EXA` 의 `<a>` 는 뷰가 링크로 가른다
+  앞단을 지나며 깨진다(ClassCastException). 값은 프랑스어 그대로다(지층·암석). `REF_EXA` 의 `<a>` 는 뷰가 링크로 가른다
 - 범례는 없다 — GetLegendGraphic 이 28×18 한 칸이고, `hideEmptyRules` 같은 벤더 인자도 앞단을 지나지 못한다
 - 조건: Capabilities 의 AccessConstraints "Licence du gouvernement ouvert – Québec" = **CC BY 4.0**
 """
@@ -17,7 +18,7 @@ import re
 import requests
 from django.conf import settings
 
-from . import usage
+from . import i18n, usage
 
 log = logging.getLogger(__name__)
 
@@ -130,11 +131,19 @@ FRIENDLY = (("NOM_ABRG_ETQT_LITH", "기호"), ("STRATIGRAPHIE", "지층"), ("DES
             ("REF_EXA", "원도"))
 
 
+def age(value: str, lang: str = "ko") -> str:
+    """시대(`Néoarchéen`, `Silurien à Dévonien`, `A ou B`) → ICS 영문, 한국어판이면 한국어 (wetherilli 224). 모르는 말이 섞이면 원문"""
+    en = i18n.age_fr(value)
+    if en == value or lang != "ko":
+        return en
+    return " 또는 ".join(i18n.age_ko(x) for x in en.split(" or "))
+
+
 def friendly(props: dict, lang: str = "ko") -> dict:
-    """열 이름을 한국어로. 값은 프랑스어 그대로다 — 시대(`Néoarchéen` 따위)도 옮기지 않는다(옮기는 표가 없다)."""
+    """열 이름을 한국어로. 값은 프랑스어 그대로다 — 시대만 옮긴다(`i18n.age_fr`, wetherilli 224)."""
     out = {}
     for key, label in FRIENDLY:
         value = props.get(key)
         if value not in (None, "", "null") and label not in out:
-            out[label] = value
+            out[label] = age(value, lang) if key == "AGE" else value
     return out

@@ -8,6 +8,9 @@
   WFS 1.1 은 축 순서를 맞추지 않으면 빈 답이라 1.0 을 쓴다. 이름·시대 열은 없고 단위 설명 쪽 주소(`url`)가 온다
 - **알래스카는 WMS GetFeatureInfo 가 된다.** GML 은 기하가 붙어 226 KB 라 `text/plain`(400 B)으로 받아 읽는다. 알래스카에는 WFS 가 없다
 - 범례는 없다 — SGMC 는 단위가 주마다 수천이고 GetLegendGraphic 이 501 이다. 팝업의 단위 쪽 링크가 범례를 갈음한다
+- **알래스카의 "Water" 면은 문이 지운다**(wetherilli 224) — SIM 3340 은 도폭마다 바다를 네모난 물 면(`#ccffff`)으로 칠해 두어 알류샨
+  남쪽에 북위 51.5° 를 따라 하늘색 띠가 선다. 물은 지질이 아니고 그 색을 쓰는 단위가 물뿐이라(빙하는 투명) 받은 그림의 그 색을 투명으로
+  바꾼다. 고침의 판(`REDRAWN`)이 캐시 열쇠에 든다 — 띠가 든 옛 타일을 내지 않게
 - 조건: USGS 자료 — 공공 도메인, 출처 표기만(AccessConstraints none). 정적 판에 실을 수 있다(`static_site.py --with usa`)
 """
 import logging
@@ -32,6 +35,12 @@ LAYERS = {
     "mrdata:sim3340:faults": ("sim3340", "faults"),
 }
 QUERYABLE = ("mrdata:sgmc2:sgmc2", "mrdata:sim3340:units")
+#: 받은 그림을 문이 고쳐 내는 레이어 → 고침의 판. 고치는 법을 바꾸면 올린다 — 캐시 열쇠에 든다(`views.map_cache_key`)
+REDRAWN = {"mrdata:sim3340:units": "1"}
+#: 알래스카의 "Water" 단위 색
+WATER = (204, 255, 255)
+#: 가장자리의 섞인 색까지 지울 너비 — 2026-10-04 에 알류샨 그림에서 191,239,239 까지 보였다
+WATER_TOLERANCE = 16
 #: SGMC WFS 에서 받을 열 — 기하는 받지 않는다
 SGMC_FIELDS = ("state", "orig_label", "unit_link", "generalize", "src_url", "url")
 #: 누른 자리 둘레의 반지름(픽셀) — 다른 WMS 의 GetFeatureInfo 둘레와 비슷하게
@@ -73,12 +82,39 @@ def _base() -> str:
 
 
 def get_map(params: dict):
-    _, (service, layer) = _one(params)
+    name, (service, layer) = _one(params)
     r = _get(f"{_base()}/{service}", dict(params, service="WMS", request="GetMap", layers=layer))
     ctype = r.headers.get("content-type", "")
     if r.status_code != 200 or not ctype.startswith("image/"):
         raise MrdataError(f"그림이 아닌 것이 왔다 (status={r.status_code}, type={ctype})")
+    if name in REDRAWN and ctype.startswith("image/png"):
+        return clear_water(r.content), "image/png"
     return r.content, ctype
+
+
+def redraw_tag(layers) -> str:
+    """캐시 열쇠에 넣을 고침의 판 — 고치지 않는 레이어면 빈 글"""
+    return REDRAWN.get(str(layers or "").split(",")[0].strip(), "")
+
+
+def clear_water(png: bytes) -> bytes:
+    """알래스카 그림에서 물 면(`WATER`)을 투명으로. 가장자리는 매끈하게 섞여(202,253,253 반투명 따위) 남으므로 물 색 둘레
+    `WATER_TOLERANCE` 안이면서 초록·파랑이 같은(옥빛) 것까지 지운다 — 물 면과 섞인 땅의 가장자리는 땅 색이 짙어 남는다"""
+    import io
+
+    from PIL import Image, ImageChops
+    try:
+        img = Image.open(io.BytesIO(png)).convert("RGBA")
+    except Exception:          # noqa: BLE001 — 읽지 못하는 그림은 받은 그대로 낸다
+        return png
+    r, g, b, a = img.split()
+    near = lambda band, want: Image.eval(band, lambda v: 255 if abs(v - want) <= WATER_TOLERANCE else 0)  # noqa: E731
+    mask = ImageChops.multiply(ImageChops.multiply(near(r, WATER[0]), near(g, WATER[1])), near(b, WATER[2]))
+    mask = ImageChops.multiply(mask, Image.eval(ImageChops.difference(g, b), lambda v: 255 if v <= 2 else 0))
+    img.putalpha(Image.composite(Image.new("L", img.size, 0), a, mask))
+    out = io.BytesIO()
+    img.save(out, "PNG", optimize=True)
+    return out.getvalue()
 
 
 def get_legend(layer: str):

@@ -129,3 +129,39 @@ class Static(TestCase):
             names = {l["name"] for g in views._static_catalog(views._catalog("ko")) for l in g["layers"]}
         self.assertIn("mrdata:sgmc2:sgmc2", names)
         self.assertEqual(static_tables.tables()["mrdata"]["layers"]["mrdata:sim3340:units"], ["sim3340", "units"])
+
+
+class AlaskaWater(SimpleTestCase):
+    """알래스카 SIM 3340 의 물 면을 문이 지운다 — 북위 51.5° 의 하늘색 띠 (wetherilli 224)"""
+
+    def png(self, pixels):
+        from PIL import Image
+        img = Image.new("RGBA", (len(pixels), 1))
+        for x, p in enumerate(pixels):
+            img.putpixel((x, 0), p)
+        out = io.BytesIO()
+        img.save(out, "PNG")
+        return out.getvalue()
+
+    def test_물과_섞인_가장자리만_지운다(self):
+        from PIL import Image
+        land, glacier_edge = (255, 255, 222, 255), (153, 204, 77, 255)
+        src = self.png([(204, 255, 255, 255), (202, 253, 253, 180), (191, 239, 239, 16), land, glacier_edge, (170, 230, 230, 255)])
+        got = list(Image.open(io.BytesIO(mrdata.clear_water(src))).convert("RGBA").getdata())
+        self.assertEqual([p[3] for p in got[:3]], [0, 0, 0])
+        self.assertEqual(got[3:5], [land, glacier_edge])
+        self.assertEqual(got[5][3], 255)                                   # 물 색에서 먼 옥빛은 남긴다
+
+    def test_캐시_열쇠가_바뀐다(self):
+        params = {"layers": "mrdata:sim3340:units", "bbox": "1,2,3,4", "width": "256", "height": "256", "crs": "EPSG:3978"}
+        self.assertNotEqual(views.map_cache_key(params), views.tilecache.key_for("map", params))
+        other = dict(params, layers="mrdata:sgmc2:sgmc2")
+        self.assertEqual(views.map_cache_key(other), views.tilecache.key_for("map", other))
+
+    def test_문이_지운_그림을_낸다(self):
+        src = self.png([(204, 255, 255, 255), (255, 255, 222, 255)])
+        with mock.patch.object(mrdata, "_get", return_value=answer(content=src)):
+            body, ctype = mrdata.get_map({"layers": "mrdata:sim3340:units"})
+        from PIL import Image
+        self.assertEqual(ctype, "image/png")
+        self.assertEqual(Image.open(io.BytesIO(body)).convert("RGBA").getpixel((0, 0))[3], 0)
