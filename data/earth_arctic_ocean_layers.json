@@ -1,0 +1,60 @@
+{
+ "_주석": "지구 자료 점의 씨앗이다 (wetherilli 185). 온 지구 화면에만 있던 화석 산지·홀로세 화산·지진·제4기 고생태 산지를 지역 탭의 점 레이어로 — 모아 둔 sqlite·JSON 에서 지역의 네모만 잘라 낸다(web/viewer/earthpoints.py). 상류를 타지 않는다. 정적 판에는 싣지 않는다. 북극해에 두고 그린란드·스발바르·얀마옌·노르웨이·핀란드 탭이 빌린다(map.js 의 borrow) — 노르웨이 남쪽 끝까지 58°N 북쪽을 자른다.",
+ "_뽑은날": "2026-10-04",
+ "_지역": "arctic_ocean",
+ "_상류": "earth",
+ "_레이어군차례": 40,
+ "레이어군순서": [
+  "화석·화산·지진"
+ ],
+ "레이어": [
+  {
+   "name": "earth:pbdb_arctic",
+   "title": "화석 산지 (PBDB)",
+   "group": "화석·화산·지진",
+   "abstract": "Paleobiology Database collections — formation, age, environment, first reference",
+   "bbox": [
+    -180.0,
+    58.0,
+    180.0,
+    90.0
+   ]
+  },
+  {
+   "name": "earth:gvp_arctic",
+   "title": "홀로세 화산 (GVP)",
+   "group": "화석·화산·지진",
+   "abstract": "Smithsonian Global Volcanism Program, Holocene volcanoes — non-commercial, cite",
+   "bbox": [
+    -180.0,
+    58.0,
+    180.0,
+    90.0
+   ]
+  },
+  {
+   "name": "earth:quakes_arctic",
+   "title": "지진 M5 이상 (USGS)",
+   "group": "화석·화산·지진",
+   "abstract": "USGS ANSS ComCat, M5+ since 1900 — colour by depth",
+   "bbox": [
+    -180.0,
+    58.0,
+    180.0,
+    90.0
+   ]
+  },
+  {
+   "name": "earth:neotoma_arctic",
+   "title": "제4기 고생태 산지 (Neotoma)",
+   "group": "화석·화산·지진",
+   "abstract": "Neotoma Paleoecology Database sites — pollen, vertebrates, plant macrofossils …",
+   "bbox": [
+    -180.0,
+    58.0,
+    180.0,
+    90.0
+   ]
+  }
+ ]
+}

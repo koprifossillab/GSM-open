@@ -19,6 +19,9 @@
   var BASE = location.pathname.replace(/mercury\/?$/, "");
   var LANG = document.documentElement.lang === "en" ? "en" : "ko";
   var I18N = JSON.parse((document.getElementById("i18n-data") || {}).textContent || "{}");
+  // 화면이 주소를 짓는 우리 타일의 판 (wetherilli 183) — `?v=` 를 붙이면 서버가 길게(immutable) 캐시하게 한다. 판이 바뀌면 주소가 바뀐다
+  var TILE_V = JSON.parse((document.getElementById("tile-versions") || {}).textContent || "{}");
+  function vq(kind) { return TILE_V[kind] ? "?v=" + TILE_V[kind] : ""; }
   function T(text, vars) {
     var out = (LANG === "en" && I18N[text]) || text;
     if (vars) out = out.replace(/\{(\w+)\}/g, function (m, k) { return k in vars ? vars[k] : m; });
@@ -29,10 +32,30 @@
       return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c];
     });
   }
+  // ── 공유 링크 (wetherilli 189) ──
+  // 주소의 해시(`share.js`)로 들어오면 그 카메라·켠 레이어·배경을 덧층에 깔고 연다. 기억은 모두 `saved`·`save` 를 거치므로,
+  // 링크로 연 동안에는 덧층에만 쓰고 그 사람의 localStorage 는 건드리지 않는다. 모르는 레이어·배경은 늘 하던 대로 건너뛴다
+  var SHARED = window.GSMShare ? GSMShare.read() : null;
+  var STATE = SHARED ? GSMShare.store(sharedSeed(SHARED)) : null;
+  function sharedSeed(q) {
+    var seed = { "gsm.mercury.layers": JSON.stringify(GSMShare.layers(q.l)), "gsm.mercury.mode": q.m === "flat" ? "flat" : "globe" };
+    var c = (q.c || "").split(",").map(Number), ok = c.length === 2 && isFinite(c[0]) && isFinite(c[1]);
+    if (ok && isFinite(+q.h)) {
+      seed["gsm.mercury.view"] = JSON.stringify({ lon: c[0], lat: c[1], h: +q.h, heading: isFinite(+q.hd) ? +q.hd : 0,
+                                              pitch: isFinite(+q.pt) ? +q.pt : -Math.PI / 2 });
+    }
+    if (ok && isFinite(+q.res)) seed["gsm.mercury.flat"] = JSON.stringify({ lon: c[0], lat: c[1], res: +q.res });
+    if (q.b) seed["gsm.mercury.base"] = q.b;
+    return seed;
+  }
   function saved(key, fallback) {
-    try { var v = localStorage.getItem(key); return v == null ? fallback : v; } catch (e) { return fallback; }
+    var v;
+    if (STATE) v = STATE.get(key);
+    else try { v = localStorage.getItem(key); } catch (e) { return fallback; }
+    return v == null ? fallback : v;
   }
   function save(key, value) {
+    if (STATE) { STATE.set(key, value); return; }
     try { localStorage.setItem(key, String(value)); } catch (e) { /* 사생활 모드 */ }
   }
   function $(id) { return document.getElementById(id); }
@@ -90,7 +113,7 @@
   //: 타일 레이어(지질) — 벡터·모자이크는 아래 "착륙지" 절이 따로 짓는다
   var GEO_NAMES = ALL_NAMES.filter(function (n) { return !LAYER[n].kind; });
   var GEO_MAX = 10;            // 서버의 `mercurymap.MAX_ZOOM`
-  function geoUrl(name) { return BASE + "mercury/tiles/" + name + "/{z}/{x}/{y}.png"; }
+  function geoUrl(name) { return BASE + "mercury/tiles/" + name + "/{z}/{x}/{y}.png" + vq("geology"); }
   var GEO_CREDIT = "USGS Atlas of Mercury 1:5M geologic series (1980–1990), digital merge Frigeri et al. 2008";
   function creditOf(name) { return GEO_CREDIT; }
 
@@ -203,6 +226,8 @@
     baseLayerPicker: false, geocoder: false, homeButton: false, sceneModePicker: false,
     navigationHelpButton: false, animation: false, timeline: false, fullscreenButton: false,
     infoBox: false, selectionIndicator: false,
+    // 그리기가 멈추면 Cesium 은 영어 오류 창을 띄우고 멈춘다 — 우리 안내로 바꾼다(아래 `renderFailed`, wetherilli 110·186)
+    showRenderLoopErrors: false,
   });
   viewer.imageryLayers.add(cBase, 1);
   var scene = viewer.scene;
@@ -220,6 +245,38 @@
   scene.backgroundColor = Cesium.Color.BLACK;
   scene.verticalExaggeration = look.exag / 10;
   window.__gsmMercury = viewer;
+
+  // ── 그리기가 멈추면 (온 지구의 것을 옮겼다, wetherilli 110·186) ──
+  //
+  // WebGL 문맥을 잃으면 Cesium 은 되살리지 못한다. 멈춘 자리에 까닭과 나갈 길 셋을 띄운다 — 새로고침, 가볍게 다시(지형 세우기를
+  // 끄고), 평면으로(평면은 OpenLayers 라 구와 따로 돈다). 가볍게 다시 연 것은 이 브라우저에 남는다
+  var failed = false;
+  function renderFailed(reason) {
+    if (failed) return;
+    failed = true;
+    viewer.useDefaultRenderLoop = false;
+    $("render-failed-why").textContent = reason ? String(reason).split("\n")[0].slice(0, 160) : "";
+    $("render-failed").hidden = false;
+  }
+  scene.renderError.addEventListener(function (s, err) {
+    renderFailed(err && (err.message || err));
+  });
+  scene.canvas.addEventListener("webglcontextlost", function (e) {
+    e.preventDefault();
+    renderFailed(T("WebGL 문맥을 잃었다"));
+  });
+  $("render-failed-reload").addEventListener("click", function () { location.reload(); });
+  $("render-failed-light").addEventListener("click", function () {
+    save("gsm.mercury.terrain", "off");
+    location.reload();
+  });
+  $("render-failed-flat").addEventListener("click", function () {
+    $("render-failed").hidden = true;
+    var c = cameraLL();                                  // 평면으로 열 자리 — 보던 가운데를 그대로
+    save("gsm.mercury.flat", JSON.stringify({ lon: c ? +c.lon.toFixed(4) : 0, lat: c ? +c.lat.toFixed(4) : 0, res: 2000 }));
+    save("gsm.mercury.mode", "flat");
+    location.reload();                                   // 멈춘 구를 두고 평면만 새로 연다
+  });
 
   var cGeo = {};
   GEO_NAMES.forEach(function (name) {
@@ -1476,6 +1533,17 @@
       var down = iconButton("⤓", T("GeoJSON 으로 내려받는다"), false, function () {
         location.href = BASE + "pointsets/" + ps.id + "/geojson/?download=1";
       });
+      // CSV — 엑셀로 연다. 우리 파일에서 읽는 값(지질 단위·지각 두께·가까운 화석 산지)을 열로 붙인다 (wetherilli 190).
+      // 값을 읽는 점은 서버의 `pointvalues.LIMIT`(2 000)까지 — 넘으면 값 없이 받는다고 묻는다
+      var csv = iconButton("CSV", T("CSV 로 내려받는다 — 우리 파일에서 읽는 값을 열로 붙인다"), !ps.count, function () {
+        var extras = "all";
+        if ((ps.count || 0) > 2000) {
+          if (!confirm(T("점이 {n} 개라 붙일 값은 빼고 내려받는다 — 값은 {limit} 개까지 읽는다.", { n: ps.count, limit: 2000 }))) return;
+          extras = "none";
+        }
+        location.href = BASE + "pointsets/" + ps.id + "/csv/?extras=" + extras;
+      });
+      csv.classList.add("wide");
       var del = iconButton("×", T("지운다"), false, function () {
         if (!confirm(T("'{name}' 을 지운다.", { name: ps.name }))) return;
         post(BASE + "pointsets/" + ps.id + "/delete/").then(function () {
@@ -1484,7 +1552,7 @@
           renderSets();
         }).catch(function (e) { alert((e && e.message) || ""); });
       });
-      li.append(box, swatch, text, zoom, elev, down, del);
+      li.append(box, swatch, text, zoom, elev, down, csv, del);
       host.appendChild(li);
     });
   }
@@ -1977,7 +2045,13 @@
   // 거리를 다 재면 그 선의 MESSENGER 표고(USGS 665 m)를 받아 아래 가운데 판에 그린다. 가로는 대원 거리(재는 수와 같다),
   // 세로는 반지름 2 439.4 km 구에서 잰 높이다. 그래프 위를 훑으면 그 자리를 지도에도 찍는다
   var PROFILE = { W: 640, H: 170, L: 50, R: 10, T: 10, B: 22 };
-  var profileSeq = 0, profileData = null;
+  var profileSeq = 0, profileData = null, profileBand = null;
+  // 지질 띠 (wetherilli 180) — 우리 파일로 그리는 판을 켰을 때만. Trek 판은 점마다 상류에 물어야 해서 띠가 없다
+  var BAND_LAYER = { "units": "mercury:units" };
+  function bandLayer() {
+    var top = active.filter(function (e) { return BAND_LAYER[e.name]; })[0];
+    return top && window.GSMBand ? BAND_LAYER[top.name] : null;
+  }
   function hideProfile() {
     profileSeq += 1;
     profileData = null;
@@ -1988,6 +2062,8 @@
     profileData = null;
     box.hidden = false;
     $("profile-svg").innerHTML = "";
+    profileBand = null;
+    if (window.GSMBand) GSMBand.reset($("profile-svg"), PROFILE);
     $("profile-sum").textContent = "";
     $("profile-read").textContent = T("높이를 읽는 중…");
     // 표고 판 한 칸(665 m)에 한 점쯤, 64–512 점
@@ -1995,7 +2071,17 @@
     var line = coords.map(function (c) { return c[0].toFixed(5) + "," + c[1].toFixed(5); }).join(";");
     fetch(BASE + "mercury/profile/?line=" + encodeURIComponent(line) + "&n=" + n)
       .then(function (r) { if (!r.ok) throw new Error(r.status); return r.json(); })
-      .then(function (d) { if (seq === profileSeq) drawProfile(d); })
+      .then(function (d) {
+        if (seq !== profileSeq) return;
+        drawProfile(d);
+        var layer = bandLayer();
+        if (!layer || !profileData) return;
+        GSMBand.load(BASE, layer, line, n).then(function (band) {
+          if (seq !== profileSeq || !band || !profileData) return;
+          profileBand = band;
+          GSMBand.draw($("profile-svg"), PROFILE, profileData.X, d, band, T("지질"));
+        });
+      })
       .catch(function () { if (seq === profileSeq) $("profile-read").textContent = T("높이를 읽지 못했다"); });
   }
   function asHeight(m) { return Math.round(m).toLocaleString() + " m"; }
@@ -2043,8 +2129,9 @@
     $("profile-svg").innerHTML = svg;
     $("profile-sum").textContent = T("최저 {lo} · 최고 {hi} · 오르막 {up} · 내리막 {down}",
       { lo: asHeight(lo), hi: asHeight(hi), up: asHeight(up), down: asHeight(down) });
-    $("profile-read").textContent = T("MESSENGER 665 m · 수성 기준구 2439.4 km 에서 잰 높이");
-    profileData = { d: d, X: X, Y: Y, total: total };
+    var read = T("MESSENGER 665 m · 수성 기준구 2439.4 km 에서 잰 높이");
+    $("profile-read").textContent = read;
+    profileData = { d: d, X: X, Y: Y, total: total, read: read };
   }
   (function () {
     var svg = $("profile-svg");
@@ -2061,8 +2148,9 @@
         dot.setAttribute("cx", cx); dot.setAttribute("cy", profileData.Y(d.elev[best]).toFixed(1));
         dot.setAttribute("visibility", "visible");
       } else dot.setAttribute("visibility", "hidden");
-      $("profile-read").textContent = T("거리 {d} · 높이 {h}", {
-        d: asLength(d.dist[best]), h: d.elev[best] === null ? "—" : asHeight(d.elev[best]) });
+      var unit = window.GSMBand ? GSMBand.unitAt(profileBand, best) : "";
+      var here = { d: asLength(d.dist[best]), h: d.elev[best] === null ? "—" : asHeight(d.elev[best]), unit: unit };
+      $("profile-read").textContent = unit ? T("거리 {d} · 높이 {h} · {unit}", here) : T("거리 {d} · 높이 {h}", here);
       markAt([d.lon[best], d.lat[best]]);
     }
     svg.addEventListener("mousemove", at);
@@ -2070,6 +2158,7 @@
       if (!profileData) return;
       $("profile-cursor").setAttribute("visibility", "hidden");
       $("profile-dot").setAttribute("visibility", "hidden");
+      $("profile-read").textContent = profileData.read;
       markAt(null);
     });
     $("profile-close").addEventListener("click", hideProfile);
@@ -2529,6 +2618,29 @@
       setMode("flat", { lon: f.lon, lat: f.lat, h: resToHeight(f.res) });
     }
   } catch (e) { flyGlobe(0, 0, HOME_H); }
+
+  // 공유 링크 (wetherilli 189) — 지금 보는 것(구면 카메라, 평면이면 가운데와 땅의 해상도)·켠 레이어·배경
+  function shareLink() {
+    var q = { m: mode, l: GSMShare.pack(active), b: look.base };
+    if (mode === "flat") {
+      var ll = toLL(flat.getView().getCenter());
+      q.c = ll[0].toFixed(5) + "," + ll[1].toFixed(5);
+      q.res = Math.round(groundRes());
+    } else {
+      var c = cameraLL();
+      if (c) {
+        q.c = c.lon.toFixed(5) + "," + c.lat.toFixed(5);
+        q.h = Math.round(c.h);
+        q.hd = viewer.camera.heading.toFixed(4);
+        q.pt = viewer.camera.pitch.toFixed(4);
+      }
+    }
+    return GSMShare.link(q);
+  }
+  if (window.GSMShare) {
+    GSMShare.wire($("tool-share"), shareLink, { done: T("복사했다"), ask: T("이 링크를 복사한다") });
+    if (SHARED) GSMShare.notice(T("링크로 연 화면이다 — 여기서 바꾼 것은 이 브라우저에 기억하지 않는다"), T("내 화면으로"));
+  }
 
   // ── 패널 접기 (jikhanjung 008) ────────────────────────────────────
   //

@@ -29,6 +29,7 @@
 | GeoMAP | 우리가 굽는다, 3031, 256 px (018) | 안 된다. 상류가 없어 쉬지 않는다 |
 | 3D 극지 표고(`dem`) | PGC 를 3857 Terrarium 으로 편다, 줌 11–15 (032) | 4×4 네모째 (034) |
 | 극지연구소(KOPRI) WMS | NPI 와 같다 — 지역의 투영(3031·3413), 512 px (057) | 된다 |
+| 유럽·북극 상류(EMODnet·NGU·GTK·BGS·GSNI·BRGM·EGDI·BGR·IGME·GSI) | 카탈로그 행의 투영(3413·3575·4326·3857), 512 px. 화면이 그리는 줌만 | 된다 |
 | 달·화성 Trek(`moon:units`·`moon:dem`·`mars:units`·`mars:dem` …) | 그 몸의 경위도 격자, z/x/y (036·058) | 안 된다 — 한 장씩 |
 
 **달·화성은 레이어가 아니라 이름으로 부른다** — `--bbox` 는 그 몸의 경위도다(wetherilli 158).
@@ -37,6 +38,7 @@
     manage.py prewarm --bbox -90,-20,-60,10 --zooms 3-6 --layers mars:units          # 마리네리스 협곡
 
     manage.py prewarm --bbox 10,76,30,81 --zooms 3-8 --layers npolar:svalbard_units
+    manage.py prewarm --bbox=-0.2,51.45,-0.1,51.55 --zooms 11-14 --layers bgs:BGS.50k.Bedrock     # 런던 (서경은 = 로 붙인다)
     manage.py prewarm --bbox -180,-90,180,-60 --zooms 0-5 --layers geomap_simple_geology
 
 **`dem` 은 레이어가 아니라 3D 의 극지 지형이다** — 위도 60° 너머, 줌 11 부터 3D 가 서버에 묻는
@@ -192,15 +194,20 @@ def _crop(content, nx, ny, size):
 
 
 class WmsPlan:
-    """WMS 로 받는 것 — KIGAM·GEUS·VWorld(3857)와 NPI(지역의 투영).
-    열쇠는 브라우저가 `/wms/` 로 보내는 변수 그대로다 (`views.wms`)."""
+    """WMS 로 받는 것 — KIGAM·GEUS·VWorld(3857)와 NPI·KOPRI·유럽 상류(지역의 투영, `tilegrid.Grid`).
+    열쇠는 브라우저가 `/wms/` 로 보내는 변수 그대로다 (`views.wms`).
+
+    `zooms` 는 화면이 그 레이어를 그리는 **화면 줌**(카탈로그 행의 `minZoom`·`lastZoom`)이다. 512 px 격자의 줌은 화면 줌보다
+    하나 작다 — 화면 줌 13 에서 512 px 타일은 줌 12 다. 화면은 반 단계 넉넉히 보이고(`makeLayer`) OpenLayers 는 가까운 줌을
+    고르므로, 격자 줌으로 `처음 - 2` 부터 `마지막` 까지만 받는다. 그 밖은 화면이 묻지 않는 타일이다"""
     remote = True
 
     def block(self, meta):
         return meta
 
-    def __init__(self, name, upstream, grid=None):
+    def __init__(self, name, upstream, grid=None, zooms=(None, None)):
         self.name, self.upstream, self.grid = name, upstream, grid
+        self.first, self.last = zooms
         self.get_map = views._Door(upstream).get_map
 
     def params(self, z, x, y):
@@ -215,16 +222,24 @@ class WmsPlan:
         return max(1 / rate, SECONDS_PER_CALL[meta])
 
     def tiles_for(self, bbox, z):
+        if (self.first and z < self.first - 2) or (self.last and z > self.last):
+            return iter(())
         return (self.grid.tiles_for if self.grid else tilegrid.tiles_for)(bbox, z)
 
     def key(self, z, x, y):
         return tilecache.key_for("map", kigam.clean_params(self.params(z, x, y)))
 
+    def _last(self, z):
+        return self.grid.last(z) if self.grid else (2 ** z - 1, 2 ** z - 1)
+
+    def _bbox_text(self, extent):
+        return self.grid.bbox_text(extent) if self.grid else ",".join(tilegrid.js_number(v) for v in extent)
+
     def fetch_block(self, z, bx, by, meta):
         """블록 하나를 큰 그림으로 받아 잘라 담는다. 담은 타일 수를 돌려준다."""
-        last = 2 ** z - 1
+        last_x, last_y = self._last(z)
         x0, y0 = bx * meta, by * meta
-        x1, y1 = min(x0 + meta - 1, last), min(y0 + meta - 1, last)
+        x1, y1 = min(x0 + meta - 1, last_x), min(y0 + meta - 1, last_y)
         nx, ny = x1 - x0 + 1, y1 - y0 + 1
         if nx == 1 and ny == 1:
             content, _ = self.get_map(self.params(z, x0, y0))
@@ -232,7 +247,7 @@ class WmsPlan:
         else:
             sw, ne = self.extent(z, x0, y1), self.extent(z, x1, y0)
             params = dict(self.params(z, x0, y0), width=str(512 * nx), height=str(512 * ny),
-                          bbox=",".join(tilegrid.js_number(v) for v in (sw[0], sw[1], ne[2], ne[3])))
+                          bbox=self._bbox_text((sw[0], sw[1], ne[2], ne[3])))
             content, _ = self.get_map(params)
             pieces = _crop(content, nx, ny, 512)
         for (dx, dy), data in pieces.items():
@@ -381,16 +396,36 @@ NOT_LAYERS = {
 }
 
 
+#: 화면이 카탈로그 행의 투영으로 받는 유럽·북극 상류(`map.js` 의 `npolarSource`) — 투영과 그리는 줌은 `views._layer_extra` 가 정한다
+#: (wetherilli 182). 같은 상류도 판마다(IGME 1:100만 4326·MAGNA 3857), 레이어군마다(EMODnet 북극해 3413·유럽 바다 3857) 다르다
+PROJECTED = ("emodnet", "ngu", "gtk", "bgs", "brgm", "egdi", "bgr", "igme", "gsi", "gsni", "sgc")
+
+
+def _projected_plan(name, upstream):
+    layer = Layer.objects.select_related("group").filter(name=name, upstream=upstream).first()
+    if layer is None or layer.kind in ("vector", "points"):
+        return None
+    extra = views._layer_extra(layer)
+    crs = extra.get("projection")
+    if crs not in tilegrid.EXTENT and crs != "EPSG:3857":
+        return None
+    # 3857 은 화면의 `createXYZ` 가 `wmsSource` 와 같은 격자다 — KIGAM 과 같은 셈을 탄다
+    grid = None if crs == "EPSG:3857" else tilegrid.Grid(crs)
+    return WmsPlan(name, upstream, grid, (extra.get("minZoom"), extra.get("lastZoom")))
+
+
 def plan_for(name, upstream):
     """레이어 하나를 어떻게 받나. 타일이 아니면(점·모양·연구실 타일) None."""
     if upstream in ("kigam", "geus", "vworld"):
         row = Layer.objects.filter(name=name).values_list("kind", flat=True).first()
         return None if row in ("vector", "points") else WmsPlan(name, upstream)
     if upstream == "npolar" and npolar.knows(name):
-        return WmsPlan(name, upstream, tilegrid.PolarGrid(npolar.TILES[name]["projection"]))
+        return WmsPlan(name, upstream, tilegrid.Grid(npolar.TILES[name]["projection"]))
     if upstream == "kopri" and kopri.knows_wms(name):
         # KPDC 지도 서버(057) — NPI 처럼 지역의 투영으로 받는다(`views._layer_extra` 의 `kopri.wms_projection`) (wetherilli 158)
-        return WmsPlan(name, upstream, tilegrid.PolarGrid(kopri.wms_projection(name)))
+        return WmsPlan(name, upstream, tilegrid.Grid(kopri.wms_projection(name)))
+    if upstream in PROJECTED:
+        return _projected_plan(name, upstream)
     if upstream == "gsj" and gsj.knows(name):
         return GsjPlan(name)
     if upstream == "geomap" and name in geomap.LAYERS:

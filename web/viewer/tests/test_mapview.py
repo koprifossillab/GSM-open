@@ -91,14 +91,17 @@ class Map3dView(TestCase):
         data = re.search(r'id="pointset-data" type="application/json">(.*?)</script>', html).group(1)
         self.assertEqual(json.loads(data)[0]["name"], "설악 시료 </script><b>")
 
-    def test_3857_WMS_레이어만_고른다(self):
+    def test_3857_타일_레이어만_고른다(self):
         group = LayerGroup.objects.create(name="시험")
         Layer.objects.create(name="L_250K_Geology_Map", title="25만", group=group, upstream="kigam")
+        # 일본 GSJ 는 3857 z/x/y 라 그대로 얹는다(wetherilli 187). 극지 투영으로 받는 NGU 와 모양(벡터)은 뺀다
         Layer.objects.create(name="gsj:geology", title="일본", group=group, upstream="gsj")
+        Layer.objects.create(name="ngu:Berggrunn_nasjonal_bergartsenheter", title="노르웨이", group=group, upstream="ngu")
         Layer.objects.create(name="lt_l_gimsfault", title="단층", group=group, upstream="vworld", kind="vector")
         html = self.client.get(reverse("viewer:map3d")).content.decode()
         self.assertIn('value="L_250K_Geology_Map"', html)
-        self.assertNotIn('value="gsj:geology"', html)
+        self.assertIn('value="gsj:geology"', html)
+        self.assertNotIn('value="ngu:Berggrunn_nasjonal_bergartsenheter"', html)
         self.assertNotIn('value="lt_l_gimsfault"', html)
 
 
@@ -254,3 +257,16 @@ class StaticSiteTests(TestCase):
         html = self.client.get("/GSM/map/").content.decode()
         self.assertNotIn('class="static-site"', html)
         self.assertNotIn("static-config", html)
+
+
+class ShareLinkTests(TestCase):
+    """공유 링크 (wetherilli 189) — 다섯 화면이 `share.js` 를 화면의 스크립트보다 먼저 싣고 "링크" 단추를 둔다.
+    링크를 읽고 지우는 것·기억을 덮지 않는 것은 브라우저 시험(`test_mobile`)이 본다"""
+
+    def test_다섯_화면에_단추와_스크립트(self):
+        for name, script in (("map", "map.js"), ("earth", "earth.js"), ("moon", "moon.js"), ("mars", "mars.js"),
+                             ("mercury", "mercury.js")):
+            with self.subTest(name=name):
+                html = self.client.get(f"/GSM/{name}/").content.decode()
+                self.assertIn('id="tool-share"', html)
+                self.assertLess(html.index("viewer/share.js"), html.index(f"viewer/{script}"))

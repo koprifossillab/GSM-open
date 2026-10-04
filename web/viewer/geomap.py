@@ -972,6 +972,49 @@ def _citation(conn, source):
     return " ".join(parts)
 
 
+# ── 높이 그래프의 지질 띠 (wetherilli 180) ────────────────────────────
+
+#: 띠를 그릴 수 있는 레이어 — 면을 칠하는 것만. 단층(선)·자료 품질은 지질 단위가 아니다
+BAND_LAYERS = ("geomap_simple_geology", "geomap_simple_lithology", "geomap_chronostratigraphic",
+               "geomap_lithostratigraphic")
+
+
+def band_color(rule: dict) -> str:
+    """규칙의 칠 → `#rrggbb`. 암층은 칠 없이 무늬뿐인 것이 있어 무늬·테두리의 색을 쓴다."""
+    rgba = rule.get("fill") or next((d.get("color") for d in rule.get("dots") or [] if d.get("color")), None) \
+        or rule.get("outline") or (160, 160, 160)
+    return "#%02x%02x%02x" % tuple(int(v) for v in rgba[:3])
+
+
+def units_along(layer: str, points: list) -> list:
+    """3031 의 점들 → 점마다 든 면의 규칙 번호(이 레이어에 그려지지 않으면 None).
+    겹치면 작은 면이 이긴다 — 팝업(`query`)의 차례와 같다. 한 선의 이웃한 점은 같은 면을 다시 묻기 쉬워 기하를 들고 있는다."""
+    style = style_of(layer)
+    if style.kind != "fill":
+        raise GeomapError(f"띠를 그릴 수 없는 레이어다: {layer}")
+    conn, meta = _table(style.table)
+    have = {r[1] for r in conn.execute(f'PRAGMA table_info("{meta["table"]}")')}
+    fields = [f for f in style.fields if f in have]
+    select = ", ".join([f'"{meta["geom"]}"', '"Shape_Area"' if "Shape_Area" in have else "0"] + [f'"{f}"' for f in fields])
+    seen = {}
+    out = []
+    for x, y in points:
+        best = None
+        for (fid,) in conn.execute(f'SELECT id FROM "{meta["rtree"]}" WHERE maxx >= ? AND minx <= ? '
+                                   'AND maxy >= ? AND miny <= ?', (x, x, y, y)):
+            if fid not in seen:
+                row = conn.execute(f'SELECT {select} FROM "{meta["table"]}" WHERE fid = ?', (fid,)).fetchone()
+                rule = style.pick(tuple(row[2:])) if row else None
+                seen[fid] = None if rule is None else (parse_geometry(row[0]), row[1] or 0, rule)
+            hit = seen[fid]
+            if hit is None or hit[0][0] != "polygon":
+                continue
+            if any(polygon_contains(rings, x, y) for rings in hit[0][1]) and (best is None or hit[1] < best[0]):
+                best = (hit[1], hit[2])
+        out.append(None if best is None else best[1])
+    return out
+
+
 # ── 뷰가 부르는 꼴 (kigam·geus 와 같게) ───────────────────────────────
 
 def get_map(params: dict):

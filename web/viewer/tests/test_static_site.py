@@ -11,6 +11,7 @@
 브라우저 몫은 Chromium 이 있어야 돈다. 없으면 건너뛰고, CI 의 "휴대폰 화면" job 은 `GSM_BROWSER_TESTS=1` 로 깨지게 한다.
 상류는 타지 않는다 — 브라우저가 이 판 밖으로 나가는 요청은 다 끊는다.
 """
+import base64
 import functools
 import http.server
 import json
@@ -38,6 +39,8 @@ VWORLD_SECRET = "SENTINEL-VWORLD-KEY-0000"
 PREFIX = "/GSM-open/"
 # 1×1 투명 PNG
 #: 아직 병합 전인 몫 — 들어오면 그 시험이 저절로 켜진다
+# 1×1 투명 PNG — KIGAM 흉내가 맞는 키에 돌려주는 그림
+PNG_1PX = base64.b64decode("iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==")
 HAS_PLACENAMES = "def place_index" in SCRIPT.read_text(encoding="utf-8")        # #142, wetherilli 166
 PNG = bytes.fromhex("89504e470d0a1a0a0000000d4948445200000001000000010806000000"
                     "1f15c4890000000d49444154789c6360000002000005057c2f2b0000000049454e44ae426082")
@@ -199,10 +202,12 @@ class Browser(SimpleTestCase):
         cls.httpd.shutdown()
         super().tearDownClass()
 
-    def open(self, region, settle=2500, asked=None, ask_keys=False):
+    def open(self, region, settle=2500, asked=None, ask_keys=False, kigam=None, preset=None):
         ctx = self.browser.new_context(viewport={"width": 1280, "height": 800})
         self.addCleanup(ctx.close)
         ctx.add_init_script("try { localStorage.setItem('gsm.region', %s); } catch (e) {}" % json.dumps(region))
+        if preset:
+            ctx.add_init_script(preset)
         if not ask_keys:
             # 처음 열 때 뜨는 키 창(wetherilli 174)을 "나중에" 로 넘긴 탭처럼 — 다른 시험이 창에 가리지 않게
             ctx.add_init_script("try { sessionStorage.setItem('gsm.key.later', '1'); } catch (e) {}")
@@ -215,6 +220,11 @@ class Browser(SimpleTestCase):
                 return r.continue_()
             if asked is not None:
                 asked.append(r.request.url)
+            # KIGAM 흉내(wetherilli 179) — "ok" 면 맞는 키에 그림을, "refused" 면 틀린 키에 주는 500 HTML 을. 없으면 끊는다
+            if kigam and r.request.url.startswith("https://data.kigam.re.kr/"):
+                if kigam == "ok":
+                    return r.fulfill(status=200, content_type="image/png", body=PNG_1PX)
+                return r.fulfill(status=500, content_type="text/html", body="<html>error</html>")
             return r.abort()
         page.route("**/*", route)
         page.goto(self.base + "map/?region=" + region, wait_until="load")
@@ -232,7 +242,7 @@ class Browser(SimpleTestCase):
         self.assertTrue(page.is_visible("#static-key button"))
 
     def test_넣은_키는_이_브라우저에만(self):
-        page, errors = self.open("korea", ask_keys=True)
+        page, errors = self.open("korea", ask_keys=True, kigam="ok")
         inputs = page.query_selector_all("#key-dialog input[type=password]")
         inputs[0].fill("kigam-key")
         inputs[1].fill("vworld-key")
@@ -243,6 +253,33 @@ class Browser(SimpleTestCase):
         self.assertIn("kigam-key", held[0])
         self.assertIn("vworld-key", held[1])
         self.assertFalse(page.query_selector("#key-dialog"))                     # 둘 다 있으니 다시 묻지 않는다
+
+    def _save_kigam(self, kigam):
+        page, errors = self.open("korea", ask_keys=True, kigam=kigam)
+        page.query_selector_all("#key-dialog input[type=password]")[0].fill(" kigam-key\u200b\n")
+        page.click("#key-dialog .key-buttons .btn:not(.quiet)")
+        page.wait_for_selector("#key-dialog .key-check.bad", timeout=10000)
+        self.assertEqual(errors, [])
+        return page
+
+    def test_키를_거절하면_까닭을_띄운다(self):
+        """KIGAM 이 키에 그림 대신 500 을 주면 다시 열지 않고 "주지 않았다" 를 띄운다 (wetherilli 179)."""
+        page = self._save_kigam("refused")
+        self.assertIn("주지 않았다", page.inner_text("#key-dialog .key-check"))
+        self.assertEqual(page.inner_text("#key-dialog .key-buttons .btn:not(.quiet)"), "그래도 연다")
+        held = json.loads(page.evaluate("localStorage.getItem('gsm.key.kigam')"))
+        self.assertEqual(held["key"], "kigam-key")                              # 빈칸·폭 없는 문자는 지운다
+
+    def test_KIGAM_에_닿지_못하면_망을_말한다(self):
+        page = self._save_kigam(None)
+        self.assertIn("닿지 못했다", page.inner_text("#key-dialog .key-check"))
+
+    def test_넣어_둔_키가_안_받히면_열_때_창을_띄운다(self):
+        ctx_key = "try { localStorage.setItem('gsm.key.kigam', JSON.stringify({key: 'bad', at: Date.now()})); } catch (e) {}"
+        page, errors = self.open("korea", kigam="refused", settle=4000, preset=ctx_key)
+        self.assertEqual(errors, [])
+        self.assertTrue(page.is_visible("#key-dialog"))
+        self.assertIn("주지 않았다", page.inner_text("#key-dialog .key-check"))
 
     def test_남극_탭이_구운_것으로_선다(self):
         page, errors = self.open("antarctica")

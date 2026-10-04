@@ -142,6 +142,9 @@ GSMMA_WMS_URL = env("GSM_GSMMA_WMS_URL", "https://geomap.gsmma.gov.tw/mapguide/m
 GSMMA_API_URL = env("GSM_GSMMA_API_URL", "https://www.geologycloud.tw/api/v1/zh-tw")
 #: EMODnet Geology — 유럽 바다의 해저 퇴적물·해저 지질 GeoServer WMS (`viewer/emodnet.py`, wetherilli 135). 열쇠가 없다
 EMODNET_WMS_URL = env("GSM_EMODNET_WMS_URL", "https://drive.emodnet-geology.eu/geoserver/ows")
+#: 조건이 열린 배경 — NASA GIBS(Blue Marble)·GEBCO 해저 지형. 서버가 받아 캐시에 담는다 (`viewer/basemaps.py`, wetherilli 184). 열쇠가 없다
+GIBS_URL = env("GSM_GIBS_URL", "https://gibs.earthdata.nasa.gov")
+GEBCO_WMS_URL = env("GSM_GEBCO_WMS_URL", "https://wms.gebco.net/mapserv")
 #: 노르웨이·핀란드 기반암 지질도 — NGU MapServer·GTK ArcGIS WMS (`viewer/ngu.py`·`viewer/gtk.py`, wetherilli 140). 열쇠가 없다
 NGU_WMS_URL = env("GSM_NGU_WMS_URL", "https://geo.ngu.no/mapserver/BerggrunnWMS3")
 GTK_WMS_URL = env("GSM_GTK_WMS_URL", "https://gtkdata.gtk.fi/arcgis/services/Rajapinnat/GTK_Kalliopera_WMS/MapServer/WMSServer")
@@ -154,6 +157,8 @@ BGR_WMS_URL = env("GSM_BGR_WMS_URL", "https://services.bgr.de/wms/geologie")
 IGME_WMS_URL = env("GSM_IGME_WMS_URL", "https://mapas.igme.es/gis/services/Cartografia_Geologica")
 GSI_WMS_URL = env("GSM_GSI_WMS_URL", "https://gsi.geodata.gov.ie/server/services/Bedrock")
 GSNI_WMS_URL = env("GSM_GSNI_WMS_URL", "https://map.bgs.ac.uk/arcgis/services/GeoIndex_GSNI/GSNI_Geology_Landsat_WMS/MapServer/WmsServer")
+#: 남미 지질도 — SGC ArcGIS WMS 의 판 앞 주소 (wetherilli 188). 열쇠가 없다
+SGC_WMS_URL = env("GSM_SGC_WMS_URL", "https://srvags.sgc.gov.co/arcgis/services")
 #: NASA Moon Trek 의 달 서비스들 (`viewer/trek.py`, devlog 036·P05). 열쇠가 없다.
 #: 지질도(ArcGIS MapServer)·표고(ImageServer)·색인(TrekServices)이 이 밑에 있다.
 TREK_URL = env("GSM_TREK_URL", "https://trek.nasa.gov/moon")
@@ -388,6 +393,8 @@ BGR_CATALOG_SEED = REPO_DIR / "data" / "bgr_layers.json"
 IGME_CATALOG_SEED = REPO_DIR / "data" / "igme_layers.json"
 GSI_CATALOG_SEED = REPO_DIR / "data" / "gsi_layers.json"
 GSNI_CATALOG_SEED = REPO_DIR / "data" / "gsni_layers.json"
+#: 남미 (wetherilli 188)
+SGC_CATALOG_SEED = REPO_DIR / "data" / "sgc_layers.json"
 #: 중국 — USGS geo3al (devlog 025)
 GEO3AL_CATALOG_SEED = REPO_DIR / "data" / "geo3al_layers.json"
 #: 연구실의 암맥 기록 — phyloserver (devlog 026)
@@ -402,6 +409,8 @@ PGC_CATALOG_SEEDS = tuple(REPO_DIR / "data" / f"pgc_{r}_layers.json" for r in ("
 #: 북극해(KPDC 자료) (053–057·075·076)
 KOPRI_CATALOG_SEEDS = [REPO_DIR / "data" / f"kopri_{region}_layers.json"
                        for region in ("antarctica", "svalbard", "greenland", "arctic_ocean")]
+#: 지구 자료 점 — 화석 산지·홀로세 화산·지진·고생태 산지를 지역 탭에 (wetherilli 185). 북극은 북극해에 두고 다른 탭이 빌린다
+EARTH_CATALOG_SEEDS = [REPO_DIR / "data" / f"earth_{region}_layers.json" for region in ("korea", "antarctica", "arctic_ocean")]
 GEOMAP_STYLES = REPO_DIR / "data" / "geomap_styles.json"
 
 # ── Django ────────────────────────────────────────────────────────────

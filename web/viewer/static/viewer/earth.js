@@ -17,6 +17,9 @@
   var BASE = location.pathname.replace(/earth\/?$/, "");
   var LANG = document.documentElement.lang === "en" ? "en" : "ko";
   var I18N = JSON.parse((document.getElementById("i18n-data") || {}).textContent || "{}");
+  // 화면이 주소를 짓는 우리 타일의 판 (wetherilli 183) — `?v=` 를 붙이면 서버가 길게(immutable) 캐시하게 한다. 판이 바뀌면 주소가 바뀐다
+  var TILE_V = JSON.parse((document.getElementById("tile-versions") || {}).textContent || "{}");
+  function vq(kind) { return TILE_V[kind] ? "?v=" + TILE_V[kind] : ""; }
   function T(text, vars) {
     var out = (LANG === "en" && I18N[text]) || text;
     if (vars) out = out.replace(/\{(\w+)\}/g, function (m, k) { return k in vars ? vars[k] : m; });
@@ -27,10 +30,31 @@
       return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c];
     });
   }
+  // ── 공유 링크 (wetherilli 189) ──
+  // 주소의 해시(`share.js`)로 들어오면 그 카메라·켠 레이어·배경을 덧층에 깔고 연다. 기억은 모두 `saved`·`save` 를 거치므로,
+  // 링크로 연 동안에는 덧층에만 쓰고 그 사람의 localStorage 는 건드리지 않는다. 모르는 레이어·배경은 늘 하던 대로 건너뛴다
+  var SHARED = window.GSMShare ? GSMShare.read() : null;
+  var STATE = SHARED ? GSMShare.store(sharedSeed(SHARED)) : null;
+  function sharedSeed(q) {
+    var seed = { "gsm.earth.layers": JSON.stringify(GSMShare.layers(q.l)), "gsm.earth.mode": q.m === "flat" ? "flat" : "globe" };
+    var c = (q.c || "").split(",").map(Number), ok = c.length === 2 && isFinite(c[0]) && isFinite(c[1]);
+    if (ok && isFinite(+q.h)) {
+      seed["gsm.earth.view"] = JSON.stringify({ lon: c[0], lat: c[1], h: +q.h, heading: isFinite(+q.hd) ? +q.hd : 0,
+                                              pitch: isFinite(+q.pt) ? +q.pt : -Math.PI / 2 });
+    }
+    if (ok && isFinite(+q.res)) seed["gsm.earth.flat"] = JSON.stringify({ lon: c[0], lat: c[1], res: +q.res });
+    if (q.b) seed["gsm.earth.base"] = q.b;
+    if (q.a && isFinite(+q.a)) seed["gsm.earth.age"] = q.a;
+    return seed;
+  }
   function saved(key, fallback) {
-    try { var v = localStorage.getItem(key); return v == null ? fallback : v; } catch (e) { return fallback; }
+    var v;
+    if (STATE) v = STATE.get(key);
+    else try { v = localStorage.getItem(key); } catch (e) { return fallback; }
+    return v == null ? fallback : v;
   }
   function save(key, value) {
+    if (STATE) { STATE.set(key, value); return; }
     try { localStorage.setItem(key, String(value)); } catch (e) { /* 사생활 모드 */ }
   }
   function $(id) { return document.getElementById(id); }
@@ -40,14 +64,15 @@
   var M_PER_DEG = Math.PI * 6378137 / 180;           // 평면(4326)의 1° — 적도 반지름으로. 축척 막대는 OpenLayers 가 잰다
   // 배경 — NASA GIBS 의 Blue Marble(500 m). 셋 다 4326·3413·3031 판이 있어 구·평면·극 평면이 같은 영상이다.
   // 구는 WMS(4326)로, 평면은 WMTS 로 받는다 — GIBS 의 4326 WMTS 는 줌 0 이 288° 한 장이라 Cesium 의 격자와 맞지 않는다
-  var GIBS_WMS = "https://gibs.earthdata.nasa.gov/wms/epsg4326/best/wms.cgi";
-  var GIBS_WMTS = "https://gibs.earthdata.nasa.gov/wmts/epsg{e}/best/{name}/default/500m/{z}/{y}/{x}.jpeg";
+  // 서버가 브라우저가 부르던 주소 그대로 받아 담는다(`basemaps.py`, wetherilli 184) — 상류가 한 장에 1–3 초라 두 번째부터 빠르다
+  var GIBS_WMS = BASE + "gibs/wms/";
+  var GIBS_WMTS = BASE + "gibs/{e}/{name}/{z}/{y}/{x}.jpeg";
   var BASES = {
     bm: { name: "BlueMarble_ShadedRelief_Bathymetry", credit: "Blue Marble shaded relief & bathymetry · NASA EOSDIS GIBS" },
     bmng: { name: "BlueMarble_NextGeneration", credit: "Blue Marble Next Generation · NASA EOSDIS GIBS" },
     relief: { name: "BlueMarble_ShadedRelief", credit: "Blue Marble shaded relief · NASA EOSDIS GIBS" },
     // GEBCO 해저 지형(공공 도메인, wetherilli 135) — GIBS 가 아니라 GEBCO 의 WMS 다. 4326 뿐이라 극 평면은 Blue Marble 로 갈음한다
-    gebco: { name: "GEBCO_LATEST", wms: "https://wms.gebco.net/mapserv", format: "image/png", max: 8,
+    gebco: { name: "GEBCO_LATEST", wms: BASE + "gebco/wms/", format: "image/png", max: 8,
              credit: "GEBCO Compilation Group (2026) GEBCO 2026 Grid" },
   };
   // 지질 레이어 목록 — 달·화성과 같은 꼴이다. 이름은 서버 `earth/tiles/<이름>` 의 것
@@ -155,13 +180,13 @@
   function geoUrl(name) {
     if (name === "plates") return paleoUrl("edge", 0);
     if (name === "coast") return paleoUrl("coast", paleoOn() ? age : 0);
-    if (name === "crust") return BASE + "earth/crust/tiles/{z}/{x}/{y}.png";
-    if (name === "icemargins") return BASE + "earth/icemargins/tiles/" + Math.min(1000, Math.round(age * 1000)) + "/{z}/{x}/{y}.png";
-    if (name === "water" || name === "ice") return BASE + "earth/ne/tiles/" + name + "/{z}/{x}/{y}.png";
-    if (name === "fossils") return BASE + "earth/fossils/tiles/" + Math.round(age * 1000) + "/{z}/{x}/{y}.png";
-    if (name === "volcanoes") return BASE + "earth/volcanoes/tiles/{z}/{x}/{y}.png";
-    if (LAYER[name].neo) return BASE + "earth/neotoma/tiles/" + name + "/" + Math.min(999, Math.round(age * 1000)) + "/{z}/{x}/{y}.png";
-    if (LAYER[name].quake) return BASE + "earth/quakes/tiles/" + name + "/{z}/{x}/{y}.png";
+    if (name === "crust") return BASE + "earth/crust/tiles/{z}/{x}/{y}.png" + vq("crust");
+    if (name === "icemargins") return BASE + "earth/icemargins/tiles/" + Math.min(1000, Math.round(age * 1000)) + "/{z}/{x}/{y}.png" + vq("icemargins");
+    if (name === "water" || name === "ice") return BASE + "earth/ne/tiles/" + name + "/{z}/{x}/{y}.png" + vq("ne");
+    if (name === "fossils") return BASE + "earth/fossils/tiles/" + Math.round(age * 1000) + "/{z}/{x}/{y}.png" + vq("fossils");
+    if (name === "volcanoes") return BASE + "earth/volcanoes/tiles/{z}/{x}/{y}.png" + vq("volcanoes");
+    if (LAYER[name].neo) return BASE + "earth/neotoma/tiles/" + name + "/" + Math.min(999, Math.round(age * 1000)) + "/{z}/{x}/{y}.png" + vq("neotoma");
+    if (LAYER[name].quake) return BASE + "earth/quakes/tiles/" + name + "/{z}/{x}/{y}.png" + vq("quakes");
     return BASE + "earth/tiles/" + name + "/{z}/{x}/{y}.png";
   }
   var GEO_CREDIT = "Macrostrat (CC BY 4.0) · Peters, Husson & Czaplewski 2018, G-cubed";
@@ -182,7 +207,7 @@
   }
   // 판 조각 타일 — 서버가 연대마다 돌려 그린다(`paleo.render_tile`). 경위도 격자, 줌 0 이 180° 두 장이다
   var PALEO_MAX = 6;           // 서버의 `paleo.MAX_ZOOM`
-  function paleoUrl(style, age) { return BASE + "earth/paleo/tiles/" + style + "/" + age + "/{z}/{x}/{y}.png"; }
+  function paleoUrl(style, age) { return BASE + "earth/paleo/tiles/" + style + "/" + age + "/{z}/{x}/{y}.png" + vq(style === "coast" ? "coast" : "paleo"); }
 
   // ── 켠 것 — 구와 평면이 함께 쓴다. 이 브라우저에 기억한다 ──
   var look = {
@@ -2511,6 +2536,17 @@
       var down = iconButton("⤓", T("GeoJSON 으로 내려받는다"), false, function () {
         location.href = BASE + "pointsets/" + ps.id + "/geojson/?download=1";
       });
+      // CSV — 엑셀로 연다. 우리 파일에서 읽는 값(지질 단위·지각 두께·가까운 화석 산지)을 열로 붙인다 (wetherilli 190).
+      // 값을 읽는 점은 서버의 `pointvalues.LIMIT`(2 000)까지 — 넘으면 값 없이 받는다고 묻는다
+      var csv = iconButton("CSV", T("CSV 로 내려받는다 — 우리 파일에서 읽는 값을 열로 붙인다"), !ps.count, function () {
+        var extras = "all";
+        if ((ps.count || 0) > 2000) {
+          if (!confirm(T("점이 {n} 개라 붙일 값은 빼고 내려받는다 — 값은 {limit} 개까지 읽는다.", { n: ps.count, limit: 2000 }))) return;
+          extras = "none";
+        }
+        location.href = BASE + "pointsets/" + ps.id + "/csv/?extras=" + extras;
+      });
+      csv.classList.add("wide");
       var del = iconButton("×", T("지운다"), false, function () {
         if (!confirm(T("'{name}' 을 지운다.", { name: ps.name }))) return;
         post(BASE + "pointsets/" + ps.id + "/delete/").then(function () {
@@ -2519,7 +2555,7 @@
           renderSets();
         }).catch(function (e) { alert((e && e.message) || ""); });
       });
-      li.append(box, swatch, text, zoom, elev, down, del);
+      li.append(box, swatch, text, zoom, elev, down, csv, del);
       host.appendChild(li);
     });
   }
@@ -2680,6 +2716,7 @@
       history.replaceState(null, "", location.pathname + (qs ? "?" + qs : "") + location.hash);
     } catch (e) { /* file:// 따위 */ }
     var p = paleoOn();
+    if (p) hideProfile();                               // 높이 그래프는 오늘의 땅이다 (wetherilli 186)
     showAge();
     if (p !== wasPaleo) {
       wasPaleo = p;
@@ -2915,9 +2952,10 @@
   // ══ 좌표·지명으로 이동 — 좌표 막대 ══════════════════════════════
   //
   // 지명은 Natural Earth 의 도시·산맥·바다·호수·강 1 만여 이름이다(`earth/places/`, 102). 한국어·영어 이름으로 찾는다.
+  // 화석 산지·지층(PBDB)과 화산(GVP)의 이름도 함께 온다 — 결과마다 갈래(`group`)와 딱지(`kind`), 덧말(`sub`)이 붙는다(wetherilli 187).
   // 화성의 찾기(058)와 같은 꼴이다. 오늘의 자리라 옛 연대에서 고르면 오늘로 돌아온다
   var gotoForm = $("goto-form"), gotoInput = $("goto-input"), results = $("search-results");
-  var found = [], picked = -1, findTimer = null, findAsked = 0;
+  var found = [], foundFrom = [], picked = -1, findTimer = null, findAsked = 0;
   function parseLatLon(text) {
     var m = /^\s*(-?\d+(?:\.\d+)?)\s*[, ]\s*(-?\d+(?:\.\d+)?)\s*$/.exec(text);
     if (!m) return null;
@@ -2931,8 +2969,8 @@
       results.innerHTML = found.map(function (p, i) {
         return '<li data-i="' + i + '"' + (i === picked ? ' class="on"' : "") + '><span class="kind">' + esc(p.kind) +
                '</span><span class="title">' + esc(p.title) + '</span><span class="sub">' +
-               p.lat.toFixed(3) + ", " + p.lon.toFixed(3) + "</span></li>";
-      }).join("") + '<li class="note src">Natural Earth 10 m</li>';
+               (p.sub ? esc(p.sub) + " · " : "") + p.lat.toFixed(3) + ", " + p.lon.toFixed(3) + "</span></li>";
+      }).join("") + '<li class="note src">' + esc((foundFrom.length ? foundFrom : ["Natural Earth 10 m"]).join(" · ")) + "</li>";
     }
     results.hidden = false;
     results.querySelectorAll("li[data-i]").forEach(function (li) {
@@ -2943,8 +2981,9 @@
     results.hidden = true;
     gotoInput.value = place.title.replace(/ \(.*\)$/, "");
     if (paleoOn()) applyAge(0);
-    // 도시는 가까이, 강·호수는 조금 멀리, 산맥·바다는 멀리
-    var h = /도시|city/.test(place.kind) ? 80000 : /강|호수|river|lake/.test(place.kind) ? 400000 : 1500000;
+    // 화석 산지·화산·도시는 가까이, 지층·강·호수는 조금 멀리, 산맥·바다는 멀리
+    var h = place.group === "fossil" ? 30000 : place.group === "volcano" ? 60000 : place.group === "formation" ? 400000
+          : /도시|city/.test(place.kind) ? 80000 : /강|호수|river|lake/.test(place.kind) ? 400000 : 1500000;
     goTo(place.lon, place.lat, h);
   }
   gotoInput.addEventListener("input", function () {
@@ -2956,6 +2995,7 @@
       fetch(BASE + "earth/places/?q=" + encodeURIComponent(q)).then(function (r) { return r.json(); }).then(function (data) {
         if (mine !== findAsked) return;
         found = data.results || [];
+        foundFrom = data.sources || [];
         picked = found.length ? 0 : -1;
         renderFound();
       });
@@ -3333,7 +3373,7 @@
     if (!ll) return true;
     if (tool === "point") addTemp(ll);
     else if (tool === "line" || tool === "area") {
-      if (!sketch.length) { measured = null; lastMeasure = ""; renderDrawn(); }
+      if (!sketch.length) { measured = null; lastMeasure = ""; renderDrawn(); hideProfile(); }
       sketch.push(unwrap(sketch[sketch.length - 1], ll));
     }
     return true;
@@ -3361,7 +3401,134 @@
     var got = measureOf(measured);
     renderDrawn();
     showMeasure(got, true);
+    if (kind === "line") showProfile(coords); else hideProfile();
   }
+
+  // ── 높이 그래프 (달의 것을 옮겼다, wetherilli 186) ──
+  // 거리를 다 재면 그 선의 표고를 받아(`elevation/profile/`, 지역 탭과 같은 문 — wetherilli 109) 아래 가운데 판에 그린다.
+  // 표고는 타일로만 읽는다 — 일본은 국토지리원, 나머지는 AWS Terrarium. 그래프 위를 훑으면 그 자리를 지구에도 찍는다.
+  // **오늘의 높이다** — 그때의 지구(1 Ma 부터)에서는 판이 옮겨져 화면의 자리와 오늘의 땅이 맞지 않아 그래프를 띄우지 않는다
+  var PROFILE = { W: 640, H: 170, L: 50, R: 10, T: 10, B: 22 };
+  var profileSeq = 0, profileData = null, profileBand = null;
+  // 지질 띠 (wetherilli 180) — 우리 파일로 그리는 판을 켰을 때만. 지질도(Macrostrat)는 점마다 상류에 물어야 해서 띠가 없다
+  var BAND_LAYER = { crust: "earth:crust" };
+  function bandLayer() {
+    var top = active.filter(function (e) { return BAND_LAYER[e.name]; })[0];
+    return top && window.GSMBand ? BAND_LAYER[top.name] : null;
+  }
+  function hideProfile() {
+    profileSeq = (profileSeq || 0) + 1;                   // 연대를 되살릴 때 이 줄보다 먼저 불린다 — 아직 undefined 일 수 있다
+    profileData = null;
+    $("profile").hidden = true;
+  }
+  function showProfile(coords) {
+    if (paleoOn()) { hideProfile(); return; }
+    var seq = ++profileSeq, box = $("profile");
+    profileData = null;
+    box.hidden = false;
+    $("profile-svg").innerHTML = "";
+    profileBand = null;
+    if (window.GSMBand) GSMBand.reset($("profile-svg"), PROFILE);
+    $("profile-sum").textContent = "";
+    $("profile-read").textContent = T("높이를 읽는 중…");
+    // 30 m 에 한 점쯤, 64–512 점 (지역 탭과 같다)
+    var n = Math.max(64, Math.min(512, Math.round(lengthOf(coords) / 30)));
+    var line = coords.map(function (c) { return c[0].toFixed(5) + "," + c[1].toFixed(5); }).join(";");
+    fetch(BASE + "elevation/profile/?line=" + encodeURIComponent(line) + "&n=" + n)
+      .then(function (r) { if (!r.ok) throw new Error(r.status); return r.json(); })
+      .then(function (d) {
+        if (seq !== profileSeq) return;
+        drawProfile(d);
+        var layer = bandLayer();
+        if (!layer || !profileData) return;
+        GSMBand.load(BASE, layer, line, n).then(function (band) {
+          if (seq !== profileSeq || !band || !profileData) return;
+          profileBand = band;
+          GSMBand.draw($("profile-svg"), PROFILE, profileData.X, d, band, T("지각"));
+        });
+      })
+      .catch(function () { if (seq === profileSeq) $("profile-read").textContent = T("높이를 읽지 못했다"); });
+  }
+  function asHeight(m) { return Math.round(m).toLocaleString() + " m"; }
+  function drawProfile(d) {
+    var P = PROFILE, pw = P.W - P.L - P.R, ph = P.H - P.T - P.B;
+    var got = d.elev.filter(function (e) { return e !== null; });
+    if (!got.length) { $("profile-read").textContent = T("높이를 읽지 못했다"); return; }
+    var lo = Math.min.apply(null, got), hi = Math.max.apply(null, got), total = d.dist[d.dist.length - 1] || 1;
+    var pad = Math.max(10, (hi - lo) * 0.08), y0 = lo - pad, y1 = hi + pad;
+    function X(dist) { return P.L + pw * dist / total; }
+    function Y(e) { return P.T + ph * (1 - (e - y0) / (y1 - y0)); }
+    // 못 읽은 점에서 선을 끊는다
+    var path = "", area = "", run = [];
+    function flush() {
+      if (run.length > 1) {
+        path += "M" + run.join("L");
+        area += "M" + run[0].split(",")[0] + "," + (P.T + ph) + "L" + run.join("L") + "L" +
+                run[run.length - 1].split(",")[0] + "," + (P.T + ph) + "Z";
+      }
+      run = [];
+    }
+    d.elev.forEach(function (e, i) {
+      if (e === null) { flush(); return; }
+      run.push(X(d.dist[i]).toFixed(1) + "," + Y(e).toFixed(1));
+    });
+    flush();
+    var up = 0, down = 0;
+    for (var i = 1; i < d.elev.length; i++) {
+      if (d.elev[i] === null || d.elev[i - 1] === null) continue;
+      var dh = d.elev[i] - d.elev[i - 1];
+      if (dh > 0) up += dh; else down -= dh;
+    }
+    var svg = '<g>';
+    [y0 + (y1 - y0) * 0.1, (y0 + y1) / 2, y1 - (y1 - y0) * 0.1].forEach(function (e) {
+      svg += '<line class="grid" x1="' + P.L + '" x2="' + (P.W - P.R) + '" y1="' + Y(e).toFixed(1) + '" y2="' + Y(e).toFixed(1) + '"/>' +
+             '<text class="tick" x="' + (P.L - 5) + '" y="' + (Y(e) + 3.5).toFixed(1) + '" text-anchor="end">' + esc(Math.round(e).toLocaleString()) + '</text>';
+    });
+    [0, 0.5, 1].forEach(function (f) {
+      svg += '<text class="tick" x="' + X(total * f).toFixed(1) + '" y="' + (P.H - 6) + '" text-anchor="' +
+             (f === 0 ? "start" : f === 1 ? "end" : "middle") + '">' + esc(asLength(total * f)) + '</text>';
+    });
+    svg += '</g><path class="area" d="' + area + '"/><path class="line" d="' + path + '"/>' +
+           '<line class="cursor" id="profile-cursor" y1="' + P.T + '" y2="' + (P.T + ph) + '" visibility="hidden"/>' +
+           '<circle class="dot" id="profile-dot" r="3.5" visibility="hidden"/>';
+    $("profile-svg").innerHTML = svg;
+    $("profile-sum").textContent = T("최저 {lo} · 최고 {hi} · 오르막 {up} · 내리막 {down}",
+      { lo: asHeight(lo), hi: asHeight(hi), up: asHeight(up), down: asHeight(down) });
+    var read = (d.sources || []).some(function (s) { return s.indexOf("gsi") === 0; })
+      ? T("국토지리원·AWS 표고 타일에서 읽은 해발 높이 — 바다는 수심(음수)") : T("AWS 표고 타일(SRTM·GMTED)에서 읽은 해발 높이 — 바다는 수심(음수)");
+    $("profile-read").textContent = read;
+    profileData = { d: d, X: X, Y: Y, total: total, read: read };
+  }
+  (function () {
+    var svg = $("profile-svg");
+    function at(evt) {
+      if (!profileData) return;
+      var r = svg.getBoundingClientRect(), P = PROFILE;
+      var x = (evt.clientX - r.left) * P.W / r.width;
+      var dist = Math.max(0, Math.min(1, (x - P.L) / (P.W - P.L - P.R))) * profileData.total;
+      var d = profileData.d, best = 0;
+      for (var i = 1; i < d.dist.length; i++) if (Math.abs(d.dist[i] - dist) < Math.abs(d.dist[best] - dist)) best = i;
+      var cx = profileData.X(d.dist[best]).toFixed(1), cur = $("profile-cursor"), dot = $("profile-dot");
+      cur.setAttribute("x1", cx); cur.setAttribute("x2", cx); cur.setAttribute("visibility", "visible");
+      if (d.elev[best] !== null) {
+        dot.setAttribute("cx", cx); dot.setAttribute("cy", profileData.Y(d.elev[best]).toFixed(1));
+        dot.setAttribute("visibility", "visible");
+      } else dot.setAttribute("visibility", "hidden");
+      var unit = window.GSMBand ? GSMBand.unitAt(profileBand, best) : "";
+      var here = { d: asLength(d.dist[best]), h: d.elev[best] === null ? "—" : asHeight(d.elev[best]), unit: unit };
+      $("profile-read").textContent = unit ? T("거리 {d} · 높이 {h} · {unit}", here) : T("거리 {d} · 높이 {h}", here);
+      markAt([d.lon[best], d.lat[best]]);
+    }
+    svg.addEventListener("mousemove", at);
+    svg.addEventListener("mouseleave", function () {
+      if (!profileData) return;
+      $("profile-cursor").setAttribute("visibility", "hidden");
+      $("profile-dot").setAttribute("visibility", "hidden");
+      $("profile-read").textContent = profileData.read;
+      markAt(null);
+    });
+    $("profile-close").addEventListener("click", hideProfile);
+  })();
   function addTemp(ll) {
     var w = wrapLon(ll);
     tempSeq += 1;
@@ -3511,6 +3678,7 @@
   function clearDrawn() {
     cancelSketch();
     temps = []; ranges = []; measured = null;
+    hideProfile();
     tempSeq = rangeSeq = 0;
     lastMeasure = "";
     var out = $("measure-out");
@@ -3820,6 +3988,29 @@
       setMode("flat", { lon: f.lon, lat: f.lat, h: resToHeight(f.res) });
     }
   } catch (e) { flyGlobe(HOME[0], HOME[1], HOME_H); }
+
+  // 공유 링크 (wetherilli 189) — 지금 보는 것(구면 카메라, 평면이면 가운데와 땅의 해상도)·켠 레이어·배경
+  function shareLink() {
+    var q = { m: mode, l: GSMShare.pack(active), b: look.base, a: age || "" };
+    if (mode === "flat") {
+      var ll = toLL(flat.getView().getCenter());
+      q.c = ll[0].toFixed(5) + "," + ll[1].toFixed(5);
+      q.res = Math.round(groundRes());
+    } else {
+      var c = cameraLL();
+      if (c) {
+        q.c = c.lon.toFixed(5) + "," + c.lat.toFixed(5);
+        q.h = Math.round(c.h);
+        q.hd = viewer.camera.heading.toFixed(4);
+        q.pt = viewer.camera.pitch.toFixed(4);
+      }
+    }
+    return GSMShare.link(q);
+  }
+  if (window.GSMShare) {
+    GSMShare.wire($("tool-share"), shareLink, { done: T("복사했다"), ask: T("이 링크를 복사한다") });
+    if (SHARED) GSMShare.notice(T("링크로 연 화면이다 — 여기서 바꾼 것은 이 브라우저에 기억하지 않는다"), T("내 화면으로"));
+  }
 
   // ── 패널 접기 (jikhanjung 008·009) ────────────────────────────────────
   //

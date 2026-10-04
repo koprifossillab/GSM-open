@@ -407,3 +407,50 @@ def bbox_of(features) -> list:
     for f in features:
         walk(f["geometry"]["coordinates"])
     return [west, south, east, north]
+
+
+# ── 높이 그래프의 지질 띠 (wetherilli 180) ────────────────────────────
+
+_boxes = {}
+
+
+def _feature_boxes(features) -> list:
+    """면마다 [서, 남, 동, 북]. 파일이 바뀌면(`_load` 가 새로 읽으면) 다시 잰다."""
+    key = id(features)
+    hit = _boxes.get(key)
+    if hit is None:
+        hit = [bbox_of([f]) for f in features]
+        with _lock:
+            _boxes.clear()
+            _boxes[key] = hit
+    return hit
+
+
+def units_along(name: str, points: list, lang: str = "ko") -> list:
+    """위경도 점들 → 점마다 `(범례 이름, 색)` 또는 None. 칠하는 열쇠는 지도의 것(`_layer`)과 같다."""
+    by = LAYERS[name]["by"]
+    features = _load()
+    boxes = _feature_boxes(features)
+    out = []
+    for lon, lat in points:
+        found = None
+        for f, (w, s, e, n) in zip(features, boxes):
+            if not (w <= lon <= e and s <= lat <= n):
+                continue
+            geom = f["geometry"]
+            polygons = [geom["coordinates"]] if geom["type"] == "Polygon" else geom["coordinates"]
+            if any(_inside((lon, lat), p[0]) and not any(_inside((lon, lat), h) for h in p[1:]) for p in polygons):
+                found = f["properties"]
+                break
+        if found is None:
+            out.append(None)
+        elif by == "age":
+            code = found["gen"]
+            label, color = AGE_BY_CODE.get(code) or (code, "#888888")
+            out.append((i18n.age_en(label) if lang == "en" else label, color))
+        elif found["type"] in ROCKS:
+            label, color = ROCKS[found["type"]]
+            out.append((i18n.t(label, lang), color))
+        else:
+            out.append(None)
+    return out

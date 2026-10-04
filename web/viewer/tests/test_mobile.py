@@ -27,7 +27,7 @@ PHONE = {"viewport": {"width": 390, "height": 844}, "is_mobile": True, "has_touc
 
 # 화면 안에 있어야 하는 것 — 보이는 것만 잰다
 PARTS = ["#panel", "#panel-handle", "#toolbar", "#coordbar", "#scalebar", ".ol-zoom", "#legend-dock",
-         "#timebar", "#panel3d"]
+         "#timebar", "#panel3d", "#tool-share", ".share-notice"]
 
 MEASURE = """(sels) => {
   function box(sel) {
@@ -154,6 +154,18 @@ class PhoneScreenTests(StaticLiveServerTestCase):
                 # 화면마다 바로 닫는다 — 시험이 끝날 때까지 두면 앞의 구들이 소프트웨어 WebGL 로 계속 그려 CPU 를
                 # 다 먹고, 넷째 화면(수성)이 30 초 안에 뜨지 못한다 (wetherilli 145)
                 page.context.close()
+
+    def test_공유_링크로_연다(self):
+        """링크로 열면 그 지역·레이어로 서고, 띠가 화면 안에 뜨고, 그 사람의 기억은 그대로다 (wetherilli 189)"""
+        page, errors = self.open("map/#r=antarctica&c=0,-90&z=2&p=3031&l=geomap_simple_geology*80&b=")
+        self.assertEqual(errors, [])
+        self.assertTrue(page.locator(".share-notice").is_visible(), "링크로 연 띠가 없다")
+        self.assertFits(self.measure(page), "map/ (공유 링크)")
+        self.assertEqual(page.evaluate("document.documentElement.dataset.region"), "antarctica")
+        self.assertEqual(page.evaluate("location.hash"), "", "해시는 읽고 지운다")
+        self.assertIsNone(page.evaluate("localStorage.getItem('gsm.region')"), "그 사람의 기억을 덮는다")
+        self.assertIsNone(page.evaluate("localStorage.getItem('gsm.layers.antarctica')"))
+        self.assertTrue(page.locator("#tool-share").is_visible())
 
     def test_3D_판은_접혀_열린다(self):
         page, errors = self.open("3d/", settle=2000)

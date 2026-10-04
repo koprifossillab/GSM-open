@@ -222,6 +222,18 @@
 | wetherilli 176 | 2026-10-04 | [유럽 바다 — EMODnet 의 제4기 퇴적층·지질 사건을 유럽 탭들에](20261004_wetherilli_176_europe_seafloor.md) |
 | wetherilli 181 | 2026-10-04 | [정적 판 — 판 이력을 떠 두고, 소개의 첫 장면에서 없는 화면을 뺀다](20261004_wetherilli_181_static_intro_history.md) |
 | wetherilli 178 | 2026-10-04 | [그린란드 — 다이아몬드 탐사 자료의 나머지: 지시광물 화학 넷·거둔 다이아몬드·관입 연대·산출지의 선과 면](20261004_wetherilli_178_greenland_ded_more.md) |
+| wetherilli 179 | 2026-10-04 | [정적 판 — 휴대폰에서 KIGAM 지질도가 안 뜬다는 제보, 후보를 지우고 키가 받히는지 묻는다](20261004_wetherilli_179_static_mobile_kigam.md) |
+| wetherilli 180 | 2026-10-04 | [높이 그래프 밑에 지질 띠 — 우리 파일로 그리는 레이어만](20261004_wetherilli_180_profile_geology_band.md) |
+| wetherilli 182 | 2026-10-04 | [prewarm 이 유럽·북극의 새 상류를 안다](20261004_wetherilli_182_prewarm_europe.md) |
+| wetherilli 183 | 2026-10-04 | [화면이 주소를 짓는 타일에도 판을 — 길게(immutable) 캐시한다](20261004_wetherilli_183_immutable_js_tiles.md) |
+| wetherilli 184 | 2026-10-04 | [조건이 열린 배경을 서버 캐시에 — NASA GIBS·GEBCO](20261004_wetherilli_184_cache_open_basemaps.md) |
+| wetherilli 185 | 2026-10-04 | [지역 탭에 화석 산지·홀로세 화산·지진·고생태 산지 — 그리고 수성의 잠든 주소](20261004_wetherilli_185_regional_earth_points.md) |
+| wetherilli 186 | 2026-10-04 | [온 지구에 높이 그래프, 달·화성·수성에 "그리기가 멈췄다" 안내](20261004_wetherilli_186_earth_profile_render_failed.md) |
+| wetherilli 187 | 2026-10-04 | [3D 에 유럽·일본 지질도, 온 지구 찾기에 화석 산지·지층·화산](20261004_wetherilli_187_3d_europe_earth_search.md) |
+| wetherilli 188 | 2026-10-04 | [남미 — 콜롬비아 지질조사소(SGC)의 남미 1:500만과 콜롬비아 1:50만으로 남미 탭을 연다](20261004_wetherilli_188_south_america_sgc.md) |
+| wetherilli 189 | 2026-10-04 | [공유 링크 — 보던 자리·켠 레이어·배경을 주소의 해시에](20261004_wetherilli_189_share_links.md) |
+| wetherilli 190 | 2026-10-04 | [점묶음을 CSV 로 — 우리 파일에서 읽는 값을 열로 붙여](20261004_wetherilli_190_pointset_csv.md) |
+| wetherilli 192 | 2026-10-04 | [화성 — Trek 판의 극지 길과 누른 자리의 높이](20261004_wetherilli_192_mars_polar_values.md) |
 | koprifossillab P01 | 2026-09-30 | [백업 — WegenersDream 의 틀로, 바뀌는 빠르기에 따라 넷으로 (계획)](20260930_koprifossillab_P01_backup_plan.md) |
 | koprifossillab 001 | 2026-09-30 | [매주 월요일 새벽: 운영 자료 백업과 KPDC 목록 갱신](20260930_koprifossillab_001_weekly_backup.md) |
 | koprifossillab 002 | 2026-09-30 | [`/healthz/` — 판·DB·백업 상태를 한 장으로](20260930_koprifossillab_002_healthz.md) |

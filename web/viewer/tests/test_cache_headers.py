@@ -90,3 +90,75 @@ class Views(TestCase):
         self.assertEqual(views.geomap_version(), "")      # 파일이 없으면 판도 없다 — 길게 두지 않는다
         self.assertIn("immutable", now["Cache-Control"])
         self.assertEqual(old["Cache-Control"], "public, max-age=86400")
+
+
+@override_settings(TILE_CACHE_SECONDS=86400, TILE_IMMUTABLE_SECONDS=31536000)
+class JsTiles(TestCase):
+    """화면(JS)이 주소를 짓는 우리 타일 (wetherilli 183) — 판을 화면에 알리고, 그 판이면 길게. 파일을 다시 구우면 판이 바뀐다."""
+
+    def setUp(self):
+        patch = override_settings(TILE_CACHE_DIR=tempfile.mkdtemp(prefix="gsm-jstiles-"))
+        patch.enable()
+        self.addCleanup(patch.disable)
+        self.dir = tempfile.mkdtemp(prefix="gsm-jstiles-data-")
+
+    def test_판의_조각이_비면_빈_판(self):
+        self.assertEqual(views._stamp("1", ""), "")
+        self.assertEqual(len(views._stamp("1", "a")), 10)
+
+    def test_저장소_파일은_내용으로(self):
+        import os
+        from pathlib import Path
+        path = Path(self.dir) / "data.json"
+        path.write_text("{}")
+        first = views._content_stamp(path)
+        os.utime(path, (1, 1))                       # 이미지를 새로 구우면 고친 때만 바뀐다
+        self.assertEqual(views._content_stamp(path), first)
+        path.write_text('{"a": 1}')
+        self.assertNotEqual(views._content_stamp(path), first)
+
+    def test_수성_지질도는_다시_구우면_주소와_캐시가_바뀐다(self):
+        from pathlib import Path
+        from viewer import mercurymap
+        data = Path(self.dir) / "mercury.sqlite"
+        data.write_bytes(b"one")
+        url = reverse("viewer:mercury-tile", kwargs={"layer": "units", "z": 0, "x": 0, "y": 0})
+        with mock.patch.object(mercurymap, "available", return_value=True), \
+             mock.patch.object(mercurymap, "data_file", return_value=data), \
+             mock.patch.object(mercurymap, "render_tile", side_effect=[b"\x89PNG one", b"\x89PNG two"]) as render:
+            first = views.mercurymap_version()
+            now = self.client.get(url, {"v": first})
+            data.write_bytes(b"rebuilt")
+            second = views.mercurymap_version()
+            again = self.client.get(url, {"v": first})          # 옛 화면 — 새 그림을 하루짜리로
+        self.assertIn("immutable", now["Cache-Control"])
+        self.assertNotEqual(first, second)
+        self.assertEqual(again.content, b"\x89PNG two")          # 캐시 열쇠에도 판이 들어 다시 굽는다
+        self.assertEqual(again["Cache-Control"], "public, max-age=86400")
+        self.assertEqual(render.call_count, 2)
+
+    def test_화산은_받은_날과_파일이_판이다(self):
+        from pathlib import Path
+        from viewer import volcanoes
+        data = Path(self.dir) / "gvp.json"
+        data.write_text("{}")
+        url = reverse("viewer:earth-volcano-tile", kwargs={"z": 0, "x": 0, "y": 0})
+        with mock.patch.object(volcanoes, "available", return_value=True), \
+             mock.patch.object(volcanoes, "fetched", return_value="2026-10-01"), \
+             mock.patch.object(volcanoes, "path", return_value=data), \
+             mock.patch.object(volcanoes, "render_tile", return_value=b"\x89PNG v"):
+            resp_v = views.tile_versions("earth")["volcanoes"]
+            resp = self.client.get(url, {"v": resp_v})
+            data.write_text('{"again": 1}')                       # 같은 날 다시 받아도 판이 바뀐다
+            self.assertNotEqual(views.tile_versions("earth")["volcanoes"], resp_v)
+        self.assertIn("immutable", resp["Cache-Control"])
+
+    def test_달_원도만_판이_있고_Trek_은_없다(self):
+        from viewer import moonmap
+        with mock.patch.object(moonmap, "data_file", return_value=None):
+            self.assertEqual(views.tile_versions("moon"), {"orig": ""})
+        self.assertEqual(set(views.tile_versions("map")), {"bed", "ice"})
+
+    def test_화면이_판을_싣는다(self):
+        page = self.client.get(reverse("viewer:map")).content.decode()
+        self.assertIn('<script id="tile-versions" type="application/json">', page)

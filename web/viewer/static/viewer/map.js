@@ -22,6 +22,9 @@
   // 자리표로 두고 넘긴다 — 영어는 말 차례가 달라 이어 붙이면 어색하다.
   var LANG = document.documentElement.lang === "en" ? "en" : "ko";
   var I18N = JSON.parse((document.getElementById("i18n-data") || {}).textContent || "{}");
+  // 화면이 주소를 짓는 우리 타일의 판 (wetherilli 183) — `?v=` 를 붙이면 서버가 길게(immutable) 캐시하게 한다. 판이 바뀌면 주소가 바뀐다
+  var TILE_V = JSON.parse((document.getElementById("tile-versions") || {}).textContent || "{}");
+  function vq(kind) { return TILE_V[kind] ? "?v=" + TILE_V[kind] : ""; }
 
   function T(text, vars) {
     var out = (LANG === "en" && I18N[text]) || text;
@@ -90,7 +93,9 @@
                  home: [-750000, -3450000, 950000, -550000],
                  basemap: "eox_s2", places: "64.176, -51.736 · Nuuk",
                  base: ["grl_g500_lithostr_search", "lithologies"],
-                 first: "grl_g500_lithostr_search" },
+                 first: "grl_g500_lithostr_search",
+                 // 화석 산지·화산·지진·고생태 산지는 북극해에 하나로 두고 빌린다 (wetherilli 185)
+                 borrow: { arctic_ocean: ["earth"] } },
     antarctica: { title: "남극", proj: "EPSG:3031", center: [0, -90], zoom: 1, vworld: false,
                   home: [-2800000, -2400000, 2900000, 2500000],
                   basemap: "esri_antarctic", forgetOldView: true,
@@ -109,7 +114,8 @@
                  home: [1200000, -1704000, 1270000, -1634000],
                  basemap: "eox_s2",
                  base: ["janmayen:units", "janmayen:lines", "janmayen:vents"],
-                 first: ["janmayen:units", "janmayen:lines", "janmayen:vents"] },
+                 first: ["janmayen:units", "janmayen:lines", "janmayen:vents"],
+                 borrow: { arctic_ocean: ["earth"] } },
     // ── 스발바르·북극 (devlog 021) ──
     // 스발바르는 노르웨이 극지연구소(NPI)의 지도 서버를 중계한다 — 타일은 3413 으로
     // 곧장 받는다(`npolarSource`). `places` 면 찾기 칸이 NPI 지명을 뒤진다.
@@ -122,8 +128,8 @@
                 base: ["npolar:svalbard_units", "npolar:svalbard_faults", "npolar:svalbard_paper"],
                 first: "npolar:svalbard_units",
                 // 북극해의 해저 지질(EMODnet)을 빌려 보인다 — 스발바르를 둘러싼 바다다. 묶음(`includes`)으로 만들면
-                // KPDC 의 북극해 자료까지 따라와서, 상류 하나만 빌린다 (wetherilli 135)
-                borrow: { arctic_ocean: ["emodnet"] } },
+                // KPDC 의 북극해 자료까지 따라와서, 상류 하나만 빌린다 (wetherilli 135). 지구 자료 점도 (wetherilli 185)
+                borrow: { arctic_ocean: ["emodnet", "earth"] } },
     // ── 북극해 (devlog 076) ──
     // 스발바르·그린란드 탭 밖의 북극 — 지금은 KPDC 자료(아라온의 축치해·베링해 항해, 캐나다
     // 케임브리지베이, 시베리아·스칸디나비아 관측소)뿐이다. 3413 은 경도 -45° 가 아래라 베링 해협이
@@ -142,7 +148,8 @@
                     basemap: "eox_terrain", example: "69.649, 18.956 · Tromsø",
                     base: ["ngu:Berggrunn_nasjonal_bergartsenheter", "ngu:Berggrunn_regional_hovedbergarter",
                            "gtk:kalliopera_1m_kivilajiseurueet", "gtk:Litologiset_yksiköt_200k25132"],
-                    first: ["ngu:Berggrunn_nasjonal_bergartsenheter", "gtk:kalliopera_1m_kivilajiseurueet"] },
+                    first: ["ngu:Berggrunn_nasjonal_bergartsenheter", "gtk:kalliopera_1m_kivilajiseurueet"],
+                    borrow: { arctic_ocean: ["earth"] } },
     arctic: { title: "북극", proj: "EPSG:3413", center: [-20.0, 76.0], zoom: 3, vworld: false,
               includes: ["greenland", "svalbard", "jan_mayen", "arctic_ocean", "fennoscandia"],
               home: [-612000, -3344000, 1380000, -212000],
@@ -225,6 +232,14 @@
                       "gsni:5"],
                first: "gsi:1m:IE_GSI_GSNI_Bedrock_Geology_1M_IE32_ITM",
                borrow: { uk: ["egdi", "emodnet"], arctic_ocean: ["emodnet"] } },
+    // ── 남미 (wetherilli 188) ──
+    // SGC 가 내는 남미 1:500만(CGMW 2019)이 대륙 바탕이고 콜롬비아 1:50만(2023)을 얹는다. 나라 판(브라질·페루 …)이 늘면
+    // 나라 탭과 묶음으로 가른다 — 유럽처럼
+    south_america: { title: "남미", proj: "EPSG:3857", center: [-60.0, -15.0], zoom: 3, vworld: false,
+                     home: [-9128198, -7558416, -3784863, 1516914],
+                     basemap: "eox_terrain", example: "4.711, -74.072 · Bogotá",
+                     base: ["sgc:sa:8", "sgc:co:3"],
+                     first: "sgc:sa:8" },
     europe: { title: "유럽", proj: "EPSG:3857", center: [0.0, 50.0], zoom: 5, vworld: false,
               includes: ["uk", "ireland", "france", "germany", "spain"],
               home: [-1225000, 4232000, 1781000, 8626000],
@@ -288,7 +303,7 @@
     return g.region === "antarctica" && g.layers.length;
   });
   //: 스발바르·북극·일본·중국도 카탈로그에 레이어군이 하나도 없으면 "준비 중" 이다 (씨앗을 안 넣은 DB)
-  ["svalbard", "arctic", "arctic_ocean", "fennoscandia", "japan", "china", "taiwan", "uk", "france", "germany", "spain", "ireland", "europe"].forEach(function (key) {
+  ["svalbard", "arctic", "arctic_ocean", "fennoscandia", "japan", "china", "taiwan", "uk", "france", "germany", "spain", "ireland", "europe", "south_america"].forEach(function (key) {
     if (!REGIONS[key]) return;            // 정적 판이 싣지 않은 지역
     var keys = REGIONS[key].includes || [key];
     REGIONS[key].pending = !catalog.some(function (g) {
@@ -324,6 +339,49 @@
     return Math.log2(MERC_RES0 * Math.cos(lat * Math.PI / 180) / resolution);
   }
   var addedRegions = ["korea"];
+
+  // ── 공유 링크 (wetherilli 189) ──
+  // 주소의 해시(`share.js`)로 들어오면 그 지역·자리·레이어·배경을 덧층에 깔고 연다. 아래의 기억(지역·자리·레이어·배경)은 모두
+  // `STATE` 를 거친다 — 링크로 연 동안에는 덧층에만 쓰고 그 사람의 localStorage 는 건드리지 않는다. 실리지 않은 지역(정적 판)은
+  // 링크를 버리고 늘 하던 대로 연다. 레이어·배경은 되살릴 때 카탈로그에 없으면 조용히 건너뛴다(`restoreState`·`savedBasemap`)
+  var SHARED = window.GSMShare ? GSMShare.read() : null;
+  if (SHARED && !(SHARED.r && REGIONS[SHARED.r])) SHARED = null;
+  var STATE = window.GSMShare ? GSMShare.store(SHARED && sharedSeed(SHARED)) : null;
+  function sharedSeed(q) {
+    var r = q.r, key = function (name) { return r === "korea" ? name : name + "." + r; };
+    var seed = { "gsm.region": r };
+    try {
+      var kept = JSON.parse(localStorage.getItem("gsm.regions") || "[]") || [];
+      seed["gsm.regions"] = JSON.stringify(kept.indexOf(r) >= 0 || r === "korea" ? kept : kept.concat([r]));
+    } catch (e) { seed["gsm.regions"] = JSON.stringify(r === "korea" ? [] : [r]); }
+    var c = (q.c || "").split(",").map(Number);
+    if (c.length === 2 && isFinite(c[0]) && isFinite(c[1]) && isFinite(+q.z)) {
+      seed[key("gsm.view")] = JSON.stringify({ lon: c[0], lat: c[1], zoom: +q.z, proj: "EPSG:" + (q.p || "3857") });
+    }
+    seed[key("gsm.layers")] = JSON.stringify(GSMShare.layers(q.l));
+    if (q.b) seed[key("gsm.basemap")] = q.b;
+    return seed;
+  }
+  function stored(key) {
+    if (STATE) return STATE.get(key);
+    try { return localStorage.getItem(key); } catch (e) { return null; }
+  }
+  function store(key, value) {
+    if (STATE) return STATE.set(key, value);
+    try { localStorage.setItem(key, value); } catch (e) { /* 사생활 모드 */ }
+  }
+  function unstore(key) {
+    if (STATE) return STATE.remove(key);
+    try { localStorage.removeItem(key); } catch (e) { /* 사생활 모드 */ }
+  }
+  /** 지금 보는 것의 링크 — 지역·가운데·줌·투영·켠 레이어(위가 앞)·배경. 점묶음·개인 레이어는 그 브라우저의 것이라 싣지 않는다 */
+  function shareLink() {
+    var view = map.getView(), center = toLL(view.getCenter());
+    var rows = active.filter(function (e) { return byName[e.name] && byName[e.name].upstream !== "geonavi"; });
+    return GSMShare.link({ r: region, c: center[0].toFixed(5) + "," + center[1].toFixed(5), z: view.getZoom().toFixed(2),
+                           p: view.getProjection().getCode().replace("EPSG:", ""), l: GSMShare.pack(rows),
+                           b: document.getElementById("basemap").value });
+  }
 
   function stateKey(name) {
     // 한국은 예전 열쇠 그대로 — 이 판 전에 기억해 둔 것을 잃지 않는다
@@ -641,6 +699,8 @@
     geomap: { source: geomapSource, info: geomapInfoUrl },
     grportal: { source: null, info: null },
     janmayen: { source: null, info: null },
+    // 지구 자료 점(wetherilli 185) — 화석 산지·화산·지진·고생태 산지. 점을 한 덩이로 받아 그린다(`kind: points`)
+    earth: { source: null, info: null },
     geo3al: { source: null, info: null },     // 중국 — 모양 한 덩이 (025)
     npolar: { source: npolarSource, info: wmsInfoUrl },
     // 극지연구소 KPDC 지도 서버(057) — NPI 처럼 3031 로 곧장 받는다
@@ -670,6 +730,8 @@
     igme: { source: npolarSource, info: wmsInfoUrl },
     gsi: { source: npolarSource, info: wmsInfoUrl },
     gsni: { source: npolarSource, info: wmsInfoUrl },
+    // 남미·콜롬비아 SGC(wetherilli 188) — ArcGIS WMS 를 3857 로
+    sgc: { source: npolarSource, info: wmsInfoUrl },
     phyloserver: { source: phyloserverSource, info: null },
     peninsula: { source: peninsulaSource, info: null },
     // 남극 IBCSO 자료 출처(071) — GeoMAP 과 같은 3031 격자에 우리가 잘라 둔 것
@@ -1138,14 +1200,14 @@
     title: T("Sentinel-2 위성 (EOX)"),
     note: T("EOX · Copernicus Sentinel-2 (2023). 비상업 이용만 된다. 북위 82° 위는 해안선이 거칠다 — ArcticDEM 을 쓴다"),
     regions: ["greenland", "jan_mayen", "svalbard", "arctic_ocean", "fennoscandia", "japan", "china", "taiwan", "uk", "france",
-              "germany", "spain", "ireland"],
+              "germany", "spain", "ireland", "south_america"],
     make: function () { return eoxLayer("s2cloudless-2023_3857", 16, EOX_S2); },
   };
   BASEMAPS.eox_terrain = {
     title: T("지형 음영 (EOX)"),
     note: T("EOX · OpenStreetMap. 비상업 이용만 된다. 북위 82° 위는 해안선이 거칠다 — ArcticDEM 을 쓴다"),
     regions: ["greenland", "jan_mayen", "svalbard", "arctic_ocean", "fennoscandia", "japan", "china", "taiwan", "uk", "france",
-              "germany", "spain", "ireland"],
+              "germany", "spain", "ireland", "south_america"],
     make: function () { return eoxLayer("terrain-light_3857", 13, EOX_TERRAIN); },
   };
   BASEMAPS.arcticdem = {
@@ -1281,7 +1343,8 @@
   // ── 해저 지형 — GEBCO (wetherilli 135) ──
   //
   // 온 바다의 수심과 땅의 높이를 한 장에 칠한 음영(15″ 격자, 약 450 m). 공공 도메인이고 출처만 밝힌다.
-  // 극지 배경처럼 **브라우저가 곧장 부른다** — 열쇠가 없고 CORS 가 열려 있다. 지역마다 두므로 `regions` 가 없다.
+  // **서버가 받아 담는다**(`gebco/wms/`, wetherilli 184) — 한 장에 2 초 남짓이라 두 번째부터 빠르다. 정적 판은 서버가 없어
+  // 곧장 부른다 — 열쇠가 없고 CORS 가 열려 있다. 지역마다 두므로 `regions` 가 없다.
   // 상류가 3857·4326 만 그려 주어, 극 평사도법 탭은 4326 을 받아 OpenLayers 가 옮겨 그린다(3857 은 극에서 끊긴다).
   // 한 장에 2 초 남짓 걸리고 격자가 450 m 라, 줌 9 보다 가까우면 더 묻지 않고 늘려 그린다
   var GEBCO = 'GEBCO Compilation Group (2026) <a href="https://www.gebco.net/data-products/gridded-bathymetry-data" target="_blank" rel="noopener">GEBCO 2026 Grid</a>';
@@ -1302,7 +1365,7 @@
     return new ol.layer.Tile({
       opacity: 0.9,
       source: new ol.source.TileWMS({
-        url: "https://wms.gebco.net/mapserv",
+        url: STATIC ? "https://wms.gebco.net/mapserv" : BASE + "gebco/wms/",
         // 1.1.1 이면 4326 도 경도가 먼저다
         params: { LAYERS: name, VERSION: "1.1.1", FORMAT: "image/png", TILED: true },
         projection: code,
@@ -1463,13 +1526,15 @@
   }
 
   /** NASA GIBS 극지 WMTS. 격자는 3413·3031 이 같다 — 원점 (-4194304, 4194304),
-   *  512 픽셀, 줌 0 이 8192 m. `500m` 격자는 줌 4 까지다. */
+   *  512 픽셀, 줌 0 이 8192 m. `500m` 격자는 줌 4 까지다. 서버가 같은 경로를 받아 담는다(`gibs/`, wetherilli 184) —
+   *  정적 판만 곧장 부른다 */
   function gibsLayer(epsg, name, maxZoom) {
     var resolutions = [];
     for (var z = 0; z <= maxZoom; z++) resolutions.push(8192 / Math.pow(2, z));
     return new ol.layer.Tile({
       source: new ol.source.XYZ({
-        url: "https://gibs.earthdata.nasa.gov/wmts/epsg" + epsg + "/best/" + name + "/default/500m/{z}/{y}/{x}.jpeg",
+        url: STATIC ? "https://gibs.earthdata.nasa.gov/wmts/epsg" + epsg + "/best/" + name + "/default/500m/{z}/{y}/{x}.jpeg"
+                    : BASE + "gibs/" + epsg + "/" + name + "/{z}/{y}/{x}.jpeg",
         projection: "EPSG:" + epsg,
         tileGrid: new ol.tilegrid.TileGrid({
           extent: [-4194304, -4194304, 4194304, 4194304],
@@ -1515,7 +1580,7 @@
     for (var z = 0; z <= 6; z++) resolutions.push(width / GEOMAP_GRID.tileSize / Math.pow(2, z));
     return new ol.layer.Tile({
       source: new ol.source.XYZ({
-        url: BASE + "ibcso/" + which + "/{z}/{x}/{y}.webp",
+        url: BASE + "ibcso/" + which + "/{z}/{x}/{y}.webp" + vq(which),
         projection: "EPSG:3031",
         tileGrid: new ol.tilegrid.TileGrid({
           extent: GEOMAP_GRID.extent,
@@ -1642,7 +1707,7 @@
       map.getLayers().insertAt(0, baseLayer);
     }
     // 배경도 지역마다 따로 기억한다 — 한국의 VWorld 는 그린란드에 없다
-    try { localStorage.setItem(stateKey("gsm.basemap"), key); } catch (e) { /* 사생활 모드 */ }
+    store(stateKey("gsm.basemap"), key);
   }
 
   function labelsOn() {
@@ -1662,7 +1727,7 @@
 
   function savedBasemap() {
     try {
-      var key = localStorage.getItem(stateKey("gsm.basemap"));
+      var key = stored(stateKey("gsm.basemap"));
       if (key && BASEMAPS[key]) return key;
     } catch (e) { /* 사생활 모드 */ }
     // 극지는 지역이 고른 배경으로 시작한다. 상류 지질도가 한국처럼 지명·
@@ -1945,7 +2010,7 @@
       if (byName[e.name] && byName[e.name].upstream === "geonavi") out.row = geonaviSaved(byName[e.name]);
       return out;
     });
-    try { localStorage.setItem(stateKey("gsm.layers"), JSON.stringify(rows)); } catch (e) { /* 사생활 모드 */ }
+    store(stateKey("gsm.layers"), JSON.stringify(rows));
   }
 
   /** 보던 자리는 **위경도와 줌, 그리고 그 줌을 잰 투영**으로 둔다. 줌은
@@ -1955,11 +2020,11 @@
     var center = toLL(view.getCenter());
     var state = { lon: +center[0].toFixed(5), lat: +center[1].toFixed(5),
                   zoom: +view.getZoom().toFixed(2), proj: view.getProjection().getCode() };
-    try { localStorage.setItem(stateKey("gsm.view"), JSON.stringify(state)); } catch (e) { /* 사생활 모드 */ }
+    store(stateKey("gsm.view"), JSON.stringify(state));
   }
 
   function readJson(key) {
-    try { return JSON.parse(localStorage.getItem(key) || "null"); } catch (e) { return null; }
+    try { return JSON.parse(stored(key) || "null"); } catch (e) { return null; }
   }
 
   /** 기억한 것이 있으면 되살리고 true. 처음 온 사람이면 false. */
@@ -1970,10 +2035,8 @@
     var savedProj = view && view.proj || "EPSG:3857";
     if (view && savedProj !== code && !view.proj && REGIONS[region].forgetOldView) {
       // 처음 온 것처럼 연다 — 기억을 지워야 대표 레이어도 켜진다
-      try {
-        localStorage.removeItem(stateKey("gsm.view"));
-        localStorage.removeItem(stateKey("gsm.layers"));
-      } catch (e) { /* 사생활 모드 */ }
+      unstore(stateKey("gsm.view"));
+      unstore(stateKey("gsm.layers"));
       return false;
     }
     if (view && isFinite(view.lon) && isFinite(view.lat) && isFinite(view.zoom)) {
@@ -2134,8 +2197,10 @@
   //: 상류의 짧은 이름 — 기관 이름이라 옮기지 않는다
   var UPSTREAM_TAGS = {
     kigam: "KIGAM", vworld: "VWorld", geus: "GEUS", grportal: "GRL", npolar: "NPI", janmayen: "NPI",
-    gsj: "GSJ", gsitile: "GSIJ", geonavi: "GSJ", ccop: "CCOP", gsmma: "GSMMA", emodnet: "EMOD", ngu: "NGU", gtk: "GTK", bgs: "BGS", brgm: "BRGM", egdi: "EGDI", bgr: "BGR", igme: "IGME", gsi: "GSI", gsni: "GSNI", geomap: "GeoMAP", geo3al: "USGS", kopri: "KOPRI", pgc: "PGC", ibcso: "IBCSO",
+    gsj: "GSJ", gsitile: "GSIJ", geonavi: "GSJ", ccop: "CCOP", gsmma: "GSMMA", emodnet: "EMOD", ngu: "NGU", gtk: "GTK", bgs: "BGS", brgm: "BRGM", egdi: "EGDI", bgr: "BGR", igme: "IGME", gsi: "GSI", gsni: "GSNI", sgc: "SGC", geomap: "GeoMAP", geo3al: "USGS", kopri: "KOPRI", pgc: "PGC", ibcso: "IBCSO",
     phyloserver: "LAB", peninsula: "LAB",
+    // 지구 자료 점(wetherilli 185) — 기관이 넷이라 딱지는 하나로 두고 이름은 레이어 제목이 적는다
+    earth: "EARTH",
   };
   var UPSTREAM_NAMES = {
     kigam: T("한국지질자원연구원"), vworld: T("브이월드(국토교통부)"), geus: T("덴마크·그린란드 지질조사소"), grportal: T("그린란드 정부 포털"),
@@ -2145,9 +2210,11 @@
     ngu: T("노르웨이 지질조사소"), gtk: T("핀란드 지질조사소"),
     bgs: T("영국 지질조사소"), brgm: T("프랑스 지질광물조사소"), egdi: "EGDI (EuroGeoSurveys)",
     bgr: T("독일 연방 지구과학·자원청"), igme: T("스페인 지질광물연구소"), gsi: T("아일랜드 지질조사소"),
+    sgc: T("콜롬비아 지질조사소"),
     gsni: T("북아일랜드 지질조사소"),
     geomap: "GeoMAP (SCAR)", geo3al: T("미국 지질조사국"), kopri: T("극지연구소"), pgc: T("미네소타대 극지공간정보센터"),
     ibcso: "IBCSO", phyloserver: T("연구실 자료"), peninsula: T("연구실 자료"),
+    earth: T("온 지구 화면에 모아 둔 자료 — PBDB·GVP·USGS·Neotoma"),
   };
 
   function upstreamOf(name) { return (byName[name] && byName[name].upstream) || "kigam"; }
@@ -3370,7 +3437,13 @@
   // 아래 가운데 판에 그린다. 표고는 타일로만 읽는다 — 일본은 국토지리원, 나머지(극지도)는 AWS Terrarium. 점 사이에 맞춘 줌이라
   // 긴 선은 거칠다. 그래프 위를 훑으면 그 자리를 지도에 찍는다
   var PROFILE = { W: 640, H: 170, L: 50, R: 10, T: 10, B: 22 };
-  var profileSeq = 0, profileData = null, profileSource = null;
+  var profileSeq = 0, profileData = null, profileSource = null, profileBand = null;
+  // 지질 띠 (wetherilli 180) — 켠 레이어 가운데 맨 위의, 우리 파일로 그리는 것(`band`)만. 상류뿐인 곳은 띠가 없다
+  function bandLayer() {
+    if (STATIC || !window.GSMBand) return null;
+    var top = active.filter(function (e) { return e.layer.getVisible() && byName[e.name] && byName[e.name].band; })[0];
+    return top ? top.name : null;
+  }
   function profileMark(ll) {
     if (!profileSource) {
       profileSource = new ol.source.Vector();
@@ -3391,8 +3464,10 @@
   function showProfile(coords) {
     var seq = ++profileSeq, box = document.getElementById("profile");
     profileData = null;
+    profileBand = null;
     box.hidden = false;
     document.getElementById("profile-svg").innerHTML = "";
+    if (window.GSMBand) GSMBand.reset(document.getElementById("profile-svg"), PROFILE);
     document.getElementById("profile-sum").textContent = "";
     document.getElementById("profile-read").textContent = T("높이를 읽는 중…");
     var length = ol.sphere.getLength(new ol.geom.LineString(coords), { projection: "EPSG:4326" });
@@ -3401,7 +3476,19 @@
     var line = coords.map(function (c) { return c[0].toFixed(5) + "," + c[1].toFixed(5); }).join(";");
     fetch(BASE + "elevation/profile/?line=" + encodeURIComponent(line) + "&n=" + n)
       .then(function (r) { if (!r.ok) throw new Error(r.status); return r.json(); })
-      .then(function (d) { if (seq === profileSeq) drawProfile(d); })
+      .then(function (d) {
+        if (seq !== profileSeq) return;
+        drawProfile(d);
+        var layer = bandLayer();
+        if (!layer || !profileData) return;
+        GSMBand.load(BASE, layer, line, n).then(function (band) {
+          if (seq !== profileSeq || !band || !profileData) return;
+          profileBand = band;
+          GSMBand.draw(document.getElementById("profile-svg"), PROFILE, profileData.X, d, band, T("지질"));
+          profileData.read = T("{read} · 지질 띠 — {layer}", { read: profileData.read, layer: layerTitle(layer) });
+          document.getElementById("profile-read").textContent = profileData.read;
+        });
+      })
       .catch(function () { if (seq === profileSeq) document.getElementById("profile-read").textContent = T("높이를 읽지 못했다"); });
   }
   function asHeight(m) { return Math.round(m).toLocaleString() + " m"; }
@@ -3472,8 +3559,9 @@
         dot.setAttribute("cx", cx); dot.setAttribute("cy", profileData.Y(d.elev[best]).toFixed(1));
         dot.setAttribute("visibility", "visible");
       } else dot.setAttribute("visibility", "hidden");
-      document.getElementById("profile-read").textContent = T("거리 {d} · 높이 {h}", {
-        d: asLength(d.dist[best]), h: d.elev[best] === null ? "—" : asHeight(d.elev[best]) });
+      var unit = window.GSMBand ? GSMBand.unitAt(profileBand, best) : "";
+      var at = { d: asLength(d.dist[best]), h: d.elev[best] === null ? "—" : asHeight(d.elev[best]), unit: unit };
+      document.getElementById("profile-read").textContent = unit ? T("거리 {d} · 높이 {h} · {unit}", at) : T("거리 {d} · 높이 {h}", at);
       profileMark([d.lon[best], d.lat[best]]);
     });
     svg.addEventListener("mouseleave", function () {
@@ -3519,7 +3607,9 @@
   /** 점 레이어 한 덩이의 주소. 정적 판은 구워 둔 파일 `points/<상류>/<이름>.json` — 물음(`?layer=`)을 파일로 둘 수
    *  없어서다. 얀마옌·극지연구소처럼 언어마다 답이 다른 것은 영어판 `.en.json` 이 따로 있다 (wetherilli 160·165) */
   function pointsUrl(name) {
-    if (!STATIC) return BASE + "points/?layer=" + encodeURIComponent(name) + "&lang=" + LANG;
+    // 판이 있는 덩이(지구 자료 점, wetherilli 185)는 `&v=` 를 붙인다 — 판이 같으면 브라우저가 오래 들고 있다
+    var ver = byName[name] && byName[name].version;
+    if (!STATIC) return BASE + "points/?layer=" + encodeURIComponent(name) + "&lang=" + LANG + (ver ? "&v=" + encodeURIComponent(ver) : "");
     var en = LANG === "en" && staticBaked("points")[name];
     return BASE + "points/" + name.replace(":", "/") + (en ? ".en" : "") + ".json";
   }
@@ -4145,6 +4235,10 @@
         ? new ol.style.RegularShape({ points: 4, radius: r + 1.5, angle: 0, fill: fill, stroke: stroke })
         : spec.shape === "square"
         ? new ol.style.RegularShape({ points: 4, radius: r + 1, angle: Math.PI / 4, fill: fill, stroke: stroke })
+        // 홀로세 화산(wetherilli 185) — 온 지구 화면처럼 세모
+        : spec.shape === "triangle"
+        ? new ol.style.RegularShape({ points: 3, radius: r + 1.5, angle: 0, fill: fill,
+                                      stroke: new ol.style.Stroke({ color: "rgba(30,20,20,0.9)", width: far ? 0.6 : 1 }) })
         : new ol.style.Circle({ radius: r, fill: fill, stroke: stroke });
       style = new ol.style.Style({ image: image });
     }
@@ -4173,7 +4267,7 @@
           esc(r.color || "#888") + '" stroke-width="' + (r.shape === "dash" ? '1.6" stroke-dasharray="6 4' : "2.5") + '"/></svg>';
       } else if (row.style === "class") {
         sw = document.createElement("span");
-        sw.className = "sw " + ({ square: "box", star: "star", diamond: "diamond" }[r.shape] || "dot");
+        sw.className = "sw " + ({ square: "box", star: "star", diamond: "diamond", triangle: "triangle" }[r.shape] || "dot");
         sw.style.background = r.color || "#888";
       } else {
         sw = document.createElement("span");
@@ -4198,7 +4292,9 @@
       a.href = row.source;
       a.target = "_blank";
       a.rel = "noopener noreferrer";
-      a.textContent = row.upstream === "geo3al"
+      // 지구 자료 점(wetherilli 185)처럼 서버가 원본 자료의 글(조건 포함)을 적어 주면 그것을
+      a.textContent = row.sourceLabel ? T(row.sourceLabel)
+        : row.upstream === "geo3al"
         ? T("원본 자료 — USGS geo3al (OFR 97-470F). 연구실 내부용, 재배포 금지")
         : row.upstream === "kopri" ? T("원본 자료 — 극지연구소 KPDC")
         // 그린란드 포털의 면·갈래 레이어(wetherilli 089) — 이용 조건이 적혀 있지 않다(019)
@@ -5624,6 +5720,17 @@
       var save = iconButton("⤓", T("GeoJSON 으로 내려받는다"), false, function () {
         location.href = BASE + "pointsets/" + ps.id + "/geojson/?download=1";
       });
+      // CSV — 엑셀로 연다. 우리 파일에서 읽는 값(지질 단위·지각 두께·가까운 화석 산지)을 열로 붙인다 (wetherilli 190).
+      // 값을 읽는 점은 서버의 `pointvalues.LIMIT`(2 000)까지 — 넘으면 값 없이 받는다고 묻는다
+      var csv = iconButton("CSV", T("CSV 로 내려받는다 — 우리 파일에서 읽는 값을 열로 붙인다"), !ps.count, function () {
+        var extras = "all";
+        if ((ps.count || 0) > 2000) {
+          if (!confirm(T("점이 {n} 개라 붙일 값은 빼고 내려받는다 — 값은 {limit} 개까지 읽는다.", { n: ps.count, limit: 2000 }))) return;
+          extras = "none";
+        }
+        location.href = BASE + "pointsets/" + ps.id + "/csv/?extras=" + extras;
+      });
+      csv.classList.add("wide");
 
       var del = iconButton("×", T("지운다"), false, function () {
         if (!confirm(T("'{name}' 을 지운다.", { name: ps.name }))) return;
@@ -5643,7 +5750,7 @@
       label.append(name, count);
       li.append(box, swatch, label, zoom, elev);
       if (place) li.append(place);
-      li.append(save, del);
+      li.append(save, csv, del);
       host.appendChild(li);
     });
   }
@@ -5665,11 +5772,11 @@
 
   function readRegions() {
     try {
-      var added = JSON.parse(localStorage.getItem("gsm.regions") || "null");
+      var added = JSON.parse(stored("gsm.regions") || "null");
       if (Array.isArray(added)) {
         addedRegions = ["korea"].concat(added.filter(function (r) { return REGIONS[r] && r !== "korea"; }));
       }
-      var saved = localStorage.getItem("gsm.region");
+      var saved = stored("gsm.region");
       if (saved && addedRegions.indexOf(saved) >= 0) region = saved;
     } catch (e) { /* 사생활 모드 */ }
     // 소개 화면의 "이 지도로" 가 지역을 주소로 넘긴다(`?region=`). 탭이 없으면 더하고, 주소에서는
@@ -5687,8 +5794,8 @@
 
   function saveRegions() {
     try {
-      localStorage.setItem("gsm.regions", JSON.stringify(addedRegions.slice(1)));
-      localStorage.setItem("gsm.region", region);
+      store("gsm.regions", JSON.stringify(addedRegions.slice(1)));
+      store("gsm.region", region);
     } catch (e) { /* 사생활 모드 */ }
   }
 
@@ -6834,9 +6941,56 @@
     var later = false;
     try { later = sessionStorage.getItem("gsm.key.later") === "1"; } catch (e) { /* 사생활 모드 */ }
     if (!later && STATIC_KEYS.some(function (k) { return !readKey(k.name); })) openKeyDialog();
+    // 넣어 둔 KIGAM 키가 받히는지 한 장 물어 본다. 휴대폰에서는 알림 줄이 접힌 패널 안이라, 안 받히면 키 창을 띄워 까닭을 보인다
+    var kigam = readKey("kigam");
+    if (kigam) probeKigam(kigam).then(function (result) {
+      if (result === "ok") return;
+      if (box) {
+        var why = document.createElement("span");
+        why.className = "key-check";
+        box.appendChild(why);
+        showVerdict(why, result);
+      }
+      var shown = document.querySelector("#key-dialog .key-check");
+      if (shown) showVerdict(shown, result);
+      else openKeyDialog({ verdict: result });
+    });
   }
 
-  function openKeyDialog() {
+  /** KIGAM 이 이 키로 타일을 주는지 (wetherilli 179) — 한국 한가운데 512 타일 한 장을 화면이 묻는 것과 같은 꼴로 묻는다
+   *  (브라우저 캐시가 맞게). `<img>` 는 까닭을 말해 주지 않아, 안 받히면 같은 주소를 `no-cors` fetch 로 한 번 더 묻는다 —
+   *  응답이 오면(내용은 못 읽는다) 서버가 키를 거절한 것이고(KIGAM 은 틀린 키에 500 HTML 을 준다), 오지 않으면 망·인증서에서
+   *  끊긴 것이다. 결과는 "ok"·"refused"·"unreached" */
+  function probeKigam(key) {
+    var url = KIGAM_OPENAPI + "?" + new URLSearchParams({
+      REQUEST: "GetMap", SERVICE: "WMS", VERSION: "1.3.0", FORMAT: "image/png", STYLES: "", TRANSPARENT: "true",
+      LAYERS: "L_50K_Geology_Map", TILED: "true", key: key, WIDTH: "512", HEIGHT: "512", CRS: "EPSG:3857",
+      BBOX: "13775786.985667605,4383204.9499851465,14401959.121379768,5009377.08569731",
+    });
+    return new Promise(function (resolve) {
+      var img = new Image();
+      var timer = setTimeout(function () { img.onload = img.onerror = null; resolve("unreached"); }, 20000);
+      img.onload = function () { clearTimeout(timer); resolve("ok"); };
+      img.onerror = function () {
+        clearTimeout(timer);
+        if (!window.fetch) { resolve("refused"); return; }
+        fetch(url, { mode: "no-cors", cache: "no-store", referrerPolicy: "no-referrer" })
+          .then(function () { resolve("refused"); }, function () { resolve("unreached"); });
+      };
+      img.src = url;
+    });
+  }
+
+  function showVerdict(el, result) {
+    el.hidden = false;
+    el.classList.add("bad");
+    el.textContent = result === "refused"
+      ? T("KIGAM 이 이 키로 지질도를 주지 않았다. 키를 다시 붙여 넣어 본다 — 휴대폰에서 손으로 옮겨 적으면 한 글자만 틀려도 안 된다. 키를 받을 때 쓸 곳(IP·주소)을 적었다면 이 기기가 그 밖인지도 본다.")
+      : T("KIGAM(data.kigam.re.kr)에 닿지 못했다. 이 망(회사·학교 Wi-Fi, VPN, 광고 차단)이 막거나 기기가 인증서를 받지 않는다 — 다른 망(모바일 데이터)에서 열어 본다.");
+  }
+
+  function openKeyDialog(opts) {
+    if (opts && opts.type) opts = null;          // 단추에서 불리면 이벤트가 온다
     if (document.getElementById("key-dialog")) return;
     var back = document.createElement("div");
     back.id = "key-dialog";
@@ -6902,17 +7056,35 @@
     save.type = "button";
     save.className = "btn";
     save.textContent = T("저장");
+    var verdict = document.createElement("p");
+    verdict.className = "key-check";
+    verdict.hidden = true;
     save.addEventListener("click", function () {
       var changed = false;
+      var kigam = "";
       STATIC_KEYS.forEach(function (k) {
-        var value = inputs[k.name].value.trim();
+        // 휴대폰에서 붙여 넣으면 앞뒤 빈칸·줄바꿈·폭 없는 문자가 끼기도 한다 — 키에는 빈칸이 없다 (wetherilli 179)
+        var value = inputs[k.name].value.replace(/[\s\u200B-\u200D\uFEFF]+/g, "");
         if (value) { writeKey(k.name, value, !check.checked); changed = true; }
+        if (value && k.name === "kigam") kigam = value;
       });
-      if (changed) location.reload();          // 배경·찾기·타일이 처음부터 그 키로 서게
-      else back.remove();
+      if (!changed) { back.remove(); return; }
+      if (!kigam) { location.reload(); return; }   // 배경·찾기·타일이 처음부터 그 키로 서게
+      // KIGAM 키는 다시 열기 전에 한 장 물어 본다 — 안 받히면 까닭을 이 창에 띄우고 머문다
+      save.disabled = true;
+      verdict.hidden = false;
+      verdict.textContent = T("KIGAM 에 키를 물어 보는 중…");
+      probeKigam(kigam).then(function (result) {
+        if (result === "ok") { location.reload(); return; }
+        save.disabled = false;
+        save.textContent = T("그래도 연다");
+        save.onclick = function () { location.reload(); };
+        showVerdict(verdict, result);
+      });
     });
     buttons.append(clear, later, save);
-    card.append(note, forget, buttons);
+    card.append(note, forget, verdict, buttons);
+    if (opts && opts.verdict) showVerdict(verdict, opts.verdict);
     back.appendChild(card);
     document.body.appendChild(back);
     var first = STATIC_KEYS.filter(function (k) { return !readKey(k.name); })[0] || STATIC_KEYS[0];
@@ -6952,6 +7124,12 @@
   // 무엇이든 보이는 편이 낫고, **5만이 실제로 가장 많이 보는 축척이다.**
   // 기억한 것이 있으면 그것을 따른다 — 다 끄고 떠났으면 다 꺼진 채로 연다.
   if (!active.length && !readJson(stateKey("gsm.layers"))) openFirstLayer();
+  // 공유 링크 (wetherilli 189) — 단추와, 링크로 열었다는 띠
+  if (window.GSMShare) {
+    GSMShare.wire(document.getElementById("tool-share"), shareLink,
+                  { done: T("복사했다"), ask: T("이 링크를 복사한다") });
+    if (SHARED) GSMShare.notice(T("링크로 연 화면이다 — 여기서 바꾼 것은 이 브라우저에 기억하지 않는다"), T("내 화면으로"));
+  }
 
   // ── 대기 화면 ────────────────────────────────────────────────────
   //

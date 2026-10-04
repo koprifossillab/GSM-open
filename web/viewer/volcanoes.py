@@ -15,7 +15,7 @@ from pathlib import Path
 
 from django.conf import settings
 
-from . import paleo
+from . import arcpoints, paleo
 from .i18n import msg, t
 
 FILE = "gvp_volcanoes.json"
@@ -135,3 +135,17 @@ def year_text(last):
     if last is None:
         return ""
     return msg("기원전 {n} 년", n=-last) if last < 0 else msg("{n} 년", n=last)
+
+
+def search(query: str, limit: int = 5) -> list:
+    """`query` 가 이름에 든 화산 (wetherilli 187). 같은 이름 → 앞이 같은 것 → 들어 있는 것 차례."""
+    d, q = data(), arcpoints.fold(query)
+    if d is None or not q:
+        return []
+    ranked = []
+    for r in d["rows"]:
+        name = arcpoints.fold(r["name"])
+        if q in name:
+            ranked.append((0 if name == q else 1 if name.startswith(q) else 2, len(name), r))
+    ranked.sort(key=lambda h: h[:2])
+    return [r for _, _, r in ranked[:limit]]

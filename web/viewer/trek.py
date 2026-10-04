@@ -576,8 +576,30 @@ _VALUE_IDS = (
 )
 
 
+#: 화성 (wetherilli 192) — 값을 주는 ImageServer 는 표고뿐이다. TES 광물·열관성·알베도는 WMTS 그림만 있고(`getLayerServices`
+#: 가 WMTS 하나만 준다, 2026-10-04) ImageServer 목록(`trekarcgis`, 화성은 이 뿌리 하나)에도 없다 — 값을 읽지 못해 뺐다.
+#: 그래서 표고를 그린 판(색 음영·음영·MOLA 합본)을 켜면 MOLA–HRSC 200 m 의 높이를, 1 m DEM 판은 그 DEM 의 높이를 낸다.
+#: 판 밖은 상류가 400 오류(JSON)를 주어 빈 값이 된다. 갈래 → `VALUES` 와 같은 꼴
+MARS_VALUES = {
+    "mars_elev": ("trekarcgis", "Mars_MOLA_blend200ppx_HRSC_DEM_clon0dd_200mpp_lzw", "높이 — 화성 기준면(아레오이드)", "m", 1,
+                  -9000, 22000, 0, "MOLA–HRSC 200 m"),
+    "mars_gale": ("trekarcgis", "Gale_DEM_SMG_1m", "높이 — 화성 기준면(아레오이드)", "m", 1, -9000, 22000, 1, "Gale HiRISE DEM 1 m"),
+    "mars_victoria": ("trekarcgis", "DEM_1m_VictoriaCrater", "높이 — 화성 기준면(아레오이드)", "m", 1, -9000, 22000, 1,
+                      "Victoria Crater HiRISE DEM 1 m"),
+}
+_MARS_VALUE_IDS = (
+    (re.compile(r"^Mars_MOLA_blend200ppx_HRSC_(Clr)?Shade_clon0dd_200mpp_lzw$"), "mars_elev"),
+    (re.compile(r"^Mars_MGS_MOLA_ClrShade_merge_global_463m$"), "mars_elev"),
+    (re.compile(r"^mola128_mola64_merge_90Nto90S_SimpleC_clon0$"), "mars_elev"),
+    (re.compile(r"^Gale_DEM_SMG_1m$"), "mars_gale"),
+    (re.compile(r"^DEM_1m_VictoriaCrater$"), "mars_victoria"),
+)
+
+
 def value_key(body: str, label: str) -> str:
-    """씨앗의 판 → 누른 자리의 값 갈래. 없으면 빈 칸. 달만."""
+    """씨앗의 판 → 누른 자리의 값 갈래. 없으면 빈 칸. 달과 화성(wetherilli 192)."""
+    if body == "mars":
+        return next((key for pattern, key in _MARS_VALUE_IDS if pattern.match(label)), "")
     if body != "moon":
         return ""
     for pattern, key in _VALUE_IDS:
@@ -589,6 +611,8 @@ def value_key(body: str, label: str) -> str:
 
 def value_at(key: str, lon: float, lat: float) -> dict:
     """`{"rows": [[이름, "16.7 wt%"], ["출처", …]]}` — 자료 밖이면 rows 가 빈다. 이름은 한국어 원문이다."""
+    if key in MARS_VALUES:
+        return _value_rows(MARS_VALUES[key], lon, lat, MARS_SR, _body_base("mars"))
     root, service, label, unit, scale, lo, hi, digits, source = VALUES[key]
     # Kaguya MI 는 남북위 50° 안뿐이다. 밖을 물으면 빈 값이 아니라 "Invalid … parameters" 오류가 온다(2026-09-30)
     if abs(lat) > VALUE_LAT.get(key, 90) or lat < VALUE_NORTH.get(key, -90):
@@ -605,6 +629,31 @@ def value_at(key: str, lon: float, lat: float) -> dict:
             continue
         if lo <= value <= hi and not math.isnan(value):
             return {"rows": [[label, f"{value:.{digits}f} {unit}".strip()], ["출처", source]]}
+    return {"rows": []}
+
+
+def _value_rows(spec, lon: float, lat: float, sr: int, base: str) -> dict:
+    """화성의 한 점 — 달의 `value_at` 과 같은 꼴. 판 밖이면 상류가 오류 JSON 을 주어 rows 가 빈다."""
+    root, service, label, unit, scale, lo, hi, digits, source = spec
+    geometry = {"points": [[round(lon, 6), round(lat, 6)]], "spatialReference": {"wkid": sr}}
+    r = _get(f"{root}/rest/services/{service}/ImageServer/getSamples", {
+        "geometry": json.dumps(geometry), "geometryType": "esriGeometryMultipoint",
+        "returnFirstValueOnly": "true", "f": "json",
+    }, base=base)
+    try:
+        data = _json(r)
+    except TrekError:
+        # 판 밖 — 1 m DEM 은 "Invalid or missing input parameters" 를 200 에 싣는다(2026-10-04). 다른 실패는 그대로 올린다
+        if r.status_code == 200 and "Invalid or missing input" in r.text:
+            return {"rows": []}
+        raise
+    for sample in data.get("samples") or []:
+        try:
+            value = float(sample.get("value")) * scale
+        except (TypeError, ValueError):
+            continue
+        if lo <= value <= hi and not math.isnan(value):
+            return {"rows": [[label, f"{value:,.{digits}f} {unit}".strip()], ["출처", source]]}
     return {"rows": []}
 
 
@@ -1311,18 +1360,49 @@ def polar_twins(body: str, delay: float = 0.0) -> dict:
     for i, root in enumerate(_SERVICE_ROOTS):
         if i and delay:
             time.sleep(delay)
-        data = _json(_get(f"{root}/rest/services", {"f": "json"}, base=_body_base(body)))
+        r = _get(f"{root}/rest/services", {"f": "json"}, base=_body_base(body))
+        if r.status_code == 404:
+            continue                # 화성은 `trekarcgis` 하나뿐이다 — 2·3 은 404 (2026-10-04, wetherilli 192)
+        data = _json(r)
         for s in data.get("services") or []:
             name = str(s.get("name") or "")
             for pole, suffix in POLES.items():
                 if name.endswith(suffix):
                     out.setdefault(name[:-len(suffix)], {})[pole] = (root, name, s.get("type") or "")
+    if body == "mars":
+        _mars_twins(out)
     return out
 
 
-def parse_polar_wmts(xml: bytes) -> dict | None:
+#: 화성 극 평면이 시작하는 위도 — 판이 이 너머까지 닿아야 극지 길을 둔다(화면의 문턱 65° 보다 넉넉히)
+MARS_POLAR_REACH = 60.0
+
+
+def _mars_twins(out: dict) -> None:
+    """화성의 극지 길 (wetherilli 192). 서비스 목록의 `_NP`·`_SP` 는 MOLA 합본 하나뿐이다(2026-10-04). 대신 둘이 있다.
+
+    - **WMTS 판은 `tiles/Mars/NP/<판>_np`** — 영상 배경(065)이 받는 꼴이다. 소문자 꼬리라 서비스 목록으로는 찾지 못한다.
+      극까지 닿는 판만 짝 후보로 둔다 — 있는지는 `probe_polar` 가 Capabilities 로 묻는다
+    - **MapServer 판은 짝이 없어도 된다.** 우리 문이 화성 극 투영(WKT, 065)으로 `export` 를 물으면 Trek 이 옮겨 그린다 —
+      SIM 3292 극 타일과 같은 길이다. 묻지 않고 그 판 자신의 서비스를 적는다(`Self`)"""
+    for e in load_catalog("mars"):
+        bbox = e.get("bbox") or [-180, -90, 180, 90]
+        poles = [p for p, reach in (("n", bbox[3] >= MARS_POLAR_REACH), ("s", bbox[1] <= -MARS_POLAR_REACH)) if reach]
+        for pole in poles:
+            if pole in out.get(e["id"], {}):
+                continue
+            if e.get("kind") == "tile":
+                out.setdefault(e["id"], {})[pole] = ("", f"{e['id']}_{pole}p", "WMTS")
+            elif e.get("kind") == "map" and e.get("ms"):
+                out.setdefault(e["id"], {})[pole] = ("", e["ms"], "Self")
+
+
+def parse_polar_wmts(xml: bytes, body: str = "moon") -> dict | None:
     """극지 판의 `WMTSCapabilities.xml` → `{"ext", "max", "box": [서, 남, 동, 북] m}`. 격자는 우리 극 격자와 같다
-    (왼쪽 위 ±1 095 930 m) — 다르면 None. 상류는 줌 0 을 가로 2·세로 1 로 적지만 실제로는 한 장이다."""
+    (왼쪽 위 ±1 095 930 m) — 다르면 None. 상류는 줌 0 을 가로 2·세로 1 로 적지만 실제로는 한 장이다.
+    화성은 Capabilities 가 왼쪽 위를 ±1 821 000 으로 잘못 적는다 — 참은 ±1 809 300 이다(065). 그래서 모서리를 보지 않고
+    범위를 우리 격자 안으로 자른다 (wetherilli 192)"""
+    half = MARS_POLAR_HALF if body == "mars" else POLAR_HALF
     try:
         root = ET.fromstring(xml)
     except ET.ParseError:
@@ -1335,15 +1415,16 @@ def parse_polar_wmts(xml: bytes) -> dict | None:
             levels.append(int(tm.findtext(f"{_OWS}Identifier")))
         except (AttributeError, TypeError, ValueError):
             continue
-        if abs(corner[0] + POLAR_HALF) > 1 or abs(corner[1] - POLAR_HALF) > 1:
+        if body != "mars" and (abs(corner[0] + half) > 1 or abs(corner[1] - half) > 1):
             return None
     try:
         lo = [float(v) for v in root.findtext(f".//{_OWS}BoundingBox/{_OWS}LowerCorner").split()]
         hi = [float(v) for v in root.findtext(f".//{_OWS}BoundingBox/{_OWS}UpperCorner").split()]
     except (AttributeError, ValueError):
-        lo, hi = [-POLAR_HALF, -POLAR_HALF], [POLAR_HALF, POLAR_HALF]
+        lo, hi = [-half, -half], [half, half]
     if not fmt.startswith("image/") or 0 not in levels:
         return None
+    lo, hi = [max(-half, v) for v in lo], [min(half, v) for v in hi]
     return {"ext": "jpg" if fmt.endswith(("jpeg", "jpg")) else fmt.split("/", 1)[1], "max": max(levels),
             "box": [round(lo[0]), round(lo[1]), round(hi[0]), round(hi[1])]}
 
@@ -1356,7 +1437,7 @@ def polar_wmts_info(body: str, name: str, pole: str) -> dict | None:
         return None
     if r.status_code != 200:
         raise TrekError(f"NASA Trek 이 받지 않았다 (status={r.status_code})")
-    return parse_polar_wmts(r.content)
+    return parse_polar_wmts(r.content, body)
 
 
 def probe_polar(body: str, twins: dict, delay: float = 0.0) -> dict:
@@ -1365,13 +1446,16 @@ def probe_polar(body: str, twins: dict, delay: float = 0.0) -> dict:
     `delay` 초 쉰다."""
     out = {}
     for i, (pole, (root, name, kind)) in enumerate(sorted(twins.items())):
+        if kind == "Self":                       # 화성 MapServer 판 자신 — 묻지 않는다 (wetherilli 192)
+            out[pole] = {"kind": "map", "ms": name}
+            continue
         if i and delay:
             time.sleep(delay)
         info = polar_wmts_info(body, name, pole)
         if info:
             out[pole] = {"kind": "tile", "name": name, **info}
-        elif kind == "MapServer":
-            out[pole] = {"kind": "map", "ms": f"{root}/rest/services/{name}/MapServer"}
+        elif kind == "MapServer" or (kind == "ImageServer" and body == "mars"):
+            out[pole] = {"kind": "map", "ms": f"{root}/rest/services/{name}/{kind}"}
     return out
 
 
@@ -1449,6 +1533,14 @@ def client_catalog(body: str) -> dict:
 _SERVICE_ROOTS = ("trekarcgis", "trekarcgis2", "trekarcgis3")
 
 
+def _service_roots(body: str) -> tuple:
+    """ArcGIS 서비스 목록의 자리 — 달·화성은 `trekarcgis*/rest/services`, 수성은 `arcgis/rest/services/mercury` 하나다
+    (`trekarcgis` 는 404, P10 · wetherilli 185)."""
+    if body == "mercury":
+        return ("arcgis/rest/services/mercury",)
+    return tuple(f"{root}/rest/services" for root in _SERVICE_ROOTS)
+
+
 def _body_base(body: str) -> str:
     """몸의 Trek 뿌리 — `trek.nasa.gov/moon`·`/mars`·`/mercury`."""
     return {"mars": settings.TREK_MARS_URL, "mercury": settings.TREK_MERCURY_URL}.get(
@@ -1469,8 +1561,8 @@ def find_mapserver(body: str, uuid: str, label: str) -> str:
             end = str(doc.get("endPoint") or "")
             if doc.get("protocol") == "ArcGISDynamic" and end.startswith(base + "/") and end.endswith("/MapServer"):
                 return end[len(base) + 1:]
-    for root in _SERVICE_ROOTS:
-        path = f"{root}/rest/services/{label}/MapServer"
+    for root in _service_roots(body):
+        path = f"{root}/{label}/MapServer"
         r = _get(path, {"f": "json"}, base=base)
         if r.status_code == 200:
             try:
@@ -1494,12 +1586,19 @@ def polar_map(body: str, label: str, pole: str) -> str:
 
 
 def map_polar_tile(body: str, ms: str, pole: str, z: int, x: int, y: int) -> bytes:
-    """극지 MapServer 짝의 타일 한 장 — 극 격자(`polar_tile_bbox`). 서비스가 제 투영(WKT)으로 읽는다(052)."""
-    w, s, e, n = polar_tile_bbox(z, x, y)
+    """극지 MapServer 짝의 타일 한 장 — 극 격자(`polar_tile_bbox`). 서비스가 제 투영(WKT)으로 읽는다(052).
+    화성은 화성 극 격자(`mars_polar_tile_bbox`)이고 투영을 WKT 로 밝힌다 — 적도 판도 Trek 이 옮겨 그린다 (wetherilli 192)"""
     op = "exportImage" if ms.endswith("/ImageServer") else "export"
+    if body == "mars":
+        w, s, e, n = mars_polar_tile_bbox(z, x, y)
+        sr = json.dumps({"wkt": MARS_POLAR_WKT[pole]}, separators=(",", ":"))
+        extra = {"bboxSR": sr, "imageSR": sr}
+    else:
+        w, s, e, n = polar_tile_bbox(z, x, y)
+        extra = {}
     return _image(_get(f"{ms}/{op}", {
         "bbox": f"{w},{s},{e},{n}", "size": f"{TILE},{TILE}",
-        "format": "png32", "transparent": "true", "f": "image",
+        "format": "png32", "transparent": "true", "f": "image", **extra,
     }, base=_body_base(body)))
 
 

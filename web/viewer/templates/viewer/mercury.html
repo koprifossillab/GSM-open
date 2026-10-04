@@ -210,6 +210,17 @@ MESSENGER 강조색의 청회색·황갈이다(map.css 의 `data-region="mercury
 <main id="map-wrap" class="moon-globe">
   {% comment %}구(Cesium)와 평면(OpenLayers)이 한 자리를 나눠 쓴다. 보이는 것은 하나다 — `moon-globe`·`moon-flat`{% endcomment %}
   <div id="globe"></div>
+  {% comment %}구의 그리기가 멈췄을 때 (온 지구의 것, wetherilli 110·186) — WebGL 문맥을 잃으면 Cesium 은 되살리지 못한다{% endcomment %}
+  <div id="render-failed" class="render-failed" role="alert" hidden>
+    <p class="rf-head">{% t "구를 더 그리지 못한다" %}</p>
+    <p>{% t "그래픽 메모리가 모자라거나 GPU 가 다시 시작되면 브라우저가 3D 그리기를 멈춘다. 켠 레이어를 줄이고 다시 연다." %}</p>
+    <p class="rf-why" id="render-failed-why"></p>
+    <div class="rf-buttons">
+      <button type="button" id="render-failed-reload">{% t "새로고침" %}</button>
+      <button type="button" id="render-failed-light" title="{% t "지형 세우기를 끄고 다시 연다" %}">{% t "가볍게 다시 연다" %}</button>
+      <button type="button" id="render-failed-flat" title="{% t "평면 지도는 구와 따로 돈다" %}">{% t "평면으로" %}</button>
+    </div>
+  </div>
   <div id="map"></div>
   <button type="button" id="panel-handle" class="panel-handle" aria-controls="panel" aria-expanded="true"
           title="{% t "패널을 접는다" %}">&lt;</button>
@@ -242,6 +253,10 @@ MESSENGER 강조색의 청회색·황갈이다(map.css 의 `data-region="mercury
       <button type="button" class="tool" id="tool-export" title="{% t "그림으로 내려받기 — 지금 보는 화면을 PNG 한 장으로. 배경·레이어·가운데·출처를 아래에 적는다" %}">
         <svg viewBox="0 0 24 24" aria-hidden="true"><rect class="stroke" x="4" y="4" width="16" height="13" rx="1.5"/><path class="stroke" d="m6.5 14 3.5-4 3 3 2-2 2.5 3"/><path class="stroke" d="M12 17v4M9.5 19l2.5 2 2.5-2"/></svg>
         <span>{% t "그림" %}</span>
+      </button>
+      <button type="button" class="tool" id="tool-share" title="{% t "링크 복사 — 보던 자리·켠 레이어·배경을 주소에 담는다" %}">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path class="stroke" d="M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7l-1.2 1.2"/><path class="stroke" d="M14 10a4 4 0 0 0-5.7 0l-3 3a4 4 0 0 0 5.7 5.7l1.2-1.2"/></svg>
+        <span>{% t "링크" %}</span>
       </button>
       <span class="tool-sep" aria-hidden="true"></span>
       <button type="button" class="tool danger" id="tool-clear" title="{% t "찍은 점과 잰 것을 모두 지운다" %}">
@@ -307,11 +322,14 @@ MESSENGER 강조색의 청회색·황갈이다(map.css 의 `data-region="mercury
 </main>
 
 <script id="i18n-data" type="application/json">{{ i18n_json|safe }}</script>
+<script id="tile-versions" type="application/json">{{ tile_versions|safe }}</script>
 <script id="pointset-data" type="application/json">{{ pointsets|safe }}</script>
 <script id="trek-data" type="application/json">{{ trek_catalog|safe }}</script>
 <script>window.CESIUM_BASE_URL = "{% static 'viewer/vendor/cesium/' %}";</script>
 <script src="{% static 'viewer/vendor/ol.js' %}"></script>
 <script src="{% static 'viewer/vendor/cesium/Cesium.js' %}"></script>
+<script src="{% static 'viewer/profile-band.js' %}?v={{ stamp|default:version }}"></script>
+<script src="{% static 'viewer/share.js' %}?v={{ stamp|default:version }}"></script>
 <script src="{% static 'viewer/mercury.js' %}?v={{ stamp|default:version }}"></script>
 </body>
 </html>

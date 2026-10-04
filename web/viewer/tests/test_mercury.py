@@ -81,6 +81,69 @@ class MercuryViews(TestCase):
         self.assertIn("Caloris Planitia", [p["name"] for p in data["results"]])
 
 
+class MercuryTrekMap(TestCase):
+    """수성의 MapServer 판 (wetherilli 185) — `mercury.js` 가 `trek/mercury/map/…` 로 묻는데 주소가 `moon|mars` 만 받아
+    판 하나가 씨앗에 들어오는 날 404 였다. 수성의 ArcGIS 뿌리(`arcgis/rest/services/mercury/`)로 간다."""
+
+    ENTRY = {"id": "Mercury_X", "kind": "map", "ms": "arcgis/rest/services/mercury/Mercury_X/MapServer"}
+
+    def setUp(self):
+        patch = override_settings(TILE_CACHE_DIR=tempfile.mkdtemp(prefix="gsm-mercury-map-"))
+        patch.enable()
+        self.addCleanup(patch.disable)
+        entry = mock.patch("viewer.trek.map_entry", side_effect=lambda body, label:
+                           self.ENTRY if body == "mercury" and label == "Mercury_X" else None)
+        entry.start()
+        self.addCleanup(entry.stop)
+
+    def test_화면이_짓는_주소가_돈다(self):
+        script = (trek.settings.REPO_DIR / "web/viewer/static/viewer/mercury.js").read_text(encoding="utf-8")
+        self.assertIn('"trek/mercury/map/"', script)
+        self.assertEqual(reverse("viewer:trek-map-tile", args=["mercury", "Mercury_X", 2, 1, 1]),
+                         "/GSM/trek/mercury/map/Mercury_X/2/1/1.png")
+        self.assertEqual(reverse("viewer:trek-map-info", args=["mercury", "Mercury_X"]),
+                         "/GSM/trek/mercury/map/Mercury_X/info/")
+        self.assertEqual(reverse("viewer:trek-map-legend", args=["mercury", "Mercury_X"]),
+                         "/GSM/trek/mercury/map/Mercury_X/legend/")
+
+    def test_타일은_수성_뿌리와_수성_좌표계로(self):
+        png = b"\x89PNG\r\n\x1a\n" + b"0" * 64
+        with mock.patch("viewer.trek.requests.get", return_value=response(ctype="image/png", content=png)) as get:
+            r = self.client.get(reverse("viewer:trek-map-tile", args=["mercury", "Mercury_X", 2, 1, 1]))
+        self.assertEqual(r.status_code, 200)
+        url, params = get.call_args[0][0], get.call_args[1]["params"]
+        self.assertEqual(url, "https://trek.nasa.gov/mercury/arcgis/rest/services/mercury/Mercury_X/MapServer/export")
+        self.assertEqual(params["bboxSR"], trek.MERCURY_SR)
+
+    def test_속성과_범례(self):
+        hits = {"results": [{"layerName": "Units", "attributes": {"OBJECTID": 1, "Unit": "ic"}}]}
+        with mock.patch("viewer.trek.requests.get", return_value=response(hits)) as get:
+            r = self.client.get(reverse("viewer:trek-map-info", args=["mercury", "Mercury_X"]),
+                                {"lon": 10, "lat": 5, "z": 3})
+        self.assertEqual(r.json()["hits"], [{"layer": "Units", "rows": [["Unit", "ic"]]}])
+        self.assertTrue(get.call_args[0][0].endswith("/mercury/Mercury_X/MapServer/identify"))
+        legend = {"layers": [{"layerName": "Units", "legend": [{"label": "ic", "imageData": "AA=="}]}]}
+        with mock.patch("viewer.trek.requests.get", return_value=response(legend)):
+            r = self.client.get(reverse("viewer:trek-map-legend", args=["mercury", "Mercury_X"]))
+        self.assertEqual(r.json()["items"][0]["label"], "ic")
+
+    def test_씨앗에_없는_판은_404(self):
+        self.assertEqual(self.client.get(reverse("viewer:trek-map-legend", args=["mercury", "Other"])).status_code, 404)
+
+    def test_서비스_찾기는_수성_뿌리에서(self):
+        asked = []
+
+        def fake(url, params=None, **kw):
+            asked.append(url)
+            body = {"layers": []} if url.endswith("arcgis/rest/services/mercury/Mercury_X/MapServer") \
+                else {"error": {"code": 404}}
+            return response(body)
+        with mock.patch("viewer.trek.requests.get", side_effect=fake):
+            self.assertEqual(trek.find_mapserver("mercury", "", "Mercury_X"),
+                             "arcgis/rest/services/mercury/Mercury_X/MapServer")
+        self.assertFalse(any("trekarcgis" in u for u in asked))
+
+
 class MercuryView(TestCase):
     """수성 화면 — 달·화성처럼 숨은 차림·몸 탭에서 들어가고, 제 아이콘·대기 화면을 쓴다."""
 

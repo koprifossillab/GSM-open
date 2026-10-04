@@ -76,6 +76,26 @@ def client_table(lang: str) -> dict:
 # ── 화면·메시지 ──────────────────────────────────────────────────────
 
 EN = {
+    # 지역 탭의 지구 자료 점 (wetherilli 185)
+    "제4기": "Quaternary", "신진기": "Neogene", "고진기": "Paleogene", "백악기": "Cretaceous", "쥐라기": "Jurassic",
+    "트라이아스기": "Triassic", "페름기": "Permian", "석탄기": "Carboniferous", "데본기": "Devonian",
+    "실루리아기": "Silurian", "오르도비스기": "Ordovician", "캄브리아기": "Cambrian", "선캄브리아": "Precambrian",
+    "원본 자료 — Paleobiology Database, CC BY 4.0": "Source — Paleobiology Database, CC BY 4.0",
+    "원본 자료 — 스미스소니언 GVP, 비상업·인용 조건": "Source — Smithsonian GVP, non-commercial use with citation",
+    "원본 자료 — USGS ComCat, 공공 영역": "Source — USGS ComCat, public domain",
+    "원본 자료 — Neotoma, CC BY 4.0": "Source — Neotoma, CC BY 4.0",
+    "화석 산지 자료를 아직 모으지 않았다 (fetch_pbdb)": "Fossil collections have not been gathered yet (fetch_pbdb)",
+    "홀로세 화산 자료를 아직 모으지 않았다 (fetch_gvp)": "Holocene volcanoes have not been gathered yet (fetch_gvp)",
+    "지진 자료를 아직 모으지 않았다 (fetch_quakes)": "Earthquakes have not been gathered yet (fetch_quakes)",
+    "고생태 산지 자료를 아직 모으지 않았다 (fetch_neotoma)": "Paleoecology sites have not been gathered yet (fetch_neotoma)",
+    "모아 둔 자료를 읽지 못했다": "Could not read the gathered data",
+    "온 지구 화면에 모아 둔 자료 — PBDB·GVP·USGS·Neotoma": "Data gathered for the Whole Earth view — PBDB, GVP, USGS, Neotoma",
+    # 점묶음 CSV (wetherilli 190)
+    "CSV 로 내려받는다 — 우리 파일에서 읽는 값을 열로 붙인다": "Download as CSV — with values read from our own files as extra columns",
+    "점이 {n} 개라 붙일 값은 빼고 내려받는다 — 값은 {limit} 개까지 읽는다.":
+        "This set has {n} points, so it downloads without the extra values — they are read for up to {limit} points.",
+    "점이 {n} 개라 붙일 값을 읽지 않는다 — {limit} 개까지다. extras=none 으로 부른다":
+        "{n} points is too many to read extra values for — the limit is {limit}. Call with extras=none",
     # 이름
     "대돌여지도": "Great Stone Map",
     "GSM — 한국지질자원연구원 지오빅데이터 오픈플랫폼 오픈API 지도뷰어":
@@ -462,6 +482,8 @@ EN = {
         "When graphics memory runs out or the GPU restarts, the browser stops 3D drawing. Turn off some layers and reopen.",
     "새로고침": "Reload",
     "지형 세우기와 지구 속을 끄고 다시 연다": "Reopen with terrain and the Earth's interior turned off",
+    "지형 세우기를 끄고 다시 연다": "Reopen with terrain turned off",   # 달·화성·수성 (wetherilli 186)
+    "지각": "Crust",                                       # 온 지구 높이 그래프의 지각 두께 띠 (wetherilli 186)
     "가볍게 다시 연다": "Reopen lighter",
     "평면 지도는 구와 따로 돈다": "The flat map runs separately from the globe",
     "평면으로": "Go flat",
@@ -621,6 +643,9 @@ EN = {
     "독일 연방 지구과학·자원청": "BGR (Federal Institute for Geosciences and Natural Resources)",
     "스페인 지질광물연구소": "IGME (Geological and Mining Institute of Spain)",
     "아일랜드 지질조사소": "Geological Survey Ireland",
+    # 남미 (wetherilli 188)
+    "남미": "South America",
+    "콜롬비아 지질조사소": "Colombian Geological Survey (SGC)",
     "북아일랜드 지질조사소": "Geological Survey of Northern Ireland",
     "영국 지질조사소": "British Geological Survey",
     "프랑스 지질광물조사소": "BRGM (French Geological Survey)",
@@ -764,6 +789,18 @@ EN = {
     "MESSENGER 665 m · 수성 기준구 2439.4 km 에서 잰 높이": "MESSENGER 665 m · height above the 2,439.4 km Mercury sphere",
     "거리 {d} · 높이 {h}": "distance {d} · elevation {h}",
     "선이 없다": "No line given",
+    # 공유 링크 (wetherilli 189)
+    "링크 복사 — 보던 자리·켠 레이어·배경을 주소에 담는다": "Copy link — puts the view, the layers you have on and the basemap in the address",
+    "링크": "Link",
+    "이 링크를 복사한다": "Copy this link",
+    "링크로 연 화면이다 — 여기서 바꾼 것은 이 브라우저에 기억하지 않는다": "Opened from a link — changes here are not remembered in this browser",
+    "내 화면으로": "Back to my view",
+    # 높이 그래프 밑의 지질 띠 (wetherilli 180)
+    "거리 {d} · 높이 {h} · {unit}": "distance {d} · elevation {h} · {unit}",
+    "{read} · 지질 띠 — {layer}": "{read} · geology strip — {layer}",
+    "띠를 그리지 않는 레이어다": "This layer has no geology strip",
+    "지질 띠를 그릴 자료가 서버에 없다": "The data for the geology strip is not on the server",
+    "지질 띠를 읽지 못했다": "Could not read the geology strip",
     "지도 오른쪽 위 <b>점</b> 도구로 찍는다": "Use the <b>Point</b> tool at the top right of the map",
     "점묶음으로 저장": "Save as point set",
     "찍은 점과 잰 것을 모두 지운다": "Clear all points and measurements",
@@ -1039,6 +1076,12 @@ EN = {
     "지명 검색: 노르웨이 극지연구소 · 그린란드 정부": "Place names: Norwegian Polar Institute · Government of Greenland",
     "지명 검색": "Place names",
     "지명": "Place name",
+    # 온 지구의 찾기 칸 — 결과의 갈래 딱지 (wetherilli 187)
+    "화산": "Volcano",
+    "지층": "Formation",
+    "화석": "Fossil",
+    "화석 산지 {n} 곳": "{n} fossil collections",
+    "마지막 분화 {year}": "last eruption {year}",
     # 일본 — GSJ 심리스 지질도·국토지리원 배경 (gsj.py·map.js, devlog 024)
     "일본 담색 지도 (국토지리원)": "Japan pale map (GSI)",
     "일본 국토지리원. 지질도 밑에 깔기 좋다": "Geospatial Information Authority of Japan. Good under a geological map",
@@ -1068,6 +1111,12 @@ EN = {
     "지오빅데이터 오픈플랫폼에서 받기": "Get one from the Geo Big Data Open Platform",
     "VWorld 에서 받기": "Get one from VWorld",
     "인증키 둘을 넣었다 — 이 브라우저에만 있다": "Both API keys are set — kept only in this browser",
+    "KIGAM 에 키를 물어 보는 중…": "Checking the key with KIGAM…",
+    "그래도 연다": "Open anyway",
+    "KIGAM 이 이 키로 지질도를 주지 않았다. 키를 다시 붙여 넣어 본다 — 휴대폰에서 손으로 옮겨 적으면 한 글자만 틀려도 안 된다. 키를 받을 때 쓸 곳(IP·주소)을 적었다면 이 기기가 그 밖인지도 본다.":
+        "KIGAM did not return a map for this key. Try pasting the key again — one wrong character typed by hand on a phone is enough to fail. If you gave a place of use (IP or address) when you got the key, check whether this device is outside it.",
+    "KIGAM(data.kigam.re.kr)에 닿지 못했다. 이 망(회사·학교 Wi-Fi, VPN, 광고 차단)이 막거나 기기가 인증서를 받지 않는다 — 다른 망(모바일 데이터)에서 열어 본다.":
+        "Could not reach KIGAM (data.kigam.re.kr). This network (office or school Wi-Fi, a VPN, an ad blocker) may block it, or the device may not accept its certificate — try another network such as mobile data.",
     "{name} 만 넣었다": "Only the {name} is set",
     "인증키를 넣어야 한국 지질도와 배경지도가 보인다": "Enter API keys to see Korean geological maps and basemaps",
     "키 바꾸기": "Change keys",
@@ -1616,6 +1665,22 @@ EN = {
 # 모았다. 영문 열(`symnum`·`GRAY_INDEX` …)은 그대로 둔다.
 
 PROP_EN = {
+    "암석 분류": "Rock classification",   # 남미 1:500만 (wetherilli 188)
+    # 지역 탭의 지구 자료 점 — 링크 열 (wetherilli 185)
+    "PBDB 산지 페이지": "PBDB collection page", "GVP 화산 페이지": "GVP volcano page",
+    "USGS 지진 페이지": "USGS event page", "Neotoma 산지 페이지": "Neotoma site page",
+    # 점묶음 CSV 의 열 (wetherilli 190)
+    "위도": "Latitude", "경도": "Longitude",
+    "지질 단위(GeoMAP)": "Geological unit (GeoMAP)", "지질기호(GeoMAP)": "Map symbol (GeoMAP)",
+    "연대 Ma(GeoMAP)": "Age Ma (GeoMAP)", "지각 두께 km(CRUST 2.0)": "Crustal thickness km (CRUST 2.0)",
+    "가까운 화석 산지(PBDB)": "Nearest fossil collection (PBDB)", "산지 번호(PBDB)": "Collection no. (PBDB)",
+    "산지의 시대(PBDB)": "Collection age (PBDB)", "산지까지 km(PBDB)": "Distance to collection km (PBDB)",
+    "지질 단위(원도)": "Geological unit (original map)", "단위 이름(원도)": "Unit name (original map)",
+    "시대(원도)": "Age (original map)",
+    "지질 단위(화성 지질도)": "Geological unit (Mars map)", "단위 이름(화성 지질도)": "Unit name (Mars map)",
+    "시대(화성 지질도)": "Age (Mars map)", "화성 지질도": "Mars geologic map",
+    "지질 단위(수성 지질도)": "Geological unit (Mercury map)", "단위 무리(수성 지질도)": "Unit group (Mercury map)",
+    "도폭(수성 지질도)": "Quadrangle (Mercury map)",
     # 대만 — 지질운의 온천·시추·순향사면 (gsmma.py, wetherilli 141)
     "온천명": "Hot spring", "수질": "Water type", "수온 (°C)": "Water temperature (°C)", "pH": "pH",
     "조사 사업": "Survey project", "공번": "Borehole no.", "심도 (m)": "Depth (m)",
@@ -1634,6 +1699,7 @@ PROP_EN = {
     "FeO (북극)": "FeO (north pole)",
     "얼음이 버틸 깊이 — 오늘의 자전축": "Ice stability depth — today's spin axis",
     "얼음이 버틸 깊이 — 옛 자전축": "Ice stability depth — paleo spin axis",
+    "높이 — 화성 기준면(아레오이드)": "Elevation — above the Mars areoid",   # 화성 표고 판의 값 (wetherilli 192)
     "티타늄": "Titanium",
     "지각 두께": "Crustal thickness",
     # 화석 산지 (wetherilli 098)
@@ -2529,6 +2595,7 @@ def props_en(props: dict) -> dict:
 # 레이어 이름을 열쇠로 여기 둔다. 없으면 한국어 제목이 뜬다.
 
 GROUP_EN = {
+    "화석·화산·지진": "Fossils, volcanoes, earthquakes",
     "국토지리원 주제도": "GSI thematic maps",
     "쇄빙연구선 아라온호": "Icebreaker RV Araon",
     "동·동남아시아 지질도 (CCOP)": "East & Southeast Asia geology (CCOP)",
@@ -2589,9 +2656,14 @@ GROUP_EN = {
     "독일 지질 (BGR)": "Germany geology (BGR)",
     "스페인 지질 (IGME)": "Spain geology (IGME)",
     "아일랜드 기반암 (GSI·GSNI)": "Ireland bedrock (GSI · GSNI)",
+    "남미 지질도 (CGMW 1:500만)": "South America geology (CGMW 1:5M)",
+    "콜롬비아 지질도 (SGC 1:50만)": "Colombia geology (SGC 1:500k)",
 }
 
 LAYER_EN = {
+    # 지구 자료 점 (wetherilli 185)
+    "화석 산지 (PBDB)": "Fossil collections (PBDB)", "홀로세 화산 (GVP)": "Holocene volcanoes (GVP)",
+    "지진 M5 이상 (USGS)": "Earthquakes M5+ (USGS)", "제4기 고생태 산지 (Neotoma)": "Quaternary paleoecology sites (Neotoma)",
     # 국토지리원 주제 타일 (wetherilli 172)
     "gsitile:afm": "Active fault map (urban areas)",
     "gsitile:vlcd": "Volcanic land condition map",
@@ -2624,6 +2696,19 @@ LAYER_EN = {
     "gsi:1m:IE_GSI_GSNI_Faults_1M_IE32_ITM": "Faults (1:1M)",
     "gsi:100k:IE_GSI_Bedrock_Geology_100K_IE26_ITM": "Bedrock (1:100k, Republic)",
     "gsni:5": "Bedrock (1:250k, Northern Ireland)",
+    # 남미 (wetherilli 188)
+    "sgc:sa:8": "Chronostratigraphic units (1:5M)",
+    "sgc:sa:10": "Faults (1:5M)",
+    "sgc:sa:3": "Oceanic crust ages",
+    "sgc:sa:31": "Plate boundaries",
+    "sgc:sa:15": "Volcanoes",
+    "sgc:sa:16": "Kimberlites",
+    "sgc:sa:19": "Impact craters",
+    "sgc:co:3": "Chronostratigraphic units (1:500k)",
+    "sgc:co:60": "Faults (1:500k)",
+    "sgc:co:61": "Folds (1:500k)",
+    "sgc:co:66": "Volcanoes (Colombia)",
+    "sgc:co:65": "Mud volcanoes",
     # 노르웨이·핀란드 기반암 (wetherilli 140)
     "ngu:Berggrunn_nasjonal_bergartsenheter": "Rock units (1:1.35M)",
     "ngu:Berggrunn_regional_hovedbergarter": "Main rock types (1:250k)",

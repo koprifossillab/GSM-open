@@ -22,18 +22,20 @@ urlpatterns = [
     path("moon/info/", views.moon_info, name="moon-info"),
     path("moon/profile/", views.moon_profile, name="moon-profile"),
     path("elevation/profile/", views.elevation_profile, name="elevation-profile"),
+    path("profile/band/", views.profile_band, name="profile-band"),
     path("moon/values/", views.moon_values, name="moon-values"),
+    path("mars/values/", views.mars_values_at, name="mars-values"),
     path("moon/legend/", views.moon_legend, name="moon-legend"),
     path("moon/places/", views.moon_places, name="moon-places"),
     path("moon/landings/", views.moon_landings, name="moon-landings"),
     path("moon/eva/", views.moon_eva, name="moon-eva"),
-    # NASA Trek 의 MapServer 판 — 달·화성이 함께 쓴다 (060)
-    re_path(r"^trek/(?P<body>moon|mars)/map/(?P<label>[\w.-]+)/(?P<z>\d{1,2})/(?P<x>\d{1,5})/(?P<y>\d{1,5})\.png$",
+    # NASA Trek 의 MapServer 판 — 달·화성·수성이 함께 쓴다 (060, 수성은 wetherilli 185)
+    re_path(r"^trek/(?P<body>moon|mars|mercury)/map/(?P<label>[\w.-]+)/(?P<z>\d{1,2})/(?P<x>\d{1,5})/(?P<y>\d{1,5})\.png$",
             views.trek_map_tile, name="trek-map-tile"),
     re_path(r"^trek/(?P<body>moon|mars)/map/(?P<label>[\w.-]+)/p/(?P<pole>[ns])/(?P<z>\d{1,2})/(?P<x>\d{1,5})/(?P<y>\d{1,5})\.png$",
             views.trek_map_polar_tile, name="trek-map-polar-tile"),
-    re_path(r"^trek/(?P<body>moon|mars)/map/(?P<label>[\w.-]+)/info/$", views.trek_map_info, name="trek-map-info"),
-    re_path(r"^trek/(?P<body>moon|mars)/map/(?P<label>[\w.-]+)/legend/$", views.trek_map_legend,
+    re_path(r"^trek/(?P<body>moon|mars|mercury)/map/(?P<label>[\w.-]+)/info/$", views.trek_map_info, name="trek-map-info"),
+    re_path(r"^trek/(?P<body>moon|mars|mercury)/map/(?P<label>[\w.-]+)/legend/$", views.trek_map_legend,
             name="trek-map-legend"),
     path("mars/", views.mars_view, name="mars"),
     re_path(r"^mars/tiles/(?P<layer>[a-z-]+)/(?P<z>\d{1,2})/(?P<x>\d{1,5})/(?P<y>\d{1,5})\.png$",
@@ -134,6 +136,11 @@ urlpatterns = [
     # VWorld 배경지도 — 브라우저가 곧장 못 받을 때만 거친다 (사내 VPN, devlog 033)
     re_path(r"^vworld/(?P<layer>\w+)/(?P<z>\d{1,2})/(?P<y>\d{1,7})/(?P<x>\d{1,7})\.(?:png|jpeg)$",
             views.vworld_tile, name="vworld-tile"),
+    # 조건이 열린 배경 — 서버가 받아 담는다 (basemaps.py, wetherilli 184)
+    re_path(r"^gibs/(?P<epsg>4326|3413|3031)/(?P<layer>\w+)/(?P<z>\d{1,2})/(?P<y>\d{1,5})/(?P<x>\d{1,5})\.jpeg$",
+            views.gibs_tile, name="gibs-tile"),
+    path("gibs/wms/", views.gibs_wms, name="gibs-wms"),
+    path("gebco/wms/", views.gebco_wms, name="gebco-wms"),
     path("gsj/info/", views.gsj_info, name="gsj-info"),
     path("gsj/legend/", views.gsj_legend, name="gsj-legend"),
     # 지질도Navi 판 목록 (wetherilli 171) — 일본 탭이 판 목록을 펼 때 받는다
@@ -151,6 +158,7 @@ urlpatterns = [
     # 주소만 적힌 CSV — 화면이 주소를 나눠 보내 좌표를 받는다 (wetherilli 152)
     path("pointsets/geocode/", views.pointset_geocode, name="pointset-geocode"),
     path("pointsets/<int:pk>/geojson/", views.pointset_geojson, name="pointset-geojson"),
+    path("pointsets/<int:pk>/csv/", views.pointset_csv, name="pointset-csv"),
     path("pointsets/deleted/", views.pointset_deleted, name="pointset-deleted"),
     path("pointsets/deleted/<int:pk>/restore/", views.pointset_restore, name="pointset-restore"),
     path("pointsets/<int:pk>/delete/", views.pointset_delete, name="pointset-delete"),

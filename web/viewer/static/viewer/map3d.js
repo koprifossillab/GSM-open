@@ -57,13 +57,14 @@
   var asked = new URLSearchParams(location.search).get("layer");
   // 목록은 **지금 지역의 레이어군만** 남긴다 (050). 서버는 모든 지역의 것을 싣는다 — 남극을 보는데 한국
   // 지질도가 뜨지 않게. 묶음 탭은 품은 지역들이다(2D 의 `REGIONS.*.includes` 와 같다)
-  var BUNDLES = { arctic: ["greenland", "svalbard", "jan_mayen", "arctic_ocean"], eastasia: ["korea", "japan", "china", "taiwan"] };
+  var BUNDLES = { arctic: ["greenland", "svalbard", "jan_mayen", "arctic_ocean"], eastasia: ["korea", "japan", "china", "taiwan"],
+                  europe: ["uk", "ireland", "france", "germany", "spain"] };
   var ALLOWED = BUNDLES[REGION] || [REGION];
   [].slice.call(select.querySelectorAll("optgroup")).forEach(function (g) {
     if (ALLOWED.indexOf(g.getAttribute("data-region")) < 0) g.remove();
   });
   if (!select.options.length) {
-    // 일본·중국처럼 3D 로 얹을 지질 레이어가 없는 지역 — 지형만 본다
+    // 3D 로 얹을 지질 레이어가 없는 지역(노르웨이·핀란드처럼 극지 투영으로만 받는 것) — 지형만 본다
     var none = document.createElement("option");
     none.value = "";
     none.textContent = T("이 지역에는 3D 로 얹을 지질 레이어가 없다");
@@ -88,7 +89,36 @@
       return { type: "raster", tileSize: 512, minzoom: 3, maxzoom: 17, bounds: [-180, -85.06, 180, -60],
                tiles: [BASE + "warp/geomap/" + name + "/{z}/{x}/{y}@2x.png"], attribution: attribution };
     }
-    return { type: "raster", tiles: wmsTiles(name), tileSize: 512, attribution: attribution };
+    var src = { type: "raster", tiles: wmsTiles(name), tileSize: 512, attribution: attribution };
+    var tiles = opt && opt.getAttribute("data-tiles");
+    if (tiles) {
+      // 일본 GSJ·지리원 주제 타일 — 3857 z/x/y 256 px 를 그대로 받는다(wetherilli 187). 줌은 타일의 줌이라 2D 의 것 그대로다.
+      // 그보다 멀면 묻지 않고, 그보다 가까우면 늘린다
+      src = { type: "raster", tiles: [/^https?:/.test(tiles) ? tiles : BASE + tiles], tileSize: 256, attribution: attribution };
+      if (opt.getAttribute("data-min")) src.minzoom = +opt.getAttribute("data-min");
+      if (opt.getAttribute("data-max")) src.maxzoom = +opt.getAttribute("data-max");
+    }
+    // 제 범위 밖은 묻지 않는다 — 2D 의 묶음 탭과 같다(0.5° 넉넉히, 024). 유럽 탭에서 스페인 판이 영국 바다를 묻지 않게
+    var bbox = opt && opt.getAttribute("data-bbox");
+    if (bbox) {
+      var b = bbox.split(",").map(Number);
+      if (b.length === 4 && b.every(isFinite)) src.bounds = [Math.max(-180, b[0] - 0.5), Math.max(-85, b[1] - 0.5),
+                                                            Math.min(180, b[2] + 0.5), Math.min(85, b[3] + 0.5)];
+    }
+    return src;
+  }
+
+  /** "지질 레이어" 의 한 겹. 가까이서만(BGS 1:5만) 또는 멀리서만(BRGM 스캔) 그리는 레이어는 2D 처럼 그 밖에서 숨긴다.
+   *  2D(256 px 기준)의 줌은 MapLibre(512 px 기준)보다 하나 크고, 2D 는 반 단계 넉넉히 보인다(`makeLayer`). z/x/y 원천은
+   *  원천의 `minzoom` 이 이미 막는다 */
+  function geologyLayer(name, opacity) {
+    var layer = { id: "kigam", type: "raster", source: "kigam", paint: { "raster-opacity": opacity } };
+    var opt = [].filter.call(select.options, function (o) { return o.value === name; })[0];
+    if (opt && !opt.getAttribute("data-tiles")) {
+      if (opt.getAttribute("data-min")) layer.minzoom = Math.max(0, +opt.getAttribute("data-min") - 1.5);
+      if (opt.getAttribute("data-last")) layer.maxzoom = +opt.getAttribute("data-last") - 0.5;
+    }
+    return layer;
   }
 
   var sources = {
@@ -139,7 +169,7 @@
   sources.dem.tiles = sources.shade.tiles = demTiles();
   layers.push({ id: "shade", type: "hillshade", source: "shade",
                 paint: { "hillshade-exaggeration": 0.5, "hillshade-shadow-color": "#3f2712" } });
-  layers.push({ id: "kigam", type: "raster", source: "kigam", paint: { "raster-opacity": 0.7 } });
+  layers.push(geologyLayer(select.value, 0.7));
 
   // 이름표의 글꼴 조각 — 로마자·숫자(0–511)만 담았다(`vendor/maplibre/glyphs/`, OFL).
   // 한글·한자는 조각 없이 브라우저 글꼴이 그린다(`localIdeographFontFamily`). P02 §7
@@ -223,8 +253,7 @@
     map.removeLayer("kigam");
     map.removeSource("kigam");
     map.addSource("kigam", geologySource(select.value));
-    map.addLayer({ id: "kigam", type: "raster", source: "kigam",
-                   paint: { "raster-opacity": document.getElementById("opacity3d").value / 100 } }, before);
+    map.addLayer(geologyLayer(select.value, document.getElementById("opacity3d").value / 100), before);
   });
   document.getElementById("opacity3d").addEventListener("input", function () {
     map.setPaintProperty("kigam", "raster-opacity", this.value / 100);

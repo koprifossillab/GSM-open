@@ -338,3 +338,59 @@ class MapServer(TestCase):
                              content=json.dumps(body).encode(), json=lambda: body)
         with mock.patch("viewer.trek.requests.get", side_effect=fake):
             self.assertEqual(trek.find_mapserver("mars", "u-1", "X"), "trekarcgis2/rest/services/X/MapServer")
+
+
+class MarsPolar(SimpleTestCase):
+    """화성 Trek 판의 극지 길 (wetherilli 192). Trek 은 부르지 않는다."""
+
+    def caps(self):
+        # 2026-10-04 에 받은 `Mars_Viking_MDIM21_ClrMosaic_global_232m_sp` 의 꼴 — 왼쪽 위를 ±1 821 000 으로 잘못 적는다(065)
+        return PolarWmts.caps(self, corner="-1821000.0 1821000.0").replace(
+            b"-931134.753 -931138.445", b"-1820012.736 -1819971.634").replace(b"931165.247 931161.555", b"1820000 1820000")
+
+    def test_화성은_모서리를_보지_않고_범위를_자른다(self):
+        self.assertIsNone(trek.parse_polar_wmts(self.caps()))                      # 달의 격자로는 없다
+        got = trek.parse_polar_wmts(self.caps(), "mars")
+        self.assertEqual(got["max"], 5)
+        self.assertEqual(got["box"], [-1809300, -1809300, 1809300, 1809300])
+
+    def test_짝_후보(self):
+        seed = [{"id": "Global_tile", "kind": "tile", "bbox": [-180, -90, 180, 90]},
+                {"id": "North_spot", "kind": "tile", "bbox": [-126, 68, -125, 69]},
+                {"id": "Equator", "kind": "tile", "bbox": [0, -10, 10, 10]},
+                {"id": "Survey", "kind": "map", "ms": "trekarcgis/rest/services/Survey/MapServer",
+                 "bbox": [-180, -90, 180, 90]}]
+        out = {}
+        with mock.patch("viewer.trek.load_catalog", return_value=seed):
+            trek._mars_twins(out)
+        self.assertEqual(out["Global_tile"]["s"], ("", "Global_tile_sp", "WMTS"))
+        self.assertEqual(set(out["North_spot"]), {"n"})
+        self.assertNotIn("Equator", out)
+        self.assertEqual(out["Survey"]["n"][2], "Self")
+        # MapServer 판 자신은 묻지 않고 적는다
+        with mock.patch("viewer.trek.polar_wmts_info") as info:
+            got = trek.probe_polar("mars", out["Survey"])
+        info.assert_not_called()
+        self.assertEqual(got["n"], {"kind": "map", "ms": "trekarcgis/rest/services/Survey/MapServer"})
+
+    def test_우리_문은_화성_극_투영을_밝힌다(self):
+        with mock.patch("viewer.trek._get") as get, mock.patch("viewer.trek._image", return_value=b"png"):
+            trek.map_polar_tile("mars", "trekarcgis/rest/services/Dune_Field/MapServer", "s", 0, 0, 0)
+        params = get.call_args[0][1]
+        self.assertIn("South", params["bboxSR"])
+        self.assertEqual(params["bbox"].split(",")[0], str(-trek.MARS_POLAR_HALF))
+
+    def test_표고_판은_값을_읽는다(self):
+        self.assertEqual(trek.value_key("mars", "Mars_MOLA_blend200ppx_HRSC_ClrShade_clon0dd_200mpp_lzw"), "mars_elev")
+        self.assertEqual(trek.value_key("mars", "Gale_DEM_SMG_1m"), "mars_gale")
+        self.assertEqual(trek.value_key("mars", "TES_Thermal_Inertia"), "")          # 값 서비스가 없다
+        body = {"samples": [{"value": "19995"}]}
+        ok = mock.Mock(status_code=200, text=json.dumps(body), json=lambda: body)
+        with mock.patch("viewer.trek._get", return_value=ok) as get:
+            self.assertEqual(trek.value_at("mars_elev", -133.8, 18.65)["rows"][0],
+                             ["높이 — 화성 기준면(아레오이드)", "19,995 m"])
+        self.assertIn("trek.nasa.gov/mars", get.call_args.kwargs["base"])
+        out = {"error": {"code": 400, "message": "Invalid or missing input parameters."}}
+        outside = mock.Mock(status_code=200, text=json.dumps(out), json=lambda: out)
+        with mock.patch("viewer.trek._get", return_value=outside):
+            self.assertEqual(trek.value_at("mars_gale", 0, 0), {"rows": []})

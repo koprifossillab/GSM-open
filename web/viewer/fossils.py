@@ -218,3 +218,28 @@ def near(age: float, lon: float, lat: float, radius: float, limit: int = 5) -> l
         row = conn.execute("SELECT * FROM coll WHERE no = ?", (p[2],)).fetchone()
         out.append((row, (p[0], p[1])))
     return out
+
+
+def search(query: str, limit: int = 8, formations: int = 5) -> tuple:
+    """`query` 가 이름에 든 산지와 지층 (wetherilli 187). 화면의 찾기 칸이 지명과 섞는다.
+
+    27 만 줄을 `LIKE` 로 훑어도 0.1–0.2 초다(2026-10-04). 따로 색인(FTS5)을 굽지 않았다 — 구운 파일을 다시 구워야 하고, 이 빠르기면
+    찾기 칸(200 ms 쉬고 묻는다)에 넉넉하다. 지층은 산지마다 적혀 있어 이름으로 묶고, 화석이 가장 많은 산지의 자리를 그 지층의 자리로 쓴다.
+    돌려주는 것은 (산지 행들, 지층 행들) — 지층 행은 `formation`·`n`(산지 수)·`lon`·`lat`·`early`·`late`."""
+    q = (query or "").strip()
+    conn = db()
+    if conn is None or len(q) < 2:
+        return [], []
+    like = "%" + q.replace("\\", "\\\\").replace("%", "\\%").replace("_", "\\_") + "%"
+    # 같은 이름 → 앞이 같은 것 → 들어 있는 것, 같으면 화석이 많은 것
+    sites = conn.execute(
+        "SELECT no, name, formation, early, late, lon, lat, n_occs FROM coll WHERE name LIKE ? ESCAPE '\\' "
+        "ORDER BY (lower(name) = lower(?)) DESC, (lower(name) LIKE lower(?) || '%') DESC, n_occs DESC LIMIT ?",
+        (like, q, q, limit)).fetchall()
+    # 묶음 안의 맨 열(lon·lat 따위)은 max(n_occs) 를 낸 줄의 것이다 — sqlite 의 약속
+    forms = conn.execute(
+        "SELECT formation, count(*) AS n, max(n_occs) AS top, lon, lat, early, late FROM coll "
+        "WHERE formation LIKE ? ESCAPE '\\' GROUP BY formation "
+        "ORDER BY (lower(formation) = lower(?)) DESC, (lower(formation) LIKE lower(?) || '%') DESC, n DESC LIMIT ?",
+        (like, q, q, formations)).fetchall()
+    return sites, forms

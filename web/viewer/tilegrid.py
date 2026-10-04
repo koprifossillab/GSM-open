@@ -77,28 +77,44 @@ def wms_params(layer: str, z: int, x: int, y: int) -> dict:
     }
 
 
-# ── 극지 격자 (3413·3031) ─────────────────────────────────────────────
+# ── 지역의 투영 격자 (3413·3031·3575·4326) ──────────────────────────────
 #
 # NPI 는 지역의 투영으로 곧장 받는다(021). 화면의 `npolarSource` 가
 # `ol.tilegrid.createXYZ({extent, tileSize: 512})` 로 짓는 격자를 옮겼다.
 # 범위는 `map.js` 가 투영에 건 것과 같다 — 3413 은 ±4194304, 3031 은 GeoMAP 의
 # 범위(±3333134.0276). 셈의 차례는 3857 과 같다(`tile_extent`).
+#
+# 같은 `npolarSource` 를 타는 유럽 상류도 여기 선다(wetherilli 182) — NGU 의 북극 람베르트(3575, `map.js` 가 건 ±9009964.76)와
+# IGME 1:100만의 4326(OpenLayers 가 아는 범위 ±180·±90). 4326 은 가로가 세로의 두 배라 OpenLayers 가 **가로 폭으로** 해상도를
+# 정한다 — 줌 0 은 360° 네모 한 장(남쪽이 -270° 까지 걸친다), 줄 수는 칸 수의 반이다. 그리고 WMS 1.3.0 의 4326 은 **위도가 먼저**라
+# OpenLayers 가 BBOX 를 남,서,북,동 으로 적는다(`bbox_text`).
 
-POLAR_EXTENT = {
+EXTENT = {
     "EPSG:3413": (-4194304.0, -4194304.0, 4194304.0, 4194304.0),
     "EPSG:3031": (-3333134.0276, -3333134.0276, 3333134.0276, 3333134.0276),
+    "EPSG:3575": (-9009964.76, -9009964.76, 9009964.76, 9009964.76),
+    "EPSG:4326": (-180.0, -90.0, 180.0, 90.0),
 }
+#: 위도가 먼저인 투영 — WMS 1.3.0 의 축 차례
+LAT_FIRST = ("EPSG:4326",)
 
 
-class PolarGrid:
+class Grid:
     def __init__(self, crs: str, tile: int = TILE):
         self.crs = crs
-        self.extent = POLAR_EXTENT[crs]
+        self.extent = EXTENT[crs]
         self.tile = tile
-        self.max_res = (self.extent[2] - self.extent[0]) / tile
+        width, height = self.extent[2] - self.extent[0], self.extent[3] - self.extent[1]
+        self.max_res = max(width, height) / tile          # OpenLayers 의 `resolutionsFromExtent`
+        self.height = height
 
     def resolution(self, z: int) -> float:
         return self.max_res / math.pow(2, z)
+
+    def last(self, z: int) -> tuple:
+        """줌 `z` 의 마지막 칸 (x, y). 4326 은 줄이 칸의 반이다."""
+        rows = math.ceil(self.height / (self.tile * self.resolution(z)) - 1e-9)
+        return 2 ** z - 1, max(1, rows) - 1
 
     def tile_extent(self, z: int, x: int, y: int) -> tuple:
         res = self.resolution(z)
@@ -109,18 +125,23 @@ class PolarGrid:
     def tiles_for(self, bbox_lonlat, z: int):
         min_x, min_y, max_x, max_y = projected_bbox(bbox_lonlat, self.crs)
         span = self.tile * self.resolution(z)
-        last = 2 ** z - 1
+        last_x, last_y = self.last(z)
         x0 = max(0, int((min_x - self.extent[0]) // span))
-        x1 = min(last, int((max_x - self.extent[0]) // span))
+        x1 = min(last_x, int((max_x - self.extent[0]) // span))
         y0 = max(0, int((self.extent[3] - max_y) // span))
-        y1 = min(last, int((self.extent[3] - min_y) // span))
+        y1 = min(last_y, int((self.extent[3] - min_y) // span))
         for x in range(x0, x1 + 1):
             for y in range(y0, y1 + 1):
                 yield z, x, y
 
+    def bbox_text(self, extent) -> str:
+        """WMS 의 BBOX 글자 — 브라우저(OpenLayers `TileWMS`)가 적는 그대로."""
+        min_x, min_y, max_x, max_y = extent
+        values = (min_y, min_x, max_y, max_x) if self.crs in LAT_FIRST else (min_x, min_y, max_x, max_y)
+        return ",".join(js_number(v) for v in values)
+
     def wms_params(self, layer: str, z: int, x: int, y: int) -> dict:
-        return dict(wms_params(layer, z, x, y), crs=self.crs,
-                    bbox=",".join(js_number(v) for v in self.tile_extent(z, x, y)))
+        return dict(wms_params(layer, z, x, y), crs=self.crs, bbox=self.bbox_text(self.tile_extent(z, x, y)))
 
 
 # 극 평사도법 (Snyder 1987, 21-33~21-40). pyproj 없이 — crs.py 와 같은 까닭이다.
@@ -149,20 +170,35 @@ def polar_forward(lon: float, lat: float, crs: str) -> tuple:
     return (sign * rho * math.sin(lam), -sign * rho * math.cos(lam))
 
 
+def forward(lon: float, lat: float, crs: str) -> tuple:
+    """위경도 → 격자의 투영. 북극 람베르트(3575)는 `crs.py` 의 식(중앙 경선 10°)이다."""
+    if crs == "EPSG:4326":
+        return lon, lat
+    if crs == "EPSG:3575":
+        from . import crs as planar      # crs 는 import 가 없다 — 돌고 도는 일이 없다
+        return planar.latlon_to_laea_north(lat, lon, 10.0)
+    return polar_forward(lon, lat, crs)
+
+
+#: 극점을 품는 투영 — 북극 1·남극 -1
+_POLE = {"EPSG:3413": 1, "EPSG:3031": -1, "EPSG:3575": 1}
+
+
 def projected_bbox(bbox_lonlat, crs: str) -> tuple:
-    """위경도 네모 → 그 투영에서 네모를 덮는 범위. 극 평사도법에서 위경도 네모는
+    """위경도 네모 → 그 투영에서 네모를 덮는 범위. 극 평사도법·람베르트에서 위경도 네모는
     부채꼴이라 가장자리를 촘촘히 짚어 본다. 극점을 품으면 극점도 넣는다."""
     west, south, east, north = bbox_lonlat
+    if crs == "EPSG:4326":
+        return west, south, east, north
     steps = 32
     points = []
     for i in range(steps + 1):
         lon = west + (east - west) * i / steps
         lat = south + (north - south) * i / steps
         points += [(lon, south), (lon, north), (west, lat), (east, lat)]
-    sign = _POLAR[crs][0]
+    sign = _POLE[crs]
     if (sign > 0 and north >= 89.999) or (sign < 0 and south <= -89.999):
         points.append((0.0, 90.0 * sign))
-    xy = [polar_forward(lon, lat, crs) for lon, lat in points]
+    xy = [forward(lon, lat, crs) for lon, lat in points]
     return (min(p[0] for p in xy), min(p[1] for p in xy),
             max(p[0] for p in xy), max(p[1] for p in xy))
-

@@ -52,7 +52,7 @@ class PolarGrid(SimpleTestCase):
 
     def test_브라우저와_한_글자까지_같다(self):
         for (crs, z, x, y), bbox in self.SEEN.items():
-            p = tilegrid.PolarGrid(crs).wms_params("L", z, x, y)
+            p = tilegrid.Grid(crs).wms_params("L", z, x, y)
             self.assertEqual((p["crs"], p["bbox"]), (crs, bbox))
 
     def test_남극_투영은_GeoMAP_의_식과_같다(self):
@@ -69,7 +69,7 @@ class PolarGrid(SimpleTestCase):
         self.assertLess(y, 0)
 
     def test_스발바르를_덮는_타일(self):
-        grid = tilegrid.PolarGrid("EPSG:3413")
+        grid = tilegrid.Grid("EPSG:3413")
         tiles = list(grid.tiles_for((10, 76, 30, 81), 6))
         # 롱위에아르뷔엔(15.6, 78.2) 을 품은 타일이 들어 있다
         px, py = tilegrid.polar_forward(15.6, 78.2, "EPSG:3413")
@@ -151,7 +151,7 @@ class PrewarmPlans(TestCase):
         from viewer import kigam, tilecache, views
         from viewer.management.commands import prewarm
         npi = prewarm.plan_for("npolar:svalbard_units", "npolar")
-        params = tilegrid.PolarGrid("EPSG:3413").wms_params("npolar:svalbard_units", 6, 37, 20)
+        params = tilegrid.Grid("EPSG:3413").wms_params("npolar:svalbard_units", 6, 37, 20)
         self.assertEqual(npi.key(6, 37, 20), tilecache.key_for("map", kigam.clean_params(params)))
         self.assertEqual(prewarm.plan_for("gsj:geology", "gsj").key(9, 1, 2),
                          views.gsj_tile_key("gsj:geology", 9, 1, 2))

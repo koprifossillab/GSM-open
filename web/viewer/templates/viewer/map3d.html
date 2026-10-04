@@ -89,7 +89,7 @@
   <label>{% t "지질 레이어" %}
     <select id="layer3d">
       {% for group in catalog_groups %}<optgroup label="{{ group.name }}" data-region="{{ group.region }}">
-        {% for l in group.layers %}<option value="{{ l.name }}" data-upstream="{{ l.upstream }}"{% if l.attribution %} data-attribution="{{ l.attribution }}"{% endif %}>{{ l.title }}</option>{% endfor %}
+        {% for l in group.layers %}<option value="{{ l.name }}" data-upstream="{{ l.upstream }}"{% if l.attribution %} data-attribution="{{ l.attribution }}"{% endif %}{% if l.tiles %} data-tiles="{{ l.tiles }}"{% endif %}{% if l.minZoom %} data-min="{{ l.minZoom }}"{% endif %}{% if l.maxZoom %} data-max="{{ l.maxZoom }}"{% endif %}{% if l.lastZoom %} data-last="{{ l.lastZoom }}"{% endif %}{% if l.bbox %} data-bbox="{{ l.bbox|join:"," }}"{% endif %}>{{ l.title }}</option>{% endfor %}
       </optgroup>{% endfor %}
     </select>
   </label>

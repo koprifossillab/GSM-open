@@ -81,6 +81,8 @@ class Command(BaseCommand):
                 (settings.IGME_CATALOG_SEED, "스페인 (IGME)", "spain", "igme"),
                 (settings.GSI_CATALOG_SEED, "아일랜드 (GSI)", "ireland", "gsi"),
                 (settings.GSNI_CATALOG_SEED, "북아일랜드 (GSNI)", "ireland", "gsni"),
+                # 남미 — SGC 남미 1:500만·콜롬비아 1:50만 (wetherilli 188)
+                (settings.SGC_CATALOG_SEED, "남미 (SGC)", "south_america", "sgc"),
                 # 중국 — USGS geo3al, 우리 디스크의 셰이프파일 (025)
                 (settings.GEO3AL_CATALOG_SEED, "중국 (USGS)", "china", "geo3al"),
                 # 연구실의 암맥 기록 — phyloserver (026)
@@ -93,7 +95,9 @@ class Command(BaseCommand):
                 *((path, f"PGC ({path.stem})", "greenland", "pgc") for path in settings.PGC_CATALOG_SEEDS),
                 # 극지연구소 — 암석 시료·운석·KPDC 자료·기지·해안선 (053–057). 지역은 씨앗이 적는다
                 *((path, f"극지연구소 ({path.stem})", "antarctica", "kopri")
-                  for path in settings.KOPRI_CATALOG_SEEDS)):
+                  for path in settings.KOPRI_CATALOG_SEEDS),
+                # 지구 자료 점 — 모아 둔 화석 산지·화산·지진·고생태 산지를 지역의 네모만큼 (wetherilli 185). 지역은 씨앗이 적는다
+                *((path, f"지구 자료 ({path.stem})", "korea", "earth") for path in settings.EARTH_CATALOG_SEEDS)):
             if not path.exists():
                 continue
             extra = json.loads(path.read_text(encoding="utf-8"))

@@ -1,0 +1,158 @@
+{
+ "_주석": "SGC(콜롬비아 지질조사소) 지질도 씨앗이다 — 남미 탭. 남미 1:500만(CGMW 2019, SGC·SGB 가 냄)이 대륙 바탕이고 콜롬비아 1:50만(2023)을 얹는다. 레이어명은 sgc:<판>:<WMS 번호> (web/viewer/sgc.py). 번호는 WMS 의 것이라 ArcGIS REST 와 다르다 (wetherilli 188).",
+ "_뽑은날": "2026-10-04",
+ "_출처": "https://srvags.sgc.gov.co/arcgis/services/Mapa_Geologico_Sur_America/GeologicalMapSouthAmerican/MapServer/WMSServer?request=GetCapabilities&service=WMS · …/Mapa_Geologico_Colombia/Mapa_Geologico_Colombia_V2023/MapServer/WMSServer",
+ "_지역": "south_america",
+ "_상류": "sgc",
+ "_레이어군차례": 1,
+ "레이어군순서": [
+  "남미 지질도 (CGMW 1:500만)",
+  "콜롬비아 지질도 (SGC 1:50만)"
+ ],
+ "레이어": [
+  {
+   "name": "sgc:sa:8",
+   "title": "연대층서 단위 (1:500만)",
+   "group": "남미 지질도 (CGMW 1:500만)",
+   "abstract": "Geological Map of South America 2019 — Chronostratigraphic Units",
+   "bbox": [
+    -82.0,
+    -56.5,
+    -34.0,
+    13.5
+   ]
+  },
+  {
+   "name": "sgc:sa:10",
+   "title": "단층 (1:500만)",
+   "group": "남미 지질도 (CGMW 1:500만)",
+   "abstract": "Faults",
+   "bbox": [
+    -82.0,
+    -56.5,
+    -34.0,
+    13.5
+   ]
+  },
+  {
+   "name": "sgc:sa:3",
+   "title": "해양 지각 연대",
+   "group": "남미 지질도 (CGMW 1:500만)",
+   "abstract": "Oceanic Crust Ages",
+   "bbox": [
+    -82.0,
+    -56.5,
+    -34.0,
+    13.5
+   ]
+  },
+  {
+   "name": "sgc:sa:31",
+   "title": "판 경계",
+   "group": "남미 지질도 (CGMW 1:500만)",
+   "abstract": "Plates boundaries",
+   "bbox": [
+    -82.0,
+    -56.5,
+    -34.0,
+    13.5
+   ]
+  },
+  {
+   "name": "sgc:sa:15",
+   "title": "화산",
+   "group": "남미 지질도 (CGMW 1:500만)",
+   "abstract": "Volcanoes",
+   "bbox": [
+    -82.0,
+    -56.5,
+    -34.0,
+    13.5
+   ]
+  },
+  {
+   "name": "sgc:sa:16",
+   "title": "킴벌라이트",
+   "group": "남미 지질도 (CGMW 1:500만)",
+   "abstract": "Kimberlites",
+   "bbox": [
+    -82.0,
+    -56.5,
+    -34.0,
+    13.5
+   ]
+  },
+  {
+   "name": "sgc:sa:19",
+   "title": "충돌구",
+   "group": "남미 지질도 (CGMW 1:500만)",
+   "abstract": "Impact craters",
+   "bbox": [
+    -82.0,
+    -56.5,
+    -34.0,
+    13.5
+   ]
+  },
+  {
+   "name": "sgc:co:3",
+   "title": "연대층서 단위 (1:50만)",
+   "group": "콜롬비아 지질도 (SGC 1:50만)",
+   "abstract": "Mapa Geológico de Colombia 2023 — Unidades Cronoestratigráficas",
+   "bbox": [
+    -79.5,
+    -4.3,
+    -66.8,
+    13.5
+   ]
+  },
+  {
+   "name": "sgc:co:60",
+   "title": "단층 (1:50만)",
+   "group": "콜롬비아 지질도 (SGC 1:50만)",
+   "abstract": "Fallas",
+   "bbox": [
+    -79.5,
+    -4.3,
+    -66.8,
+    13.5
+   ]
+  },
+  {
+   "name": "sgc:co:61",
+   "title": "습곡 (1:50만)",
+   "group": "콜롬비아 지질도 (SGC 1:50만)",
+   "abstract": "Pliegues",
+   "bbox": [
+    -79.5,
+    -4.3,
+    -66.8,
+    13.5
+   ]
+  },
+  {
+   "name": "sgc:co:66",
+   "title": "화산 (콜롬비아)",
+   "group": "콜롬비아 지질도 (SGC 1:50만)",
+   "abstract": "Volcanes",
+   "bbox": [
+    -79.5,
+    -4.3,
+    -66.8,
+    13.5
+   ]
+  },
+  {
+   "name": "sgc:co:65",
+   "title": "진흙 화산",
+   "group": "콜롬비아 지질도 (SGC 1:50만)",
+   "abstract": "Volcanes de Lodo",
+   "bbox": [
+    -79.5,
+    -4.3,
+    -66.8,
+    13.5
+   ]
+  }
+ ]
+}

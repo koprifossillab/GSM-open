@@ -334,6 +334,10 @@
         <svg viewBox="0 0 24 24" aria-hidden="true"><rect class="stroke" x="4" y="4" width="16" height="13" rx="1.5"/><path class="stroke" d="m6.5 14 3.5-4 3 3 2-2 2.5 3"/><path class="stroke" d="M12 17v4M9.5 19l2.5 2 2.5-2"/></svg>
         <span>{% t "그림" %}</span>
       </button>
+      <button type="button" class="tool" id="tool-share" title="{% t "링크 복사 — 보던 자리·켠 레이어·배경을 주소에 담는다" %}">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path class="stroke" d="M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7l-1.2 1.2"/><path class="stroke" d="M14 10a4 4 0 0 0-5.7 0l-3 3a4 4 0 0 0 5.7 5.7l1.2-1.2"/></svg>
+        <span>{% t "링크" %}</span>
+      </button>
       <a class="tool server-only" id="tool-3d" href="{{ base }}3d/" title="{% t "3D 로 본다 — 지금 보던 자리를 연다" %}">
         <svg viewBox="0 0 24 24" aria-hidden="true"><path class="stroke" d="M3 18 9 8l4 6 3-4 5 8H3Z"/><path class="stroke" d="M12 4v2M17 5.5l-1 1.6"/></svg>
         <span>3D</span>
@@ -396,6 +400,7 @@
 </main>
 
 <script id="i18n-data" type="application/json">{{ i18n_json|safe }}</script>
+<script id="tile-versions" type="application/json">{{ tile_versions|safe }}</script>
 <script id="vworld-key" type="application/json">"{{ vworld_key|escapejs }}"</script>
 <script id="catalog-data" type="application/json">{{ catalog|safe }}</script>
 {% if static_site %}<script id="static-config" type="application/json">{{ static_site|safe }}</script>
@@ -406,6 +411,8 @@
 <script src="{% static 'viewer/personal.js' %}?v={{ stamp|default:version }}"></script>
 {% if static_site %}{% comment %}정적 판의 상류를 브라우저가 곧장 부르는 소스(wetherilli P11·161) — map.js 보다 먼저{% endcomment %}
 <script src="{% static 'viewer/static-kinds.js' %}?v={{ stamp|default:version }}"></script>{% endif %}
+{% if not static_site %}<script src="{% static 'viewer/profile-band.js' %}?v={{ stamp|default:version }}"></script>{% endif %}
+<script src="{% static 'viewer/share.js' %}?v={{ stamp|default:version }}"></script>
 <script src="{% static 'viewer/map.js' %}?v={{ stamp|default:version }}"></script>
 </body>
 </html>
