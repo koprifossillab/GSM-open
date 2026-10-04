@@ -1,0 +1,37 @@
+{
+ "_주석": "카메룬 지질광업연구소(IRGM) 1:100만 씨앗이다 — 아프리카 탭. BRGM 이 대신 내주는 MapServer 라 문은 brgm.py 의 IRGM 이다. 4326 만 그린다. 비상업 조건 (wetherilli 246).",
+ "_뽑은날": "2026-10-05",
+ "_출처": "https://mapsref.brgm.fr/wxs/1GG/IRGM_Formations_et_Geologie_Structurale?service=WMS&request=GetCapabilities",
+ "_지역": "africa",
+ "_상류": "irgm",
+ "_레이어군차례": 5,
+ "레이어군순서": [
+  "카메룬 지질도 (IRGM 1:100만)"
+ ],
+ "레이어": [
+  {
+   "name": "irgm:CMR_IRGM_1M_UnitesGeologiques",
+   "title": "지질 단위 (1:100만)",
+   "group": "카메룬 지질도 (IRGM 1:100만)",
+   "abstract": "Cameroon 1:1M geological units",
+   "bbox": [
+    8.4,
+    1.6,
+    16.2,
+    13.1
+   ]
+  },
+  {
+   "name": "irgm:CMR_IRGM_1M_Failles",
+   "title": "단층 (1:100만)",
+   "group": "카메룬 지질도 (IRGM 1:100만)",
+   "abstract": "Cameroon 1:1M faults",
+   "bbox": [
+    8.4,
+    1.6,
+    16.2,
+    13.1
+   ]
+  }
+ ]
+}

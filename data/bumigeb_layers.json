@@ -1,0 +1,37 @@
+{
+ "_주석": "부르키나파소 지질광업국(BUMIGEB) 1:100만 씨앗이다 — 아프리카 탭. BGS 가 대신 내주는 MapServer 라 문은 bgs.py 의 BUMIGEB 이다. 비상업 조건 (wetherilli 246).",
+ "_뽑은날": "2026-10-05",
+ "_출처": "https://ogc.bgs.ac.uk/cgi-bin/BGS_BUMIGEB_FR_Bedrock_Geology/wms?service=WMS&request=GetCapabilities",
+ "_지역": "africa",
+ "_상류": "bumigeb",
+ "_레이어군차례": 4,
+ "레이어군순서": [
+  "부르키나파소 지질도 (BUMIGEB 1:100만)"
+ ],
+ "레이어": [
+  {
+   "name": "bumigeb:BFA_BUMIGEB_FR_1M_BLS",
+   "title": "암상 (1:100만)",
+   "group": "부르키나파소 지질도 (BUMIGEB 1:100만)",
+   "abstract": "Burkina Faso 1:1M bedrock lithology",
+   "bbox": [
+    -5.6,
+    9.4,
+    2.5,
+    15.1
+   ]
+  },
+  {
+   "name": "bumigeb:BFA_BUMIGEB_FR_1M_MSF",
+   "title": "주요 구조 (1:100만)",
+   "group": "부르키나파소 지질도 (BUMIGEB 1:100만)",
+   "abstract": "Burkina Faso 1:1M major structural features",
+   "bbox": [
+    -5.6,
+    9.4,
+    2.5,
+    15.1
+   ]
+  }
+ ]
+}

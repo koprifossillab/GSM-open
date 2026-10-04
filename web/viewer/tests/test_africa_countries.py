@@ -112,3 +112,57 @@ class Views(TestCase):
             rows = self.client.get(reverse("viewer:cgs-legend"), {"layer": "cgs:geology_1m"}).json()["rows"]
         self.assertEqual(rows[0]["lithology"], "Archaean")
         self.assertTrue(rows[0]["swatch"].startswith("data:image/png;base64,"))
+
+
+BFA_PLAIN = ("GetFeatureInfo results:\n\nLayer 'BFA_BUMIGEB_FR_1M_BLS'\n  Feature 598: \n    AREA = '0.86996'\n    CODE = '130'\n"
+             "    NOTATION = 'γ3'\n    DESCR = 'Granite à biotite'\n    LITHOLOGIE = 'Granite'\n    GROUPE3 = 'Granitoïde'\n")
+
+
+class SecondCountries(TestCase):
+    """부르키나파소 BUMIGEB·카메룬 IRGM 1:100만 (wetherilli 246) — 2026-10-05 에 받은 꼴."""
+
+    def setUp(self):
+        patch = override_settings(TILE_CACHE_DIR=tempfile.mkdtemp(prefix="gsm-africa2-"))
+        patch.enable()
+        self.addCleanup(patch.disable)
+        call_command("seed_catalog", stdout=io.StringIO())
+        from viewer import brgm
+        self.brgm = brgm
+        for mod in (bgs, brgm):
+            for name, value in (("record", None), ("paused", 0)):
+                p = mock.patch.object(mod.usage, name, return_value=value)
+                p.start()
+                self.addCleanup(p.stop)
+        self.layers = {l["name"]: l for g in self.client.get(reverse("viewer:catalog")).json()["groups"] for l in g["layers"]}
+
+    def test_아프리카_탭의_행(self):
+        self.assertEqual(Layer.objects.get(name="bumigeb:BFA_BUMIGEB_FR_1M_BLS").group.region, "africa")
+        self.assertIn("non-commercial", self.layers["bumigeb:BFA_BUMIGEB_FR_1M_BLS"]["attribution"])
+        self.assertIs(self.layers["bumigeb:BFA_BUMIGEB_FR_1M_MSF"]["queryable"], False)
+        cmr = self.layers["irgm:CMR_IRGM_1M_UnitesGeologiques"]
+        self.assertEqual((cmr["projection"], cmr["queryable"]), ("EPSG:4326", False))
+        self.assertIs(self.layers["irgm:CMR_IRGM_1M_Failles"]["noLegend"], True)
+
+    def test_부르키나파소_속성은_latin_1(self):
+        answer = mock.Mock(status_code=200, headers={"content-type": "text/plain"}, url="…", content=BFA_PLAIN.encode("latin-1", "replace"))
+        with mock.patch.object(bgs.requests, "get", return_value=answer) as get:
+            data = self.client.get(reverse("viewer:featureinfo"), {
+                "layers": "bumigeb:BFA_BUMIGEB_FR_1M_BLS", "query_layers": "bumigeb:BFA_BUMIGEB_FR_1M_BLS", "i": 128, "j": 128,
+                "request": "GetFeatureInfo", "crs": "EPSG:3857", "bbox": "-600000,1100000,250000,1700000", "width": 256, "height": 256}).json()
+        sent = get.call_args.kwargs["params"]
+        self.assertEqual((sent["info_format"], sent["layers"], sent["styles"]), ("text/plain", "BFA_BUMIGEB_FR_1M_BLS", ""))
+        props = data["features"][0]["props"]
+        self.assertEqual((props["설명"], props["암석 분류"]), ("Granite à biotite", "Granitoïde"))
+        self.assertEqual(bgs.bumigeb_friendly({"NOTATION": "ã3"})["기호"], "γ3")              # 기호 열은 cp1253
+
+    def test_카메룬은_4326_범위를_경도_먼저로(self):
+        answer = mock.Mock(status_code=200, headers={"content-type": "image/png"}, url="…", content=b"\x89PNG")
+        with mock.patch.object(self.brgm.requests, "get", return_value=answer) as get:
+            r = self.client.get(reverse("viewer:wms"), {"layers": "irgm:CMR_IRGM_1M_UnitesGeologiques", "version": "1.3.0",
+                                                         "request": "GetMap", "crs": "EPSG:4326", "bbox": "2,8,13,16",
+                                                         "width": 256, "height": 256})
+        self.assertEqual(r.status_code, 200)
+        sent = get.call_args.kwargs["params"]
+        self.assertEqual((sent["version"], sent["srs"], sent["bbox"]), ("1.1.1", "EPSG:4326", "8,2,16,13"))
+        with self.assertRaises(self.brgm.BrgmError):
+            self.brgm.irgm_get_legend("irgm:CMR_IRGM_1M_Failles")

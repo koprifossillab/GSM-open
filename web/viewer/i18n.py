@@ -82,6 +82,9 @@ EN = {
     # 북미 묶음·퀘벡·유콘 (wetherilli 210)
     "북미": "North America", "퀘벡 지질 광업 정보 체계": "SIGÉOM (Québec geomining information system)",
     "유콘 지질조사소": "Yukon Geological Survey", "지구조 요소": "Tectonic element",
+    # 캐나다 주 판 둘째 (wetherilli 235)
+    "사스카치원 지질조사소": "Saskatchewan Geological Survey", "노바스코샤 자연자원·재생에너지부": "Nova Scotia Natural Resources and Renewables",
+    "앨버타 지질조사소": "Alberta Geological Survey",
     # 이탈리아·포르투갈·스위스 (wetherilli 211)
     "이탈리아": "Italy", "포르투갈": "Portugal", "스위스": "Switzerland",
     "이탈리아 지질조사소 (ISPRA)": "Geological Survey of Italy (ISPRA)", "포르투갈 국립 에너지·지질연구소": "LNEG (Portugal)",
@@ -739,6 +742,8 @@ EN = {
     "영국 지질조사소 — 아프리카 지하수 지도책": "British Geological Survey — Africa Groundwater Atlas",
     "남아프리카공화국 지질조사소": "Council for Geoscience (South Africa)",
     "나미비아 지질조사소": "Geological Survey of Namibia",
+    "부르키나파소 지질광업국": "Bureau of Mines and Geology of Burkina Faso (BUMIGEB)",
+    "카메룬 지질광업연구소": "Institute for Geological and Mining Research of Cameroon (IRGM)",
     "우루과이 광업지질국": "Uruguay National Directorate of Mining and Geology (DINAMIGE)",
     # 에콰도르 (wetherilli 198)
     "에콰도르": "Ecuador",
@@ -2306,6 +2311,11 @@ PROP_EN = {
     # 독일 BGR·스페인 IGME (wetherilli 147)
     "대": "Era",
     "성인": "Genesis",
+    # 미국 광물·연대 (wetherilli 247)
+    "개발 단계": "Development status", "지형도": "Topographic map", "상세": "Details",
+    # 하와이 (wetherilli 238)
+    "조성": "Composition", "섬": "Island", "화산 성장 단계": "Volcano stage",
+    "서열": "Rank",
     "변성암": "Metamorphic rock",
     "화성암": "Igneous rock",
     "해양 지질": "Marine geology",
@@ -2656,6 +2666,10 @@ AGE_LOCAL_MODIFIERS = {
 }
 
 
+#: 붙여 쓰는 꾸밈말 — 긴 것부터 (wetherilli 239)
+_AGE_GLUED = ("mittel", "unter", "ober", "früh", "spät")
+
+
 def age_local(value: str) -> str:
     """독일어·네덜란드어·폴란드어·프랑스어 시대(`Perm - frühe Kreide`·`jura górna`·`Dévonien inférieur`·`Holoceen`) → ICS 영어
     (`Permian – Early Cretaceous`). 낱말 하나라도 모르면 빈 글 — 부르는 쪽이 원문을 보인다 (wetherilli 237)"""
@@ -2674,7 +2688,11 @@ def age_local(value: str) -> str:
             elif w in AGE_LOCAL_MODIFIERS and not mod:
                 mod = AGE_LOCAL_MODIFIERS[w]
             else:
-                return ""
+                # 독일어는 꾸밈말을 붙여 쓴다 — `Obertrias`·`Unterkreide`·`Mitteleozän` (wetherilli 239)
+                glued = next(((m, w[len(m):]) for m in _AGE_GLUED if w.startswith(m) and w[len(m):] in AGE_LOCAL_WORDS), None)
+                if glued is None or noun or mod:
+                    return ""
+                mod, noun = AGE_LOCAL_MODIFIERS[glued[0]], AGE_LOCAL_WORDS[glued[1]]
         if not noun:
             return ""
         parts.append(f"{mod} {noun}" if mod else noun)
@@ -2964,10 +2982,17 @@ def props_en(props: dict) -> dict:
 # 레이어 이름을 열쇠로 여기 둔다. 없으면 한국어 제목이 뜬다.
 
 GROUP_EN = {
+    "미국 광물 자원 (USGS)": "US mineral resources (USGS)", "미국 지구물리 (USGS)": "US geophysics (USGS)",
+    "미국 지질 연대 측정 (USGS)": "US geochronology (USGS)",
+    "하와이 지질도 (USGS)": "Hawaii geology (USGS)", "푸에르토리코 지질도 (USGS)": "Puerto Rico geology (USGS)",
+    "호주 지질구 (GA)": "Australia geological provinces (GA)", "호주 핵심 광물 (GA 2025)": "Australia critical minerals (GA 2025)",
+    "호주 지구물리 (GA)": "Australia geophysics (GA)",
     "캐나다 지질도 (NRCan 1:500만)": "Geological Map of Canada (NRCan 1:5M)",
     "온타리오 지질도 (OGS 1:25만)": "Geology of Ontario (OGS 1:250k)",
     "퀘벡 지질도 (SIGÉOM)": "Geology of Québec (SIGÉOM)",
     "유콘 지질도 (YGS 1:25만)": "Yukon geology (YGS 1:250k)",
+    "사스카치원 지질도 (SGS)": "Saskatchewan geology (SGS)", "노바스코샤 지질도 (1:50만)": "Nova Scotia geology (1:500k)",
+    "앨버타 지질도 (AGS 1:100만)": "Alberta geology (AGS 1:1M)",
     "이탈리아 지질도 (ISPRA)": "Geology of Italy (ISPRA)", "포르투갈 지질도 (LNEG 1:50만)": "Geology of Portugal (LNEG 1:500k)",
     "스위스 지질도 (swisstopo)": "Geology of Switzerland (swisstopo)",
     "아이슬란드 기반암 1:60만 (NÍ)": "Bedrock of Iceland 1:600k (NÍ)", "아이슬란드 1:10만 (NÍ)": "Iceland 1:100k (NÍ)",
@@ -2977,6 +3002,8 @@ GROUP_EN = {
     "인도 지질도 1:200만 (GSI)": "Geological Map of India 1:2M (GSI)",
     "사우디 지질도 1:25만 (SGS)": "Geology of Saudi Arabia 1:250k (SGS)",
     "오스트리아 지질도 (GeoSphere 1:100만)": "Geology of Austria (GeoSphere 1:1M)", "폴란드 지질도 (PIG-PIB 1:50만)": "Geology of Poland (PIG-PIB 1:500k)",
+    "오스트리아 지질도 1:5만 (GeoSphere)": "Geology of Austria 1:50k (GeoSphere)",
+    "폴란드 지질도 1:5만 (PIG-PIB SMGP)": "Geology of Poland 1:50k (PIG-PIB SMGP)",
     "네덜란드 지질도 (TNO)": "Geology of the Netherlands (TNO)", "플랑드르 지질도 (DOV)": "Geology of Flanders (DOV)",
     "왈로니아 지질도 (SPW 1:2.5만)": "Geology of Wallonia (SPW 1:25k)",
     "브리티시컬럼비아 지질도 (BCGS)": "Geology of British Columbia (BCGS)", "캘리포니아 지질도 (CGS 1:75만)": "Geologic Map of California (CGS 1:750k)",
@@ -3064,6 +3091,7 @@ GROUP_EN = {
     "아프리카 나라별 지질 (BGS 지하수 지도책 1:500만)": "Africa country geology (BGS Groundwater Atlas 1:5M)",
     "남아프리카공화국 지질도 (CGS 1:100만)": "South Africa geology (CGS 1:1M)",
     "나미비아 지질도 (GSN 1:100만)": "Namibia geology (GSN 1:1M)",
+    "부르키나파소 지질도 (BUMIGEB 1:100만)": "Burkina Faso geology (BUMIGEB 1:1M)", "카메룬 지질도 (IRGM 1:100만)": "Cameroon geology (IRGM 1:1M)",
     "에콰도르 지질도 (IIGE)": "Ecuador geology (IIGE)",
     "미국 본토 지질도 (USGS SGMC)": "Conterminous US geology (USGS SGMC)",
     "알래스카 지질도 (USGS SIM 3340)": "Alaska geology (USGS SIM 3340)",
@@ -3079,6 +3107,10 @@ LAYER_EN = {
     "ogs:1": "Ontario Quaternary geology",
     "sigeom:generale": "General geology (Québec)", "sigeom:regionale": "Regional geology (Québec, 1:20k–1:250k)",
     "sigeom:failles": "Faults (Québec)", "ygs:47": "Bedrock (Yukon 1:250k)", "ygs:50": "Faults (Yukon)",
+    # 캐나다 주 판 둘째 (wetherilli 235)
+    "skgs:2": "Bedrock (Saskatchewan 1:1M)", "skgs:3": "Bedrock (Saskatchewan 1:250k, Shield)",
+    "skgs:11": "Major faults and shear zones (Saskatchewan 1:1M)", "nsgs:11": "Bedrock (Nova Scotia 1:500k)",
+    "nsgs:9": "Faults (Nova Scotia 1:500k)", "ags:bedrock": "Bedrock (Alberta 1:1M, Map 600)",
     "ogs:6": "Ontario faults", "ogs:4": "Ontario dikes", "ogs:5": "Ontario iron formations",
     # 이탈리아·포르투갈·스위스 (wetherilli 211)
     "ispra:1m:0": "Italy geological units (1:1M)", "ispra:1m:1": "Italy faults (1:1M)",
@@ -3107,7 +3139,9 @@ LAYER_EN = {
     "sgs:geology": "Geology (1:250k compilation)",
     # 동남아 (wetherilli 228)
     "geosphere:geology": "Geology (1:1M)", "geosphere:faults": "Faults and nappe boundaries (1:1M)",
-    "pig:mgp500k": "Geology (1:500k, 2022)", "pig:faults": "Faults (1:500k)", "tno:geology": "Surface geology",
+    "pig:mgp500k": "Geology (1:500k, 2022)", "pig:faults": "Faults (1:500k)",
+    "geosphere:units50k": "Geological units (1:50k)", "pig:smgp50k": "Detailed geology (1:50k)",
+    "pig:smgp50k_lines": "Boundaries and line symbols (1:50k)", "tno:geology": "Surface geology",
     "dov:tertiair_50k": "Tertiary geology (1:50k)", "dov:quartair_200k": "Quaternary profile-type map (1:200k)",
     "spw:geology": "Geology (1:25k compilation)", "spw:faults": "Faults",
     "bcgs:bedrock": "Bedrock (BC Digital Geology)", "calgs:geology": "Geologic map (1:750k)",
@@ -3234,6 +3268,8 @@ LAYER_EN = {
     # 아프리카 나라 판 (wetherilli 209)
     "cgs:geology_1m": "Geology (1:1M)",
     "gsn:NAM_GSN_1M_BLS": "Lithostratigraphy (1:1M)",
+    "bumigeb:BFA_BUMIGEB_FR_1M_BLS": "Lithology (1:1M)", "bumigeb:BFA_BUMIGEB_FR_1M_MSF": "Major structures (1:1M)",
+    "irgm:CMR_IRGM_1M_UnitesGeologiques": "Geological units (1:1M)", "irgm:CMR_IRGM_1M_Failles": "Faults (1:1M)",
     "gsn:NAM_GSN_1M_BA": "Age (1:1M)",
     "iige:geologia_general": "General geological map",
     # 미국 (wetherilli 205)
@@ -3241,6 +3277,14 @@ LAYER_EN = {
     "mrdata:sgmc2:sgmc2structure": "Structures (state map compilation)",
     "mrdata:sim3340:units": "Geologic units (Alaska 1:1.58M)",
     "mrdata:sim3340:faults": "Faults (Alaska 1:1.58M)",
+    # 하와이·푸에르토리코 (wetherilli 238)
+    "mrdata:hi:units": "Geologic units (Hawaii)", "mrdata:hi:faults": "Faults (Hawaii)", "mrdata:hi:dikes": "Dikes (Hawaii)",
+    "mrdata:pr:geol": "Geologic units (Puerto Rico)", "mrdata:pr:fault": "Thrust faults (Puerto Rico)", "mrdata:pr:faultn": "Normal faults (Puerto Rico)",
+    # USGS 의 다른 자료 (wetherilli 247)
+    "mrdata:mrds:mrds": "Mineral resources (MRDS)", "mrdata:usmin:points": "Mine features — points (USMIN)",
+    "mrdata:usmin:polygons": "Mine features — polygons (USMIN)", "mrdata:aeromag:namag": "Magnetic anomalies of North America (NAMAG)",
+    "mrdata:gravity:isostatic": "Isostatic residual gravity anomaly", "mrdata:gravity:bouguer": "Bouguer gravity anomaly",
+    "mrdata:geochron:geochron": "Geochronology (National Geochronological Database)",
     # 멕시코 (wetherilli 206)
     "sgm:8": "Lithology (1:250k)",
     # 호주 (wetherilli 212)
@@ -3248,6 +3292,10 @@ LAYER_EN = {
     "ga:age": "Geologic units — age",
     "ga:lithology": "Geologic units — lithology",
     "ga:faults": "Faults",
+    # GA 의 다른 서비스 (wetherilli 241)
+    "ga:crustal": "Crustal elements", "ga:provinces": "Geological provinces (all)", "ga:mines": "Critical minerals mines",
+    "ga:deposits": "Critical minerals deposits", "ga:tmi": "Total magnetic intensity (2019)",
+    "ga:gravity": "Complete Bouguer gravity anomaly (2019)", "ga:radiometric": "Radiometric ternary (K·Th·U, 2019)",
     "sgm:6": "Structures (1:250k)",
     "sgm:7": "Lithology (1:50k)",
     "sgm:5": "Structures (1:50k)",

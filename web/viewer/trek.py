@@ -328,10 +328,26 @@ DEM_PARTS = (
     ("LRO_NAC_DEM_86S356E_3mp", (-15.38, -87.2, 0.44, -84.59), 15, 1.0),
     ("LRO_NAC_DEM_02N085E_150cmp", (84.812, 1.3778, 85.702, 2.8148), 15, 1.0),
     ("LRO_NAC_DEM_07N022E_150cmp", (21.4617, 6.2719, 22.0539, 7.2299), 15, 1.0),
+    # 남은 판 (wetherilli 240) — 다섯째 칸은 서비스의 뿌리(없으면 `trekarcgis`). 판의 한가운데 1/3 네모를 256 ppd 와 맞댔다(2026-10-05).
+    # 투영 좌표 판(정사·극 평사·등거리 원통)은 ImageServer 가 우리 경위도로 옮겨 준다 — 범위는 판의 네모를 우리가 거꾸로 셈해 감싼 것이다
+    ("hermite_a_dem_mosaic_1m_v3", (-49.4352, 87.3449, -38.3307, 87.7192), 15, 1.0),     # 허미트 A 1 m — +0.1 m, 흩어짐 2.3 m
+    ("viper_sfs_clipped_4_5km_dem_tif", (30.2847, -85.4240, 32.1446, -85.2749), 15, 1.0, "trekarcgis2"),   # VIPER 1 m — −3.5 m, 3.8 m
+    ("NAC_DTM_APOLLO17", (29.9059, 19.3905, 31.6582, 21.3035), 14, 1.0),                 # 아폴로 17 NAC 5 m — −1.4 m, 17.7 m
+    ("UCL_Aristarchus_DTM_JPL_AOI_10m", (-48.0349, 23.0593, -46.5790, 24.4454), 13, 1.0),   # 아리스타르쿠스 10 m — −1.1 m, 17.6 m
+    ("schrodinger_vent_dem_clip_eq", (134.8048, -76.6886, 143.4761, -74.5320), 13, 1.0),    # 슈뢰딩거 분출구 — −0.4 m, 8.3 m
+    ("TC2W2B0_01_07463S484E3342__TC1W2B0_01_07463S490E3341_ba_aligned_DEM", (-26.2183, -49.2049, -25.4640, -48.2631), 12, 1.0,
+     "trekarcgis3"),                                                                      # Kaguya TC 입체 — −0.7 m, 7.5 m
+    ("LRO_NAC_DEM_1mpp_SiteH", (-159.7230, -60.1836, -159.4455, -59.2443), 15, 1.0, "trekarcgis3"),   # 아르테미스 H 1 m — +0.7 m, 3.4 m
+    ("LRO_NAC_DEM_3_75mpp_SiteH", (-161.8642, -57.8951, -161.7401, -57.8291), 14, 1.0, "trekarcgis3"),  # 아르테미스 H 3.75 m — +6.9 m, 7.7 m
+    ("LRO_NAC_DEM_2_5mpp_SiteA", (160.9867, -59.1575, 161.1155, -59.0914), 15, 1.0, "trekarcgis3"),   # 아르테미스 A — +2.3 m, 2.3 m
+    ("LRO_NAC_DEM_2mpp_SiteQ", (139.1957, -75.0539, 139.4515, -74.9879), 15, 1.0, "trekarcgis2"),     # 아르테미스 Q — −6.1 m, 10.1 m
+    ("LRO_NAC_DEM_2_5mpp_Shioli", (25.0626, -14.1733, 25.8442, -12.5873), 15, 1.0, "trekarcgis3"),    # 시올리 — 0.0 m, 21.6 m
 )
 #: 넣지 않은 판 (wetherilli 150) — 아폴로 15 PanCam DEM 셋은 256 ppd 와의 차이가 평균 ±15 m·흩어짐 23–52 m 로 NAC(10–14 m)보다
 #: 커 자리가 어긋난 판으로 보인다. 메트릭 카메라 1024 ppd 둘(`Apollo17_…`·`ApolloZone_…`)은 256 ppd 보다 120 m 남짓 낮다 —
-#: 기준면이 다른 까닭을 모른 채 맞추지 않았다
+#: 기준면이 다른 까닭을 모른 채 맞추지 않았다. wetherilli 240 에서 뺀 것 — 아르테미스 C(+91 m)·G(−10 m, 흩어짐 3 m)는 턱이 일정해 기준면이
+#: 다른 판으로, B·북위 89° NAC·IM-1 착륙지는 흩어짐이 51–65 m 라 어긋난 판으로 보인다. 피카르·말굽·`20191118_demmos` 는 256 ppd 와 수 km 가 다르다.
+#: 남극 85° 10·20 m(`ldem_85s_*`)는 한 점씩은 256 ppd 와 같은데 `exportImage` 로는 흩어짐이 1.3 km 다. 후보 D 는 기준면을 모른다(판 세션)
 DEM_FINE_MAX = max(part[2] for part in DEM_PARTS)
 
 
@@ -348,6 +364,11 @@ def dem_source(z: int, x: int, y: int) -> tuple:
     return (DEM_Z0_SERVICE if z == 0 else DEM_SERVICE), 1.0
 
 
+def dem_root(part) -> str:
+    """고운 판의 서비스 뿌리 (wetherilli 240) — 다섯째 칸, 없으면 `trekarcgis`."""
+    return part[4] if part and len(part) > 4 else "trekarcgis"
+
+
 def dem_part(z: int, x: int, y: int):
     """줌 `DEM_MAX_ZOOM` 너머의 한 장에 쓸 고운 판 — 그 장에 걸치고 줌 끝이 넉넉한 것 가운데 가장 고운 것. 없으면 None."""
     if z <= DEM_MAX_ZOOM:
@@ -358,13 +379,13 @@ def dem_part(z: int, x: int, y: int):
     return max(got, key=lambda part: part[2]) if got else None
 
 
-def _dem_values(service: str, box: tuple, scale: float = 1.0) -> list:
+def _dem_values(service: str, box: tuple, scale: float = 1.0, root: str = "trekarcgis") -> list:
     """`exportImage` 로 65×65 표고 — 못 읽은 칸은 None."""
     from PIL import Image
 
     w, s, e, n = box
     half = (e - w) / (DEM_SIZE - 1) / 2
-    r = _get(f"trekarcgis/rest/services/{service}/ImageServer/exportImage", {
+    r = _get(f"{root}/rest/services/{service}/ImageServer/exportImage", {
         "bbox": f"{w - half},{s - half},{e + half},{n + half}", "bboxSR": SR, "imageSR": SR,
         "size": f"{DEM_SIZE},{DEM_SIZE}", "format": "tiff", "pixelType": "F32",
         "interpolation": "RSP_BilinearInterpolation", "f": "image",
@@ -393,7 +414,7 @@ def dem_tile(z: int, x: int, y: int) -> bytes:
     box = tile_bbox(z, x, y)
     part = dem_part(z, x, y)
     service, scale = dem_source(z, x, y)
-    values = _dem_values(service, box, scale)
+    values = _dem_values(service, box, scale, dem_root(part))
     if part and any(v is None for v in values):
         base = _dem_values(DEM_SERVICE, box)
         values = [v if v is not None else b for v, b in zip(values, base)]

@@ -170,6 +170,24 @@ class FineDem(TestCase):
         self.assertEqual(trek.dem_part(*self.tile(10, 45, -80))[0], "LRO_LOLA_DEM_SPole75_30mp_v04_EQ")
         self.assertIsNone(trek.dem_part(*self.tile(12, 0, -89.5)))               # 5 m 판의 줌 끝 너머
 
+    def test_남은_판_wetherilli_240(self):
+        # 허미트 A 1 m 는 북극 5 m(줌 11)보다 고와 그 자리에서 이긴다, VIPER 는 남극 30 m 를 이긴다
+        self.assertEqual(trek.dem_part(*self.tile(15, -44.0, 87.5))[0], "hermite_a_dem_mosaic_1m_v3")
+        self.assertEqual(trek.dem_part(*self.tile(15, 31.2, -85.35))[0], "viper_sfs_clipped_4_5km_dem_tif")
+        self.assertEqual(trek.dem_part(*self.tile(14, 30.8, 20.3))[0], "NAC_DTM_APOLLO17")
+        self.assertIsNone(trek.dem_part(*self.tile(15, 30.8, 20.3)))              # 5 m 판의 줌 끝(14) 너머
+        names = [p[0] for p in trek.DEM_PARTS]
+        for left_out in ("LRO_NAC_DEM_2_4mpp_SiteC", "LRO_NAC_DEM_2_5mpp_SiteG", "LRO_NAC_DEM_2_5mpp_SiteB", "LRO_NAC_DEM_4_57mpp_SiteD",
+                         "LRO_LOLA_NAC_DEM_3_5mpp_IM_1_LandingSite", "picard_DEM_merged", "ldem_85s_10m_Spole_float"):
+            self.assertNotIn(left_out, names)
+
+    def test_다른_뿌리의_판은_그_뿌리로(self):
+        raw = tiff([-2500.0] * trek.DEM_SIZE ** 2)
+        with mock.patch("viewer.trek.requests.get", return_value=response(ctype="image/tiff", content=raw)) as get:
+            trek.dem_tile(*self.tile(15, 31.2, -85.35))
+        self.assertIn("trekarcgis2/rest/services/viper_sfs_clipped_4_5km_dem_tif/ImageServer/exportImage", get.call_args[0][0])
+        self.assertEqual(trek.dem_root(trek.dem_part(*self.tile(15, -44.0, 87.5))), "trekarcgis")
+
     def test_극_5_m_는_반_m_단위(self):
         raw = tiff([-1443.0] * trek.DEM_SIZE ** 2)
         with mock.patch("viewer.trek.requests.get", return_value=response(ctype="image/tiff", content=raw)) as get:

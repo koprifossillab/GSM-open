@@ -84,3 +84,48 @@ class Views(TestCase):
     def test_정적_판의_표(self):
         table = static_tables.tables()["ga"]
         self.assertEqual(table["layers"]["ga:age"], "AUS_GA_2500k_GUPoly_Age,AUS_GA_1M_GUPoly_Age")
+
+
+class Other(TestCase):
+    """GA 의 다른 서비스 — 지질구·핵심 광물·지구물리 격자 (wetherilli 241)"""
+    PROVINCE = {"provinceName": "Arunta Orogen", "type": "tectonic", "subtype": "orogen/fold belt", "rank": "superprovince",
+                "olderNameAge": "Paleoproterozoic", "youngerNamedAge": "Carboniferous", "state": "NT, WA", "parentName": "Null"}
+    MINE = {"objectid": "2160", "ProjectName": "Yaamba", "STATE": "QLD", "Status": "Operating mine", "Commodities": "Magnesium"}
+
+    def setUp(self):
+        patch = override_settings(TILE_CACHE_DIR=tempfile.mkdtemp(prefix="gsm-ga2-"))
+        patch.enable()
+        self.addCleanup(patch.disable)
+        call_command("seed_catalog", stdout=io.StringIO())
+        for name, value in (("record", None), ("paused", 0)):
+            p = mock.patch.object(ga.usage, name, return_value=value)
+            p.start()
+            self.addCleanup(p.stop)
+        self.layers = {l["name"]: l for g in self.client.get(reverse("viewer:catalog")).json()["groups"] for l in g["layers"]}
+
+    def test_속성(self):
+        got = ga.friendly(self.PROVINCE)
+        self.assertEqual((got["이름"], got["지질시대"], got["갈래"]),
+                         ("Arunta Orogen", "고원생대~석탄기", "tectonic · orogen/fold belt · superprovince"))
+        self.assertNotIn("상위 단위", got)
+        self.assertEqual(ga.friendly(self.MINE), {"이름": "Yaamba", "광종": "Magnesium", "운영": "Operating mine", "주": "QLD"})
+
+    def test_카탈로그(self):
+        self.assertEqual(Layer.objects.get(name="ga:tmi").group.region, "australia")
+        self.assertIs(self.layers["ga:tmi"]["queryable"], False)
+        self.assertTrue(self.layers["ga:tmi"]["noLegend"])
+        self.assertNotIn("noLegend", self.layers["ga:crustal"])
+
+    def test_격자는_png8_로(self):
+        with mock.patch.object(ga.requests, "get", return_value=answer(ctype="image/png; mode=8bit")) as get:
+            r = self.client.get(reverse("viewer:wms"), {"layers": "ga:gravity", "version": "1.3.0", "request": "GetMap", **MERC})
+        self.assertTrue(get.call_args.args[0].endswith("/gis/geophysical-grids/ows"))
+        sent = get.call_args.kwargs["params"]
+        self.assertEqual((sent["format"], sent["layers"]), ("image/png8", "geophys:2019_A4_CBA_wide_linear_color_Hillshade_HSI_GeoTIFF"))
+        self.assertEqual(r["Content-Type"], "image/png")
+
+    def test_광산_셋을_한_번에(self):
+        with mock.patch.object(ga.requests, "get", return_value=answer()) as get:
+            self.client.get(reverse("viewer:wms"), {"layers": "ga:mines", "version": "1.3.0", "request": "GetMap", **MERC})
+        self.assertIn("AustralianCriticalMineralsOperatingMinesAndDeposits", get.call_args.args[0])
+        self.assertEqual(get.call_args.kwargs["params"]["layers"], "OperatingMines,DevelopingMines,CareMaintenanceMines")

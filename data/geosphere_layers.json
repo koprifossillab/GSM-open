@@ -1,12 +1,13 @@
 {
- "_주석": "GeoSphere Austria(옛 GBA) 1:100만 씨앗이다 — 오스트리아 탭(유럽 묶음에도 든다). 2026-10-04 에 gis.geosphere.at 의 WMS 에서 골랐다. 한글 제목과 레이어군은 사람이 붙였다 (wetherilli 237).",
+ "_주석": "GeoSphere Austria(옛 GBA) 1:100만 씨앗이다 — 오스트리아 탭(유럽 묶음에도 든다). 2026-10-04 에 gis.geosphere.at 의 WMS 에서 골랐다. 한글 제목과 레이어군은 사람이 붙였다 (wetherilli 237). 1:5만(einheiten_50)은 wetherilli 239 에서 더했다.",
  "_뽑은날": "2026-10-04",
  "_출처": "https://gis.geosphere.at/maps/services/geologie/geologie_1m/MapServer/WMSServer?SERVICE=WMS&REQUEST=GetCapabilities",
  "_지역": "austria",
  "_상류": "geosphere",
  "_레이어군차례": 1,
  "레이어군순서": [
-  "오스트리아 지질도 (GeoSphere 1:100만)"
+  "오스트리아 지질도 (GeoSphere 1:100만)",
+  "오스트리아 지질도 1:5만 (GeoSphere)"
  ],
  "레이어": [
   {
@@ -26,6 +27,18 @@
    "title": "단층·지붕구조 경계 (1:100만)",
    "group": "오스트리아 지질도 (GeoSphere 1:100만)",
    "abstract": "tektonische_linien_1m 0·6 — Störungen und Scherzonen, Deckengrenzen 1. Ordnung",
+   "bbox": [
+    9.5,
+    46.35,
+    17.2,
+    49.05
+   ]
+  },
+  {
+   "name": "geosphere:units50k",
+   "title": "지질 단위 (1:5만)",
+   "group": "오스트리아 지질도 1:5만 (GeoSphere)",
+   "abstract": "geologie/einheiten_50 — 도폭별 1:5만을 GeoSciML-Lite 로 이은 것. WMS 가 없어 REST export 로. 줌 11 부터, 도폭이 나온 곳만",
    "bbox": [
     9.5,
     46.35,

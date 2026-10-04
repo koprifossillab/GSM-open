@@ -243,3 +243,77 @@ def cgmw_friendly(props: dict, lang: str = "ko") -> dict:
 
 
 CGMW = _NS(get_map=cgmw_get_map, get_feature_info=cgmw_get_feature_info, get_legend=cgmw_get_legend)
+
+
+# ── 카메룬 지질광업연구소(IRGM) 1:100만 — BRGM 이 대신 내준다 (wetherilli 246) ─────────
+#
+# CGMW 와 같은 BRGM 의 MapServer(`mapsref.brgm.fr/wxs/1GG/IRGM_Formations_et_Geologie_Structurale`)라 문은 여기다. 상류 이름은 `irgm`.
+# 조건: AccessConstraints "personal, teaching, research or non-commercial use" — **비상업**. **4326 만 그린다**(3857 은 예외) —
+# IGME 1:100만처럼 4326 으로 받아 화면이 옮겨 그린다. 1.3.0 의 4326 은 위도가 먼저라 1.1.1 로 옮기며 범위를 뒤집는다.
+# 속성은 열이 없다(GML 이 범위만 준다, 2026-10-05) — 누르지 않는다. 범례는 단위만 GetLegendGraphic 이 준다(단층은 예외)
+
+IRGM_PREFIX = "irgm:"
+IRGM_ATTRIBUTION = ('Carte géologique du Cameroun 1:1 000 000 — IRGM (served by '
+                    '<a href="https://www.brgm.fr/" target="_blank" rel="noopener">BRGM</a>, non-commercial use)')
+IRGM_LAYERS = ("CMR_IRGM_1M_UnitesGeologiques", "CMR_IRGM_1M_Failles")
+IRGM_LEGEND_LAYERS = ("CMR_IRGM_1M_UnitesGeologiques",)
+
+
+def _irgm_names(names: str) -> str:
+    out = []
+    for one in str(names or "").split(","):
+        one = one.strip()
+        name = one[len(IRGM_PREFIX):] if one.startswith(IRGM_PREFIX) else ""
+        if name not in IRGM_LAYERS:
+            raise BrgmError(f"모르는 레이어다: {one}")
+        out.append(name)
+    return ",".join(out)
+
+
+def _irgm_get(params: dict):
+    left = usage.paused()
+    if left:
+        raise BrgmError(f"차단 조짐이 있어 {int(left)}초 동안 상류에 묻지 않는다")
+    try:
+        r = requests.get(settings.IRGM_WMS_URL, params=params, timeout=settings.UPSTREAM_TIMEOUT,
+                         verify=settings.CA_BUNDLE or True, headers={"User-Agent": "GSM/0.1"})
+    except requests.RequestException as exc:
+        usage.record("irgm", ok=False)
+        raise BrgmError(f"IRGM(BRGM) 에 닿지 못했다: {exc}") from exc
+    log.info("IRGM %s -> %s", r.url, r.status_code)
+    usage.record("irgm", ok=r.status_code == 200, blocked=usage.looks_blocked(r.status_code, r.content[:1000]))
+    return r
+
+
+def irgm_get_map(params: dict):
+    asked = str(params.get("version", ""))
+    params = dict(params, service="WMS", request="GetMap", version="1.1.1")
+    if "crs" in params and "srs" not in params:
+        params["srs"] = params.pop("crs")
+    if asked.startswith("1.3") and str(params.get("srs", "")).upper() == "EPSG:4326" and params.get("bbox"):
+        s, w, n, e = str(params["bbox"]).split(",")
+        params["bbox"] = ",".join((w, s, e, n))
+    params["layers"] = _irgm_names(params.get("layers"))
+    params.setdefault("styles", "")
+    r = _irgm_get(params)
+    ctype = r.headers.get("content-type", "")
+    if r.status_code != 200 or not ctype.startswith("image/"):
+        raise BrgmError(f"그림이 아닌 것이 왔다 (status={r.status_code}, type={ctype})")
+    return r.content, ctype
+
+
+def irgm_get_legend(layer: str):
+    name = _irgm_names(layer)
+    if name not in IRGM_LEGEND_LAYERS:
+        raise BrgmError(f"범례가 없는 레이어다: {layer}")
+    r = _irgm_get({"service": "WMS", "version": "1.1.1", "request": "GetLegendGraphic", "format": "image/png", "layer": name})
+    if r.status_code != 200 or not r.headers.get("content-type", "").startswith("image/"):
+        raise BrgmError(f"범례가 아닌 것이 왔다 (status={r.status_code})")
+    return r.content, r.headers.get("content-type")
+
+
+def irgm_get_feature_info(params: dict) -> dict:
+    raise BrgmError("카메룬 지질도는 속성 열을 내주지 않는다")
+
+
+IRGM = _NS(get_map=irgm_get_map, get_feature_info=irgm_get_feature_info, get_legend=irgm_get_legend)

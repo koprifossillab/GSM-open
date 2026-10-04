@@ -279,6 +279,17 @@
 | wetherilli 234 | 2026-10-04 | [페루 — INGEMMET 1:5만 지질 단위만(단층·습곡 없이)](20261004_wetherilli_234_ingemmet_units.md) |
 | wetherilli 236 | 2026-10-04 | [달 — 누른 자리의 값, 남은 판](20261004_wetherilli_236_moon_values_rest.md) |
 | wetherilli 237 | 2026-10-05 | [유럽 넷 더 — 오스트리아·폴란드·네덜란드·벨기에, 체코·덴마크는 사람에게](20261005_wetherilli_237_europe_more_3.md) |
+| wetherilli 235 | 2026-10-05 | [캐나다 주 판 둘째 — 앨버타·사스카치원·노바스코샤](20261005_wetherilli_235_canada_provinces_2.md) |
+| wetherilli 238 | 2026-10-05 | [미국 — 하와이·푸에르토리코](20261005_wetherilli_238_usa_islands.md) |
+| wetherilli 239 | 2026-10-05 | [오스트리아·폴란드 1:5만 — 가까이서만 그리는 레이어](20261005_wetherilli_239_europe_50k.md) |
+| wetherilli 240 | 2026-10-05 | [달 — 고운 지형, 남은 판](20261005_wetherilli_240_moon_terrain_rest.md) |
+| wetherilli 241 | 2026-10-05 | [호주 — Geoscience Australia 의 다른 서비스](20261005_wetherilli_241_ga_more.md) |
+| wetherilli 243 | 2026-10-05 | [동남아 — 인도네시아 범례를 보는 범위의 것으로](20261005_wetherilli_243_sea_legends.md) |
+| wetherilli 244 | 2026-10-05 | [멕시코 — 지자기(SGM DatosAbiertos 7)는 싣지 않았다](20261005_wetherilli_244_mexico_magnetics.md) |
+| wetherilli 245 | 2026-10-05 | [한반도 지질도 민판 — 색↔지층 표는 CorelDRAW 원본에 없다](20261005_wetherilli_245_peninsula_legend.md) |
+| wetherilli 246 | 2026-10-05 | [아프리카 나라 판 둘째 — 부르키나파소 BUMIGEB·카메룬 IRGM 1:100만](20261005_wetherilli_246_africa_countries_2.md) |
+| wetherilli 247 | 2026-10-05 | [미국 — USGS mrdata 의 광물·지구물리·연대](20261005_wetherilli_247_usa_more.md) |
+| wetherilli 249 | 2026-10-05 | [중동·남아시아 나머지 — 열린 지질도 서비스가 없다](20261005_wetherilli_249_middle_east.md) |
 | koprifossillab P01 | 2026-09-30 | [백업 — WegenersDream 의 틀로, 바뀌는 빠르기에 따라 넷으로 (계획)](20260930_koprifossillab_P01_backup_plan.md) |
 | koprifossillab 001 | 2026-09-30 | [매주 월요일 새벽: 운영 자료 백업과 KPDC 목록 갱신](20260930_koprifossillab_001_weekly_backup.md) |
 | koprifossillab 002 | 2026-09-30 | [`/healthz/` — 판·DB·백업 상태를 한 장으로](20260930_koprifossillab_002_healthz.md) |

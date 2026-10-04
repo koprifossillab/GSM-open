@@ -39,7 +39,7 @@ class LocalAges(SimpleTestCase):
         self.assertEqual(i18n.age_local("kampan"), "Campanian")
         self.assertEqual(i18n.age_local("Holoceen"), "Holocene")
         self.assertEqual(i18n.age_local("Dévonien inférieur"), "Early Devonian")
-        self.assertEqual(i18n.age_local("Mitteleozän"), "")                      # 모르면 빈 글 — 원문을 보인다
+        self.assertEqual(i18n.age_local("Mitteleozän x"), "")                    # 모르면 빈 글 — 원문을 보인다
 
 
 class Doors(SimpleTestCase):
@@ -101,3 +101,42 @@ class Catalog(TestCase):
                          ("dov:tertiair_50k", "dov"), ("spw:geology", "spw")):
             self.assertIsNotNone(prewarm.plan_for(name, up), name)
             self.assertIn(up, views.MAP3D_WMS)
+
+
+#: 오스트리아 1:5만 — 바트 이슐 도폭의 다흐슈타인 석회암 (wetherilli 239)
+DACHSTEIN = {"geologicUnitName": "Dachsteinkalk", "description": "Dachsteinkalk, gebankt (Megalodontenfazies; Nor bis ?Rhät)",
+             "lithology": "Kalkstein (Kalk)", "representativeAge": "Obertrias", "tectonicUnitName": "Oberostalpin",
+             "collectionName": "Geologische Einheiten 1:50000, Blatt 96-Bad Ischl (Oberflächengeologie)"}
+ZAKOPANE = {"Nr arkusza": "1060", "Wydzielenia": "Piaski, żwiry, bloki i głazy den dolinnych",
+            "Geneza": "osady rzeczne (fluwialne, aluwialne)", "Stratygrafia": "Holocen"}
+
+
+class FiftyK(SimpleTestCase):
+    def test_오스트리아_1_5만은_REST(self):
+        with mock.patch("viewer.geosphere.requests.get", return_value=response(ctype="image/png", content=b"png")) as get:
+            geosphere.get_map(dict(WMS, layers="geosphere:units50k", format="image/png"))
+        self.assertTrue(get.call_args[0][0].endswith("/einheiten_50/MapServer/export"))
+        with mock.patch("viewer.geosphere.requests.get", return_value=response({"results": [{"attributes": DACHSTEIN}]})) as get:
+            data = geosphere.get_feature_info(dict(WMS, layers="geosphere:units50k", query_layers="geosphere:units50k"))
+        self.assertEqual(get.call_args[1]["params"]["layers"], "all:0")
+        out = geosphere.friendly(data["features"][0]["properties"])
+        self.assertEqual((out["이름"], out["지질시대"], out["지구조 구역"]), ("Dachsteinkalk", "트라이아스기 후기", "Oberostalpin"))
+        with self.assertRaises(geosphere.GeosphereError):
+            geosphere.get_legend("geosphere:units50k")
+
+    def test_폴란드_1_5만은_다른_서비스(self):
+        with mock.patch("viewer.pig.requests.get", return_value=response(ctype="image/png", content=b"png")) as get:
+            pig.get_map(dict(WMS, layers="pig:smgp50k", format="image/png"))
+        self.assertIn("/smgp50k/", get.call_args[0][0])
+        self.assertEqual(get.call_args[1]["params"]["layers"], "0")                       # REST 번호(5)가 아니다
+        self.assertEqual(pig.friendly(ZAKOPANE), {"설명": "Piaski, żwiry, bloki i głazy den dolinnych",
+                                                  "성인": "osady rzeczne (fluwialne, aluwialne)", "지질시대": "홀로세", "도폭": "1060"})
+
+
+
+class FiftyKCatalog(TestCase):
+    def test_가까이서만(self):
+        call_command("seed_catalog", stdout=open("/dev/null", "w"))
+        rows = {l["name"]: l for g in views._catalog("ko") for l in g["layers"]}
+        self.assertEqual((rows["geosphere:units50k"]["minZoom"], rows["pig:smgp50k"]["minZoom"]), (11, 13))
+        self.assertFalse(rows["pig:smgp50k_lines"]["queryable"])

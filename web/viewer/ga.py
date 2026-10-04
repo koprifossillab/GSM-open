@@ -11,6 +11,10 @@
 - 범례는 보는 범위의 것 — 범례 그림은 198×4096 이다. 페루(`ingemmet.py`)처럼 REST 통계 질의와 칠하기 규칙(`PLOTSYMBOL` 따위)으로 뜬다.
   REST 의 열 이름은 소문자다(`plotsymbol`·`geolhist`) — 큰 글자로 물으면 400
 - CORS 는 Origin 을 되비춘다. 조건: **CC BY 4.0**(© Commonwealth of Australia (Geoscience Australia) 2016) — 정적 판에 실을 수 있다
+- **다른 서비스**(wetherilli 241) — 서비스 목록(`/gis/rest/services`)이 403 이라 GA 자료 목록(ecat)·검색으로 이름을 찾았다. 셋을 같은 문으로
+  부른다(`OTHER`): 지질구(`Australian_Geological_Provinces` — 지각 요소·지질구 전부), 핵심 광물(`AustralianCriticalMineralsOperatingMinesAndDeposits`
+  — 광산 셋·광상), 지구물리 격자(`/gis/geophysical-grids/ows` GeoServer — 자력 TMI·완전 부게 중력·방사능 3색). 셋 다 CC BY 4.0.
+  격자는 512² 한 장이 PNG 로 1 MB 라 **png8 로 받는다**(260 KB, 투명도는 남는다). 격자 속성은 그림 값(HSI)뿐이라 누르지 않는다
 """
 import json
 import logging
@@ -32,6 +36,20 @@ LAYERS = {
     "ga:lithology": ("AUS_GA_2500k_GUPoly_Lithology", "AUS_GA_1M_GUPoly_Lithology", 4, 11, True),
     "ga:faults": ("AUS_GA_2500k_Faults", "AUS_GA_1M_Faults", 1, 7, False),
 }
+OTHER_ATTRIBUTION = '<a href="https://www.ga.gov.au/" target="_blank" rel="noopener">© Geoscience Australia</a> (CC BY 4.0)'
+#: 다른 서비스 — 레이어 → (`GA_GIS_URL` 밑의 WMS 경로, WMS 레이어, 누르기가 되나, png8 로 받나)
+PROVINCES = "services/Australian_Geological_Provinces/MapServer/WMSServer"
+CRITICAL = "services/AustralianCriticalMineralsOperatingMinesAndDeposits/MapServer/WMSServer"
+GRIDS = "geophysical-grids/ows"
+OTHER = {
+    "ga:crustal": (PROVINCES, "CrustalElements", True, False),
+    "ga:provinces": (PROVINCES, "AllProvinces", True, False),
+    "ga:mines": (CRITICAL, "OperatingMines,DevelopingMines,CareMaintenanceMines", True, False),
+    "ga:deposits": (CRITICAL, "MineralDeposit", True, False),
+    "ga:tmi": (GRIDS, "geophys:tmi_hsi_v2_white", False, True),
+    "ga:gravity": (GRIDS, "geophys:2019_A4_CBA_wide_linear_color_Hillshade_HSI_GeoTIFF", False, True),
+    "ga:radiometric": (GRIDS, "geophys:radmap_v4_2019_filtered_ternary_image", False, True),
+}
 #: 범례가 1:100만 판으로 넘어가는 범위(°) — 1:150만은 화면 줌 8–9 남짓, 화면 너비로 6–8° 다. 그보다 넓으면 1:250만 판의 단위를 센다
 FINE_SPAN = 6.0
 #: 범례를 뜨는 가장 넓은 범위(°) — 대륙 전체(경도 40°)가 든다. 칸이 많으면 `MAX_LEGEND` 에서 끊는다
@@ -45,7 +63,11 @@ class GaError(RuntimeError):
 
 
 def knows(name: str) -> bool:
-    return name in LAYERS
+    return name in LAYERS or name in OTHER
+
+
+def queryable(name: str) -> bool:
+    return LAYERS[name][4] if name in LAYERS else name in OTHER and OTHER[name][2]
 
 
 def legend_layers() -> list:
@@ -54,7 +76,7 @@ def legend_layers() -> list:
 
 def _one(params: dict) -> str:
     names = [n.strip() for n in str(params.get("layers") or params.get("query_layers") or "").split(",") if n.strip()]
-    if len(names) != 1 or names[0] not in LAYERS:
+    if len(names) != 1 or not knows(names[0]):
         raise GaError(f"모르는 레이어다: {names}")
     return names[0]
 
@@ -74,34 +96,52 @@ def _get(url: str, params: dict):
     return r
 
 
+def _url(name: str) -> str:
+    return f"{settings.GA_GIS_URL.rstrip('/')}/{OTHER[name][0]}" if name in OTHER else settings.GA_WMS_URL
+
+
 def _wms(params: dict, request: str) -> dict:
-    spec = LAYERS[_one(params)]
-    both = f"{spec[0]},{spec[1]}"          # 상류가 축척에 맞는 판을 그린다
-    out = dict(params, service="WMS", request=request, layers=both)
+    name = _one(params)
+    if name in OTHER:
+        names = OTHER[name][1]
+    else:
+        spec = LAYERS[name]
+        names = f"{spec[0]},{spec[1]}"     # 상류가 축척에 맞는 판을 그린다
+    out = dict(params, service="WMS", request=request, layers=names)
     if "query_layers" in out:
-        out["query_layers"] = both
+        out["query_layers"] = names
     out.setdefault("styles", "")
+    if request == "GetMap" and name in OTHER and OTHER[name][3]:
+        out["format"] = "image/png8"        # 격자 — PNG 는 512² 한 장이 1 MB
     return out
 
 
 def get_map(params: dict):
-    r = _get(settings.GA_WMS_URL, _wms(params, "GetMap"))
+    r = _get(_url(_one(params)), _wms(params, "GetMap"))
     ctype = r.headers.get("content-type", "")
     if r.status_code != 200 or not ctype.startswith("image/"):
         raise GaError(f"그림이 아닌 것이 왔다 (status={r.status_code}, type={ctype})")
-    return r.content, ctype
+    return r.content, ctype.split(";")[0]
 
 
 def get_legend(layer: str):
-    raise GaError("호주 범례는 보는 범위로만 뜬다")
+    """지질구·핵심 광물은 상류의 범례 그림(WMS GetLegendGraphic, 첫 레이어). 지표 지질도는 보는 범위로만, 격자는 범례가 없다"""
+    if layer not in OTHER or OTHER[layer][3]:
+        raise GaError("호주 범례는 보는 범위로만 뜬다")
+    r = _get(_url(layer), {"service": "WMS", "version": "1.3.0", "request": "GetLegendGraphic", "format": "image/png",
+                           "layer": OTHER[layer][1].split(",")[0]})
+    if r.status_code != 200 or not r.headers.get("content-type", "").startswith("image/"):
+        raise GaError(f"범례가 아닌 것이 왔다 (status={r.status_code})")
+    return r.content, r.headers.get("content-type")
 
 
 def get_feature_info(params: dict) -> dict:
-    if not LAYERS[_one(params)][4]:
+    name = _one(params)
+    if not queryable(name):
         return {"features": []}
     params = _wms(params, "GetFeatureInfo")
     params["info_format"] = "application/geo+json"
-    r = _get(settings.GA_WMS_URL, params)
+    r = _get(_url(name), params)
     if r.status_code != 200:
         raise GaError(f"속성을 읽지 못했다 (status={r.status_code})")
     try:
@@ -124,8 +164,27 @@ def history(value: str, lang: str = "ko") -> str:
     return i18n.age_ko(joined) if lang == "ko" else joined
 
 
+def other_friendly(props: dict, lang: str = "ko"):
+    """지질구·핵심 광물(wetherilli 241). 아니면 None"""
+    v = lambda k: _v(props, k)          # noqa: E731
+    if "provinceName" in props:
+        older, younger = v("olderNameAge"), v("youngerNamedAge")
+        age = " - ".join(x for x in (older, younger if younger != older else "") if x) or v("geologicHistory")
+        rows = (("이름", v("provinceName")), ("갈래", " · ".join(x for x in (v("type"), v("subtype"), v("rank")) if x)),
+                ("상위 단위", v("parentName")), ("지질시대", i18n.age_ko(age) if lang == "ko" and age else age),
+                ("설명", v("description")), ("주", v("state")), ("참고 문헌", v("source")))
+    elif "Commodities" in props or "ProjectName" in props:
+        rows = (("이름", v("ProjectName")), ("광종", v("Commodities")), ("운영", v("Status")), ("주", v("STATE")))
+    else:
+        return None
+    return {k: x for k, x in rows if x}
+
+
 def friendly(props: dict, lang: str = "ko") -> dict:
     """열 이름을 한국어로. 이름·설명·암상은 영어 그대로, 시대만 옮긴다."""
+    other = other_friendly(props, lang)
+    if other is not None:
+        return other
     v = lambda k: _v(props, k)          # noqa: E731
     scale = v("resolutionScale")
     rows = (("기호", v("mapSymbol") or v("plotSymbol")), ("이름", v("name")), ("설명", v("description")),

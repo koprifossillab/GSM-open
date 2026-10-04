@@ -1,5 +1,5 @@
 {
- "_주석": "USGS mrdata 지질도 씨앗이다 — 미국 탭. 본토 48 주는 SGMC(주 지질도 합본), 알래스카는 SIM 3340. 공공 도메인. 레이어명은 mrdata:<서비스>:<레이어> (web/viewer/mrdata.py). 한글 제목과 레이어군은 사람이 붙였다 (wetherilli 205).",
+ "_주석": "USGS mrdata 지질도 씨앗이다 — 미국 탭. 본토 48 주는 SGMC(주 지질도 합본), 알래스카는 SIM 3340. 공공 도메인. 레이어명은 mrdata:<서비스>:<레이어> (web/viewer/mrdata.py). 한글 제목과 레이어군은 사람이 붙였다 (wetherilli 205). 하와이(hi)·푸에르토리코(pr)도 같은 서버다 (wetherilli 238). 광물 자원 MRDS·지형도 광산 기호 USMIN·지질 연대·자력·중력도 같은 서버다 (wetherilli 247).",
  "_뽑은날": "2026-10-04",
  "_출처": "https://mrdata.usgs.gov/services/sgmc2?service=WMS&request=GetCapabilities · https://mrdata.usgs.gov/services/sim3340?service=WMS&request=GetCapabilities",
  "_지역": "usa",
@@ -7,7 +7,12 @@
  "_레이어군차례": 0,
  "레이어군순서": [
   "미국 본토 지질도 (USGS SGMC)",
-  "알래스카 지질도 (USGS SIM 3340)"
+  "알래스카 지질도 (USGS SIM 3340)",
+  "하와이 지질도 (USGS)",
+  "푸에르토리코 지질도 (USGS)",
+  "미국 광물 자원 (USGS)",
+  "미국 지구물리 (USGS)",
+  "미국 지질 연대 측정 (USGS)"
  ],
  "레이어": [
   {
@@ -56,6 +61,162 @@
     51.2,
     -129.9,
     71.4
+   ]
+  },
+  {
+   "name": "mrdata:hi:units",
+   "title": "지질 단위 (하와이)",
+   "group": "하와이 지질도 (USGS)",
+   "abstract": "Sherrod et al. 2007, Geologic Map of the State of Hawaii (OFR 2007-1089) — units",
+   "bbox": [
+    -160.6,
+    18.8,
+    -154.7,
+    22.4
+   ]
+  },
+  {
+   "name": "mrdata:hi:faults",
+   "title": "단층 (하와이)",
+   "group": "하와이 지질도 (USGS)",
+   "abstract": "Hawaii faults",
+   "bbox": [
+    -160.6,
+    18.8,
+    -154.7,
+    22.4
+   ]
+  },
+  {
+   "name": "mrdata:hi:dikes",
+   "title": "암맥 (하와이)",
+   "group": "하와이 지질도 (USGS)",
+   "abstract": "Hawaii dikes",
+   "bbox": [
+    -160.6,
+    18.8,
+    -154.7,
+    22.4
+   ]
+  },
+  {
+   "name": "mrdata:pr:geol",
+   "title": "지질 단위 (푸에르토리코)",
+   "group": "푸에르토리코 지질도 (USGS)",
+   "abstract": "Bawiec 1998, Geology of Puerto Rico (OFR 98-38) — units",
+   "bbox": [
+    -67.95,
+    17.85,
+    -65.2,
+    18.6
+   ]
+  },
+  {
+   "name": "mrdata:pr:fault",
+   "title": "역단층 (푸에르토리코)",
+   "group": "푸에르토리코 지질도 (USGS)",
+   "abstract": "PuertoRico_ThrustFaults",
+   "bbox": [
+    -67.95,
+    17.85,
+    -65.2,
+    18.6
+   ]
+  },
+  {
+   "name": "mrdata:pr:faultn",
+   "title": "정단층 (푸에르토리코)",
+   "group": "푸에르토리코 지질도 (USGS)",
+   "abstract": "PuertoRico_NormalFaults",
+   "bbox": [
+    -67.95,
+    17.85,
+    -65.2,
+    18.6
+   ]
+  },
+  {
+   "name": "mrdata:mrds:mrds",
+   "title": "광물 자원 (MRDS)",
+   "group": "미국 광물 자원 (USGS)",
+   "abstract": "Mineral Resources Data System — 광산·광상·광징. 줌 7 부터",
+   "bbox": [
+    -180.0,
+    15.0,
+    -60.0,
+    72.0
+   ]
+  },
+  {
+   "name": "mrdata:usmin:points",
+   "title": "광산 기호 — 점 (USMIN)",
+   "group": "미국 광물 자원 (USGS)",
+   "abstract": "Prospect- and mine-related features from USGS topographic maps — 갱구·수갱·채석장. 줌 9 부터",
+   "bbox": [
+    -125.5,
+    24.0,
+    -66.0,
+    49.5
+   ]
+  },
+  {
+   "name": "mrdata:usmin:polygons",
+   "title": "광산 기호 — 면 (USMIN)",
+   "group": "미국 광물 자원 (USGS)",
+   "abstract": "USMIN — 노천 채굴장·광미 따위 면. 줌 9 부터",
+   "bbox": [
+    -125.5,
+    24.0,
+    -66.0,
+    49.5
+   ]
+  },
+  {
+   "name": "mrdata:aeromag:namag",
+   "title": "북미 자력 이상 (NAMAG)",
+   "group": "미국 지구물리 (USGS)",
+   "abstract": "Magnetic anomaly map of North America (2002)",
+   "bbox": [
+    -180.0,
+    10.0,
+    -45.0,
+    85.0
+   ]
+  },
+  {
+   "name": "mrdata:gravity:isostatic",
+   "title": "아이소스타시 잔여 중력 이상",
+   "group": "미국 지구물리 (USGS)",
+   "abstract": "Gravity anomaly map of the United States — isostatic residual",
+   "bbox": [
+    -125.5,
+    24.0,
+    -66.0,
+    49.5
+   ]
+  },
+  {
+   "name": "mrdata:gravity:bouguer",
+   "title": "부게 중력 이상",
+   "group": "미국 지구물리 (USGS)",
+   "abstract": "Gravity anomaly map of the United States — Bouguer",
+   "bbox": [
+    -125.5,
+    24.0,
+    -66.0,
+    49.5
+   ]
+  },
+  {
+   "name": "mrdata:geochron:geochron",
+   "title": "지질 연대 측정 (국가 연대 DB)",
+   "group": "미국 지질 연대 측정 (USGS)",
+   "abstract": "National Geochronological Database — 측정 시료. 값은 상세 쪽에",
+   "bbox": [
+    -180.0,
+    15.0,
+    -60.0,
+    72.0
    ]
   }
  ]

@@ -11,6 +11,11 @@
 - **알래스카의 "Water" 면은 문이 지운다**(wetherilli 224) — SIM 3340 은 도폭마다 바다를 네모난 물 면(`#ccffff`)으로 칠해 두어 알류샨
   남쪽에 북위 51.5° 를 따라 하늘색 띠가 선다. 물은 지질이 아니고 그 색을 쓰는 단위가 물뿐이라(빙하는 투명) 받은 그림의 그 색을 투명으로
   바꾼다. 고침의 판(`REDRAWN`)이 캐시 열쇠에 든다 — 띠가 든 옛 타일을 내지 않게
+- **하와이·푸에르토리코**(wetherilli 238) — 같은 서버의 `hi`(Sherrod 외 2007, 1:10만·25만, 섬마다 화산·성장 단계)·`pr`(Bawiec 1998,
+  1:10만 남짓). 3857·4326 만 받는다(3978 은 InvalidSRS) — 본토처럼 3857 로 받아 화면이 옮겨 그린다. 속성은 알래스카처럼 WMS `text/plain`
+- **같은 서버의 다른 자료**(wetherilli 247) — 광물 자원 MRDS(`mrds`)·지형도의 광산 기호 USMIN(`usmin` 점·면)·지질 연대 측정 기록(`geochron`)은
+  `text/plain` 으로 누른다. 북미 자력 이상 NAMAG(`aeromag`)·중력 이상(`gravity` — 아이소스타시·부게)은 그림뿐이라 누르지 않는다(QUERY_LAYERS 가
+  LayerNotDefined). 서비스 목록 쪽이 맵 파일 오류를 내 이름은 검색과 Capabilities 로 찾았다
 - 조건: USGS 자료 — 공공 도메인, 출처 표기만(AccessConstraints none). 정적 판에 실을 수 있다(`static_site.py --with usa`)
 """
 import logging
@@ -33,8 +38,26 @@ LAYERS = {
     "mrdata:sgmc2:sgmc2structure": ("sgmc2", "sgmc2structure"),
     "mrdata:sim3340:units": ("sim3340", "units"),
     "mrdata:sim3340:faults": ("sim3340", "faults"),
+    "mrdata:hi:units": ("hi", "units"),
+    "mrdata:hi:faults": ("hi", "faults"),
+    "mrdata:hi:dikes": ("hi", "dikes"),
+    "mrdata:pr:geol": ("pr", "geol"),
+    "mrdata:pr:fault": ("pr", "fault"),
+    "mrdata:pr:faultn": ("pr", "faultn"),
+    "mrdata:mrds:mrds": ("mrds", "mrds"),
+    "mrdata:usmin:points": ("usmin", "points"),
+    "mrdata:usmin:polygons": ("usmin", "polygons"),
+    "mrdata:geochron:geochron": ("geochron", "geochron"),
+    "mrdata:aeromag:namag": ("aeromag", "namag"),
+    "mrdata:gravity:isostatic": ("gravity", "isostatic"),
+    "mrdata:gravity:bouguer": ("gravity", "bouguer"),
 }
-QUERYABLE = ("mrdata:sgmc2:sgmc2", "mrdata:sim3340:units")
+#: 넓게 보면 점이 땅을 덮는 레이어 — 처음 그리는 화면 줌 (wetherilli 247)
+MIN_ZOOM = {"mrdata:mrds:mrds": 7, "mrdata:usmin:points": 9, "mrdata:usmin:polygons": 9}
+QUERYABLE = ("mrdata:sgmc2:sgmc2", "mrdata:sim3340:units", "mrdata:hi:units", "mrdata:pr:geol",
+             "mrdata:mrds:mrds", "mrdata:usmin:points", "mrdata:usmin:polygons", "mrdata:geochron:geochron")
+#: 섬 — 미국 탭(3978)에서 제 범위 밖 타일을 묻지 않는다 (wetherilli 238)
+ISLANDS = tuple(n for n in LAYERS if n.startswith(("mrdata:hi:", "mrdata:pr:")))
 #: 받은 그림을 문이 고쳐 내는 레이어 → 고침의 판. 고치는 법을 바꾸면 올린다 — 캐시 열쇠에 든다(`views.map_cache_key`)
 REDRAWN = {"mrdata:sim3340:units": "1"}
 #: 알래스카의 "Water" 단위 색
@@ -195,9 +218,42 @@ def _link(url: str):
     return {"text": "", "links": [{"url": url, "label": "열기"}]} if url.startswith(("http://", "https://")) else None
 
 
+def _island_age(age: str, lang: str) -> str:
+    """`upper ? Cretaceous`·`Holocene` 따위 → 한국어. upper·lower 는 ICS 의 late·early 로, `?` 는 뒤에 단다. 못 옮기면 원문
+    (`A.D. 1935`·`0-200 yr` 처럼 해·햇수로 적은 것은 그대로)"""
+    if lang != "ko" or not age:
+        return age
+    doubt = "?" in age
+    words = [{"upper": "Late", "lower": "Early", "middle": "Middle"}.get(w.lower(), w) for w in age.replace("?", " ").split()]
+    ics = " ".join(words) + (" (?)" if doubt else "")
+    ko = i18n.age_ko(ics)
+    return ko if ko != ics else age
+
+
 def friendly(props: dict, lang: str = "ko") -> dict:
     """열 이름을 한국어로. 값은 영어 그대로 — 알래스카의 시대(`age_range`)만 ICS 영문이라 한국어판이면 옮긴다."""
     v = lambda k: str(props.get(k) or "").strip()          # noqa: E731
+    if "dep_id" in props:                                  # 광물 자원 MRDS (wetherilli 247)
+        rows = (("이름", v("site_name")), ("광종", v("code_list")), ("개발 단계", v("dev_stat")), ("보고서", _link(v("url"))))
+        return {k: x for k, x in rows if x}
+    if "ftr_type" in props:                                # 지형도의 광산 기호 USMIN
+        scale = v("topo_scale")
+        topo = " ".join(x for x in (v("topo_name"), f"({v('topo_date')}, 1:{int(scale):,})" if scale.isdigit() else "") if x)
+        rows = (("갈래", v("ftr_type")), ("이름", v("ftr_name")), ("주", " · ".join(x for x in (v("county"), v("state")) if x)),
+                ("지형도", topo), ("비고", v("remarks")))
+        return {k: x for k, x in rows if x}
+    if "recno" in props:                                   # 지질 연대 측정 기록 — 값은 상세 쪽에만 있다
+        return {k: x for k, x in (("기록 번호", v("recno")), ("상세", _link(v("url")))) if x}
+    if "volcano" in props:                                 # 하와이 (wetherilli 238)
+        age = v("age_range")
+        rows = (("이름", v("name") or v("unit")), ("기호", v("symbol")), ("지질시대", _island_age(age, lang)),
+                ("암석", " · ".join(x for x in (v("rock_type"), v("lithology")) if x)), ("조성", v("compositio")),
+                ("섬", v("island")), ("화산 성장 단계", v("volc_stage")), ("원도", v("source")), ("단위 설명", _link(v("url"))))
+        return {k: x for k, x in rows if x}
+    if "fmatn" in props:                                   # 푸에르토리코 (wetherilli 238)
+        rows = (("이름", v("name")), ("기호", v("fmatn")), ("지질시대", _island_age(v("age"), lang)), ("암상", v("lith62name")),
+                ("설명", v("descript")), ("참고 문헌", v("refs")), ("단위 설명", _link(v("url"))))
+        return {k: x for k, x in rows if x}
     if "state_unit" in props or "age_range" in props:     # 알래스카
         age = v("age_range")
         rows = (("이름", v("state_unit")), ("기호", v("label")),

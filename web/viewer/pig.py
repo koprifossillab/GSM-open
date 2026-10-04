@@ -10,6 +10,9 @@
 - 범례는 WMS 그림(제4기 층)
 - 조건: 메타데이터(metadane.pgi.gov.pl)가 "Brak ograniczeń w publicznym dostępie"·"Brak warunków dostępu i użytkowania"(접근·이용 조건 없음)라
   적는다. 출처는 "PIG-PIB". CORS 는 Origin 을 되비춘다
+- **1:5만**(`kartografia/smgp50k`, 상세 지질도 SMGP, wetherilli 239) — 같은 서버의 다른 서비스다. WMS 번호가 여기서도 REST 와 거꾸로다
+  (`0` 단위·`2` 지질 경계·`3` 선 기호). **1:9만 4 494 보다 넓으면 그리지 않아 줌 13 부터**. 디지털로 올린 도폭만 덮는다 — 자코파네(1060 도폭)는
+  있고 바르샤바·크라쿠프는 비었다(2026-10-05). 속성은 geo+json — `Wydzielenia`·`Geneza`·`Stratygrafia`("Holocen")·`Nr arkusza`
 """
 import logging
 
@@ -24,6 +27,8 @@ PREFIX = "pig:"
 ATTRIBUTION = ('<a href="https://www.pgi.gov.pl/" target="_blank" rel="noopener">PIG-PIB</a> — Mapa geologiczna Polski 1:500 000 (2022)')
 MAX_ZOOM = 12
 FAULTS_MIN_ZOOM = 10
+#: 1:5만은 이 줌부터
+SMGP_MIN_ZOOM = 13
 
 
 class PigError(RuntimeError):
@@ -49,14 +54,41 @@ def _url() -> str:
     return f"{settings.PIG_URL.rstrip('/')}/services/kartografia/mgp500k_2022/MapServer/WMSServer"
 
 
+def _url50() -> str:
+    return f"{settings.PIG_URL.rstrip('/')}/services/kartografia/smgp50k/MapServer/WMSServer"
+
+
 DOOR = arcwms.Door(url=_url, layers={"pig:mgp500k": "1,6,11", "pig:faults": "3,9"}, queryable=("pig:mgp500k",),
                    get=_get, error=PigError, info_format="application/geo+json")
-knows, get_map, get_feature_info = DOOR.knows, DOOR.get_map, DOOR.get_feature_info
+SMGP = arcwms.Door(url=_url50, layers={"pig:smgp50k": "0", "pig:smgp50k_lines": "2,3"}, queryable=("pig:smgp50k",),
+                   get=_get, error=PigError, info_format="application/geo+json", info_params={"pig:smgp50k": {"feature_count": "1"}})
+DOORS = (DOOR, SMGP)
+
+
+def _door(name: str) -> arcwms.Door:
+    first = str(name or "").split(",")[0].strip()
+    for door in DOORS:
+        if door.knows(first):
+            return door
+    raise PigError(f"모르는 레이어다: {name}")
+
+
+def knows(name: str) -> bool:
+    return any(d.knows(name) for d in DOORS)
+
+
+def get_map(params: dict):
+    return _door(params.get("layers")).get_map(params)
+
+
+def get_feature_info(params: dict) -> dict:
+    return _door(params.get("query_layers") or params.get("layers")).get_feature_info(params)
 
 
 def get_legend(layer: str):
-    r = _get(_url(), {"service": "WMS", "version": "1.1.1", "request": "GetLegendGraphic", "format": "image/png",
-                      "layer": DOOR.layers[layer].split(",")[-1]})
+    door = _door(layer)
+    r = _get(door.url(), {"service": "WMS", "version": "1.1.1", "request": "GetLegendGraphic", "format": "image/png",
+                          "layer": door.layers[layer].split(",")[-1]})
     if r.status_code != 200 or not r.headers.get("content-type", "").startswith("image/"):
         raise PigError(f"범례가 아닌 것이 왔다 (status={r.status_code})")
     return r.content, r.headers.get("content-type")
@@ -69,6 +101,12 @@ def _value(props: dict, key: str) -> str:
 
 def friendly(props: dict, lang: str = "ko") -> dict:
     """열 이름을 한국어로. 값은 폴란드어 그대로, 시대만 옮긴다(못 옮기면 원문)"""
+    if "Wydzielenia" in props:
+        raw = _value(props, "Stratygrafia")
+        ics = i18n.age_local(raw)
+        rows = (("설명", _value(props, "Wydzielenia")), ("성인", _value(props, "Geneza")),
+                ("지질시대", ((i18n.age_ko(ics) if lang == "ko" else ics) if ics else raw)), ("도폭", _value(props, "Nr arkusza")))
+        return {k: v for k, v in rows if v}
     raw = _value(props, "Stratygrafia")
     ics = i18n.age_local(raw)
     age = (i18n.age_ko(ics) if lang == "ko" else ics) if ics else raw

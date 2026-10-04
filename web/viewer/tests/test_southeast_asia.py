@@ -142,3 +142,48 @@ class Catalog(TestCase):
         for name, up in (("esdm:geology", "esdm"), ("jmg:lithology", "jmg"), ("mgb:geology", "mgb"), ("dmr:rock_units", "dmr")):
             self.assertIsNotNone(prewarm.plan_for(name, up), name)
             self.assertIn(up, views.MAP3D_WMS)
+
+
+ID_RENDERER = {"drawingInfo": {"renderer": {"type": "uniqueValue", "field1": "simobj", "uniqueValueInfos": [
+    {"value": "a", "label": "a", "symbol": {"type": "esriSFS", "color": [255, 128, 0, 255]}}]}}}
+ID_STATS = {"features": [
+    {"attributes": {"simobj": "b1", "namobj": "Basalt Unit", "umurobj": "Kuarter", "n": 3}},
+    {"attributes": {"simobj": "a", "namobj": "Andesite", "umurobj": "Neogen", "n": 22}}]}
+
+
+class IndonesiaLegend(TestCase):
+    """인도네시아의 보는 범위 범례 (wetherilli 243) — 2026-10-04 반둥 둘레에서 받은 꼴."""
+
+    def setUp(self):
+        patch = override_settings(TILE_CACHE_DIR=tempfile.mkdtemp(prefix="gsm-esdm-legend-"))
+        patch.enable()
+        self.addCleanup(patch.disable)
+        for name, value in (("record", None), ("paused", 0)):
+            p = mock.patch.object(esdm.usage, name, return_value=value)
+            p.start()
+            self.addCleanup(p.stop)
+
+    def test_통계와_칠하기_규칙(self):
+        def get(url, params=None, **kw):
+            return response(ID_STATS if url.endswith("/query") else ID_RENDERER)
+        with mock.patch("viewer.esdm.requests.get", side_effect=get) as called:
+            rows = self.client.get("/GSM/esdm/legend/", {"layer": "esdm:geology", "bbox": "107.3,-7.2,107.9,-6.7"}).json()["rows"]
+            self.client.get("/GSM/esdm/legend/", {"layer": "esdm:geology", "bbox": "107.3,-7.2,107.9,-6.7"})
+        self.assertEqual(called.call_count, 2)                                   # 질의 한 번·규칙 한 번, 두 번째는 담아 둔 것
+        stats = [c for c in called.call_args_list if c.args[0].endswith("/query")][0].kwargs["params"]
+        self.assertEqual((stats["groupByFieldsForStatistics"], json.loads(stats["outStatistics"])[0]["onStatisticField"]),
+                         ("simobj,namobj,umurobj", "objectid_1"))
+        self.assertEqual([(r["lithology"], r["color"], r["age"]) for r in rows],
+                         [("a Andesite", "#ff8000", "신진기"), ("b1 Basalt Unit", "#cccccc", "제4기")])
+
+    def test_넓으면_묻지_않는다(self):
+        with mock.patch("viewer.esdm.requests.get") as get:
+            r = self.client.get("/GSM/esdm/legend/", {"layer": "esdm:geology", "bbox": "95,-10,141,6"})
+        self.assertEqual(r.status_code, 422)
+        get.assert_not_called()
+
+    def test_카탈로그는_보는_범위_범례(self):
+        call_command("seed_catalog", stdout=open("/dev/null", "w"))
+        row = {l["name"]: l for g in views._catalog("ko") for l in g["layers"]}["esdm:geology"]
+        self.assertEqual((row["legend"], row["legendUrl"]), ("extent", "esdm/legend/"))
+        self.assertNotIn("noLegend", row)

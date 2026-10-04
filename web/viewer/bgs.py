@@ -425,3 +425,107 @@ def gsn_friendly(props: dict, lang: str = "ko") -> dict:
 
 
 GSN = _NS(get_map=gsn_get_map, get_feature_info=gsn_get_feature_info, get_legend=gsn_get_legend)
+
+
+# ── 부르키나파소 지질광업국(BUMIGEB) 1:100만 — BGS 가 대신 내준다 (wetherilli 246) ─────────
+#
+# 나미비아 GSN 과 같은 BGS 의 MapServer(`ogc.bgs.ac.uk/cgi-bin/BGS_BUMIGEB_FR_Bedrock_Geology/wms`, OneGeology)라 문은 여기다. 상류 이름은
+# `bumigeb`. 조건: AccessConstraints "personal, teaching, research or non-commercial use" — **비상업**(페루·브라질과 같다), 파는 자료는 아니라
+# 캐시에 담는다. 3857 그대로(나라 전체 512² 2.4 초, 2026-10-05). 속성은 `text/plain` 인데 **latin-1** 로 온다(`Granite à biotite`)
+
+BUMIGEB_PREFIX = "bumigeb:"
+BUMIGEB_ATTRIBUTION = ('Carte géologique du Burkina Faso 1:1 000 000 — <a href="https://www.bumigeb.bf/" target="_blank" '
+                       'rel="noopener">BUMIGEB</a> (served by BGS, non-commercial use)')
+#: 레이어 — 암상(면)과 주요 구조(선). 구조는 누를 것이 없다
+BUMIGEB_LAYERS = ("BFA_BUMIGEB_FR_1M_BLS", "BFA_BUMIGEB_FR_1M_MSF")
+
+
+def _bumigeb_names(names: str) -> str:
+    out = []
+    for one in str(names or "").split(","):
+        one = one.strip()
+        name = one[len(BUMIGEB_PREFIX):] if one.startswith(BUMIGEB_PREFIX) else ""
+        if name not in BUMIGEB_LAYERS:
+            raise BgsError(f"모르는 레이어다: {one}")
+        out.append(name)
+    return ",".join(out)
+
+
+def _bumigeb_get(params: dict):
+    left = usage.paused()
+    if left:
+        raise BgsError(f"차단 조짐이 있어 {int(left)}초 동안 상류에 묻지 않는다")
+    try:
+        r = requests.get(settings.BUMIGEB_WMS_URL, params=params, timeout=settings.UPSTREAM_TIMEOUT,
+                         verify=settings.CA_BUNDLE or True, headers={"User-Agent": "GSM/0.1"})
+    except requests.RequestException as exc:
+        usage.record("bumigeb", ok=False)
+        raise BgsError(f"BUMIGEB(BGS) 에 닿지 못했다: {exc}") from exc
+    log.info("BUMIGEB %s -> %s", r.url, r.status_code)
+    usage.record("bumigeb", ok=r.status_code == 200, blocked=usage.looks_blocked(r.status_code, r.content[:1000]))
+    return r
+
+
+def _bumigeb_wms(params: dict, request: str) -> dict:
+    params = dict(params, service="WMS", request=request, version="1.1.1")
+    if "crs" in params and "srs" not in params:
+        params["srs"] = params.pop("crs")
+    params["layers"] = _bumigeb_names(params.get("layers") or params.get("query_layers"))
+    if "query_layers" in params:
+        params["query_layers"] = _bumigeb_names(params["query_layers"])
+    params.setdefault("styles", "")
+    params.setdefault("format", "image/png")
+    return params
+
+
+def bumigeb_get_map(params: dict):
+    r = _bumigeb_get(_bumigeb_wms(params, "GetMap"))
+    ctype = r.headers.get("content-type", "")
+    if r.status_code != 200 or not ctype.startswith("image/"):
+        raise BgsError(f"그림이 아닌 것이 왔다 (status={r.status_code}, type={ctype})")
+    return r.content, ctype
+
+
+def bumigeb_get_legend(layer: str):
+    r = _bumigeb_get({"service": "WMS", "version": "1.1.1", "request": "GetLegendGraphic", "format": "image/png",
+                      "layer": _bumigeb_names(layer)})
+    if r.status_code != 200 or not r.headers.get("content-type", "").startswith("image/"):
+        raise BgsError(f"범례가 아닌 것이 왔다 (status={r.status_code})")
+    return r.content, r.headers.get("content-type")
+
+
+def bumigeb_get_feature_info(params: dict) -> dict:
+    params = _bumigeb_wms(params, "GetFeatureInfo")
+    params["info_format"] = "text/plain"
+    if "i" in params and "x" not in params:
+        params["x"], params["y"] = params.pop("i"), params.pop("j", "0")
+    r = _bumigeb_get(params)
+    if r.status_code != 200:
+        raise BgsError(f"속성을 읽지 못했다 (status={r.status_code})")
+    try:
+        text = r.content.decode("utf-8")
+    except UnicodeDecodeError:          # latin-1 로 온다(2026-10-05)
+        text = r.content.decode("latin-1")
+    return {"features": parse_mapserver_plain(text)}
+
+
+BUMIGEB_FRIENDLY = (("NOTATION", "기호"), ("DESCR", "설명"), ("LITHOLOGIE", "암석"), ("GROUPE3", "암석 분류"))
+
+
+def _greek(value: str) -> str:
+    """기호 열은 그리스 글자(γ 화강암 따위)를 cp1253 바이트로 적었다 — latin-1 로 읽힌 것을 되돌린다(`ã3` → `γ3`)."""
+    try:
+        return value.encode("latin-1").decode("cp1253")
+    except UnicodeError:
+        return value
+
+
+def bumigeb_friendly(props: dict, lang: str = "ko") -> dict:
+    """기호·설명·암석. 값은 프랑스어 그대로 둔다. 연대 열이 없다."""
+    out = {label: str(props[key]).strip() for key, label in BUMIGEB_FRIENDLY if str(props.get(key) or "").strip()}
+    if "기호" in out:
+        out["기호"] = _greek(out["기호"])
+    return out
+
+
+BUMIGEB = _NS(get_map=bumigeb_get_map, get_feature_info=bumigeb_get_feature_info, get_legend=bumigeb_get_legend)

@@ -33,7 +33,7 @@ from . import (coords, crs, geo3al, geomap, geus, grportal, gsj, gsmma, i18n, ib
                patchnotes, elevation, moonmap, peninsula, phyloserver, pointsets, tilecache, tiles, trek, vworld, warp,
                marscraters, marsmap, mercurymap, zhurong)
 from . import arcpoints, crust, fossils, gvp, icemargins, kigam50k, macrostrat, mantle, naturalearth, neotoma, paleo, paleoeco, paleocoast, pbdb, quakes, spamap, ocean, usgs, volcanoes, wind
-from . import austates, basemaps, bcgs, bgr, bgs, brgm, calgs, cgs, dinamige, dmr, dov, egdi, emodnet, esdm, geosphere, ga, gns, gsi, gsiindia, gtk, igme, iige, ingemmet, ispra, jmg, linked, lneg, mgb, pig, mrdata, mris, natt, ngu, nrcan, ogs, segemar, sgb, sgc, sgm, sgs, sgu, sigeom, spw, swisstopo, tno, usage, ygs
+from . import ags, austates, basemaps, bcgs, bgr, bgs, brgm, calgs, cgs, dinamige, dmr, dov, egdi, emodnet, esdm, ga, geosphere, gns, gsi, gsiindia, gtk, igme, iige, ingemmet, ispra, jmg, linked, lneg, mgb, mrdata, mris, natt, ngu, nrcan, nsgs, ogs, pig, segemar, sgb, sgc, sgm, sgs, sgu, sigeom, skgs, spw, swisstopo, tno, usage, ygs
 from . import earthpoints, pointvalues, profileband, static_tables, tilegrid
 from .i18n import msg
 from .models import Layer, LayerGroup, Point, PointSet, PointSetDeletion, Shape
@@ -372,10 +372,14 @@ MAP3D_WMS = ("kigam", "geus", "vworld", "ccop", "gsmma",
              "sgm",
              # 아프리카 CGMW–BRGM·BGS 지하수 지도책(wetherilli 207), 남아공 CGS·나미비아 GSN(209) — 서버 캐시에 담지 않는 둘도 3D 는 그때그때 받는다
              "cgmw", "aga", "cgs", "gsn",
+             # 부르키나파소 BUMIGEB(wetherilli 246) — BGS 의 MapServer, 3857. 카메룬 IRGM 은 4326 만 그려 3D 에 없다
+             "bumigeb",
              # 캐나다 NRCan·온타리오 OGS(wetherilli 204) — 2D 는 3978 이지만 3D 는 3857 로 묻는다(둘 다 그려 준다)
              "nrcan", "ogs",
              # 퀘벡 SIGÉOM·유콘 YGS(wetherilli 210) — 둘 다 3857 도 그린다
              "sigeom", "ygs",
+             # 사스카치원·노바스코샤(wetherilli 235) — 3857 로도 그린다
+             "skgs", "nsgs",
              # 호주 GA(wetherilli 212) — ArcGIS WMS 가 3857 로 그린다. 주 판 셋(225)도 3857 이다
              "ga", "gsq", "gsv", "gssa",
              # 이탈리아 ISPRA·포르투갈 LNEG·스위스 swisstopo(wetherilli 211) — 3857 로 그린다
@@ -416,7 +420,7 @@ def map3d_view(request):
                               and (l.get("upstream") in MAP3D_WMS
                                    or (l.get("upstream") == "npolar" and npolar.knows(l["name"]))
                                    or (l.get("upstream") == "geomap" and l["name"] in geomap.LAYERS)
-                                   or (l.get("upstream") in ("gsj", "gsitile", "ingemmet") and l.get("tiles")))])
+                                   or (l.get("upstream") in ("gsj", "gsitile", "ingemmet", "ags") and l.get("tiles")))])
               for g in _catalog(lang)]
     # 커스텀 지질도 — 한반도 지질도 셋은 서버가 3857 로 다시 펴 주고(`warp/`), 암맥은
     # 모양 한 덩이(`points/`)라 3D 가 그대로 그린다. 밖에 열면 `_catalog` 가 이미 뺐다
@@ -2336,15 +2340,18 @@ def _layer_extra(layer, lang: str = "ko") -> dict:
         return {"attribution": ngu.ATTRIBUTION, "projection": "EPSG:3575"}
     if layer.upstream in ("esdm", "jmg", "mgb", "dmr"):
         # 동남아(wetherilli 228) — 3857 로 그린다. 인도네시아는 상류가 줌 10 너머를 그리지 않아(`maxZoom` — 그 위는 화면이 늘린다)
-        # 범례가 1 403 칸이라 두지 않는다.
+        # 범례는 1 403 칸이라 보는 범위의 것이다(wetherilli 243).
         # 말레이시아 암상·태국은 REST 범례를 목록으로(`list/legend/`), 말레이시아 연대는 범례가 없다. 필리핀은 WMS 그림 그대로
         mod = {"esdm": esdm, "jmg": jmg, "mgb": mgb, "dmr": dmr}[layer.upstream]
         if mod.knows(layer.name):
             extra = {"attribution": mod.ATTRIBUTION, "projection": "EPSG:3857"}
             if layer.name in getattr(mod, "LEGEND_LAYERS", ()):
                 extra.update({"legend": "list", "legendUrl": "list/legend/"})
-            elif mod in (esdm, jmg):
+            elif mod is jmg:
                 extra["noLegend"] = True
+            elif mod is esdm:
+                # 인도네시아 — 보는 범위의 범례(`esdm/legend/`, wetherilli 243). 전체 범례는 1 403 칸이다
+                extra.update(legend="extent", legendUrl="esdm/legend/")
             if mod is esdm:
                 extra["maxZoom"] = esdm.LAST_ZOOM
             return extra
@@ -2401,6 +2408,19 @@ def _layer_extra(layer, lang: str = "ko") -> dict:
                 **({"minZoom": first} if first else {}), **({"lastZoom": last} if last else {}),
                 # IGME5000 의 단층·연대 기호(wetherilli 217)는 누를 것이 없다
                 **({} if getattr(door, "queryable", lambda n: True)(layer.name) else {"queryable": False})}
+    if layer.upstream == "skgs" and skgs.knows(layer.name):
+        # 사스카치원(wetherilli 235) — ArcGIS WMS 를 3978 로 곧장(Capabilities 에 없지만 그린다)
+        return {"attribution": skgs.ATTRIBUTION, "projection": "EPSG:3978",
+                **({} if skgs.queryable(layer.name) else {"queryable": False})}
+    if layer.upstream == "nsgs" and nsgs.knows(layer.name):
+        # 노바스코샤(wetherilli 235) — WMS 가 없어 문이 REST export 로 옮긴다. 화면의 투영을 그대로 넘긴다
+        first, _ = nsgs.zooms(layer.name)
+        return {"attribution": nsgs.ATTRIBUTION, "projection": "EPSG:3978", "noLegend": True,
+                **({"minZoom": first} if first else {}), **({} if nsgs.queryable(layer.name) else {"queryable": False})}
+    if layer.upstream == "ags" and ags.knows(layer.name):
+        # 앨버타(wetherilli 235) — 타일은 ArcGIS Online 의 3857 z/x/y 를 화면이 곧장(지리원 주제 타일과 같은 길), 누른 자리만 문이
+        url, last = ags.LAYERS[layer.name]
+        return {"attribution": ags.ATTRIBUTION, "tiles": url, "maxZoom": last, "noLegend": True}
     if layer.upstream in ("geosphere", "pig", "tno", "dov", "spw"):
         # 유럽(wetherilli 237) — 3857 로 그린다. 오스트리아·폴란드는 상류가 가까이서 그리지 않아 그 줌 위는 화면이 늘리고(`maxZoom`),
         # 폴란드 단층은 줌 10·왈로니아는 줌 9(단층 13)부터. 왈로니아 범례는 395 칸 약호뿐이라 두지 않는다
@@ -2409,10 +2429,13 @@ def _layer_extra(layer, lang: str = "ko") -> dict:
             extra = {"attribution": mod.ATTRIBUTION, "projection": "EPSG:3857"}
             spec = {"geosphere:geology": {"maxZoom": geosphere.MAX_ZOOM}, "geosphere:faults": {"maxZoom": geosphere.MAX_ZOOM},
                     "pig:mgp500k": {"maxZoom": pig.MAX_ZOOM}, "pig:faults": {"minZoom": pig.FAULTS_MIN_ZOOM},
+                    # 1:5만 둘 — 가까이서만 그린다(wetherilli 239)
+                    "geosphere:units50k": {"minZoom": geosphere.UNITS50_MIN_ZOOM, "noLegend": True},
+                    "pig:smgp50k": {"minZoom": pig.SMGP_MIN_ZOOM}, "pig:smgp50k_lines": {"minZoom": pig.SMGP_MIN_ZOOM},
                     "spw:geology": {"minZoom": spw.MIN_ZOOM, "noLegend": True},
                     "spw:faults": {"minZoom": spw.FAULTS_MIN_ZOOM, "noLegend": True}}.get(layer.name, {})
             extra.update(spec)
-            if layer.name in ("geosphere:faults", "pig:faults", "spw:faults"):
+            if layer.name in ("geosphere:faults", "pig:faults", "spw:faults", "pig:smgp50k_lines"):
                 extra["queryable"] = False
             return extra
     if layer.upstream == "bcgs" and bcgs.knows(layer.name):
@@ -2444,6 +2467,11 @@ def _layer_extra(layer, lang: str = "ko") -> dict:
     if layer.upstream == "ga" and ga.knows(layer.name):
         # 호주 GA(wetherilli 212) — ArcGIS WMS 를 3857 로(3577 은 그리지 않는다). 레이어 하나가 1:250만·1:100만을 함께 부르고 상류가
         # 축척에 맞는 판을 그린다. 범례는 보는 범위의 것(`ga/legend/`), 단층은 범례·누르기가 없다
+        if layer.name in ga.OTHER:
+            # 지질구·핵심 광물·지구물리 격자(wetherilli 241) — 범례는 상류 그림, 격자는 범례·누르기가 없다
+            grid = ga.OTHER[layer.name][3]
+            return {"attribution": ga.OTHER_ATTRIBUTION, "projection": "EPSG:3857",
+                    **({"noLegend": True} if grid else {}), **({} if ga.queryable(layer.name) else {"queryable": False})}
         unit = layer.name in ga.legend_layers()
         return {"attribution": ga.ATTRIBUTION, "projection": "EPSG:3857",
                 **({"legend": "extent", "legendUrl": "ga/legend/"} if unit else {"noLegend": True, "queryable": False})}
@@ -2475,7 +2503,11 @@ def _layer_extra(layer, lang: str = "ko") -> dict:
         # 미국 USGS(wetherilli 205) — MapServer WMS 를 3857 로. 범례는 없다(단위가 주마다 수천, GetLegendGraphic 501) — 팝업의 단위
         # 설명 링크가 갈음한다. 구조선·단층은 누르지 않는다
         return {"attribution": mrdata.ATTRIBUTION, "projection": "EPSG:3857", "noLegend": True,
-                **({} if layer.name in mrdata.QUERYABLE else {"queryable": False})}
+                **({} if layer.name in mrdata.QUERYABLE else {"queryable": False}),
+                # 하와이·푸에르토리코(wetherilli 238)는 미국 탭(3978)에서 제 범위 밖 타일을 묻지 않는다
+                **({"clip": True} if layer.name in mrdata.ISLANDS else {}),
+                # 광물 자원·광산 기호(wetherilli 247)는 넓게 보면 점이 땅을 덮어 가까이서부터
+                **({"minZoom": mrdata.MIN_ZOOM[layer.name]} if layer.name in mrdata.MIN_ZOOM else {})}
     if layer.upstream == "iige" and iige.knows(layer.name):
         # 에콰도르 IIGE(wetherilli 198) — ArcGIS WMS 를 3857 로. 범례는 보는 범위의 것(`iige/legend/`, 페루와 같은 꼴)
         return {"attribution": iige.ATTRIBUTION, "projection": "EPSG:3857", "legend": "extent", "legendUrl": "iige/legend/"}
@@ -2526,6 +2558,16 @@ def _layer_extra(layer, lang: str = "ko") -> dict:
     if layer.upstream == "gsn":
         # 나미비아 GSN 1:100만(wetherilli 209) — BGS 의 MapServer, 3857 그대로
         return {"attribution": bgs.GSN_ATTRIBUTION, "projection": "EPSG:3857"}
+    if layer.upstream == "bumigeb":
+        # 부르키나파소 BUMIGEB 1:100만(wetherilli 246) — BGS 의 MapServer, 3857. 구조선은 누를 것이 없다
+        return {"attribution": bgs.BUMIGEB_ATTRIBUTION, "projection": "EPSG:3857",
+                **({} if layer.name.endswith("_BLS") else {"queryable": False})}
+    if layer.upstream == "irgm":
+        # 카메룬 IRGM 1:100만(wetherilli 246) — BRGM 의 MapServer 가 4326 만 그린다(IGME 1:100만처럼 화면이 옮겨 그린다). 속성 열이 없다.
+        # 단층은 범례 그림이 예외라 범례가 없다
+        unit = layer.name.split(":", 1)[1] in brgm.IRGM_LEGEND_LAYERS
+        return {"attribution": brgm.IRGM_ATTRIBUTION, "projection": "EPSG:4326", "queryable": False,
+                **({} if unit else {"noLegend": True})}
     if layer.upstream == "aga":
         # 아프리카 지하수 지도책의 나라별 지질(wetherilli 207) — 38 나라 레이어를 문이 이어 묻는다. 3857 그대로
         return {"attribution": bgs.AGA_ATTRIBUTION, "projection": "EPSG:3857"}
@@ -2608,7 +2650,7 @@ UPSTREAM_ERRORS = (kigam.UpstreamError, geus.GeusError, vworld.VWorldError, geom
                    gsmma.GsmmaError, emodnet.EmodnetError, ngu.NguError, gtk.GtkError, sgu.SguError,
                    bgs.BgsError, brgm.BrgmError, egdi.EgdiError,
                    bgr.BgrError, igme.IgmeError, gsi.GsiError, sgc.SgcError, sgb.SgbError, cgs.CgsError, ingemmet.IngemmetError,
-                   segemar.SegemarError, dinamige.DinamigeError, iige.IigeError, mrdata.MrdataError, sgm.SgmError, nrcan.NrcanError, ogs.OgsError, sigeom.SigeomError, ygs.YgsError, ga.GaError, austates.AuStatesError,
+                   segemar.SegemarError, dinamige.DinamigeError, iige.IigeError, mrdata.MrdataError, sgm.SgmError, nrcan.NrcanError, ogs.OgsError, sigeom.SigeomError, ygs.YgsError, skgs.SkgsError, nsgs.NsgsError, ags.AgsError, ga.GaError, austates.AuStatesError,
                    ispra.IspraError, lneg.LnegError, swisstopo.SwisstopoError, natt.NattError, gns.GnsError, mris.MrisError, gsiindia.GsiIndiaError, sgs.SgsError,
                    esdm.EsdmError, jmg.JmgError, mgb.MgbError, dmr.DmrError, bcgs.BcgsError, calgs.CalgsError,
                    geosphere.GeosphereError, pig.PigError, tno.TnoError, dov.DovError, spw.SpwError,
@@ -2670,10 +2712,14 @@ class _Door:
                "cgmw": brgm.CGMW, "aga": bgs.AGA,
                # 아프리카 나라 판(wetherilli 209) — 남아공은 새 문, 나미비아는 BGS 가 내주어 bgs.py 안에
                "cgs": cgs, "gsn": bgs.GSN,
+               # 부르키나파소·카메룬 1:100만(wetherilli 246) — BGS·BRGM 이 대신 내준다
+               "bumigeb": bgs.BUMIGEB, "irgm": brgm.IRGM,
                # 캐나다(wetherilli 204)
                "nrcan": nrcan, "ogs": ogs,
                # 퀘벡·유콘(wetherilli 210)
                "sigeom": sigeom, "ygs": ygs,
+               # 사스카치원·노바스코샤·앨버타(wetherilli 235)
+               "skgs": skgs, "nsgs": nsgs, "ags": ags,
                # 호주(wetherilli 212)
                "ga": ga,
                # 호주의 주 판(wetherilli 225) — 한 파일(`austates.py`)에 문 셋
@@ -2704,7 +2750,7 @@ class _Door:
         self.local = self.name == "geomap"
         #: 받은 것을 서버 캐시에 담지 않는다 — 우리가 그리는 것(GeoMAP)과, 자료를 파는 상류(`NO_STORE`, wetherilli 209)
         self.nostore = self.local or self.name in NO_STORE
-        if self.name in ("geus", "npolar", "kopri", "pgc", "ccop", "gsmma", "emodnet", "ngu", "gtk", "bgs", "brgm", "egdi", "bgr", "igme", "gsi", "gsni", "sgc", "sgb", "ingemmet", "segemar", "dinamige", "iige", "mrdata", "sgm", "cgmw", "aga", "cgs", "gsn", "nrcan", "ogs", "sigeom", "ygs", "ga", "gsq", "gsv", "gssa", "ispra", "lneg", "swisstopo", "sgu", "natt", "gns", "mris", "gsiindia", "sgs", "esdm", "jmg", "mgb", "dmr", "bcgs", "calgs", "geosphere", "pig", "tno", "dov", "spw"):    # 열쇠가 없는 공개 서비스다
+        if self.name in ("geus", "npolar", "kopri", "pgc", "ccop", "gsmma", "emodnet", "ngu", "gtk", "bgs", "brgm", "egdi", "bgr", "igme", "gsi", "gsni", "sgc", "sgb", "ingemmet", "segemar", "dinamige", "iige", "mrdata", "sgm", "cgmw", "aga", "cgs", "gsn", "bumigeb", "irgm", "nrcan", "ogs", "sigeom", "ygs", "skgs", "nsgs", "ags", "ga", "gsq", "gsv", "gssa", "ispra", "lneg", "swisstopo", "sgu", "natt", "gns", "mris", "gsiindia", "sgs", "esdm", "jmg", "mgb", "dmr", "bcgs", "calgs", "geosphere", "pig", "tno", "dov", "spw"):    # 열쇠가 없는 공개 서비스다
             self.ready = True
         elif self.name == "vworld":
             self.ready = vworld.enabled()
@@ -3538,6 +3584,36 @@ def list_legend(request):
 
 @require_GET
 @browser_cached
+def esdm_legend(request):
+    """`?layer=esdm:geology&bbox=서,남,동,북` — 인도네시아 지질도의 보는 범위 범례 (wetherilli 243). REST 통계로 범위 안의 단위를 세고
+    색은 칠하기 규칙에서 찾는다(`esdm.extent_legend`·`esdm.colors`). 꼴은 사우디(`sgs_legend`)와 같다"""
+    lang = i18n.lang_of(request)
+    name = request.GET.get("layer", "")
+    if name not in esdm.LAYERS:
+        return JsonResponse({"error": i18n.t(msg("범례가 없는 레이어다"), lang), "rows": []}, status=400)
+    parts = [_float(v) for v in (request.GET.get("bbox") or "").split(",")]
+    if len(parts) != 4 or None in parts:
+        return JsonResponse({"error": i18n.t(msg("bbox 가 없다"), lang), "rows": []}, status=400)
+    bbox = [round(v, 2) for v in parts]
+    if bbox[2] - bbox[0] > esdm.SPAN or bbox[3] - bbox[1] > esdm.SPAN:
+        return JsonResponse({"error": i18n.t(msg("범위가 넓다 — 더 들어오면 범례가 뜬다"), lang), "rows": []},
+                            status=422)
+    key = tilecache.key_text("esdm-legend", f"{name}/{bbox}")
+    held = _cached_json(key)
+    try:
+        if held is None:
+            held = {"rows": esdm.extent_legend(tuple(bbox))}
+            tilecache.put(key, json.dumps(held, ensure_ascii=False).encode("utf-8"), ".json")
+        table = esdm.colors()
+    except esdm.EsdmError as exc:
+        log.info("인도네시아 범례를 받지 못했다 (%s): %s", name, exc)
+        return JsonResponse({"error": i18n.t(msg("범례를 받지 못했다"), lang), "rows": []}, status=502)
+    shown = [esdm.legend_row(r, table, lang) for r in held["rows"][:esdm.MAX_LEGEND]]
+    return JsonResponse({"rows": shown, "more": max(0, len(held["rows"]) - len(shown))})
+
+
+@require_GET
+@browser_cached
 def sgs_legend(request):
     """`?layer=sgs:geology&bbox=서,남,동,북` — 사우디 지질도의 보는 범위 범례 (wetherilli 227). 칠하기 규칙의 두 열(`Symbol`·`Label`)로
     범위 안의 단위를 센다. 꼴은 호주(`ga_legend`)와 같다"""
@@ -3980,6 +4056,8 @@ def feature_info(request):
             props = cgs.friendly(props, lang)         # 남아공 — 층서·시대·암석, 값은 영어 그대로 (wetherilli 209)
         elif door.name == "gsn":
             props = bgs.gsn_friendly(props, lang)     # 나미비아 — 연대·층서·암석 (wetherilli 209)
+        elif door.name == "bumigeb":
+            props = bgs.bumigeb_friendly(props, lang)     # 부르키나파소 — 기호·설명·암석, 프랑스어 그대로 (wetherilli 246)
         elif door.name == "aga":
             props = bgs.aga_friendly(props, lang)     # 나라마다 다른 `…GLG` 열이 암상이다 (wetherilli 207)
         elif door.name == "gsni":
@@ -4005,6 +4083,8 @@ def feature_info(request):
             props = mrdata.friendly(props, lang)     # 미국 — 값은 영어 그대로, 알래스카의 시대만 옮긴다 (wetherilli 205)
         elif door.name == "iige":
             props = iige.friendly(props, lang)       # 에콰도르 — 값은 에스파냐어 그대로 (wetherilli 198)
+        elif door.name in ("skgs", "nsgs", "ags"):
+            props = {"skgs": skgs, "nsgs": nsgs, "ags": ags}[door.name].friendly(props, lang)   # 캐나다 주 판 둘째 — 시대만 옮긴다 (wetherilli 235)
         elif door.name in ("geosphere", "pig", "tno", "dov", "spw"):
             # 유럽(wetherilli 237) — 값은 그 나라 말 그대로, 시대만 옮긴다(`i18n.age_local`)
             props = {"geosphere": geosphere, "pig": pig, "tno": tno, "dov": dov, "spw": spw}[door.name].friendly(props, lang)
