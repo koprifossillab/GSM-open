@@ -288,24 +288,111 @@ def nearest_place(lat: float, lon: float, features: list):
     return best
 
 
-def point_facts(lat: float, lon: float) -> dict:
-    """한 점의 둘레 — `{"road", "parcel", "emd", "fault_m", "place", "place_m"}`. 모르는 것은 빠진다.
+#: 시료 지점이 안에 드는지 보는 보호구역 — 채취 허가에 걸리는 넷 (wetherilli 173). 자료 이름 → 이름 붙이는 법.
+#: 하나에 점마다 한 번씩 는다 — 사용자가 "채취 허가에 걸리는 넷" 을 골랐다(2026-10-02). 나머지(도립·군립공원·산림·습지 …)는
+#: "지질 참고" 레이어로 겹쳐 본다
+PROTECTED = {
+    "LT_C_WGISNPGUG": "park",       # 국립공원 — `park_name`
+    "LT_C_UO301": "heritage",       # 국가유산 지정·보호구역 — `uname` 이 지정 구분, `remark`·`alias` 가 이름
+    "LT_C_UF901": "baekdu",         # 백두대간보호지역 — 같은 자리에 "핵심구역"·"완충구역" 과 "백두대간보호지역" 이 겹쳐 온다
+    "LT_C_UQ114": "uname",          # 자연환경보전지역 — `uname` 하나
+}
 
-    넷을 한꺼번에 묻는다(`search` 와 같다). 하나가 실패해도 나머지는 돌려주고, 다 실패하면 `VWorldError`."""
+#: 토지(임야)대장 — 지목·소유구분. 소유자 이름은 싣지 않는다(이 목록은 이름을 주지 않고 공유인 수만 준다)
+LAND_URL = "https://api.vworld.kr/ned/data/ladfrlList"
+
+
+def _protected_name(kind: str, features: list):
+    """한 보호구역 자료의 모양들 → 이름 한 줄. 없으면 None."""
+    props = [f.get("properties") or {} for f in features]
+    if not props:
+        return None
+    if kind == "park":
+        return "국립공원 " + props[0].get("park_name", "").strip()
+    if kind == "baekdu":
+        parts = [p.get("uname", "") for p in props if p.get("uname") and p.get("uname") != "백두대간보호지역"]
+        return " ".join(["백두대간보호지역"] + parts[:1])
+    if kind == "heritage":
+        names = []
+        for p in props:
+            what = (p.get("remark") or "").strip() or (p.get("alias") or "").strip()
+            alias = (p.get("alias") or "").strip()
+            if what and alias and alias != what:
+                what = f"{what}({alias})"
+            line = " ".join(x for x in ((p.get("uname") or "").strip(), what) if x)
+            if line and line not in names:
+                names.append(line)
+        return " · ".join(names) or None
+    return (props[0].get("uname") or "").strip() or None
+
+
+def _ned(url: str, params: dict) -> dict:
+    """국가중점데이터(`/ned/data/…`) — 응답 꼴이 `/req/` 와 달라 따로 읽는다. 열쇠는 로그에 적지 않는다."""
+    sent = dict(params, key=settings.VWORLD_KEY, format="json")
+    try:
+        r = requests.get(url, params=sent, timeout=TIMEOUT, verify=settings.CA_BUNDLE or True,
+                         headers={"User-Agent": "GSM/0.1"})
+    except requests.RequestException as exc:
+        reason = _KEY_RE.sub(r"\1…", str(exc))        # 예외 문구에 URL 이 실려 온다
+        raise VWorldError(f"VWorld 에 닿지 못했다: {reason}") from exc
+    log.info("VWorld %s -> %s", _KEY_RE.sub(r"\1…", r.url), r.status_code)
+    try:
+        body = r.json()
+    except ValueError as exc:
+        raise VWorldError(f"VWorld 가 알아볼 수 없는 것을 줬다 (status={r.status_code})") from exc
+    return body if isinstance(body, dict) else {}
+
+
+def land(lat: float, lon: float) -> dict:
+    """그 자리 필지의 지목·소유구분 — `{"jimok", "owner"}`. 연속지적도에서 필지 번호(`pnu`)를 찾고 임야·토지대장에 묻는다(두 번)."""
+    parcels = _features("LP_PA_CBND_BUBUN", lat, lon, size=1)
+    pnu = ((parcels[0].get("properties") or {}).get("pnu") if parcels else None)
+    if not pnu:
+        return {}
+    got = _ned(LAND_URL, {"pnu": pnu, "numOfRows": 1, "pageNo": 1}).get("ladfrlVOList") or {}
+    if got.get("error"):
+        raise VWorldError(f"VWorld 가 거절했다: {got.get('message') or got['error']}")
+    rows = got.get("ladfrlVOList") or []
+    if not rows:
+        return {}
+    row = rows[0]
+    return {k: v for k, v in (("jimok", row.get("lndcgrCodeNm")), ("owner", row.get("posesnSeCodeNm"))) if v}
+
+
+def point_facts(lat: float, lon: float) -> dict:
+    """한 점의 둘레 — `{"road", "parcel", "emd", "fault_m", "place", "place_m", "protected", "jimok", "owner"}`.
+    모르는 것은 빠진다. 보호구역은 든 것만 " · " 로 잇는다 — 하나도 없으면 빠진다(못 물은 것과 같이 보이지 않게 `at` 이 있다).
+
+    한꺼번에 묻는다(`search` 와 같다). 하나가 실패해도 나머지는 돌려주고, 다 실패하면 `VWorldError`."""
     jobs = {
         "address": lambda: _reverse(lat, lon),
         "emd": lambda: _features("LT_C_ADEMD_INFO", lat, lon, size=1),
         "fault": lambda: _features("LT_L_GIMSFAULT", lat, lon, buffer=FAULT_BUFFER, geometry=True, size=100),
         "place": lambda: _features("LT_P_NSNMSSITENM", lat, lon, buffer=PLACE_BUFFER, geometry=True, size=50),
+        # 토지는 두 번 묻는다(필지 번호 → 대장) — 세는 것도 둘이다(`calls`)
+        "land": lambda: land(lat, lon),
     }
+    for data in PROTECTED:
+        jobs["protected:" + data] = (lambda d: lambda: _features(d, lat, lon, size=5))(data)
+    calls = {"land": 2}
     with ThreadPoolExecutor(max_workers=len(jobs)) as pool:
         futures = {name: pool.submit(fn) for name, fn in jobs.items()}
-    out, errors = {}, []
+    out, errors, protected, ok_calls, bad_calls = {}, [], [], 0, 0
     for name, future in futures.items():
         try:
             got = future.result()
         except VWorldError as exc:
             errors.append(exc)
+            bad_calls += calls.get(name, 1)
+            continue
+        ok_calls += calls.get(name, 1)
+        if name.startswith("protected:"):
+            line = _protected_name(PROTECTED[name.split(":", 1)[1]], got)
+            if line:
+                protected.append(line)
+            continue
+        if name == "land":
+            out.update(got)
             continue
         if name == "address":
             out.update({k: v for k, v in got.items() if v})
@@ -321,11 +408,13 @@ def point_facts(lat: float, lon: float) -> dict:
             hit = nearest_place(lat, lon, got)
             if hit:
                 out["place"], out["place_m"] = hit[0], round(hit[1])
+    if protected:
+        out["protected"] = " · ".join(protected)
     # 스레드 안에서 세지 않는다 — DB 연결이 스레드마다 생긴다(`search` 와 같다)
-    if len(errors) < len(jobs):
-        usage.record("vworld", ok=True, count=len(jobs) - len(errors))
-    if errors:
-        usage.record("vworld", ok=False, count=len(errors))
+    if ok_calls:
+        usage.record("vworld", ok=True, count=ok_calls)
+    if bad_calls:
+        usage.record("vworld", ok=False, count=bad_calls)
     if errors and len(errors) == len(jobs):
         raise errors[0]
     return out
@@ -587,6 +676,8 @@ LAYER_FRIENDLY = {
     "lt_c_asitsurston": {"label": "자갈 함량 (%)"},
     "lt_c_asitdeepsoil": {"label": "심토 토성"},
     "lt_c_asitsoildra": {"label": "배수 등급"},
+    # 국가유산 지정·보호구역의 `uname` 은 온천지구의 "지구" 가 아니라 지정 구분이다 (wetherilli 173)
+    "lt_c_uo301": {"uname": "지정 구분"},
     # 산림입지도의 `name` 은 산림토양형이다
     "lt_c_fsdifrsts": {"name": "산림토양", "toyanghyun": "토양형 기호"},
 }

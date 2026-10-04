@@ -32,6 +32,8 @@ def fake_get(url, params):
              "properties": {"land_kpyo": "유디미"}},
             {"geometry": {"type": "Point", "coordinates": [KIGAM[1], KIGAM[0] + 0.015]},
              "properties": {"land_kpyo": "먼골"}}]}}
+    if data in vworld.PROTECTED or data == "LP_PA_CBND_BUBUN":
+        return {}               # 보호구역 밖, 필지 모름 (wetherilli 173 — 아래 `Land` 가 따로 본다)
     raise AssertionError(data)
 
 
@@ -65,6 +67,65 @@ class Facts(SimpleTestCase):
     def test_한국_둘레(self):
         self.assertTrue(vworld.in_korea(*KIGAM))
         self.assertFalse(vworld.in_korea(-62.2, -58.8))
+
+
+def feats(*props):
+    return {"featureCollection": {"features": [{"properties": p} for p in props]}}
+
+
+class Land(SimpleTestCase):
+    """보호구역·지목·소유구분 (wetherilli 173). 2026-10-02 에 설악산 대청봉에서 받은 꼴을 옮겼다"""
+
+    def got(self, ned=None, extra=None):
+        table = {"LT_C_WGISNPGUG": feats({"park_name": "설악산"}),
+                 "LT_C_UO301": feats({"uname": "국가지정문화재구역", "remark": "설악산천연보호구역", "alias": "천연기념물 제171호"}),
+                 "LT_C_UF901": feats({"uname": "핵심구역"}, {"uname": "백두대간보호지역"}),
+                 "LT_C_UQ114": feats({"uname": "자연환경보전지역"}),
+                 "LP_PA_CBND_BUBUN": feats({"pnu": "5183031021200010000"})}
+        table.update(extra or {})
+
+        def get(url, params):
+            return table[params["data"]] if params.get("data") in table else fake_get(url, params)
+        ned = ned or {"ladfrlVOList": {"ladfrlVOList": [{"lndcgrCodeNm": "임야", "posesnSeCodeNm": "국유지",
+                                                         "cnrsPsnCo": "0"}], "error": ""}}
+        counted = []
+        with patch.object(vworld, "_get", get), patch.object(vworld, "_ned", lambda url, params: ned), \
+                patch.object(vworld.usage, "record", lambda *a, **k: counted.append(k)):
+            return vworld.point_facts(*KIGAM), counted
+
+    def test_넷의_이름을_잇는다(self):
+        got, _ = self.got()
+        self.assertEqual(got["protected"], "국립공원 설악산 · 국가지정문화재구역 설악산천연보호구역(천연기념물 제171호)"
+                                           " · 백두대간보호지역 핵심구역 · 자연환경보전지역")
+
+    def test_지목과_소유구분(self):
+        got, _ = self.got()
+        self.assertEqual((got["jimok"], got["owner"]), ("임야", "국유지"))
+
+    def test_소유자_이름은_싣지_않는다(self):
+        got, _ = self.got()
+        self.assertFalse({"cnrsPsnCo", "posesnSeCode"} & set(got))
+
+    def test_토지는_두_번으로_센다(self):
+        _, counted = self.got()
+        self.assertEqual(counted, [{"ok": True, "count": 10}])
+
+    def test_대장이_거절하면_토지만_빠진다(self):
+        got, counted = self.got(ned={"ladfrlVOList": {"error": "INVALID_KEY", "message": "x"}})
+        self.assertNotIn("jimok", got)
+        self.assertIn("protected", got)
+        self.assertIn({"ok": False, "count": 2}, counted)
+
+    def test_보호구역_밖이면_빠진다(self):
+        got, _ = self.got(extra={d: {} for d in vworld.PROTECTED})
+        self.assertNotIn("protected", got)
+
+    def test_되살리면_제_칸으로(self):
+        from viewer import pointsets, views
+        place = {"protected": "자연환경보전지역", "jimok": "임야", "owner": "국유지"}
+        props = views._place_props(place)
+        self.assertEqual(props["지목(VWorld)"], "임야")
+        self.assertEqual(pointsets._place_from(dict(props)), place)
 
 
 @override_settings(VWORLD_KEY="test")

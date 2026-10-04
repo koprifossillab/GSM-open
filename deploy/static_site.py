@@ -15,7 +15,8 @@ WegenersDream 의 `deploy/static_site.py`(tupandactyl 029)와 같은 길이다.
 - **뿌리는 소개, `map/` 은 지도, 영어판은 `en/`·`en/map/`**(wetherilli 167). 소개는 서버 화면(3D·온 지구·달·화성·수성)으로 가는 장면·문을
   빼고 그린다(`intro.html` 의 `static_site`). 정적 파일은 한 벌이다
 - 인증키는 싣지 않는다 — KIGAM 은 보는 사람이 각자 넣는다
-- **VWorld 는 공개 판용 키 하나**를 화면에 싣는다(검토 §10, wetherilli 164) — `--vworld-key-file` 이나 `GSM_STATIC_VWORLD_KEY`.
+- **VWorld 도 각자 키**다 — 사용자가 정했다(2026-10-02, wetherilli 174). 공개 판을 처음 열 때 KIGAM·VWorld 키를 받는다.
+  그래서 굽는 판에는 어떤 키도 싣지 않는다(전에는 공개 판용 VWorld 키 하나를 실었다 — wetherilli 164).
   **운영 키로 저절로 돌아가지 않는다** — 운영 키와 갈라 두라는 것이 검토의 권고다(남이 뽑아 써 하루 한도를 먹으면 운영도 멈춘다).
   둘 다 없으면 VWorld 를 빼고 굽는다(배경·찾기·좌표→주소·VWorld 레이어가 빠진다)
 """
@@ -32,7 +33,7 @@ ROOT = pathlib.Path(__file__).resolve().parent.parent
 #: 정적 판에 실을 지역 — 상류가 붙는 대로 늘린다(P11 §3). 극지는 브라우저가 곧장 부르는 상류(`static-kinds.js`, wetherilli 161)로
 #: 굽지 않아도 선다 — 얀마옌만 구운 것이 있어야 한다(아래 `BAKED_REGIONS`)
 REGIONS = ["korea", "greenland", "svalbard", "arctic_ocean", "antarctica"]
-#: 정적 판에 실을 상류 — kigam 은 각자 키로 곧장(map.js 의 STATIC_KIGAM), vworld 는 공개 판용 키로 곧장(STATIC_VWORLD).
+#: 정적 판에 실을 상류 — kigam·vworld 는 각자 키로 곧장(map.js 의 STATIC_KIGAM·STATIC_VWORLD).
 #: 극지 여섯은 `static-kinds.js` 가 곧장 부른다(wetherilli 161) — GEUS·NPI·PGC·EMODnet·극지연구소 KPDC 의 지도 서버·그린란드 포털 점.
 #: 극지연구소의 모아 둔 점(시료·운석·KPDC 목록)은 구운 것이 있어야 선다(`views._static_catalog`)
 UPSTREAMS = ["kigam", "vworld", "geus", "npolar", "pgc", "emodnet", "kopri", "grportal"]
@@ -85,10 +86,7 @@ def main():
     parser.add_argument("--prefix", default="/GSM-open/", help="Pages 주소의 앞머리")
     parser.add_argument("--regions", default=",".join(REGIONS))
     parser.add_argument("--upstreams", default=",".join(UPSTREAMS))
-    parser.add_argument("--vworld-key-file", help="공개 판용 VWorld 키 한 줄 — 없으면 GSM_STATIC_VWORLD_KEY")
     args = parser.parse_args()
-    vworld_key = (pathlib.Path(args.vworld_key_file).read_text().strip() if args.vworld_key_file
-                  else os.environ.get("GSM_STATIC_VWORLD_KEY", "").strip())
 
     out = pathlib.Path(args.out).resolve()
     if out.exists():
@@ -101,7 +99,7 @@ def main():
     os.environ["GSM_TILE_CACHE_DIR"] = str(work / "tiles")
     os.environ.setdefault("GSM_SECRET_KEY", "static-site-build")
     os.environ.pop("GSM_KIGAM_KEY", None)
-    os.environ.pop("GSM_VWORLD_KEY", None)          # 운영 키는 싣지 않는다 — 공개 판용 키만(`vworld_key`)
+    os.environ.pop("GSM_VWORLD_KEY", None)          # 운영 키는 싣지 않는다 — VWorld 도 보는 사람이 각자 넣는다
     sys.path.insert(0, str(ROOT / "web"))
     os.environ.setdefault("DJANGO_SETTINGS_MODULE", "gsmweb.settings")
     import django
@@ -114,9 +112,7 @@ def main():
     call_command("seed_catalog", verbosity=0, stdout=open(os.devnull, "w"))
 
     spec = {"regions": [r for r in args.regions.split(",") if r],
-            "upstreams": [u for u in args.upstreams.split(",") if u and (u != "vworld" or vworld_key)]}
-    if "vworld" in args.upstreams.split(",") and not vworld_key:
-        print("공개 판용 VWorld 키가 없어 VWorld 를 빼고 굽는다 (--vworld-key-file 이나 GSM_STATIC_VWORLD_KEY)")
+            "upstreams": [u for u in args.upstreams.split(",") if u]}
     if args.baked:
         # 구운 것을 화면에 알린다 — 마지막 줌·점 레이어·영어판 (wetherilli 165)
         spec["baked"] = baked_spec(pathlib.Path(args.baked))
@@ -125,7 +121,7 @@ def main():
                               if spec["baked"].get(part) and up not in spec["upstreams"]]
         # 극지의 지명 찾기 — 구운 지명에서 색인을 지어 화면이 뒤진다 (wetherilli 166)
         spec["baked"]["placenames"] = place_index(pathlib.Path(args.baked), out)
-    with override_settings(STATIC_SITE=spec, DEBUG=False, ALLOWED_HOSTS=["*"], KIGAM_KEY="", VWORLD_KEY=vworld_key,
+    with override_settings(STATIC_SITE=spec, DEBUG=False, ALLOWED_HOSTS=["*"], KIGAM_KEY="", VWORLD_KEY="",
                            STATIC_ROOT=str(out / "static")):
         call_command("collectstatic", verbosity=0, interactive=False)
         # 지도와 소개를 말마다 한 번씩 그린다 (wetherilli 167) — 정적 판에는 쿠키를 읽을 서버가 없어 영어판을 `en/` 에 따로 둔다

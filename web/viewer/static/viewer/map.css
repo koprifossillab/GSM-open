@@ -2195,3 +2195,19 @@ a.tool { text-decoration: none; }                /* 3D 단추는 링크다 */
 .static-key { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
 .static-key input { flex: 1 1 12em; min-width: 0; font: inherit; padding: 4px 6px; }
 .static-key label { display: flex; gap: 4px; align-items: center; font-size: 12px; }
+
+/* 정적 판의 키 넣는 창 (wetherilli 174) */
+.key-dialog { position: fixed; inset: 0; z-index: 90; display: flex; align-items: center; justify-content: center;
+  background: rgba(0, 0, 0, .55); padding: 16px; }
+.key-card { background: var(--panel); color: var(--ink); border: 1px solid var(--gold-edge); border-radius: 10px;
+  max-width: 460px; width: 100%; padding: 18px 20px; box-shadow: 0 10px 40px rgba(0, 0, 0, .4); max-height: 90vh; overflow: auto; }
+.key-card h2 { margin: 0 0 8px; font-size: 17px; color: var(--gold-bright); }
+.key-card p { margin: 0 0 12px; font-size: 13px; line-height: 1.55; color: var(--ink-soft); }
+.key-row { display: grid; grid-template-columns: 1fr auto; gap: 4px 8px; margin: 0 0 12px; }
+.key-row .key-name { font-weight: 600; }
+.key-row small { grid-column: 1 / -1; color: var(--ink-faint); font-size: 12px; }
+.key-row input { grid-column: 1 / -1; font: inherit; padding: 6px 8px; min-width: 0; }
+.key-row a { grid-row: 1; grid-column: 2; font-size: 12px; align-self: center; }
+.key-card .key-note { font-size: 12px; color: var(--ink-faint); }
+.key-forget { display: flex; gap: 6px; align-items: center; font-size: 12px; margin: 0 0 12px; }
+.key-buttons { display: flex; gap: 8px; justify-content: flex-end; flex-wrap: wrap; }

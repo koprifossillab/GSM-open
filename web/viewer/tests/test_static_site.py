@@ -70,7 +70,6 @@ def built() -> pathlib.Path:
     fake_baked(work / "baked")
     env = dict(os.environ, GSM_KIGAM_KEY=KIGAM_SECRET, GSM_VWORLD_KEY=VWORLD_SECRET,
                GSM_SECRET_KEY="static-test", DJANGO_SETTINGS_MODULE="gsmweb.settings")
-    env.pop("GSM_STATIC_VWORLD_KEY", None)
     done = subprocess.run([sys.executable, str(SCRIPT), str(work / "site" / "GSM-open"),
                            "--baked", str(work / "baked"), "--prefix", PREFIX],
                           env=env, capture_output=True, text=True, timeout=600)
@@ -97,11 +96,11 @@ class Build(SimpleTestCase):
         hits = [p for p in self.site.rglob("*.html") if KIGAM_SECRET in p.read_text(encoding="utf-8", errors="ignore")]
         self.assertEqual(hits, [])
 
-    @unittest.skipUnless("GSM_STATIC_VWORLD_KEY" in SCRIPT.read_text(encoding="utf-8"),
-                         "공개 판용 VWorld 키를 가르는 것(#141, wetherilli 164)이 아직 없다")
     def test_운영_VWorld_키가_없다(self):
-        # 공개 판에는 공개 판용 키만 — 운영 키로 저절로 돌아가지 않는다 (검토 §10)
+        # VWorld 도 보는 사람이 각자 넣는다 — 굽는 판에는 어떤 키도 없다 (wetherilli 174)
         self.assertNotIn(VWORLD_SECRET, self.html)
+        self.assertIn('id="vworld-key" type="application/json">""<', self.html)
+        self.assertIn("vworld", static_config(self.html)["upstreams"])
 
     def test_주소_앞머리는_GSM_open(self):
         self.assertNotIn('"/GSM/', self.html)
@@ -185,10 +184,13 @@ class Browser(SimpleTestCase):
         cls.httpd.shutdown()
         super().tearDownClass()
 
-    def open(self, region, settle=2500, asked=None):
+    def open(self, region, settle=2500, asked=None, ask_keys=False):
         ctx = self.browser.new_context(viewport={"width": 1280, "height": 800})
         self.addCleanup(ctx.close)
         ctx.add_init_script("try { localStorage.setItem('gsm.region', %s); } catch (e) {}" % json.dumps(region))
+        if not ask_keys:
+            # 처음 열 때 뜨는 키 창(wetherilli 174)을 "나중에" 로 넘긴 탭처럼 — 다른 시험이 창에 가리지 않게
+            ctx.add_init_script("try { sessionStorage.setItem('gsm.key.later', '1'); } catch (e) {}")
         page = ctx.new_page()
         errors = []
         page.on("pageerror", lambda e: errors.append(str(e)))
@@ -204,11 +206,28 @@ class Browser(SimpleTestCase):
         page.wait_for_timeout(settle)
         return page, errors
 
-    def test_한국_탭과_키_칸(self):
-        page, errors = self.open("korea")
+    def test_처음_열면_키_둘을_묻는다(self):
+        """KIGAM·VWorld 둘 다 각자 키 — 처음 열면 둘을 받는 창이 뜬다 (wetherilli 174)."""
+        page, errors = self.open("korea", ask_keys=True)
         self.assertEqual(errors, [])
-        self.assertTrue(page.is_visible("#static-key"))
-        self.assertTrue(page.query_selector("#static-key input[type=password]"))
+        self.assertTrue(page.is_visible("#key-dialog"))
+        self.assertEqual(len(page.query_selector_all("#key-dialog input[type=password]")), 2)
+        page.click("#key-dialog .key-buttons .btn.quiet:nth-child(2)")          # 나중에
+        self.assertFalse(page.query_selector("#key-dialog"))
+        self.assertTrue(page.is_visible("#static-key button"))
+
+    def test_넣은_키는_이_브라우저에만(self):
+        page, errors = self.open("korea", ask_keys=True)
+        inputs = page.query_selector_all("#key-dialog input[type=password]")
+        inputs[0].fill("kigam-key")
+        inputs[1].fill("vworld-key")
+        with page.expect_navigation():
+            page.click("#key-dialog .key-buttons .btn:not(.quiet)")               # 저장 — 다시 연다
+        page.wait_for_timeout(1500)
+        held = page.evaluate("[localStorage.getItem('gsm.key.kigam'), localStorage.getItem('gsm.key.vworld')]")
+        self.assertIn("kigam-key", held[0])
+        self.assertIn("vworld-key", held[1])
+        self.assertFalse(page.query_selector("#key-dialog"))                     # 둘 다 있으니 다시 묻지 않는다
 
     def test_남극_탭이_구운_것으로_선다(self):
         page, errors = self.open("antarctica")

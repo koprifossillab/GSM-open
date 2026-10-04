@@ -136,6 +136,8 @@ urlpatterns = [
             views.vworld_tile, name="vworld-tile"),
     path("gsj/info/", views.gsj_info, name="gsj-info"),
     path("gsj/legend/", views.gsj_legend, name="gsj-legend"),
+    # 지질도Navi 판 목록 (wetherilli 171) — 일본 탭이 판 목록을 펼 때 받는다
+    path("gsj/geonavi/", views.gsj_geonavi, name="gsj-geonavi"),
     path("gsmma/legend/", views.gsmma_legend, name="gsmma-legend"),
     # 5만 지질도의 층리·엽리·절리 자리 — 커서와 팝업 (jikhanjung 004)
     path("kigam50k/attitudes/", views.kigam50k_attitudes, name="kigam50k-attitudes"),

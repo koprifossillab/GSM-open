@@ -96,7 +96,7 @@ class Friendly(SimpleTestCase):
 
     def test_모르는_지정_연도는_싣지_않는다(self):
         props = {"dyear": "0000", "ucode": "UOC530", "uname": "문화재자료구역", "sigg_name": "고성군"}
-        self.assertEqual(vworld.friendly(props, "lt_c_uo301"), {"지구": "문화재자료구역", "시군구": "고성군"})
+        self.assertEqual(vworld.friendly(props, "lt_c_uo301"), {"지정 구분": "문화재자료구역", "시군구": "고성군"})
 
     def test_공역은_이름과_고도만(self):
         props = {"prohibited": "<FNT name='TW Cen MT'>RK P518</FNT>", "prh_lbl_1": "RK P518",

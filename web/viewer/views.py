@@ -2755,6 +2755,13 @@ def kigam50k_attitudes(request):
 
 
 @require_GET
+def gsj_geonavi(request):
+    """지질도Navi 판 목록 (wetherilli 171). 1 849 판이라(60 KB 남짓, gzip) 지도 화면에 싣지 않고 일본·동아시아 탭이
+    판 목록을 펼 때 받는다. 씨앗(`data/gsj_geonavi_layers.json`)에서 오므로 상류를 타지 않는다."""
+    return JsonResponse(gsj.client_geonavi(i18n.lang_of(request)), json_dumps_params={"ensure_ascii": False})
+
+
+@require_GET
 @browser_cached
 def gsj_legend(request):
     """`?layer=gsj:geology&bbox=서,남,동,북&z=9` — 보는 범위의 범례 칸들.
@@ -3667,7 +3674,9 @@ def pointset_restore(request, pk):
 
 #: VWorld 둘레(074)를 GeoJSON·팝업에 싣는 이름. "(VWorld)" 를 붙여 원본의 `주소` 열과 부딪히지 않게 한다.
 #: 되살리기(`pointsets.restore`)가 이 이름들을 떼어 제 칸(`Point.place`)으로 돌린다
-PLACE_PROPS = (("road", "도로명(VWorld)"), ("parcel", "지번(VWorld)"), ("emd", "읍면동(VWorld)"))
+PLACE_PROPS = (("road", "도로명(VWorld)"), ("parcel", "지번(VWorld)"), ("emd", "읍면동(VWorld)"),
+               # 보호구역·지목·소유구분 (wetherilli 173)
+               ("protected", "보호구역(VWorld)"), ("jimok", "지목(VWorld)"), ("owner", "소유구분(VWorld)"))
 FAULT_PROP, PLACENAME_PROP = "가까운 단층(VWorld, m)", "둘레 지명(VWorld)"
 
 
@@ -3688,7 +3697,7 @@ def _korean_points(ps):
     return ps.points.filter(lat__gte=s_, lat__lte=n, lon__gte=w, lon__lte=e)
 
 
-#: 한 번의 요청 안에서 VWorld 에 묻는 점의 수. 한 점에 넷을 묻는다. 넘으면 명령(`fill_places`)으로
+#: 한 번의 요청 안에서 VWorld 에 묻는 점의 수. 한 점에 열 번 묻는다(넷 + 보호구역 넷 + 토지 둘, wetherilli 173). 넘으면 명령(`fill_places`)으로
 PLACES_IN_REQUEST = 50
 #: 올리거나 찍을 때 곧바로 묻는 점의 수. 넘으면 사람이 📍 를 누른다 — 올리기가 느려지지 않게
 PLACES_AUTO = 20
@@ -3738,7 +3747,7 @@ def _auto_places(pointset):
 
 @require_POST
 def pointset_places(request, pk):
-    """`POST pointsets/<번호>/places/` — 한국 점마다 주소·읍면동·가까운 단층·둘레 지명을 채운다 (074)."""
+    """`POST pointsets/<번호>/places/` — 한국 점마다 주소·읍면동·가까운 단층·둘레 지명·보호구역·지목·소유구분을 채운다 (074·wetherilli 173)."""
     lang = i18n.lang_of(request)
     ps = PointSet.objects.filter(pk=pk).first()
     if ps is None:

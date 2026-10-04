@@ -14,7 +14,7 @@ from viewer.models import PointSet
 
 
 class Command(BaseCommand):
-    help = "점묶음의 한국 점마다 VWorld 에서 주소·읍면동·가까운 단층·둘레 지명을 채운다"
+    help = "점묶음의 한국 점마다 VWorld 에서 주소·읍면동·가까운 단층·둘레 지명·보호구역·지목·소유구분을 채운다"
 
     def add_arguments(self, parser):
         parser.add_argument("pointset", nargs="?", type=int, help="점묶음 번호")

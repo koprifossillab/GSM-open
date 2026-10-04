@@ -55,6 +55,8 @@
     } catch (e) { return staticKeys[name] || ""; }   // 사생활 모드 — 탭 동안만
   }
   var staticKeys = {};
+  // 정적 판의 VWorld 는 페이지에 실린 키가 아니라 보는 사람이 넣은 키로 돈다(wetherilli 174) — 굽는 판에는 키가 없다
+  if (STATIC) vworldKey = readKey("vworld");
 
   function writeKey(name, key, remember) {
     var slot = "gsm.key." + name;
@@ -549,6 +551,18 @@
     });
   }
 
+  /** 지질도Navi 판 (wetherilli 171) — GSJ 가 판마다 구워 둔 z/x/y 타일. CORS 가 열려 있어 그림으로 내려받기에도 든다 */
+  function geonaviSource(name) {
+    var row = byName[name] || {};
+    return new ol.source.XYZ({
+      url: row.tiles,
+      maxZoom: row.maxZoom || 14,
+      crossOrigin: "anonymous",
+      transition: 0,
+      attributions: row.attribution || undefined,
+    });
+  }
+
   /** 국토지리원 주제 타일 (wetherilli 172). 주소·줌·출처는 카탈로그 행이 준다 — 지리원 주소 그대로라 `BASE` 를 붙이지 않는다 */
   function gsiTileSource(name) {
     var row = byName[name] || {};
@@ -631,6 +645,8 @@
     // PGC 경사·등고선(wetherilli 099) — NPI 처럼 지역의 투영으로 곧장 받는다. 누르면 그 자리의 값
     pgc: { source: npolarSource, info: wmsInfoUrl },
     gsj: { source: gsjSource, info: gsjInfoUrl },
+    // 지질도Navi 판(wetherilli 171) — 브라우저가 tiles.gsj.jp 를 곧장. 속성은 없다(그림 판이다)
+    geonavi: { source: geonaviSource, info: null },
     // 국토지리원 주제 타일(wetherilli 172) — 카탈로그가 준 지리원 주소를 브라우저가 곧장 부른다(서버를 거치지 않는다)
     gsitile: { source: gsiTileSource, info: null },
     // CCOP 200만 지질도(wetherilli 108) — 여느 WMS 다. 속성의 4326 풀이는 서버의 문(gsj.py)이 한다
@@ -841,9 +857,11 @@
     // 묶음 탭(동아시아)에서는 레이어의 범위 밖 타일을 묻지 않는다 — 일본을 볼 때
     // KIGAM 에 일본·바다 자리를 묻지 않게(호출 제한, 010). 상류가 적은 범위가 빠듯할
     // 수 있어 0.5° 넉넉히 둔다. 극지 묶음(북극)은 위경도 네모가 부채꼴이라 두지 않는다 (024)
-    if (row && row.bbox && (REGIONS[region].includes || row.upstream === "gsmma") && isMercator()) {
-      var b = row.bbox;
-      tile.setExtent(ol.proj.transformExtent([b[0] - 0.5, b[1] - 0.5, b[2] + 0.5, b[3] + 0.5],
+    // 지질도Navi 판은 도폭 하나라 좁다 — 어느 탭에서든 범위 밖을 묻지 않는다 (wetherilli 171)
+    if (row && row.bbox && (REGIONS[region].includes || row.upstream === "gsmma" || row.upstream === "geonavi") && isMercator()) {
+      // 지질도Navi 판은 Capabilities 의 범위가 판 그대로라 넉넉히 두지 않는다 — 둘레의 없는 타일(404)을 묻지 않게
+      var b = row.bbox, pad = row.upstream === "geonavi" ? 0 : 0.5;
+      tile.setExtent(ol.proj.transformExtent([b[0] - pad, b[1] - pad, b[2] + pad, b[3] + pad],
                                              "EPSG:4326", viewProj()));
     }
     return tile;
@@ -1702,6 +1720,7 @@
     map.on("moveend", showZoom);
     map.on("moveend", renderEdges);
     map.on("moveend", saveView);
+    map.on("moveend", function () { if (GEONAVI.here && GEONAVI.open) renderGeonavi(); });   // wetherilli 171
     map.on("moveend", refreshExtentLegends);
     window.addEventListener("resize", renderEdges);
     map.on("singleclick", onClick);
@@ -1918,7 +1937,10 @@
   function saveLayers() {
     if (restoring) return;
     var rows = active.map(function (e) {
-      return { name: e.name, opacity: Math.round(e.opacity * 100) / 100 };
+      var out = { name: e.name, opacity: Math.round(e.opacity * 100) / 100 };
+      // 지질도Navi 판은 카탈로그 밖이라 행을 함께 둔다 — 되살릴 때 판 목록을 기다리지 않게 (wetherilli 171)
+      if (byName[e.name] && byName[e.name].upstream === "geonavi") out.row = geonaviSaved(byName[e.name]);
+      return out;
     });
     try { localStorage.setItem(stateKey("gsm.layers"), JSON.stringify(rows)); } catch (e) { /* 사생활 모드 */ }
   }
@@ -1961,6 +1983,7 @@
     restoring = true;
     // addLayer 는 맨 위에 얹는다. 그래서 맨 아래 것부터 얹는다.
     rows.slice().reverse().forEach(function (row) {
+      if (row && !byName[row.name] && row.row) geonaviRestore(row.name, row.row);
       if (!row || !byName[row.name]) return;     // 카탈로그에서 내려간 레이어
       addLayer(row.name);
       var entry = active[0];
@@ -2108,12 +2131,12 @@
   //: 상류의 짧은 이름 — 기관 이름이라 옮기지 않는다
   var UPSTREAM_TAGS = {
     kigam: "KIGAM", vworld: "VWorld", geus: "GEUS", grportal: "GRL", npolar: "NPI", janmayen: "NPI",
-    gsj: "GSJ", gsitile: "GSIJ", ccop: "CCOP", gsmma: "GSMMA", emodnet: "EMOD", ngu: "NGU", gtk: "GTK", bgs: "BGS", brgm: "BRGM", egdi: "EGDI", bgr: "BGR", igme: "IGME", gsi: "GSI", gsni: "GSNI", geomap: "GeoMAP", geo3al: "USGS", kopri: "KOPRI", pgc: "PGC", ibcso: "IBCSO",
+    gsj: "GSJ", gsitile: "GSIJ", geonavi: "GSJ", ccop: "CCOP", gsmma: "GSMMA", emodnet: "EMOD", ngu: "NGU", gtk: "GTK", bgs: "BGS", brgm: "BRGM", egdi: "EGDI", bgr: "BGR", igme: "IGME", gsi: "GSI", gsni: "GSNI", geomap: "GeoMAP", geo3al: "USGS", kopri: "KOPRI", pgc: "PGC", ibcso: "IBCSO",
     phyloserver: "LAB", peninsula: "LAB",
   };
   var UPSTREAM_NAMES = {
     kigam: T("한국지질자원연구원"), vworld: T("브이월드(국토교통부)"), geus: T("덴마크·그린란드 지질조사소"), grportal: T("그린란드 정부 포털"),
-    npolar: T("노르웨이 극지연구소"), janmayen: T("노르웨이 극지연구소"), gsj: T("일본 지질조사종합센터"), gsitile: T("일본 국토지리원"), ccop: "CCOP",
+    npolar: T("노르웨이 극지연구소"), janmayen: T("노르웨이 극지연구소"), gsj: T("일본 지질조사종합센터"), gsitile: T("일본 국토지리원"), geonavi: T("일본 지질조사종합센터"), ccop: "CCOP",
     gsmma: T("대만 지질조사·광업관리중심"),
     emodnet: "EMODnet Geology",
     ngu: T("노르웨이 지질조사소"), gtk: T("핀란드 지질조사소"),
@@ -2252,7 +2275,199 @@
       });
       host.appendChild(more);
     }
+    if (hasGeonavi()) host.appendChild(geonaviFolder());
     syncRows();
+  }
+
+  // ── 지질도Navi 판 (wetherilli 171) ───────────────────────────────
+  //
+  // GSJ 지질도Navi 의 판 1 849 장(5만 지질도폭 763 …)을 일본·동아시아 탭의 레이어 목록 밑에 시리즈로 묶어 세운다.
+  // 달 Trek 판(060)의 틀이다 — 씨앗을 서버가 추려 주고, 레이어는 켤 때 짓는다. 다만 목록이 60 KB 남짓이라 지도 화면에
+  // 싣지 않고 **이 칸을 펼 때 받는다**(`gsj/geonavi/`). 켠 판은 행을 저장해 두어 되살릴 때 목록을 기다리지 않는다.
+  // 판은 카탈로그 밖이라 이름 앞에 `geonavi:` 를 붙인다. 타일은 브라우저가 tiles.gsj.jp 를 곧장 부른다
+  var GEONAVI = { data: null, loading: false, failed: false, open: false, q: "", here: false, openSeries: {} };
+  var GEONAVI_LIMIT = 300;        // 거른 판을 한 번에 그리는 끝 — 넘으면 더 좁히라고 적는다
+  var GEONAVI_TILES = /^https:\/\/tiles\.gsj\.jp\/tiles\/geomap\/[\w.-]+\/\{z\}\/\{x\}\/\{y\}\.png$/;
+  var GEONAVI_LEGEND = /^https:\/\/gbank\.gsj\.jp\/geonavi\/docdata\/data\/pict_data\/[\w.-]+$/;
+
+  function hasGeonavi() {
+    return !STATIC && (region === "japan" || (REGIONS[region].includes || []).indexOf("japan") >= 0);
+  }
+
+  /** 판 하나([이름, 도폭, bbox, 줌 끝, 범례])를 카탈로그 행으로 올린다. 이름은 `geonavi:<판>` */
+  function geonaviRow(series, item) {
+    var name = "geonavi:" + item[0];
+    if (byName[name]) return byName[name];
+    var data = GEONAVI.data;
+    var row = {
+      name: name, upstream: "geonavi", verified: true,
+      title: T("{series} · {sheet}", { series: series.name, sheet: item[1] }),
+      bbox: item[2], maxZoom: item[3],
+      tiles: data.tiles + item[0] + "/{z}/{x}/{y}.png",
+      legendImg: item[4] ? data.legend + item[4] : "",
+      attribution: data.attribution,
+    };
+    byName[name] = row;
+    regionOfLayer[name] = "japan";
+    return row;
+  }
+
+  function geonaviSaved(row) {
+    return { title: row.title, bbox: row.bbox, maxZoom: row.maxZoom, tiles: row.tiles,
+             legendImg: row.legendImg, attribution: row.attribution };
+  }
+
+  /** 저장해 둔 행으로 판을 되살린다. 주소는 GSJ 의 꼴일 때만 믿는다 */
+  function geonaviRestore(name, saved) {
+    if (!/^geonavi:[\w.-]+$/.test(name) || !saved || !GEONAVI_TILES.test(saved.tiles || "")) return;
+    if (saved.legendImg && !GEONAVI_LEGEND.test(saved.legendImg)) return;
+    byName[name] = {
+      name: name, upstream: "geonavi", verified: true, title: String(saved.title || name),
+      bbox: Array.isArray(saved.bbox) && saved.bbox.length === 4 ? saved.bbox.map(Number) : null,
+      maxZoom: Math.min(20, Math.max(0, +saved.maxZoom || 14)), tiles: saved.tiles,
+      legendImg: saved.legendImg || "", attribution: String(saved.attribution || ""),
+    };
+    regionOfLayer[name] = "japan";
+  }
+
+  /** 지질도Navi 판의 범례 — GSJ 가 판마다 떠 둔 범례 그림(원도의 범례를 스캔한 것) */
+  function geonaviLegend(entry) {
+    var row = byName[entry.name] || {};
+    if (!row.legendImg) return note(T("범례가 없는 레이어다"));
+    var a = document.createElement("a");
+    a.href = row.legendImg;
+    a.target = "_blank";
+    a.rel = "noopener noreferrer";
+    a.title = T("범례 그림을 새 창에서 크게 본다");
+    var img = document.createElement("img");
+    img.className = "legend-img";
+    img.alt = T("{title} 범례", { title: entry.title });
+    img.loading = "lazy";
+    img.src = row.legendImg;
+    img.addEventListener("error", function () { a.replaceWith(note(T("범례를 받지 못했다"))); });
+    a.appendChild(img);
+    return a;
+  }
+
+  function loadGeonavi() {
+    if (GEONAVI.data || GEONAVI.loading) return;
+    GEONAVI.loading = true;
+    fetch(BASE + "gsj/geonavi/")
+      .then(function (r) { if (!r.ok) throw new Error(r.status); return r.json(); })
+      .then(function (data) { GEONAVI.data = data; })
+      .catch(function () { GEONAVI.failed = true; })
+      .then(function () { GEONAVI.loading = false; renderGeonavi(); });
+  }
+
+  /** 레이어 목록 밑의 "지질도Navi 판" 칸. 펼 때 판 목록을 받는다 */
+  function geonaviFolder() {
+    var details = document.createElement("details");
+    details.className = "group more geonavi";
+    details.open = GEONAVI.open;
+    var summary = document.createElement("summary");
+    summary.innerHTML = '<span class="group-title">' + esc(T("지질도Navi 판")) + '</span> <span class="count" id="count-geonavi"></span>';
+    details.appendChild(summary);
+
+    var filter = document.createElement("div");
+    filter.className = "trek-filter geonavi-filter";
+    var q = document.createElement("input");
+    q.type = "search";
+    q.id = "geonavi-q";
+    q.value = GEONAVI.q;
+    q.placeholder = T("판 이름으로 거르기");
+    q.setAttribute("aria-label", T("판 이름으로 거르기"));
+    var here = document.createElement("label");
+    var box = document.createElement("input");
+    box.type = "checkbox";
+    box.id = "geonavi-here";
+    box.checked = GEONAVI.here;
+    here.append(box, " " + T("보는 자리를 덮는 것만"));
+    filter.append(q, here);
+    var list = document.createElement("div");
+    list.id = "geonavi-list";
+    details.append(filter, list);
+
+    q.addEventListener("input", function () { GEONAVI.q = q.value; renderGeonavi(); });
+    box.addEventListener("change", function () { GEONAVI.here = box.checked; renderGeonavi(); });
+    details.addEventListener("toggle", function () {
+      GEONAVI.open = details.open;
+      if (details.open) { loadGeonavi(); renderGeonavi(); }
+    });
+    if (GEONAVI.open) { loadGeonavi(); setTimeout(renderGeonavi, 0); }
+    return details;
+  }
+
+  function geonaviRowEl(series, item) {
+    var name = "geonavi:" + item[0];
+    var row = document.createElement("div");
+    row.className = "layer-row";
+    row.dataset.layer = name;
+    row.setAttribute("role", "switch");
+    row.setAttribute("aria-checked", isOn(name) ? "true" : "false");
+    row.classList.toggle("on", isOn(name));
+    row.tabIndex = 0;
+    row.title = item[0];
+    var label = document.createElement("span");
+    label.className = "layer-name";
+    label.textContent = item[1];
+    row.appendChild(label);
+    function flip() { geonaviRow(series, item); toggleLayer(name); }
+    row.addEventListener("click", flip);
+    row.addEventListener("keydown", function (e) {
+      if (e.key === "Enter" || e.key === " ") { e.preventDefault(); flip(); }
+    });
+    return row;
+  }
+
+  /** 판 목록을 그린다. 거르지 않으면 시리즈만 접어 두고 펼친 시리즈의 판만 짓는다 — 1 849 줄을 한꺼번에 짓지 않는다 */
+  function renderGeonavi() {
+    var list = document.getElementById("geonavi-list");
+    if (!list) return;
+    var count = document.getElementById("count-geonavi");
+    list.innerHTML = "";
+    if (!GEONAVI.data) {
+      list.appendChild(note(GEONAVI.failed ? T("판 목록을 받지 못했다") : T("받는 중…")));
+      return;
+    }
+    var q = GEONAVI.q.trim().toLowerCase();
+    var at = GEONAVI.here ? toLL(map.getView().getCenter()) : null;
+    var narrowing = !!(q || at);
+    var total = 0, shown = 0;
+    GEONAVI.data.series.forEach(function (series) {
+      var hit = series.layers.filter(function (item) {
+        if (q && (series.name + " " + item[1] + " " + item[0]).toLowerCase().indexOf(q) < 0) return false;
+        var b = item[2];
+        return !(at && b && !(at[0] >= b[0] && at[0] <= b[2] && at[1] >= b[1] && at[1] <= b[3]));
+      });
+      if (!hit.length) return;
+      total += hit.length;
+      var details = document.createElement("details");
+      details.className = "group";
+      details.open = narrowing || !!GEONAVI.openSeries[series.key];
+      var summary = document.createElement("summary");
+      summary.innerHTML = '<span class="group-title">' + esc(series.name) + '</span> <span class="count">' + hit.length + "</span>";
+      details.appendChild(summary);
+      function fillRows() {
+        if (details.dataset.filled) return;
+        details.dataset.filled = "1";
+        hit.forEach(function (item) {
+          if (narrowing && shown >= GEONAVI_LIMIT) return;
+          shown += 1;
+          details.appendChild(geonaviRowEl(series, item));
+        });
+      }
+      if (details.open) fillRows();
+      details.addEventListener("toggle", function () {
+        if (!narrowing) GEONAVI.openSeries[series.key] = details.open;
+        if (details.open) fillRows();
+      });
+      list.appendChild(details);
+    });
+    if (count) count.textContent = total;
+    if (!total) list.appendChild(note(T("맞는 판이 없다")));
+    else if (narrowing && shown < total) {
+      list.appendChild(note(T("{n} 판 가운데 앞의 {m} 판만 — 더 좁혀 거른다", { n: total, m: shown })));
+    }
   }
 
   function setCount(id, n) {
@@ -2357,6 +2572,8 @@
         li.appendChild(note(T("범례가 없는 레이어다")));
       } else if (entry.legendOpen && byName[entry.name] && byName[entry.name].classLegend) {
         li.appendChild(classLegend(byName[entry.name].classLegend));
+      } else if (entry.legendOpen && byName[entry.name] && byName[entry.name].upstream === "geonavi") {
+        li.appendChild(geonaviLegend(entry));
       } else if (entry.legendOpen && byName[entry.name] && byName[entry.name].legend) {
         entry.legendBox = gsjLegend(entry);
         li.appendChild(entry.legendBox);
@@ -5369,7 +5586,7 @@
       // 점이 적으면 올릴 때 이미 채웠다. 원본의 `주소` 열은 건드리지 않고 "(VWorld)" 칸으로 따로 싣는다
       var place = null;
       if (vworldKey && ps.korean) {
-        place = iconButton("📍", T("둘레 채우기 — VWorld 에서 점마다 주소·읍면동·가까운 단층·둘레 지명을 읽는다 ({n}/{m}점 채움)",
+        place = iconButton("📍", T("둘레 채우기 — VWorld 에서 점마다 주소·읍면동·가까운 단층·둘레 지명·보호구역·지목·소유구분을 읽는다 ({n}/{m}점 채움)",
                                    { n: ps.placed || 0, m: ps.korean }), false, function () {
           place.disabled = true;
           post(BASE + "pointsets/" + ps.id + "/places/").then(function (r) {
@@ -6573,51 +6790,120 @@
     });
   }
 
-  /** 정적 판의 키 칸 (wetherilli P11·162) — 한국 탭 위 알림 줄. 키가 있으면 "넣었다 · 지우기", 없으면 넣는 칸.
-   *  키는 이 브라우저에만 남는다(30 일, "이 PC 에 기억하지 않기" 면 탭 동안만). */
+  /** 정적 판의 키 (wetherilli P11·162·174) — **KIGAM·VWorld 둘 다 보는 사람이 각자 넣는다**(사용자 결정, 2026-10-02).
+   *  공개 판을 처음 열 때 둘을 받는 창을 띄우고, 한국 탭 위 알림 줄에 상태와 "키 바꾸기" 를 둔다. 키는 이 브라우저에만
+   *  남는다(30 일, "이 PC 에 기억하지 않기" 면 탭 동안만). VWorld 키는 배경·찾기가 시작할 때 읽으므로 넣으면 다시 연다 */
+  var STATIC_KEYS = [
+    { name: "kigam", label: "KIGAM 인증키", what: "한국 지질도",
+      get: "https://data.kigam.re.kr/", getLabel: "지오빅데이터 오픈플랫폼에서 받기" },
+    { name: "vworld", label: "VWorld 인증키", what: "배경지도·주소 찾기·지질 참고",
+      get: "https://www.vworld.kr/dev/v4dv_apikeyguide_s001.do", getLabel: "VWorld 에서 받기" },
+  ];
+
   function wireStaticKey() {
     var box = document.getElementById("static-key");
-    if (!STATIC || !box) return;
-    box.innerHTML = "";
-    var key = readKey("kigam");
-    if (key) {
+    if (!STATIC) return;
+    if (box) {
+      box.innerHTML = "";
+      var held = STATIC_KEYS.filter(function (k) { return readKey(k.name); });
       var text = document.createElement("span");
-      text.textContent = T("KIGAM 인증키를 넣었다 — 이 브라우저에만 있다");
-      var clear = document.createElement("button");
-      clear.type = "button";
-      clear.className = "btn quiet";
-      clear.textContent = T("키 지우기");
-      clear.addEventListener("click", function () { writeKey("kigam", "", false); refreshKigamKey(); wireStaticKey(); });
-      box.append(text, clear);
-      return;
+      text.textContent = held.length === STATIC_KEYS.length ? T("인증키 둘을 넣었다 — 이 브라우저에만 있다")
+        : held.length ? T("{name} 만 넣었다", { name: T(held[0].label) })
+        : T("인증키를 넣어야 한국 지질도와 배경지도가 보인다");
+      var open = document.createElement("button");
+      open.type = "button";
+      open.className = "btn quiet";
+      open.textContent = held.length ? T("키 바꾸기") : T("키 넣기");
+      open.addEventListener("click", openKeyDialog);
+      box.append(text, open);
     }
-    var lead = document.createElement("span");
-    lead.innerHTML = T("<b>한국 지질도는 각자의 KIGAM 인증키로 본다.</b> 지오빅데이터 오픈플랫폼에서 받은 키를 넣는다 — 이 브라우저에만 남고 KIGAM 에만 간다.");
-    var input = document.createElement("input");
-    input.type = "password";
-    input.autocomplete = "off";
-    input.placeholder = T("인증키");
+    // 처음 열 때(둘 가운데 하나라도 없으면) 묻는다. "나중에" 를 누르면 그 탭에서는 다시 묻지 않는다
+    var later = false;
+    try { later = sessionStorage.getItem("gsm.key.later") === "1"; } catch (e) { /* 사생활 모드 */ }
+    if (!later && STATIC_KEYS.some(function (k) { return !readKey(k.name); })) openKeyDialog();
+  }
+
+  function openKeyDialog() {
+    if (document.getElementById("key-dialog")) return;
+    var back = document.createElement("div");
+    back.id = "key-dialog";
+    back.className = "key-dialog";
+    var card = document.createElement("div");
+    card.className = "key-card";
+    card.setAttribute("role", "dialog");
+    card.setAttribute("aria-modal", "true");
+    var head = document.createElement("h2");
+    head.textContent = T("인증키 넣기");
+    var lead = document.createElement("p");
+    lead.innerHTML = T("이 판은 연구소 밖에서 서버 없이 돈다. <b>지질도와 배경지도는 각자 받은 인증키로 본다.</b> 키는 이 브라우저에만 남고 그 키를 준 곳(KIGAM·VWorld)에만 간다.");
+    card.append(head, lead);
+    var inputs = {};
+    STATIC_KEYS.forEach(function (k) {
+      var row = document.createElement("label");
+      row.className = "key-row";
+      var name = document.createElement("span");
+      name.className = "key-name";
+      name.textContent = T(k.label);
+      var hint = document.createElement("small");
+      hint.textContent = T(k.what);
+      var input = document.createElement("input");
+      input.type = "password";
+      input.autocomplete = "off";
+      input.placeholder = readKey(k.name) ? T("넣어 두었다 — 바꾸려면 새로 적는다") : T("인증키");
+      var get = document.createElement("a");
+      get.href = k.get;
+      get.target = "_blank";
+      get.rel = "noopener noreferrer";
+      get.textContent = T(k.getLabel);
+      row.append(name, hint, input, get);
+      card.appendChild(row);
+      inputs[k.name] = input;
+    });
+    var note = document.createElement("p");
+    note.className = "key-note";
+    note.textContent = T("VWorld 키를 받을 때 서비스 URL 에 이 판의 주소({url})를 적는다.", { url: location.origin });
     var forget = document.createElement("label");
+    forget.className = "key-forget";
     var check = document.createElement("input");
     check.type = "checkbox";
     forget.append(check, document.createTextNode(T("이 PC 에 기억하지 않기")));
+    var buttons = document.createElement("div");
+    buttons.className = "key-buttons";
+    var clear = document.createElement("button");
+    clear.type = "button";
+    clear.className = "btn quiet";
+    clear.textContent = T("키 지우기");
+    clear.addEventListener("click", function () {
+      STATIC_KEYS.forEach(function (k) { writeKey(k.name, "", false); });
+      location.reload();
+    });
+    var later = document.createElement("button");
+    later.type = "button";
+    later.className = "btn quiet";
+    later.textContent = T("나중에");
+    later.addEventListener("click", function () {
+      try { sessionStorage.setItem("gsm.key.later", "1"); } catch (e) { /* 사생활 모드 */ }
+      back.remove();
+    });
     var save = document.createElement("button");
     save.type = "button";
     save.className = "btn";
-    save.textContent = T("넣기");
+    save.textContent = T("저장");
     save.addEventListener("click", function () {
-      var value = input.value.trim();
-      if (!value) return;
-      writeKey("kigam", value, !check.checked);
-      refreshKigamKey();
-      wireStaticKey();
+      var changed = false;
+      STATIC_KEYS.forEach(function (k) {
+        var value = inputs[k.name].value.trim();
+        if (value) { writeKey(k.name, value, !check.checked); changed = true; }
+      });
+      if (changed) location.reload();          // 배경·찾기·타일이 처음부터 그 키로 서게
+      else back.remove();
     });
-    var get = document.createElement("a");
-    get.href = "https://data.kigam.re.kr/";
-    get.target = "_blank";
-    get.rel = "noopener noreferrer";
-    get.textContent = T("키 받기");
-    box.append(lead, input, forget, save, get);
+    buttons.append(clear, later, save);
+    card.append(note, forget, buttons);
+    back.appendChild(card);
+    document.body.appendChild(back);
+    var first = STATIC_KEYS.filter(function (k) { return !readKey(k.name); })[0] || STATIC_KEYS[0];
+    inputs[first.name].focus();
   }
 
   function cssEscape(text) {

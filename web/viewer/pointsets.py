@@ -422,7 +422,8 @@ ELEV_DATUMS = {"aws-terrarium-z12": "egm96", "gsi-dem-10m": "gsi-geoid",
 
 
 #: VWorld 둘레(074)의 이름 — `views.PLACE_PROPS` 와 같다. 이 파일은 뷰를 모르게 두려고 옮겨 적었다
-_PLACE_NAMES = {"도로명(VWorld)": "road", "지번(VWorld)": "parcel", "읍면동(VWorld)": "emd"}
+_PLACE_NAMES = {"도로명(VWorld)": "road", "지번(VWorld)": "parcel", "읍면동(VWorld)": "emd",
+                "보호구역(VWorld)": "protected", "지목(VWorld)": "jimok", "소유구분(VWorld)": "owner"}
 
 
 def _place_from(props: dict) -> dict:

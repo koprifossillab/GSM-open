@@ -110,14 +110,6 @@
 - [ ] 다이아몬드 탐사 자료(DED)의 나머지 — 단사휘석·티탄철석·첨정석·사방휘석 분류(`DED_GL_thm_BA_ind_chem*`), 거둔 다이아몬드
       (`_macro`·`_micro`), 연대(`OCCURRENCES_AGES`), 산출지의 선·면. 석류석·농도·시추공·탐사 구역은 섰다(wetherilli 157)
 
-### GSJ 새 호스트 — 이틀
-
-GSJ 는 2024-05-10 에 WMS·WMTS 를 `ows.gsj.jp` 로 옮겼다(심리스 V2 만 `gbank`). 둘 다 CLAUDE.md 의 GSJ 줄과 CORS 확인을 탄다.
-
-- [ ] 지질도Navi WMTS 1 849 판 [실측] `gbank.gsj.jp/geonavi/maptile/wmts/1.0.0/WMTSCapabilities.xml` — 달 Trek 판(060)을 옮긴다.
-      `fetch_trek_catalog`·`client_catalog` 는 거의 그대로, 품은 map.js 에 DB 밖 목록 틀(moon.js `renderTrek` ~120 행)을 새로
-      옮기는 데 있다. 이틀. CORS 가 없으면 서버 중계 +반나절, 제목이 일본어뿐이면 제목 방침
-
 ### 달 — Trek ImageServer
 
 - [ ] 누른 자리의 값 — 남은 것. 켠 판만(wetherilli 103), 다누리 KGRS 다섯(상대값·단위 미확인)·북극 FeO·얼음 깊이 둘은 섰다(150).
@@ -135,8 +127,6 @@ GSJ 는 2024-05-10 에 WMS·WMTS 를 `ows.gsj.jp` 로 옮겼다(심리스 V2 만
 
 ### 한국 — 시료 지점 칸·KIGAM 자료
 
-- [ ] 시료 지점 속성에 "보호구역 안"·"지목·소유구분" [실측: `LT_C_UO301`] — `point_facts`(074)에 일 둘. `uname` 이 온천의 뜻과
-      부딪혀 `LAYER_FRIENDLY` 로 가른다. 소유자 이름은 싣지 않는다. 자동으로 묻는 20 점마다 호출이 는다. 반나절
 - [ ] **KIGAM `/openapi/data` 모으기 — 이틀 반** [실측] — 목록 3 450 건. `page` 는 0 부터, `collection=` 거르기가 안 먹고 목록엔 좌표가
       없어 한 건씩 상세 → `fetch_kopri` 꼴(2 초, 두 시간, 다음부터 `lastModified`). `kigam.py` 에 더하고 씨앗은 따로
       (`kigam_data_layers.json`). CC BY-NC, DOI 로 출처, 밖에 열 때 `LAB_ONLY` 를 정한다. `POINT` 의 축 차례를 먼저 본다

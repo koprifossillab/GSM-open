@@ -214,6 +214,9 @@
 | wetherilli 161 | 2026-10-02 | [정적 판의 극지 — 상류를 브라우저가 곧장 부르는 `static-kinds.js`](20261002_wetherilli_161_static_polar.md) |
 | wetherilli 170 | 2026-10-02 | [시료 고도를 국가기준점과 견준다 — 24 점 모두 ±15 m 안](20261002_wetherilli_170_elevation_check.md) |
 | wetherilli 172 | 2026-10-02 | [일본 — 국토지리원 활단층도·화산토지조건도를 겹치는 레이어로](20261002_wetherilli_172_japan_afm.md) |
+| wetherilli 171 | 2026-10-02 | [지질도Navi 판 1 849 — 일본 탭의 판 목록](20261002_wetherilli_171_gsj_geonavi.md) |
+| wetherilli 173 | 2026-10-02 | [시료 지점의 둘레에 보호구역·지목·소유구분](20261002_wetherilli_173_point_facts_land.md) |
+| wetherilli 174 | 2026-10-02 | [정적 판 — KIGAM·VWorld 키를 둘 다 각자, 처음 열 때 묻는다](20261002_wetherilli_174_static_two_keys.md) |
 | koprifossillab P01 | 2026-09-30 | [백업 — WegenersDream 의 틀로, 바뀌는 빠르기에 따라 넷으로 (계획)](20260930_koprifossillab_P01_backup_plan.md) |
 | koprifossillab 001 | 2026-09-30 | [매주 월요일 새벽: 운영 자료 백업과 KPDC 목록 갱신](20260930_koprifossillab_001_weekly_backup.md) |
 | koprifossillab 002 | 2026-09-30 | [`/healthz/` — 판·DB·백업 상태를 한 장으로](20260930_koprifossillab_002_healthz.md) |

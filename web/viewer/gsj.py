@@ -328,3 +328,130 @@ def ccop_friendly(props: dict, lang: str = "ko") -> dict:
 
 #: `views._Door` 가 쓰는 꼴 — 다른 문(모듈)과 같은 이름의 셋
 CCOP = _NS(get_map=ccop_get_map, get_feature_info=ccop_get_feature_info, get_legend=ccop_get_legend)
+
+
+# ── 지질도Navi 판 (wetherilli 171) ─────────────────────────────────
+#
+# 지질도Navi(`gbank.gsj.jp/geonavi`)가 싣는 판 1 849 장 — 5만 지질도폭 763, 해저지질도, 중력·자기도, 화산지질도 …
+# **WMTS Capabilities 한 장에 다 있다** — 판마다 이름·제목·범위·범례 그림·줌 끝·타일 주소. 그래서 달 Trek 판(060)처럼
+# 받은 것을 씨앗(`data/gsj_geonavi_layers.json`)으로 두되, 판마다 다시 묻지 않는다. 타일(`tiles.gsj.jp`)은 CORS 를 열어
+# 두어 **브라우저가 곧장 부른다** — 우리 캐시에 담지 않는다. 사람이 손질하는 것은 숨김(`hide`)뿐이고, 한글은 시리즈 이름만
+# 옮긴다 — 도폭 이름은 일본 지명이라 속성 값처럼 옮기지 않는다(사람이 정했다, 171).
+
+GEONAVI_CAPABILITIES = "https://gbank.gsj.jp/geonavi/maptile/wmts/1.0.0/WMTSCapabilities.xml"
+GEONAVI_TILES = "https://tiles.gsj.jp/tiles/geomap/"
+GEONAVI_LEGEND = "https://gbank.gsj.jp/geonavi/docdata/data/pict_data/"
+GEONAVI_ATTRIBUTION = ('地質図Navi © <a href="https://gbank.gsj.jp/geonavi/" target="_blank" '
+                       'rel="noopener">Geological Survey of Japan, AIST</a>')
+
+#: 시리즈(제목의 `_` 앞) → 한글·영어. 차례는 축척이 큰 지질도폭부터, 바다, 주제도, 옛 판
+GEONAVI_SERIES = [
+    ("5万分の1地質図幅", "5만 지질도폭", "1:50,000 geological sheets"),
+    ("7万5千分の1地質図幅", "7만5천 지질도폭", "1:75,000 geological sheets"),
+    ("20万分の1地質図幅", "20만 지질도폭", "1:200,000 geological sheets"),
+    ("50万分の1地質図幅", "50만 지질도폭", "1:500,000 geological sheets"),
+    ("200万分の1地質編集図", "200만 지질편집도", "1:2,000,000 compiled geological maps"),
+    ("海陸シームレス地質情報集", "해륙 심리스 지질정보집", "Seamless land–sea geological information"),
+    ("海洋・海底地質図20万", "20만 해저지질도", "1:200,000 marine geological maps"),
+    ("海洋・表層堆積図20万", "20만 표층퇴적도", "1:200,000 sea-floor sediment maps"),
+    ("海洋・広域図", "해양 광역도", "Regional marine maps"),
+    ("火山地質図", "화산지질도", "Volcanic geological maps"),
+    ("大規模火砕流分布図", "대규모 화쇄류 분포도", "Large pyroclastic flow maps"),
+    ("50万分の1活構造図", "50만 활구조도", "1:500,000 active tectonic maps"),
+    ("構造図", "구조도", "Tectonic maps"),
+    ("重力図", "중력도", "Gravity maps"),
+    ("空中磁気図", "공중자기도", "Aeromagnetic maps"),
+    ("水理地質図", "수리지질도", "Hydrogeological maps"),
+    ("鉱物資源図", "광물자원도", "Mineral resource maps"),
+    ("地熱資源図", "지열자원도", "Geothermal resource maps"),
+    ("日本炭田図", "일본 탄전도", "Coalfield maps of Japan"),
+    ("日本油田・ガス田図", "일본 유전·가스전도", "Oil and gas field maps of Japan"),
+    ("特殊地質図", "특수지질도", "Special geological maps"),
+    ("アジア地域の地球科学図", "아시아 지구과학도", "Geoscience maps of Asia"),
+    ("10万分の1土性図", "10만 토성도", "1:100,000 soil maps"),
+]
+_SERIES = {ja: (i, ko, en) for i, (ja, ko, en) in enumerate(GEONAVI_SERIES)}
+
+
+def fetch_geonavi_capabilities() -> str:
+    """Capabilities XML 한 장(2 MB 남짓). 사람이 `fetch_geonavi` 로 부를 때만 간다."""
+    left = usage.paused()
+    if left:
+        raise GsjError(f"차단 조짐이 있어 {int(left)}초 동안 상류에 묻지 않는다")
+    try:
+        r = requests.get(GEONAVI_CAPABILITIES, timeout=max(settings.UPSTREAM_TIMEOUT, 60),
+                         verify=settings.CA_BUNDLE or True, headers={"User-Agent": "GSM/0.1"})
+    except requests.RequestException as exc:
+        usage.record("gsj", ok=False)
+        raise GsjError(f"지질도Navi 에 닿지 못했다: {exc}") from exc
+    usage.record("gsj", ok=r.status_code == 200)
+    if r.status_code != 200 or b"<Capabilities" not in r.content[:2000]:
+        raise GsjError(f"Capabilities 가 아닌 것이 왔다 (status={r.status_code})")
+    return r.content.decode("utf-8")
+
+
+_MATRIX = _re.compile(r"_z(\d+)$")
+
+
+def parse_geonavi(xml: str) -> list:
+    """Capabilities → [{id, title, bbox, max, legend}]. 타일이 `tiles.gsj.jp` 의 z/x/y 가 아닌 판은 뺀다 —
+    화면은 그 주소 꼴 하나만 안다."""
+    import xml.etree.ElementTree as ET
+    ns = {"w": "http://www.opengis.net/wmts/1.0", "ows": "http://www.opengis.net/ows/1.1",
+          "xlink": "http://www.w3.org/1999/xlink"}
+    out = []
+    for layer in ET.fromstring(xml).iterfind("w:Contents/w:Layer", ns):
+        ident = layer.findtext("ows:Identifier", "", ns)
+        title = layer.findtext("ows:Title", "", ns)
+        template = ""
+        for res in layer.iterfind("w:ResourceURL", ns):
+            if res.get("format") == "image/png":
+                template = res.get("template", "")
+        if template != f"{GEONAVI_TILES}{ident}/{{TileMatrix}}/{{TileCol}}/{{TileRow}}.png":
+            continue
+        matrix = _MATRIX.search(layer.findtext("w:TileMatrixSetLink/w:TileMatrixSet", "", ns) or "")
+        low = (layer.findtext("ows:WGS84BoundingBox/ows:LowerCorner", "", ns) or "").split()
+        high = (layer.findtext("ows:WGS84BoundingBox/ows:UpperCorner", "", ns) or "").split()
+        if not matrix or len(low) != 2 or len(high) != 2:
+            continue
+        legend = ""
+        node = layer.find("w:Style/w:LegendURL", ns)
+        if node is not None:
+            href = node.get("{http://www.w3.org/1999/xlink}href", "")
+            legend = href[len(GEONAVI_LEGEND):] if href.startswith(GEONAVI_LEGEND) else ""
+        out.append({"id": ident, "title": title, "max": int(matrix.group(1)), "legend": legend,
+                    "bbox": [round(float(v), 4) for v in (*low, *high)]})
+    return out
+
+
+def load_geonavi() -> list:
+    """씨앗의 판들. 파일이 없으면 빈 목록 — 일본 탭은 판 목록 없이 돈다."""
+    import json
+    path = settings.REPO_DIR / "data" / "gsj_geonavi_layers.json"
+    try:
+        return json.loads(path.read_text(encoding="utf-8"))["layers"]
+    except (OSError, ValueError, KeyError):
+        return []
+
+
+def split_title(title: str) -> tuple:
+    """`5万分の1地質図幅_小倉(1998)` → (시리즈, 도폭). `_` 가 없으면 시리즈가 없다."""
+    series, _, sheet = title.partition("_")
+    return (series, sheet) if sheet else ("", title)
+
+
+def client_geonavi(lang: str = "ko") -> dict:
+    """화면에 내리는 목록 — 숨기지 않은 판을 시리즈로 묶어서. 판 하나는 [이름, 도폭, bbox, 줌 끝, 범례]."""
+    groups = {}
+    for e in load_geonavi():
+        if e.get("hide"):
+            continue
+        series, sheet = split_title(e["title"])
+        order, ko, en = _SERIES.get(series, (len(_SERIES), series or "その他", series or "Other"))
+        g = groups.setdefault(series, {"key": series, "order": order, "name": en if lang == "en" else ko,
+                                       "layers": []})
+        g["layers"].append([e["id"], sheet, e["bbox"], e["max"], e.get("legend") or ""])
+    out = sorted(groups.values(), key=lambda g: (g["order"], g["key"]))
+    for g in out:
+        del g["order"]
+    return {"tiles": GEONAVI_TILES, "legend": GEONAVI_LEGEND, "attribution": GEONAVI_ATTRIBUTION, "series": out}
