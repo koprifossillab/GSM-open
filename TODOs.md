@@ -27,6 +27,8 @@
 
 - [ ] **(사람)** 캐나다 탭(NRCan 1:500만·온타리오 OGS, wetherilli 204)을 정적 판에 실을지 — OGL 이고 CORS 가 되비친다(#153)
 - [ ] 브리티시컬럼비아(BCGS)는 줌 11 부터 그린다(wetherilli 231). 넓게도 칠하려면 색 스타일(640 KB)을 줄여 SLD 로 보내거나, openmaps 에 작은 축척 판이 있는지 찾는다(훑지 않았다). 다른 주(앨버타·서스캐처원·매니토바·노바스코샤…)는 아직
+- [ ] 캐나다 지구물리(자력·중력 격자) — NRCan 지도 서버에 없다. GSC 의 CAGDB WMS(`wms.agg.nrcan.gc.ca/wms2/wms2.aspx`)는 2026-10-05 에
+      60 초 안에 답하지 않았다 — 살아나면 캐나다 탭에(wetherilli 250). 편찬 지질도 CGMC 는 래스터라 누르면 칸 번호뿐이다 — 번호 → 단위 표를 찾으면 누르게
 - [ ] 캐나다 주 판 — **(사람)** 뉴브런즈윅(`gis-erd-der.gnb.ca/…/OpenData/NBGS_Bedrock_Geology`
       WMS·WFS 가 열려 있다)·뉴펀들랜드래브라도(`dnrmaps.gov.nl.ca/…/GeoAtlas/Bedrock_Geology_All` WMS)는 조건을 읽지 못했다 — 뉴브런즈윅 조건
       쪽은 우리에게 403, WMS 의 조건 칸은 둘 다 비었다. 매니토바(`maps.gov.mb.ca`)는 2026-10-04 에 502. 노스웨스트준주는 ArcGIS Online 의
@@ -38,6 +40,17 @@
       21.6 초다. 캐시가 없고 값도 색 칸(0–16)뿐이라 nT 를 모른다. 쓰려면 큰 장을 받아 잘라 담는 길(메타타일)과 미리 데우기를 새로 지어야 해
       두었다. 고생물·광산 점은 그림 기호라 범례가 없다
 - 막힌 것: USGS 북미 지질도 GMNA(403), ScienceBase(503), NGMDB(지도 API 없음)
+
+### 중앙아메리카·카리브 (2026-10-05 실측, [docs/다른_대륙_지질도.md](docs/다른_대륙_지질도.md) 끝 절)
+
+- [ ] 니카라과 INETER·도미니카공화국 SGN 1:25만은 섰다(wetherilli 242, 묶음 "중앙아메리카·카리브" — 푸에르토리코는 미국 탭의 것을 빌린다). **(사람)** INETER·SGN 의
+      조건 문구가 없다(AccessConstraints NONE·빈 칸) — 밖에 열기 전에 읽는다
+- [ ] USGS 카리브 지질도(Caribbean_Geology, 1:250만)는 카리브 탭에 섰다(wetherilli 248 — 면 한 덩이). SIM 3534(Wilson & Labay 2025, 대앤틸리스 1:30만 급)는
+      웹서비스가 없고 ScienceBase 가 403 이다. 옛 판 OFR 2019-1036 의 셰이프 zip(`pubs.usgs.gov/of/2019/1036/ofr20191036_spatialdata.zip`)은
+      196 MB 다 — 쓰려면 받아 굽는 꼴(moonmap·geomap 틀: 파일 → sqlite → 타일)이 맞다. 이틀 남짓이라 두었다
+- [ ] 프랑스령 앤틸리스 BRGM 1:5만 스캔(`GEOL_MART`·`GEOL_GUAD_*`) — `brgm.py` 에 이름만, 줌 12 부터. 탭을 어디에 둘지(묶음에 지역 하나 더)
+- [ ] **(사람)** 자메이카 MGD 웹맵의 지질 면(조건 없음)·트리니다드 Latinum(교육용 한정) — 조건을 묻는다
+- 막힌 것: 과테말라·온두라스·벨리즈·쿠바(서비스 없음·DNS·시간 초과), 엘살바도르 SNET(522 — 다시 볼 것), 코스타리카(UCR 여백 붙은 스캔·DGM 빈 응답)
 
 ### 아프리카
 

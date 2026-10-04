@@ -111,3 +111,30 @@ class Catalog(TestCase):
     def test_3D_는_3857_로(self):
         self.assertIn("nrcan", views.MAP3D_WMS)
         self.assertIn("ogs", views.MAP3D_WMS)
+
+
+class NrcanServices(SimpleTestCase):
+    """같은 서버의 다른 서비스 — 편찬 지질도·핵심 광물·유망도 (wetherilli 250)"""
+
+    def test_서비스마다_주소(self):
+        with mock.patch("viewer.nrcan.requests.get", return_value=response(ctype="image/png", content=b"png")) as get:
+            nrcan.get_map({"layers": "nrcan:critical", "crs": "EPSG:3978", "bbox": "0,0,1,1", "width": "512", "height": "512"})
+        self.assertTrue(get.call_args.args[0].endswith("/NRCan/critical_minerals_en/MapServer/WMSServer"))
+        self.assertEqual(get.call_args[1]["params"]["layers"], "0,1,2,3")
+        with mock.patch("viewer.nrcan.requests.get", return_value=response(ctype="image/png", content=b"png")) as get:
+            nrcan.get_map({"layers": "nrcan:wheeler", "crs": "EPSG:3978", "bbox": "0,0,1,1", "width": "512", "height": "512"})
+        self.assertIn("geological_map_canada_wheeler_en", get.call_args.args[0])
+
+    def test_래스터는_누르지_않는다(self):
+        with mock.patch("viewer.nrcan.requests.get") as get:
+            self.assertEqual(nrcan.get_feature_info(dict(WMS, layers="nrcan:cgmc", query_layers="nrcan:cgmc")), {"features": []})
+        get.assert_not_called()
+
+    def test_핵심_광물(self):
+        props = {"Operation Group": "Mines and other primary producing sites", "Property Name": "Beaver Brook",
+                 "Operator Owners": "Hunan Nonferrous Metals Corporation Limited", "Province/Territory": "Newfoundland and Labrador",
+                 "Commodities": "Antimony", "Development Stage": "Past producer", "Activity Status": "On hold / suspended",
+                 "Website": "Not available/Pas disponible"}
+        out = nrcan.friendly(props)
+        self.assertEqual((out["이름"], out["광종"], out["개발 단계"]), ("Beaver Brook", "Antimony", "Past producer"))
+        self.assertNotIn("누리집", out)

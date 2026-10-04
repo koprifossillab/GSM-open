@@ -137,6 +137,14 @@ class Catalog(TestCase):
         js3d = (Path(views.__file__).parent / "static/viewer/map3d.js").read_text(encoding="utf-8")
         self.assertIn('southeast_asia: ["thailand", "malaysia", "indonesia", "philippines"]', js3d)
 
+    def test_미리_데우기는_화면이_멈추는_줌까지(self):
+        """화면은 인도네시아를 화면 줌 10(격자 줌 9)까지만 받고 늘려 그린다 — 미리 데우기도 거기서 멈춘다 (wetherilli 252)"""
+        from viewer.management.commands import prewarm
+        plan = prewarm.plan_for("esdm:geology", "esdm")
+        java = (106.8, -6.3, 106.9, -6.2)
+        self.assertTrue(list(plan.tiles_for(java, 9)))
+        self.assertEqual(list(plan.tiles_for(java, 10)), [])
+
     def test_미리_데우기와_3D(self):
         from viewer.management.commands import prewarm
         for name, up in (("esdm:geology", "esdm"), ("jmg:lithology", "jmg"), ("mgb:geology", "mgb"), ("dmr:rock_units", "dmr")):

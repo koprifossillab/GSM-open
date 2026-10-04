@@ -1,0 +1,25 @@
+{
+ "_주석": "USGS 카리브 지질도(World Energy Project, French & Schenk 2004, OFR 97-470-K) 씨앗이다 — 카리브 탭(중앙아메리카·카리브 묶음에도 든다). ArcGIS Online 피처 서비스를 문(web/viewer/usgscarib.py)이 한 덩이로 받아 화면이 그린다. 한글 제목과 레이어군은 사람이 붙였다 (wetherilli 248).",
+ "_뽑은날": "2026-10-05",
+ "_출처": "https://services.arcgis.com/v01gqwM5QqNysAAi/arcgis/rest/services/Caribbean_Geology/FeatureServer/2",
+ "_지역": "caribbean",
+ "_상류": "usgscarib",
+ "_레이어군차례": 1,
+ "레이어군순서": [
+  "카리브 지질도 (USGS 1:250만)"
+ ],
+ "레이어": [
+  {
+   "name": "usgscarib:geology",
+   "title": "지질도 (1:250만)",
+   "group": "카리브 지질도 (USGS 1:250만)",
+   "abstract": "Geologic map of the Caribbean region (French & Schenk 2004) — 면 6 343, 시대·암상 기호(AGE)와 영어 설명",
+   "bbox": [
+    -93.0,
+    7.0,
+    -58.0,
+    28.0
+   ]
+  }
+ ]
+}

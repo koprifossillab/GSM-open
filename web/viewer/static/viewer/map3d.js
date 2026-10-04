@@ -60,7 +60,8 @@
   // 지질도가 뜨지 않게. 묶음 탭은 품은 지역들이다(2D 의 `REGIONS.*.includes` 와 같다)
   var BUNDLES = { arctic: ["greenland", "svalbard", "jan_mayen", "arctic_ocean", "fennoscandia", "iceland"], eastasia: ["korea", "japan", "china", "taiwan", "mongolia"],
                   europe: ["uk", "ireland", "france", "germany", "spain", "portugal", "italy", "switzerland", "austria", "poland", "netherlands", "belgium"], south_america: ["colombia", "ecuador", "peru", "brazil", "uruguay", "argentina"], north_america: ["canada", "usa", "mexico"],
-                  oceania: ["australia", "new_zealand"], southeast_asia: ["thailand", "malaysia", "indonesia", "philippines"] };
+                  oceania: ["australia", "new_zealand"], southeast_asia: ["thailand", "malaysia", "indonesia", "philippines"],
+                  central_america: ["nicaragua", "panama", "dominican_republic", "caribbean"] };
   var ALLOWED = BUNDLES[REGION] || [REGION];
   [].slice.call(select.querySelectorAll("optgroup")).forEach(function (g) {
     if (ALLOWED.indexOf(g.getAttribute("data-region")) < 0) g.remove();

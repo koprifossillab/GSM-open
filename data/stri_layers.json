@@ -1,0 +1,37 @@
+{
+ "_주석": "파나마 지질도(MICI 1990 1:25만, STRI GIS 실이 디지털로 옮김) 씨앗이다 — 파나마 탭(중미·카리브 묶음에도 든다). ArcGIS Online 피처 서비스를 문(web/viewer/stri.py)이 한 덩이로 받아 화면이 그린다. 한글 제목과 레이어군은 사람이 붙였다 (wetherilli 253).",
+ "_뽑은날": "2026-10-05",
+ "_출처": "https://services2.arcgis.com/HRY6x8qt5qjGnAA9/arcgis/rest/services/Geologia_Panama/FeatureServer",
+ "_지역": "panama",
+ "_상류": "stri",
+ "_레이어군차례": 1,
+ "레이어군순서": [
+  "파나마 지질도 (STRI·MICI 1:25만)"
+ ],
+ "레이어": [
+  {
+   "name": "stri:geology",
+   "title": "지질도 (1:25만)",
+   "group": "파나마 지질도 (STRI·MICI 1:25만)",
+   "abstract": "Símbolo — 면 1 608, 기호(SIMBOLO)·층군·층·암석 갈래·설명",
+   "bbox": [
+    -83.1,
+    7.1,
+    -77.1,
+    9.7
+   ]
+  },
+  {
+   "name": "stri:faults",
+   "title": "단층 (1:25만)",
+   "group": "파나마 지질도 (STRI·MICI 1:25만)",
+   "abstract": "Fallas Normales·Interpretadas·Corrimiento",
+   "bbox": [
+    -83.1,
+    7.1,
+    -77.1,
+    9.7
+   ]
+  }
+ ]
+}

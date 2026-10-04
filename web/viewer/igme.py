@@ -8,6 +8,10 @@
 - ArcGIS 의 레이어 이름이 번호(`0`)라 카탈로그에는 `igme:<판>:<번호>` 로 둔다
 - 속성 — MAGNA 는 `application/geo+json`, 1:100만은 GeoJSON 을 주지 않고 `text/plain` 은 값에 쌍반점이 섞여 깨진다. 그래서
   ArcGIS 의 `featureinfo_xml`(Field·FieldName·FieldValue)로 읽는다. 열 이름의 띄어쓰기가 빠져 온다(`Litologíagenérica`)
+- **도미니카공화국 1:25만**(판 `sgnrd`, wetherilli 242) — 도미니카 지질조사소(SGN)·BGR 의 SYSMIN 지질도를 IGME 가 같은 서버의 다른 폴더
+  (`PSysmin/IGME_SGN_EN_Geology`)에 연다. 영어판이다. **WMS 번호와 REST 번호가 거꾸로**다 — WMS `0` 지질 단위·`1` 구조(단층·경계).
+  Capabilities 는 3857 을 적지 않지만 그린다(코르디예라 센트랄 512² 2.0 초). 속성은 geojson 이 `InvalidFormat` 이라 1:100만처럼
+  `featureinfo_xml` 로 — `Descriptio`·`System`·`Series`(ICS 영어). 범례 그림은 2 383×4 877 이라 두지 않는다. 조건 문구는 없다(사람이 읽는다)
 """
 import logging
 import xml.etree.ElementTree as ET
@@ -15,16 +19,21 @@ import xml.etree.ElementTree as ET
 import requests
 from django.conf import settings
 
-from . import usage
+from . import i18n, usage
 
 log = logging.getLogger(__name__)
 
 PREFIX = "igme:"
 ATTRIBUTION = '<a href="https://info.igme.es/" target="_blank" rel="noopener">© IGME</a> (CN IGME-CSIC)'
-SHEETS = {"geologico1m": "IGME_Geologico_1M", "magna50": "IGME_MAGNA_50"}
+#: 판 → 서비스. `/` 가 든 것은 `Cartografia_Geologica` 밖의 폴더다(서비스 뿌리에서 센다)
+SHEETS = {"geologico1m": "IGME_Geologico_1M", "magna50": "IGME_MAGNA_50", "sgnrd": "PSysmin/IGME_SGN_EN_Geology"}
 #: 판마다 받는 투영과 그리는 화면 줌
-PROJECTION = {"geologico1m": "EPSG:4326", "magna50": "EPSG:3857"}
-ZOOMS = {"geologico1m": (None, None), "magna50": (11, None)}
+PROJECTION = {"geologico1m": "EPSG:4326", "magna50": "EPSG:3857", "sgnrd": "EPSG:3857"}
+ZOOMS = {"geologico1m": (None, None), "magna50": (11, None), "sgnrd": (None, None)}
+#: 범례 그림을 두지 않는 판 — 너무 크다
+NO_LEGEND = ("sgnrd",)
+ATTRIBUTIONS = {"sgnrd": '<a href="https://info.igme.es/" target="_blank" rel="noopener">SGN República Dominicana · BGR · IGME</a> '
+                         "(SYSMIN 1:250 000)"}
 _ESRI = "{http://www.esri.com/wms}"
 
 
@@ -53,7 +62,10 @@ def _get(sheet: str, params: dict):
     left = usage.paused()
     if left:
         raise IgmeError(f"차단 조짐이 있어 {int(left)}초 동안 상류에 묻지 않는다")
-    url = f"{settings.IGME_WMS_URL.rstrip('/')}/{SHEETS[sheet]}/MapServer/WMSServer"
+    base = settings.IGME_WMS_URL.rstrip("/")
+    if "/" in SHEETS[sheet]:
+        base = base.rsplit("/", 1)[0]          # 서비스 뿌리(`…/gis/services`)
+    url = f"{base}/{SHEETS[sheet]}/MapServer/WMSServer"
     try:
         r = requests.get(url, params=params, timeout=settings.UPSTREAM_TIMEOUT, verify=settings.CA_BUNDLE or True,
                          headers={"User-Agent": "GSM/0.1"})
@@ -133,6 +145,7 @@ def parse_esri_xml(text: str) -> list:
 
 #: 상류의 열 → 팝업에 보일 이름. 값은 스페인어 그대로 둔다
 FRIENDLY = (
+    ("Descriptio", "암상"),                 # 도미니카공화국(영어판, wetherilli 242)
     ("descripción litológica", "암상"),
     ("Litologíaespecífica", "암상"),
     ("Litologíagenérica", "암석 갈래"),
@@ -145,10 +158,16 @@ FRIENDLY = (
 )
 
 
-def friendly(props: dict) -> dict:
+def friendly(props: dict, lang: str = "ko") -> dict:
     out = {}
     for key, label in FRIENDLY:
         value = str(props.get(key) or "").strip()
         if value and label not in out:
             out[label] = value
+    if "ID_UC250k" in props:
+        # 도미니카공화국 — 시대가 ICS 영어다(`Lower Cretaceous-Upper Cretaceous`). 통이 있으면 통을, 없으면 계를 옮긴다
+        age = i18n.age_tidy(str(props.get("Series") or "").strip() or str(props.get("System") or "").strip())
+        if age:
+            out["지질시대"] = i18n.age_ko(age) if lang == "ko" else age
+        out.pop("세", None)
     return out

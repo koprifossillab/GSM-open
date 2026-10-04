@@ -76,7 +76,14 @@ REGIONS = (("korea", "한국"), ("greenland", "그린란드"), ("antarctica", "�
            ("austria", "오스트리아"),
            ("poland", "폴란드"),
            ("netherlands", "네덜란드"),
-           ("belgium", "벨기에"))
+           ("belgium", "벨기에"),
+           # 중앙아메리카·카리브 — 니카라과·도미니카공화국 (wetherilli 242). 푸에르토리코는 미국 탭(wetherilli 238)의 것을 묶음이 빌린다. 묶음 "중앙아메리카·카리브" 는 DB 에 없다
+           ("nicaragua", "니카라과"),
+           ("dominican_republic", "도미니카공화국"),
+           # 카리브 — USGS 카리브 지질도로 쿠바·아이티·자메이카·소앤틸리스와 중미를 거칠게 덮는다 (wetherilli 248)
+           ("caribbean", "카리브"),
+           # 파나마 — STRI 가 디지털로 옮긴 MICI 1990 1:25만 (wetherilli 253)
+           ("panama", "파나마"))
 
 
 class LayerGroup(models.Model):
@@ -148,6 +155,9 @@ class Layer(models.Model):
     #: sgs → `sgs.py` (사우디 1:25만 합본, wetherilli 227)
     #: esdm·jmg·mgb·dmr → `esdm.py`·`jmg.py`·`mgb.py`·`dmr.py` (인도네시아·말레이시아·필리핀·태국, wetherilli 228)
     #: geosphere·pig·tno·dov·spw → 오스트리아·폴란드·네덜란드·플랑드르·왈로니아 지질도 (wetherilli 237)
+    #: ineter → `ineter.py` (니카라과 지질도·단층, wetherilli 242)
+    #: stri → `stri.py` (파나마 지질도 1:25만 — 면·단층을 한 덩이로, wetherilli 253)
+    #: usgscarib → `usgscarib.py` (USGS 카리브 지질도 — 면을 한 덩이로, wetherilli 248)
     #: bcgs → `bcgs.py` (브리티시컬럼비아, 캐나다 탭), calgs → `calgs.py` (캘리포니아, 미국 탭 — `cgs` 는 남아공이 쓴다, wetherilli 231)
     upstream = models.CharField("상류", max_length=20, default="kigam")
     #: 어떻게 그리나. wms → 상류가 그린 타일을 얹는다. vector → 모양을 받아

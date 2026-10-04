@@ -101,6 +101,12 @@ EN = {
     "사우디아라비아": "Saudi Arabia", "사우디 지질조사소": "Saudi Geological Survey",
     # 동남아 (wetherilli 228)
     "인도네시아": "Indonesia", "말레이시아": "Malaysia", "필리핀": "Philippines", "태국": "Thailand", "동남아": "Southeast Asia",
+    # 중앙아메리카·카리브 (wetherilli 242)
+    "니카라과": "Nicaragua", "도미니카공화국": "Dominican Republic", "카리브": "Caribbean", "파나마": "Panama",
+    "스미스소니언 열대연구소 (STRI)": "Smithsonian Tropical Research Institute (STRI)",
+    "파나마 지질도(STRI)를 받지 못했다": "Could not fetch the geologic map of Panama (STRI)",
+    "USGS 카리브 지질도를 받지 못했다": "Could not fetch the USGS Caribbean geologic map",
+    "중미·카리브": "Central America & Caribbean", "니카라과 국토연구원 (INETER)": "Nicaraguan Institute of Territorial Studies (INETER)",
     # 오스트리아·폴란드·네덜란드·벨기에 (wetherilli 237)
     "오스트리아": "Austria", "폴란드": "Poland", "네덜란드": "Netherlands", "벨기에": "Belgium",
     "폴란드 지질연구소 (PIG-PIB)": "Polish Geological Institute (PIG-PIB)", "네덜란드 지질조사부 (TNO)": "Geological Survey of the Netherlands (TNO)",
@@ -2313,6 +2319,8 @@ PROP_EN = {
     "성인": "Genesis",
     # 미국 광물·연대 (wetherilli 247)
     "개발 단계": "Development status", "지형도": "Topographic map", "상세": "Details",
+    # 캐나다 핵심 광물 (wetherilli 250)
+    "운영사": "Operator", "누리집": "Website",
     # 하와이 (wetherilli 238)
     "조성": "Composition", "섬": "Island", "화산 성장 단계": "Volcano stage",
     "서열": "Rank",
@@ -2984,6 +2992,7 @@ def props_en(props: dict) -> dict:
 GROUP_EN = {
     "미국 광물 자원 (USGS)": "US mineral resources (USGS)", "미국 지구물리 (USGS)": "US geophysics (USGS)",
     "미국 지질 연대 측정 (USGS)": "US geochronology (USGS)",
+    "캐나다 지질도 편찬 (NRCan CGMC)": "Canada geological compilation (NRCan CGMC)", "캐나다 광물 자원 (NRCan)": "Canada mineral resources (NRCan)",
     "하와이 지질도 (USGS)": "Hawaii geology (USGS)", "푸에르토리코 지질도 (USGS)": "Puerto Rico geology (USGS)",
     "호주 지질구 (GA)": "Australia geological provinces (GA)", "호주 핵심 광물 (GA 2025)": "Australia critical minerals (GA 2025)",
     "호주 지구물리 (GA)": "Australia geophysics (GA)",
@@ -3001,6 +3010,9 @@ GROUP_EN = {
     "몽골 지질도 (MonGeoCat)": "Geology of Mongolia (MonGeoCat)",
     "인도 지질도 1:200만 (GSI)": "Geological Map of India 1:2M (GSI)",
     "사우디 지질도 1:25만 (SGS)": "Geology of Saudi Arabia 1:250k (SGS)",
+    "카리브 지질도 (USGS 1:250만)": "Geology of the Caribbean (USGS 1:2.5M)",
+    "파나마 지질도 (STRI·MICI 1:25만)": "Geology of Panama (STRI · MICI 1:250k)",
+    "니카라과 지질도 (INETER)": "Geology of Nicaragua (INETER)", "도미니카공화국 지질도 (SGN 1:25만)": "Geology of the Dominican Republic (SGN 1:250k)",
     "오스트리아 지질도 (GeoSphere 1:100만)": "Geology of Austria (GeoSphere 1:1M)", "폴란드 지질도 (PIG-PIB 1:50만)": "Geology of Poland (PIG-PIB 1:500k)",
     "오스트리아 지질도 1:5만 (GeoSphere)": "Geology of Austria 1:50k (GeoSphere)",
     "폴란드 지질도 1:5만 (PIG-PIB SMGP)": "Geology of Poland 1:50k (PIG-PIB SMGP)",
@@ -3104,6 +3116,9 @@ GROUP_EN = {
 LAYER_EN = {
     # 캐나다 (wetherilli 204)
     "nrcan:wheeler": "Geological Map of Canada (1:5M, Wheeler)", "ogs:3": "Ontario bedrock (1:250k)",
+    # NRCan 의 다른 서비스 (wetherilli 250)
+    "nrcan:cgmc": "Canada Geological Map Compilation (CGMC)", "nrcan:critical": "Critical minerals sites (mines, processing, exploration)",
+    "nrcan:ree": "Carbonatite REE–Nb prospectivity", "nrcan:lithium": "LCT pegmatite lithium prospectivity",
     "ogs:1": "Ontario Quaternary geology",
     "sigeom:generale": "General geology (Québec)", "sigeom:regionale": "Regional geology (Québec, 1:20k–1:250k)",
     "sigeom:failles": "Faults (Québec)", "ygs:47": "Bedrock (Yukon 1:250k)", "ygs:50": "Faults (Yukon)",
@@ -3138,6 +3153,9 @@ LAYER_EN = {
     # 사우디아라비아 (wetherilli 227)
     "sgs:geology": "Geology (1:250k compilation)",
     # 동남아 (wetherilli 228)
+    "usgscarib:geology": "Geology (1:2.5M)", "stri:geology": "Geology (1:250k)", "stri:faults": "Faults (1:250k)",
+    "ineter:geology": "Geology", "ineter:faults": "Faults", "igme:sgnrd:0": "Geological units (1:250k)",
+    "igme:sgnrd:1": "Structures (1:250k)",
     "geosphere:geology": "Geology (1:1M)", "geosphere:faults": "Faults and nappe boundaries (1:1M)",
     "pig:mgp500k": "Geology (1:500k, 2022)", "pig:faults": "Faults (1:500k)",
     "geosphere:units50k": "Geological units (1:50k)", "pig:smgp50k": "Detailed geology (1:50k)",

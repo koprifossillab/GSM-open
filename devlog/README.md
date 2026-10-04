@@ -290,6 +290,12 @@
 | wetherilli 246 | 2026-10-05 | [아프리카 나라 판 둘째 — 부르키나파소 BUMIGEB·카메룬 IRGM 1:100만](20261005_wetherilli_246_africa_countries_2.md) |
 | wetherilli 247 | 2026-10-05 | [미국 — USGS mrdata 의 광물·지구물리·연대](20261005_wetherilli_247_usa_more.md) |
 | wetherilli 249 | 2026-10-05 | [중동·남아시아 나머지 — 열린 지질도 서비스가 없다](20261005_wetherilli_249_middle_east.md) |
+| wetherilli 242 | 2026-10-05 | [중앙아메리카·카리브 — 니카라과·도미니카공화국, 따로 세운 묶음](20261005_wetherilli_242_central_america.md) |
+| wetherilli 248 | 2026-10-05 | [카리브 — USGS 카리브 지질도를 면 한 덩이로, SIM 3534 는 실측만](20261005_wetherilli_248_caribbean_usgs.md) |
+| wetherilli 250 | 2026-10-05 | [캐나다 — NRCan 의 편찬 지질도·핵심 광물·광상 유망도](20261005_wetherilli_250_canada_more.md) |
+| wetherilli 251 | 2026-10-05 | [정리 — 영어 빈자리·CLAUDE.md 의 지역 목록·TODOs 의 끝난 일](20261005_wetherilli_251_housekeeping.md) |
+| wetherilli 252 | 2026-10-05 | [새 상류 점검 — 미리 데우기가 화면이 멈춘 줌 너머를 받던 다섯](20261005_wetherilli_252_upstream_audit.md) |
+| wetherilli 253 | 2026-10-05 | [파나마 — STRI 1:25만 면·단층을 한 덩이씩](20261005_wetherilli_253_panama.md) |
 | koprifossillab P01 | 2026-09-30 | [백업 — WegenersDream 의 틀로, 바뀌는 빠르기에 따라 넷으로 (계획)](20260930_koprifossillab_P01_backup_plan.md) |
 | koprifossillab 001 | 2026-09-30 | [매주 월요일 새벽: 운영 자료 백업과 KPDC 목록 갱신](20260930_koprifossillab_001_weekly_backup.md) |
 | koprifossillab 002 | 2026-09-30 | [`/healthz/` — 판·DB·백업 상태를 한 장으로](20260930_koprifossillab_002_healthz.md) |

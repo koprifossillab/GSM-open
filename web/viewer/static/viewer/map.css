@@ -2871,3 +2871,101 @@ a.tool { text-decoration: none; }                /* 3D 단추는 링크다 */
   --hi: #2e1612; --hi-deep: #1c0d0b; --on-hi: #fdfcfb; --hi-ink: #813c34;
   --glass: rgba(253, 252, 251, .95); --glass-line: #f1dddb;
 }
+
+/* ── 니카라과 (wetherilli 242) — 마사야 화산 용암 호수의 주황: 화산재의 바탕 ── */
+:root[data-region="nicaragua"] {
+  --bg: #151312; --panel: #1e1c1b; --panel-tint: #100e0e; --raise: #2a2827;
+  --ink: #f4f2f0; --ink-soft: #c6c0ba; --ink-faint: #88827c;
+  --line: #3a3938; --line-soft: #2a2827;
+  --gold: #e8693a; --gold-bright: #f2ac93; --gold-muted: #c55931;
+  --gold-wash: rgba(232, 105, 58, .13); --gold-edge: rgba(232, 105, 58, .42);
+  --hi: #e8693a; --hi-deep: #f2ac93; --on-hi: #100e0e; --hi-ink: #f2ac93;
+  --glass: rgba(16, 14, 14, .93); --glass-line: rgba(232, 105, 58, .35);
+}
+:root[data-region="nicaragua"][data-theme="light"] {
+  --bg: #fef6f3; --panel: #fdfcfb; --panel-tint: #fef9f7; --raise: #fceae3;
+  --ink: #1e1b19; --ink-soft: #524c47; --ink-faint: #8c8580;
+  --line: #fae1d8; --line-soft: #fceae3;
+  --gold: #a24a29; --gold-bright: #803a20; --gold-muted: #9a5d46;
+  --gold-wash: #fce8e1; --gold-edge: #f5bca6;
+  --hi: #3a1a0e; --hi-deep: #231009; --on-hi: #fdfcfb; --hi-ink: #a24a29;
+  --glass: rgba(253, 252, 251, .95); --glass-line: #fae1d8;
+}
+/* ── 도미니카공화국 (wetherilli 242) — 라리마르(블루 펙톨라이트)의 하늘청: 석회암 해안의 바탕 ── */
+:root[data-region="dominican_republic"] {
+  --bg: #11151a; --panel: #1b1e23; --panel-tint: #0d1014; --raise: #262a2f;
+  --ink: #f4f2f0; --ink-soft: #c6c0ba; --ink-faint: #88827c;
+  --line: #373a3f; --line-soft: #262a2f;
+  --gold: #4fb2d8; --gold-bright: #9ed5ea; --gold-muted: #4397b8;
+  --gold-wash: rgba(79, 178, 216, .13); --gold-edge: rgba(79, 178, 216, .42);
+  --hi: #4fb2d8; --hi-deep: #9ed5ea; --on-hi: #0d1014; --hi-ink: #9ed5ea;
+  --glass: rgba(13, 16, 20, .93); --glass-line: rgba(79, 178, 216, .35);
+}
+:root[data-region="dominican_republic"][data-theme="light"] {
+  --bg: #f4fafd; --panel: #fdfcfb; --panel-tint: #f8fcfd; --raise: #e6f4fa;
+  --ink: #1e1b19; --ink-soft: #524c47; --ink-faint: #8c8580;
+  --line: #dcf0f7; --line-soft: #e6f4fa;
+  --gold: #377d97; --gold-bright: #2b6277; --gold-muted: #4f8092;
+  --gold-wash: #e5f3f9; --gold-edge: #b0dced;
+  --hi: #142c36; --hi-deep: #0c1b20; --on-hi: #fdfcfb; --hi-ink: #377d97;
+  --glass: rgba(253, 252, 251, .95); --glass-line: #dcf0f7;
+}
+/* ── 중앙아메리카·카리브 (wetherilli 242) — 카리브 바다의 청록: 화산호의 검은 모래 바탕 ── */
+:root[data-region="central_america"] {
+  --bg: #101414; --panel: #1a1d1d; --panel-tint: #0c0f0f; --raise: #262929;
+  --ink: #f4f2f0; --ink-soft: #c6c0ba; --ink-faint: #88827c;
+  --line: #363a3a; --line-soft: #262929;
+  --gold: #2fb5a8; --gold-bright: #8dd6cf; --gold-muted: #289a8f;
+  --gold-wash: rgba(47, 181, 168, .13); --gold-edge: rgba(47, 181, 168, .42);
+  --hi: #2fb5a8; --hi-deep: #8dd6cf; --on-hi: #0c0f0f; --hi-ink: #8dd6cf;
+  --glass: rgba(12, 15, 15, .93); --glass-line: rgba(47, 181, 168, .35);
+}
+:root[data-region="central_america"][data-theme="light"] {
+  --bg: #f3fbfa; --panel: #fdfcfb; --panel-tint: #f7fcfc; --raise: #e2f5f3;
+  --ink: #1e1b19; --ink-soft: #524c47; --ink-faint: #8c8580;
+  --line: #d5f0ee; --line-soft: #e2f5f3;
+  --gold: #217f76; --gold-bright: #1a645c; --gold-muted: #40827b;
+  --gold-wash: #e0f4f2; --gold-edge: #a1ded8;
+  --hi: #0c2d2a; --hi-deep: #071b19; --on-hi: #fdfcfb; --hi-ink: #217f76;
+  --glass: rgba(253, 252, 251, .95); --glass-line: #d5f0ee;
+}
+
+/* ── 카리브 (wetherilli 248) — 자메이카 블루마운틴의 안개 낀 남청: 산호초 석회암의 바탕 ── */
+:root[data-region="caribbean"] {
+  --bg: #111318; --panel: #1b1c21; --panel-tint: #0d0e12; --raise: #26282d;
+  --ink: #f4f2f0; --ink-soft: #c6c0ba; --ink-faint: #88827c;
+  --line: #37393d; --line-soft: #26282d;
+  --gold: #4a7fd0; --gold-bright: #9bb9e5; --gold-muted: #3f6cb1;
+  --gold-wash: rgba(74, 127, 208, .13); --gold-edge: rgba(74, 127, 208, .42);
+  --hi: #4a7fd0; --hi-deep: #9bb9e5; --on-hi: #0d0e12; --hi-ink: #9bb9e5;
+  --glass: rgba(13, 14, 18, .93); --glass-line: rgba(74, 127, 208, .35);
+}
+:root[data-region="caribbean"][data-theme="light"] {
+  --bg: #f4f7fc; --panel: #fdfcfb; --panel-tint: #f8fafd; --raise: #e6edf8;
+  --ink: #1e1b19; --ink-soft: #524c47; --ink-faint: #8c8580;
+  --line: #dbe5f6; --line-soft: #e6edf8;
+  --gold: #345992; --gold-bright: #294672; --gold-muted: #4d678f;
+  --gold-wash: #e4ecf8; --gold-edge: #aec5ea;
+  --hi: #122034; --hi-deep: #0b131f; --on-hi: #fdfcfb; --hi-ink: #345992;
+  --glass: rgba(253, 252, 251, .95); --glass-line: #dbe5f6;
+}
+
+/* ── 파나마 (wetherilli 253) — 황금 개구리(파나마 황금두꺼비)의 노랑: 운하 둘레 열대림의 짙은 초록 바탕 ── */
+:root[data-region="panama"] {
+  --bg: #111510; --panel: #1b1e1a; --panel-tint: #0d100c; --raise: #262a26;
+  --ink: #f4f2f0; --ink-soft: #c6c0ba; --ink-faint: #88827c;
+  --line: #373a36; --line-soft: #262a26;
+  --gold: #e3c02e; --gold-bright: #f0dc8c; --gold-muted: #c1a327;
+  --gold-wash: rgba(227, 192, 46, .13); --gold-edge: rgba(227, 192, 46, .42);
+  --hi: #e3c02e; --hi-deep: #f0dc8c; --on-hi: #0d100c; --hi-ink: #f0dc8c;
+  --glass: rgba(13, 16, 12, .93); --glass-line: rgba(227, 192, 46, .35);
+}
+:root[data-region="panama"][data-theme="light"] {
+  --bg: #fdfbf2; --panel: #fdfcfb; --panel-tint: #fefcf7; --raise: #fbf6e2;
+  --ink: #1e1b19; --ink-soft: #524c47; --ink-faint: #8c8580;
+  --line: #f9f2d5; --line-soft: #fbf6e2;
+  --gold: #9f8620; --gold-bright: #7d6a19; --gold-muted: #98873f;
+  --gold-wash: #fbf6e0; --gold-edge: #f2e3a1;
+  --hi: #39300c; --hi-deep: #221d07; --on-hi: #fdfcfb; --hi-ink: #9f8620;
+  --glass: rgba(253, 252, 251, .95); --glass-line: #f9f2d5;
+}

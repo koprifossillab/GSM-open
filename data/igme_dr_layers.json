@@ -1,0 +1,37 @@
+{
+ "_주석": "도미니카 지질조사소(SGN)·BGR 의 SYSMIN 1:25만 씨앗이다 — 도미니카공화국 탭. 스페인 IGME 서버의 PSysmin 폴더에 있어 IGME 문(web/viewer/igme.py)의 판 sgnrd 로 받는다. WMS 번호와 REST 번호가 거꾸로다. 한글 제목과 레이어군은 사람이 붙였다 (wetherilli 242).",
+ "_뽑은날": "2026-10-05",
+ "_출처": "https://mapas.igme.es/gis/services/PSysmin/IGME_SGN_EN_Geology/MapServer/WMSServer?SERVICE=WMS&REQUEST=GetCapabilities",
+ "_지역": "dominican_republic",
+ "_상류": "igme",
+ "_레이어군차례": 1,
+ "레이어군순서": [
+  "도미니카공화국 지질도 (SGN 1:25만)"
+ ],
+ "레이어": [
+  {
+   "name": "igme:sgnrd:0",
+   "title": "지질 단위 (1:25만)",
+   "group": "도미니카공화국 지질도 (SGN 1:25만)",
+   "abstract": "PSysmin/IGME_SGN_EN_Geology 0 — DOM SGN 1:250k GeologicalUnits (SYSMIN, 영어판)",
+   "bbox": [
+    -72.1,
+    17.4,
+    -68.2,
+    20.0
+   ]
+  },
+  {
+   "name": "igme:sgnrd:1",
+   "title": "구조 (1:25만)",
+   "group": "도미니카공화국 지질도 (SGN 1:25만)",
+   "abstract": "PSysmin/IGME_SGN_EN_Geology 1 — 단층·경계",
+   "bbox": [
+    -72.1,
+    17.4,
+    -68.2,
+    20.0
+   ]
+  }
+ ]
+}

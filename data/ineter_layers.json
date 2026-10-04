@@ -1,0 +1,37 @@
+{
+ "_주석": "니카라과 국토연구원(INETER) 씨앗이다 — 니카라과 탭(중앙아메리카·카리브 묶음에도 든다). mapserveride.ineter.gob.ni 의 GeoServer 에서 골랐다. 한글 제목과 레이어군은 사람이 붙였다 (wetherilli 242).",
+ "_뽑은날": "2026-10-05",
+ "_출처": "https://mapserveride.ineter.gob.ni/geoserver/ows?service=WMS&request=GetCapabilities",
+ "_지역": "nicaragua",
+ "_상류": "ineter",
+ "_레이어군차례": 1,
+ "레이어군순서": [
+  "니카라과 지질도 (INETER)"
+ ],
+ "레이어": [
+  {
+   "name": "ineter:geology",
+   "title": "지질도",
+   "group": "니카라과 지질도 (INETER)",
+   "abstract": "wsINETER-DGGG:Geologia_Nicaragua — 온 나라",
+   "bbox": [
+    -87.8,
+    10.6,
+    -82.6,
+    15.1
+   ]
+  },
+  {
+   "name": "ineter:faults",
+   "title": "단층",
+   "group": "니카라과 지질도 (INETER)",
+   "abstract": "wsINETER-DGGG:Fallas_Nacionales",
+   "bbox": [
+    -87.8,
+    10.6,
+    -82.6,
+    15.1
+   ]
+  }
+ ]
+}
