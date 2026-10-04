@@ -150,6 +150,25 @@ class Views(TestCase):
         self.assertEqual(self.client.get(reverse("viewer:ingemmet-info"),
                                          {"layer": "ingemmet:faults_50k", "lat": -12, "lon": -77}).status_code, 400)
 
+    def test_지질_단위만은_암상을_export_로(self):
+        row = self.layers["ingemmet:50k_units"]
+        self.assertEqual((row["tiles"], row["minZoom"], row["legendUrl"]),
+                         ("ingemmet/50k_units/{z}/{x}/{y}.png", 9, "ingemmet/legend/"))
+        self.assertNotEqual(row.get("queryable"), False)
+        url = reverse("viewer:ingemmet-tile", kwargs={"sheet": "50k_units", "z": 15, "x": 9371, "y": 17490})
+        with mock.patch.object(ingemmet.requests, "get", return_value=answer()) as get:
+            self.client.get(url)
+        self.assertTrue(get.call_args.args[0].endswith("/SERV_GEOLOGIA_50K_INTEGRADA/MapServer/export"))
+        self.assertEqual(get.call_args.kwargs["params"]["layers"], "show:7")
+
+    def test_지질_단위만의_누른_자리는_통합판에(self):
+        body = {"features": [{"attributes": POINT}]}
+        with mock.patch.object(ingemmet.requests, "get", return_value=answer(body=body, ctype="application/json")) as get:
+            data = self.client.get(reverse("viewer:ingemmet-info"),
+                                   {"layer": "ingemmet:50k_units", "lat": -12.4, "lon": -76.7}).json()
+        self.assertTrue(get.call_args.args[0].endswith("/SERV_GEOLOGIA_50K_INTEGRADA/MapServer/7/query"))
+        self.assertEqual(data["features"][0]["props"]["지질시대"], "백악기")
+
 
 class Prewarm(SimpleTestCase):
     def test_캐시가_있는_줌까지_뷰의_열쇠로(self):

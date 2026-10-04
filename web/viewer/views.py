@@ -33,7 +33,7 @@ from . import (coords, crs, geo3al, geomap, geus, grportal, gsj, gsmma, i18n, ib
                patchnotes, elevation, moonmap, peninsula, phyloserver, pointsets, tilecache, tiles, trek, vworld, warp,
                marscraters, marsmap, mercurymap, zhurong)
 from . import arcpoints, crust, fossils, gvp, icemargins, kigam50k, macrostrat, mantle, naturalearth, neotoma, paleo, paleoeco, paleocoast, pbdb, quakes, spamap, ocean, usgs, volcanoes, wind
-from . import austates, basemaps, bgr, bgs, brgm, cgs, dinamige, egdi, emodnet, ga, gns, gsi, gsiindia, gtk, igme, iige, ingemmet, ispra, linked, lneg, mrdata, mris, natt, ngu, nrcan, ogs, segemar, sgb, sgc, sgm, sgs, sgu, sigeom, swisstopo, usage, ygs
+from . import austates, basemaps, bcgs, bgr, bgs, brgm, calgs, cgs, dinamige, dmr, dov, egdi, emodnet, esdm, geosphere, ga, gns, gsi, gsiindia, gtk, igme, iige, ingemmet, ispra, jmg, linked, lneg, mgb, pig, mrdata, mris, natt, ngu, nrcan, ogs, segemar, sgb, sgc, sgm, sgs, sgu, sigeom, spw, swisstopo, tno, usage, ygs
 from . import earthpoints, pointvalues, profileband, static_tables, tilegrid
 from .i18n import msg
 from .models import Layer, LayerGroup, Point, PointSet, PointSetDeletion, Shape
@@ -391,7 +391,13 @@ MAP3D_WMS = ("kigam", "geus", "vworld", "ccop", "gsmma",
              # 인도 GSI(wetherilli 226) — BGS 의 MapServer WMS 가 3857 로 그린다
              "gsiindia",
              # 사우디 SGS(wetherilli 227) — 원본이 3857 이다
-             "sgs")
+             "sgs",
+             # 동남아(wetherilli 228) — 인도네시아·필리핀·태국은 ArcGIS WMS, 말레이시아는 문이 REST export 로 옮긴다. 다 3857 로 그린다
+             "esdm", "jmg", "mgb", "dmr",
+             # 브리티시컬럼비아 BCGS·캘리포니아 CGS(wetherilli 231) — 2D 는 3978 이지만 3D 는 3857 로 묻는다(둘 다 그려 준다)
+             "bcgs", "calgs",
+             # 오스트리아·폴란드·네덜란드·벨기에(wetherilli 237) — 3857 로 그린다
+             "geosphere", "pig", "tno", "dov", "spw")
 
 
 @require_GET
@@ -735,7 +741,8 @@ def _trek_values(request, table, body):
     lang = i18n.lang_of(request)
     lat, lon = _float(request.GET.get("lat")), _float(request.GET.get("lon"))
     key = request.GET.get("key") or ""
-    if key not in table or lat is None or lon is None or not (-90 <= lat <= 90 and -180 <= lon <= 180):
+    known = trek.value_spec(key) if table is trek.VALUES else table.get(key)     # 달은 판이 여럿인 갈래도 안다 (wetherilli 236)
+    if not known or lat is None or lon is None or not (-90 <= lat <= 90 and -180 <= lon <= 180):
         return JsonResponse({"error": i18n.t(msg("layer·lat·lon 이 없다"), lang), "rows": []}, status=400)
     cache = tilecache.key_text("trek-value", f"{key}/{lon:.4f},{lat:.4f}")
     data = _cached_json(cache)
@@ -2327,6 +2334,20 @@ def _layer_extra(layer, lang: str = "ko") -> dict:
     if layer.upstream == "ngu":
         # 노르웨이 NGU(wetherilli 140) — 3413 을 그려 주지 않아 북극 람베르트(3575)로 받고 화면이 옮겨 그린다
         return {"attribution": ngu.ATTRIBUTION, "projection": "EPSG:3575"}
+    if layer.upstream in ("esdm", "jmg", "mgb", "dmr"):
+        # 동남아(wetherilli 228) — 3857 로 그린다. 인도네시아는 상류가 줌 10 너머를 그리지 않아(`maxZoom` — 그 위는 화면이 늘린다)
+        # 범례가 1 403 칸이라 두지 않는다.
+        # 말레이시아 암상·태국은 REST 범례를 목록으로(`list/legend/`), 말레이시아 연대는 범례가 없다. 필리핀은 WMS 그림 그대로
+        mod = {"esdm": esdm, "jmg": jmg, "mgb": mgb, "dmr": dmr}[layer.upstream]
+        if mod.knows(layer.name):
+            extra = {"attribution": mod.ATTRIBUTION, "projection": "EPSG:3857"}
+            if layer.name in getattr(mod, "LEGEND_LAYERS", ()):
+                extra.update({"legend": "list", "legendUrl": "list/legend/"})
+            elif mod in (esdm, jmg):
+                extra["noLegend"] = True
+            if mod is esdm:
+                extra["maxZoom"] = esdm.LAST_ZOOM
+            return extra
     if layer.upstream == "sgs" and sgs.knows(layer.name):
         # 사우디 SGS(wetherilli 227) — ArcGIS WMS(원본 3857). 범례는 1 337 칸이라 보는 범위의 것(`sgs/legend/`)
         return {"attribution": sgs.ATTRIBUTION, "projection": "EPSG:3857", "legend": "extent", "legendUrl": "sgs/legend/"}
@@ -2375,8 +2396,32 @@ def _layer_extra(layer, lang: str = "ko") -> dict:
         except RuntimeError:
             return {}
         first, last = door.ZOOMS.get(sheet, (None, None))
-        return {"attribution": door.ATTRIBUTION, "projection": getattr(door, "PROJECTION", {}).get(sheet, "EPSG:3857"),
-                **({"minZoom": first} if first else {}), **({"lastZoom": last} if last else {})}
+        return {"attribution": getattr(door, "ATTRIBUTIONS", {}).get(sheet, door.ATTRIBUTION),
+                "projection": getattr(door, "PROJECTION", {}).get(sheet, "EPSG:3857"),
+                **({"minZoom": first} if first else {}), **({"lastZoom": last} if last else {}),
+                # IGME5000 의 단층·연대 기호(wetherilli 217)는 누를 것이 없다
+                **({} if getattr(door, "queryable", lambda n: True)(layer.name) else {"queryable": False})}
+    if layer.upstream in ("geosphere", "pig", "tno", "dov", "spw"):
+        # 유럽(wetherilli 237) — 3857 로 그린다. 오스트리아·폴란드는 상류가 가까이서 그리지 않아 그 줌 위는 화면이 늘리고(`maxZoom`),
+        # 폴란드 단층은 줌 10·왈로니아는 줌 9(단층 13)부터. 왈로니아 범례는 395 칸 약호뿐이라 두지 않는다
+        mod = {"geosphere": geosphere, "pig": pig, "tno": tno, "dov": dov, "spw": spw}[layer.upstream]
+        if mod.knows(layer.name):
+            extra = {"attribution": mod.ATTRIBUTION, "projection": "EPSG:3857"}
+            spec = {"geosphere:geology": {"maxZoom": geosphere.MAX_ZOOM}, "geosphere:faults": {"maxZoom": geosphere.MAX_ZOOM},
+                    "pig:mgp500k": {"maxZoom": pig.MAX_ZOOM}, "pig:faults": {"minZoom": pig.FAULTS_MIN_ZOOM},
+                    "spw:geology": {"minZoom": spw.MIN_ZOOM, "noLegend": True},
+                    "spw:faults": {"minZoom": spw.FAULTS_MIN_ZOOM, "noLegend": True}}.get(layer.name, {})
+            extra.update(spec)
+            if layer.name in ("geosphere:faults", "pig:faults", "spw:faults"):
+                extra["queryable"] = False
+            return extra
+    if layer.upstream == "bcgs" and bcgs.knows(layer.name):
+        # 브리티시컬럼비아(wetherilli 231) — GeoServer 가 3978 로 그린다. 색 스타일이 1:50만 너머를 칠하지 않아 줌 11 부터
+        return {"attribution": bcgs.ATTRIBUTION, "projection": "EPSG:3978", "minZoom": bcgs.MIN_ZOOM}
+    if layer.upstream == "calgs" and calgs.knows(layer.name):
+        # 캘리포니아(wetherilli 231) — 문이 REST export 를 3978 로 받는다. 줌 12 너머는 상류가 그리지 않아 화면이 늘린다. 범례는 목록
+        return {"attribution": calgs.ATTRIBUTION, "projection": "EPSG:3978", "maxZoom": calgs.MAX_ZOOM,
+                "legend": "list", "legendUrl": "list/legend/"}
     if layer.upstream in ("sigeom", "ygs"):
         # 퀘벡·유콘(wetherilli 210) — 캐나다 탭처럼 3978 로 곧장(Capabilities 에 없지만 그린다). 가까이서만 그린다 — 퀘벡은 상류가
         # 축척으로 판을 끄고, 유콘은 넓게 보면 한 장이 13 초다. 범례는 없다(퀘벡 28×18 한 칸), 유콘은 그림 범례
@@ -2440,6 +2485,11 @@ def _layer_extra(layer, lang: str = "ko") -> dict:
         return {"attribution": ingemmet.ATTRIBUTION, "tiles": f"ingemmet/{ingemmet.sheet_of(layer.name)}/{{z}}/{{x}}/{{y}}.png",
                 "maxZoom": ingemmet.STRUCTURES_MAX, "noLegend": True, "queryable": False,
                 **({"minZoom": first} if first else {})}
+    if layer.upstream == "ingemmet" and layer.name in ingemmet.UNITS:
+        # 페루 1:5만 지질 단위만(wetherilli 234) — 암상 레이어만 export 로. 느려 줌 9 부터. 누른 자리·범례는 1:5만 통합판의 것
+        return {"attribution": ingemmet.ATTRIBUTION, "tiles": f"ingemmet/{ingemmet.sheet_of(layer.name)}/{{z}}/{{x}}/{{y}}.png",
+                "maxZoom": ingemmet.STRUCTURES_MAX, "minZoom": ingemmet.first_zoom(layer.name),
+                "legend": "extent", "legendUrl": "ingemmet/legend/"}
     if layer.upstream == "ingemmet" and ingemmet.knows(layer.name):
         # 페루 INGEMMET(wetherilli 195) — WMS 는 넓게 물으면 30 초를 넘겨 REST 타일 캐시(3857 z/x/y)를 우리 서버가 중계한다(일본과 같다).
         # 누른 자리는 위경도로(`ingemmet/info/`), 범례는 보는 범위의 것(`ingemmet/legend/`)
@@ -2560,6 +2610,8 @@ UPSTREAM_ERRORS = (kigam.UpstreamError, geus.GeusError, vworld.VWorldError, geom
                    bgr.BgrError, igme.IgmeError, gsi.GsiError, sgc.SgcError, sgb.SgbError, cgs.CgsError, ingemmet.IngemmetError,
                    segemar.SegemarError, dinamige.DinamigeError, iige.IigeError, mrdata.MrdataError, sgm.SgmError, nrcan.NrcanError, ogs.OgsError, sigeom.SigeomError, ygs.YgsError, ga.GaError, austates.AuStatesError,
                    ispra.IspraError, lneg.LnegError, swisstopo.SwisstopoError, natt.NattError, gns.GnsError, mris.MrisError, gsiindia.GsiIndiaError, sgs.SgsError,
+                   esdm.EsdmError, jmg.JmgError, mgb.MgbError, dmr.DmrError, bcgs.BcgsError, calgs.CalgsError,
+                   geosphere.GeosphereError, pig.PigError, tno.TnoError, dov.DovError, spw.SpwError,
                    basemaps.BasemapError)
 
 
@@ -2637,7 +2689,13 @@ class _Door:
                # 인도(wetherilli 226)
                "gsiindia": gsiindia,
                # 사우디아라비아(wetherilli 227)
-               "sgs": sgs}
+               "sgs": sgs,
+               # 동남아(wetherilli 228)
+               "esdm": esdm, "jmg": jmg, "mgb": mgb, "dmr": dmr,
+               # 브리티시컬럼비아·캘리포니아(wetherilli 231)
+               "bcgs": bcgs, "calgs": calgs,
+               # 오스트리아·폴란드·네덜란드·벨기에(wetherilli 237)
+               "geosphere": geosphere, "pig": pig, "tno": tno, "dov": dov, "spw": spw}
 
     def __init__(self, upstream):
         self.name = upstream if upstream in self.MODULES else "kigam"
@@ -2646,7 +2704,7 @@ class _Door:
         self.local = self.name == "geomap"
         #: 받은 것을 서버 캐시에 담지 않는다 — 우리가 그리는 것(GeoMAP)과, 자료를 파는 상류(`NO_STORE`, wetherilli 209)
         self.nostore = self.local or self.name in NO_STORE
-        if self.name in ("geus", "npolar", "kopri", "pgc", "ccop", "gsmma", "emodnet", "ngu", "gtk", "bgs", "brgm", "egdi", "bgr", "igme", "gsi", "gsni", "sgc", "sgb", "ingemmet", "segemar", "dinamige", "iige", "mrdata", "sgm", "cgmw", "aga", "cgs", "gsn", "nrcan", "ogs", "sigeom", "ygs", "ga", "gsq", "gsv", "gssa", "ispra", "lneg", "swisstopo", "sgu", "natt", "gns", "mris", "gsiindia", "sgs"):    # 열쇠가 없는 공개 서비스다
+        if self.name in ("geus", "npolar", "kopri", "pgc", "ccop", "gsmma", "emodnet", "ngu", "gtk", "bgs", "brgm", "egdi", "bgr", "igme", "gsi", "gsni", "sgc", "sgb", "ingemmet", "segemar", "dinamige", "iige", "mrdata", "sgm", "cgmw", "aga", "cgs", "gsn", "nrcan", "ogs", "sigeom", "ygs", "ga", "gsq", "gsv", "gssa", "ispra", "lneg", "swisstopo", "sgu", "natt", "gns", "mris", "gsiindia", "sgs", "esdm", "jmg", "mgb", "dmr", "bcgs", "calgs", "geosphere", "pig", "tno", "dov", "spw"):    # 열쇠가 없는 공개 서비스다
             self.ready = True
         elif self.name == "vworld":
             self.ready = vworld.enabled()
@@ -3324,7 +3382,7 @@ def ingemmet_tile(request, sheet, z, x, y):
 def ingemmet_info(request):
     """`?layer=ingemmet:50k&lat=-12.05&lon=-77.0` — 누른 자리의 속성 (wetherilli 195). 팝업이 받는 꼴은 `/featureinfo/` 와 같다."""
     lang = i18n.lang_of(request)
-    name = request.GET.get("layer", "")
+    name = ingemmet.base_of(request.GET.get("layer", ""))       # 지질 단위만의 판은 통합판에 묻는다 (wetherilli 234)
     lat, lon = _float(request.GET.get("lat")), _float(request.GET.get("lon"))
     if not ingemmet.knows(name) or lat is None or lon is None:
         return JsonResponse({"error": i18n.t(msg("layer·lat·lon 이 없다"), lang), "features": []}, status=400)
@@ -3358,7 +3416,7 @@ def ingemmet_legend(request):
 
     범위 안의 단위는 통계 질의로, 색은 칠하기 규칙(`ingemmet.colors`, 한 번 받아 담는다)에서. 꼴은 브라질(`sgb_legend`)과 같다"""
     lang = i18n.lang_of(request)
-    name = request.GET.get("layer", "")
+    name = ingemmet.base_of(request.GET.get("layer", ""))       # 지질 단위만의 판은 통합판의 범례 (wetherilli 234)
     if not ingemmet.knows(name):
         return JsonResponse({"error": i18n.t(msg("범례가 없는 레이어다"), lang), "rows": []}, status=400)
     parts = [_float(v) for v in (request.GET.get("bbox") or "").split(",")]
@@ -3449,6 +3507,30 @@ def mris_legend(request):
                 return JsonResponse({"error": i18n.t(msg("범례를 받지 못했다"), lang), "rows": []}, status=502)
         else:
             tilecache.put(key, json.dumps({"rows": rows}, ensure_ascii=False).encode("utf-8"), ".json")
+    if lang == "ko":
+        rows = [dict(r, age=i18n.age_ko(r["age"]) if r.get("age") else "") for r in rows]
+    return JsonResponse({"rows": rows})
+
+
+#: 목록 범례를 내는 문 — `legend_rows(이름)` 과 `LEGEND_LAYERS` 를 갖는다 (wetherilli 228)
+LIST_LEGENDS = (jmg, dmr, calgs)
+
+
+@require_GET
+@browser_cached
+def list_legend(request):
+    """`?layer=dmr:rock_units` — ArcGIS REST `legend` 를 목록으로 낸 범례 (wetherilli 228). 우루과이·몽골의 꼴을 문 여럿이 함께 쓰는 길이다.
+    문이 견본까지 받아 담아 두므로 여기서는 담지 않는다. 시대는 한국어판이면 옮긴다"""
+    lang = i18n.lang_of(request)
+    name = request.GET.get("layer", "")
+    mod = next((m for m in LIST_LEGENDS if name in m.LEGEND_LAYERS), None)
+    if mod is None:
+        return JsonResponse({"error": i18n.t(msg("범례가 없는 레이어다"), lang), "rows": []}, status=400)
+    try:
+        rows = mod.legend_rows(name)
+    except UPSTREAM_ERRORS as exc:
+        log.info("목록 범례를 받지 못했다 (%s): %s", name, exc)
+        return JsonResponse({"error": i18n.t(msg("범례를 받지 못했다"), lang), "rows": []}, status=502)
     if lang == "ko":
         rows = [dict(r, age=i18n.age_ko(r["age"]) if r.get("age") else "") for r in rows]
     return JsonResponse({"rows": rows})
@@ -3553,6 +3635,13 @@ def sgm_legend(request):
     name = request.GET.get("layer", "")
     if name not in sgm.legend_layers():
         return JsonResponse({"error": i18n.t(msg("범례가 없는 레이어다"), lang), "rows": []}, status=400)
+    if name in sgm.BREAKS:
+        # 원소 이상 지점(wetherilli 233) — 범례는 칠하기 구간이라 보는 범위와 무관하다
+        try:
+            return JsonResponse({"rows": sgm.breaks(name), "more": 0, "fixed": True})
+        except sgm.SgmError as exc:
+            log.info("멕시코 범례를 받지 못했다 (%s): %s", name, exc)
+            return JsonResponse({"error": i18n.t(msg("범례를 받지 못했다"), lang), "rows": []}, status=502)
     parts = [_float(v) for v in (request.GET.get("bbox") or "").split(",")]
     if len(parts) != 4 or None in parts:
         return JsonResponse({"error": i18n.t(msg("bbox 가 없다"), lang), "rows": []}, status=400)
@@ -3864,6 +3953,9 @@ def feature_info(request):
             props = emodnet.friendly(props, lang)    # 마흔 남짓한 열에서 추린다. 시대를 옮긴다
         elif door.name == "ngu":
             props = ngu.friendly(props)              # 노르웨이어 열 이름 → 한국어. 그리지 않은 칸은 비운다
+        elif door.name in ("esdm", "jmg", "mgb", "dmr"):
+            # 동남아(wetherilli 228) — 값은 그 나라 말·영어 그대로, 시대만 옮긴다(인도네시아어 표·태국 기호·영어 다듬기)
+            props = {"esdm": esdm, "jmg": jmg, "mgb": mgb, "dmr": dmr}[door.name].friendly(props, lang)
         elif door.name == "sgs":
             props = sgs.friendly(props, lang)        # 사우디 — 이름·암석은 영어 그대로, 기(ICS)만 옮긴다 (wetherilli 227)
         elif door.name == "gsiindia":
@@ -3894,8 +3986,10 @@ def feature_info(request):
             props = bgs.friendly(props, lang)        # BGS 와 같은 열(LEX_D …)
         elif door.name == "egdi":
             props = egdi.friendly(props, lang)       # 암상 판의 INSPIRE 열 → 암상·지질시대·제공 기관 (wetherilli 177)
-        elif door.name in ("bgr", "igme", "gsi"):
-            props = {"bgr": bgr, "igme": igme, "gsi": gsi}[door.name].friendly(props)   # 값은 그 나라 말 그대로
+        elif door.name == "bgr":
+            props = bgr.friendly(props, lang)        # 독일 판은 독일어 그대로, IGME5000 은 시대만 옮긴다 (wetherilli 217)
+        elif door.name in ("igme", "gsi"):
+            props = {"igme": igme, "gsi": gsi}[door.name].friendly(props)   # 값은 그 나라 말 그대로
         elif door.name == "sgc":
             props = sgc.friendly(props, lang)        # 남미 판의 ICS 시대는 옮기고, 콜롬비아 판의 값은 에스파냐어 그대로
         elif door.name == "ga":
@@ -3911,6 +4005,12 @@ def feature_info(request):
             props = mrdata.friendly(props, lang)     # 미국 — 값은 영어 그대로, 알래스카의 시대만 옮긴다 (wetherilli 205)
         elif door.name == "iige":
             props = iige.friendly(props, lang)       # 에콰도르 — 값은 에스파냐어 그대로 (wetherilli 198)
+        elif door.name in ("geosphere", "pig", "tno", "dov", "spw"):
+            # 유럽(wetherilli 237) — 값은 그 나라 말 그대로, 시대만 옮긴다(`i18n.age_local`)
+            props = {"geosphere": geosphere, "pig": pig, "tno": tno, "dov": dov, "spw": spw}[door.name].friendly(props, lang)
+        elif door.name in ("bcgs", "calgs"):
+            # 브리티시컬럼비아·캘리포니아(wetherilli 231) — 값은 영어 그대로, 시대만 옮긴다
+            props = {"bcgs": bcgs, "calgs": calgs}[door.name].friendly(props, lang)
         elif door.name in ("sigeom", "ygs"):
             # 퀘벡(프랑스어 값 그대로)·유콘(ICS 영어 시대는 옮긴다) (wetherilli 210)
             props = {"sigeom": sigeom, "ygs": ygs}[door.name].friendly(props, lang)

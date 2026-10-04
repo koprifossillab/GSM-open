@@ -409,7 +409,7 @@ class Values(TestCase):
         self.assertEqual(trek.value_key("moon", "LP_GRS_Th_Clr_Global_2ppd"), "th")
         self.assertEqual(trek.value_key("moon", "LP_GRS_ClrTitaniumAbundance_2ppd"), "ti")
         self.assertEqual(trek.value_key("moon", "Model3_thick.eq"), "thick3")
-        self.assertEqual(trek.value_key("moon", "Model3_cmi.eq"), "")
+        self.assertEqual(trek.value_key("moon", "Model3_cmi.eq"), "cmi3")              # wetherilli 236 부터 읽는다
         self.assertEqual(trek.value_key("mars", "LP_GRS_Th_Clr_Global_2ppd"), "")
 
     def test_비율은_백분율로(self):
@@ -437,6 +437,59 @@ class Values(TestCase):
         self.assertEqual(ko["rows"][0], ["지각 두께", "10.8 km"])
         self.assertEqual(en["rows"][0], ["Crustal thickness", "10.8 km"])
         self.assertEqual(self.client.get(url, {"lon": "0", "lat": "0", "key": "nope"}).status_code, 400)
+
+
+class MoonValuesRest(TestCase):
+    """누른 자리의 값 — 남은 판 (wetherilli 236). 꼴은 2026-10-04 에 한 점씩 받은 그대로다."""
+
+    def setUp(self):
+        patch = override_settings(TILE_CACHE_DIR=tempfile.mkdtemp(prefix="gsm-moon-values-"))
+        patch.enable()
+        self.addCleanup(patch.disable)
+
+    def samples(self, value):
+        body = {"samples": [{"locationId": 0, "value": value}]}
+        return mock.Mock(status_code=200, url="…", headers={"content-type": "application/json"},
+                         content=json.dumps(body).encode(), json=lambda: body)
+
+    def test_판_이름에서_갈래(self):
+        for label, key in (("Lunar_Kaguya_MIMap_MineralDeconv_OpticalMaturityIndex_50N50S", "omat"),
+                           ("gggrx_1200a_boug_l660.eq", "grav:boug:660"), ("gggrx_1200a_degstr.eq", "grav:degstr"),
+                           ("dgdr_Clrstd_cf_clc_cyl_128_jp2", "cf_std_128"), ("diviner_Clrtbol_max_anom", "tbol_max_anom"),
+                           ("LRO_LOLA_ClrShade_Global_256ppd_v06", "moon_elev"), ("minirf_s1_Clr49dnorm_EQ", "minirf_cpr"),
+                           ("LRO_NAC_ClrSlope_15m_43S349E_150cmp", "slope:LRO_NAC_Slope_15m_43S349E_150cmp"),
+                           ("LRO_NAC_ClrCraterSlopesMasked_1mpp_SiteH", "slope:LRO_NAC_CraterSlopesMasked_1mpp_SiteH"),
+                           ("diviner_Clrc3_c7_hour_10_14", "")):                 # 뜻을 모르는 판은 두었다
+            self.assertEqual(trek.value_key("moon", label), key, label)
+
+    def test_판이_여럿인_갈래는_열쇠에서_짓는다(self):
+        self.assertEqual(trek.value_spec("grav:geoid:660")[1:4], ("gggrx_1200a_geoid_l660_eq", "지오이드 높이", "m"))
+        self.assertEqual(trek.value_spec("slope:LRO_NAC_Slope_2_5mpp_Shioli")[0], "trekarcgis3")
+        self.assertEqual(trek.value_spec("slope:LRO_NAC_Slope_15m_43S349E_150cmp")[0], "trekarcgis2")
+        self.assertIsNone(trek.value_spec("grav:boug:x"))
+        self.assertIsNone(trek.value_spec("slope:../etc"))
+
+    def test_중력은_mGal_차수는_출처에(self):
+        with mock.patch("viewer.trek.requests.get", return_value=self.samples("171.3")) as get:
+            got = trek.value_at("grav:boug:660", 20, 10)
+        self.assertEqual(got["rows"], [["부게 중력 교란", "171.3 mGal"], ["출처", "GRAIL GRGM1200A · L660"]])
+        self.assertIn("trekarcgis2/rest/services/gggrx_1200a_boug_l660_eq/ImageServer/getSamples", get.call_args[0][0])
+
+    def test_한_자리만_덮는_판의_밖은_빈_값(self):
+        error = {"error": {"code": 400, "message": "Invalid or missing input parameters."}}
+        answer = mock.Mock(status_code=200, url="…", headers={"content-type": "application/json"},
+                           content=json.dumps(error).encode(), json=lambda: error)
+        with mock.patch("viewer.trek.requests.get", return_value=answer):
+            self.assertEqual(trek.value_at("slope:LRO_NAC_Slope_15m_43S349E_150cmp", 10, -43), {"rows": []})
+            with self.assertRaises(trek.TrekError):                              # 온 달 판의 오류는 오류다
+                trek.value_at("tbol_max", 10, 10)
+
+    def test_화면이_판이_여럿인_갈래를_묻는다(self):
+        with mock.patch("viewer.trek.requests.get", return_value=self.samples("10.8")):
+            got = self.client.get(reverse("viewer:moon-values"),
+                                  {"lon": "-11.28", "lat": "-43", "key": "slope:LRO_NAC_Slope_15m_43S349E_150cmp"},
+                                  HTTP_COOKIE="gsm_lang=en").json()
+        self.assertEqual(got["rows"][0], ["Slope", "10.8 °"])
 
 
 class MoonTrekMore(SimpleTestCase):

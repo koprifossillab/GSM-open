@@ -1,0 +1,37 @@
+{
+ "_주석": "왈로니아 공공서비스(SPW) 지질도 개정판 씨앗이다 — 벨기에 탭(유럽 묶음에도 든다). WMS 번호와 REST 번호가 다르다. 한글 제목과 레이어군은 사람이 붙였다 (wetherilli 237).",
+ "_뽑은날": "2026-10-04",
+ "_출처": "https://geoservices.wallonie.be/arcgis/services/SOL_SOUS_SOL/CARTE_GEOLOGIQUE_SIMPLE/MapServer/WMSServer?SERVICE=WMS&REQUEST=GetCapabilities",
+ "_지역": "belgium",
+ "_상류": "spw",
+ "_레이어군차례": 2,
+ "레이어군순서": [
+  "왈로니아 지질도 (SPW 1:2.5만)"
+ ],
+ "레이어": [
+  {
+   "name": "spw:geology",
+   "title": "지질도 (1:2.5만 합본)",
+   "group": "왈로니아 지질도 (SPW 1:2.5만)",
+   "abstract": "CARTE_GEOLOGIQUE_SIMPLE 1·2 — 두 축척대의 단위. 줌 9 부터",
+   "bbox": [
+    2.8,
+    49.45,
+    6.45,
+    50.85
+   ]
+  },
+  {
+   "name": "spw:faults",
+   "title": "단층",
+   "group": "왈로니아 지질도 (SPW 1:2.5만)",
+   "abstract": "CARTE_GEOLOGIQUE_SIMPLE 7 — Failles. 줌 13 부터",
+   "bbox": [
+    2.8,
+    49.45,
+    6.45,
+    50.85
+   ]
+  }
+ ]
+}

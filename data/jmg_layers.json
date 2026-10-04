@@ -1,0 +1,37 @@
+{
+ "_주석": "말레이시아 광물지구과학국(JMG) MyGEMS 씨앗이다 — 말레이시아 탭(동남아 묶음에도 든다). 2026-10-04 에 포털 검색으로 찾은 Demarcation/Litology_by_Negeri 에서 골랐다. WMS 가 꺼져 있어 문(web/viewer/jmg.py)이 REST export 로 옮긴다. 한글 제목과 레이어군은 사람이 붙였다 (wetherilli 228).",
+ "_뽑은날": "2026-10-04",
+ "_출처": "https://mygems.jmg.gov.my/server/rest/services/Demarcation/Litology_by_Negeri/MapServer",
+ "_지역": "malaysia",
+ "_상류": "jmg",
+ "_레이어군차례": 1,
+ "레이어군순서": [
+  "말레이시아 지질도 (JMG)"
+ ],
+ "레이어": [
+  {
+   "name": "jmg:lithology",
+   "title": "암상 (주별)",
+   "group": "말레이시아 지질도 (JMG)",
+   "abstract": "Lithology of … — 13 주와 연방 직할구 둘, 열다섯 레이어를 한 장에",
+   "bbox": [
+    99.6,
+    0.8,
+    119.3,
+    7.4
+   ]
+  },
+  {
+   "name": "jmg:age",
+   "title": "암석 연대 (주별)",
+   "group": "말레이시아 지질도 (JMG)",
+   "abstract": "Rock age of … — 13 주와 연방 직할구 둘",
+   "bbox": [
+    99.6,
+    0.8,
+    119.3,
+    7.4
+   ]
+  }
+ ]
+}

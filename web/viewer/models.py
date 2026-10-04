@@ -66,7 +66,17 @@ REGIONS = (("korea", "한국"), ("greenland", "그린란드"), ("antarctica", "�
            # 인도 — GSI 1:200만 (wetherilli 226)
            ("india", "인도"),
            # 사우디아라비아 — SGS 1:25만 합본 (wetherilli 227)
-           ("saudi", "사우디아라비아"))
+           ("saudi", "사우디아라비아"),
+           # 동남아 — 인도네시아 ESDM·말레이시아 JMG·필리핀 MGB·태국 DMR (wetherilli 228). 묶음 "동남아" 는 DB 에 없다
+           ("indonesia", "인도네시아"),
+           ("malaysia", "말레이시아"),
+           ("philippines", "필리핀"),
+           ("thailand", "태국"),
+           # 유럽 — 오스트리아·폴란드·네덜란드·벨기에(플랑드르·왈로니아) (wetherilli 237). 유럽 묶음에 든다
+           ("austria", "오스트리아"),
+           ("poland", "폴란드"),
+           ("netherlands", "네덜란드"),
+           ("belgium", "벨기에"))
 
 
 class LayerGroup(models.Model):
@@ -136,6 +146,9 @@ class Layer(models.Model):
     #: mris → `mris.py` (몽골 국가지질도첩 지질도·단층, wetherilli 221)
     #: gsiindia → `gsiindia.py` (인도 1:200만 — 그림 BGS, 속성 GSI, wetherilli 226)
     #: sgs → `sgs.py` (사우디 1:25만 합본, wetherilli 227)
+    #: esdm·jmg·mgb·dmr → `esdm.py`·`jmg.py`·`mgb.py`·`dmr.py` (인도네시아·말레이시아·필리핀·태국, wetherilli 228)
+    #: geosphere·pig·tno·dov·spw → 오스트리아·폴란드·네덜란드·플랑드르·왈로니아 지질도 (wetherilli 237)
+    #: bcgs → `bcgs.py` (브리티시컬럼비아, 캐나다 탭), calgs → `calgs.py` (캘리포니아, 미국 탭 — `cgs` 는 남아공이 쓴다, wetherilli 231)
     upstream = models.CharField("상류", max_length=20, default="kigam")
     #: 어떻게 그리나. wms → 상류가 그린 타일을 얹는다. vector → 모양을 받아
     #: 우리가 그린다 (단층, devlog 020). 거의 전부가 wms 다

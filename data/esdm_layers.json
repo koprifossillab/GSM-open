@@ -1,0 +1,25 @@
+{
+ "_주석": "인도네시아 지질청(ESDM Badan Geologi) 씨앗이다 — 인도네시아 탭(동남아 묶음에도 든다). 2026-10-04 에 geoportal.esdm.go.id 의 WMS 에서 골랐다. 한글 제목과 레이어군은 사람이 붙였다 (wetherilli 228).",
+ "_뽑은날": "2026-10-04",
+ "_출처": "https://geoportal.esdm.go.id/gis4/services/BGS_PM/Geologi_Litologi/MapServer/WMSServer?SERVICE=WMS&REQUEST=GetCapabilities",
+ "_지역": "indonesia",
+ "_상류": "esdm",
+ "_레이어군차례": 1,
+ "레이어군순서": [
+  "인도네시아 지질도 (ESDM)"
+ ],
+ "레이어": [
+  {
+   "name": "esdm:geology",
+   "title": "지질도 (1:10만 편집 2018)",
+   "group": "인도네시아 지질도 (ESDM)",
+   "abstract": "Peta Geologi — GEOLOGIINDONESIA_AR_100K_2018. 줌 10 까지만 그린다(상류 maxScale 1:57만 7 790)",
+   "bbox": [
+    95.0,
+    -11.1,
+    141.1,
+    6.1
+   ]
+  }
+ ]
+}

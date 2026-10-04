@@ -1,12 +1,13 @@
 {
- "_주석": "BGR(독일 연방 지구과학·자원청) 지질도 씨앗이다 — 독일 탭(유럽 묶음에도 든다). 판이 둘(GK1000·GÜK250)이고 ArcGIS 레이어 이름이 번호라 bgr:<판>:<번호> 로 둔다 — 문(web/viewer/bgr.py)이 나눈다. 판마다 그리는 줌이 좁아(GK1000 9–10, GÜK250 10–14, 2026-10-02 에 카셀에서 잰 것) 그보다 멀면 EGDI 1:100만이 밑을 채운다. 한글 제목과 레이어군은 사람이 붙였다 (wetherilli 147).",
+ "_주석": "BGR(독일 연방 지구과학·자원청) 지질도 씨앗이다 — 독일 탭(유럽 묶음에도 든다). 판이 둘(GK1000·GÜK250)이고 ArcGIS 레이어 이름이 번호라 bgr:<판>:<번호> 로 둔다 — 문(web/viewer/bgr.py)이 나눈다. 판마다 그리는 줌이 좁아(GK1000 9–10, GÜK250 10–14, 2026-10-02 에 카셀에서 잰 것) 그보다 멀면 EGDI 1:100만이 밑을 채운다. 한글 제목과 레이어군은 사람이 붙였다 (wetherilli 147). IGME5000(유럽과 이웃 1:500만, 2007)은 같은 문의 셋째 판이다 — 독일 탭에 레이어군을 따로 두고 유럽 묶음이 함께 보인다. 축척마다 갈린 상류 레이어는 + 로 잇는다 (wetherilli 217).",
  "_뽑은날": "2026-10-02",
  "_출처": "https://services.bgr.de/wms/geologie/guek250/?SERVICE=WMS&REQUEST=GetCapabilities",
  "_지역": "germany",
  "_상류": "bgr",
  "_레이어군차례": 1,
  "레이어군순서": [
-  "독일 지질 (BGR)"
+  "독일 지질 (BGR)",
+  "유럽 1:500만 (IGME5000)"
  ],
  "레이어": [
   {
@@ -55,6 +56,90 @@
     47.2,
     15.1,
     55.1
+   ]
+  },
+  {
+   "name": "bgr:igme5000:37",
+   "title": "지질 — 연대 (육상) (1:500만)",
+   "group": "유럽 1:500만 (IGME5000)",
+   "abstract": "IGME5000 onshore — age (chronostratigraphic). 시대 색에 암상·변성·화성 속성이 붙는다. 줌 11 까지",
+   "bbox": [
+    -84.7,
+    18.7,
+    106.4,
+    84.5
+   ]
+  },
+  {
+   "name": "bgr:igme5000:3",
+   "title": "해저 지질 — 연대 (1:500만)",
+   "group": "유럽 1:500만 (IGME5000)",
+   "abstract": "IGME5000 offshore — age (chronostratigraphic). 대륙붕·대양저",
+   "bbox": [
+    -84.7,
+    18.7,
+    106.4,
+    84.5
+   ]
+  },
+  {
+   "name": "bgr:igme5000:43+44",
+   "title": "변성암 (1:500만)",
+   "group": "유럽 1:500만 (IGME5000)",
+   "abstract": "IGME5000 onshore — metamorphic rocks. 상류가 축척(1:500만 위·아래)으로 가른 둘을 잇는다",
+   "bbox": [
+    -84.7,
+    18.7,
+    106.4,
+    84.5
+   ]
+  },
+  {
+   "name": "bgr:igme5000:39",
+   "title": "화성암 (1:500만)",
+   "group": "유럽 1:500만 (IGME5000)",
+   "abstract": "IGME5000 onshore — igneous rocks",
+   "bbox": [
+    -84.7,
+    18.7,
+    106.4,
+    84.5
+   ]
+  },
+  {
+   "name": "bgr:igme5000:41",
+   "title": "오피올라이트 (1:500만)",
+   "group": "유럽 1:500만 (IGME5000)",
+   "abstract": "IGME5000 onshore — ophiolite complex",
+   "bbox": [
+    -84.7,
+    18.7,
+    106.4,
+    84.5
+   ]
+  },
+  {
+   "name": "bgr:igme5000:46+47+48",
+   "title": "단층·지질 경계 (1:500만)",
+   "group": "유럽 1:500만 (IGME5000)",
+   "abstract": "IGME5000 onshore — faults. 축척마다 갈린 셋을 잇는다",
+   "bbox": [
+    -84.7,
+    18.7,
+    106.4,
+    84.5
+   ]
+  },
+  {
+   "name": "bgr:igme5000:51+53+55+57",
+   "title": "연대 기호 (1:500만)",
+   "group": "유럽 1:500만 (IGME5000)",
+   "abstract": "IGME5000 onshore — text symbol (age). 축척마다 갈린 넷을 잇는다",
+   "bbox": [
+    -84.7,
+    18.7,
+    106.4,
+    84.5
    ]
   }
  ]

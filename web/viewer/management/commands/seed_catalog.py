@@ -114,6 +114,11 @@ class Command(BaseCommand):
                 (settings.GSIINDIA_CATALOG_SEED, "인도 (GSI)", "india", "gsiindia"),
                 # 사우디아라비아 — SGS 1:25만 합본 (wetherilli 227)
                 (settings.SGS_CATALOG_SEED, "사우디아라비아 (SGS)", "saudi", "sgs"),
+                # 동남아 — 인도네시아 ESDM·말레이시아 JMG·필리핀 MGB·태국 DMR (wetherilli 228)
+                (settings.ESDM_CATALOG_SEED, "인도네시아 (ESDM)", "indonesia", "esdm"),
+                (settings.JMG_CATALOG_SEED, "말레이시아 (JMG)", "malaysia", "jmg"),
+                (settings.MGB_CATALOG_SEED, "필리핀 (MGB)", "philippines", "mgb"),
+                (settings.DMR_CATALOG_SEED, "태국 (DMR)", "thailand", "dmr"),
                 # 아프리카 — CGMW–BRGM 1:1000만, BGS 지하수 지도책 나라별 1:500만 지질 (wetherilli 207)
                 (settings.CGMW_CATALOG_SEED, "아프리카 (CGMW–BRGM)", "africa", "cgmw"),
                 (settings.AGA_CATALOG_SEED, "아프리카 나라별 (BGS AGA)", "africa", "aga"),
@@ -126,6 +131,15 @@ class Command(BaseCommand):
                 # 퀘벡 SIGÉOM·유콘 YGS (wetherilli 210)
                 (settings.SIGEOM_CATALOG_SEED, "퀘벡 (SIGÉOM)", "canada", "sigeom"),
                 (settings.YGS_CATALOG_SEED, "유콘 (YGS)", "canada", "ygs"),
+                # 브리티시컬럼비아 BCGS(캐나다 탭)·캘리포니아 CGS(미국 탭) (wetherilli 231)
+                (settings.BCGS_CATALOG_SEED, "브리티시컬럼비아 (BCGS)", "canada", "bcgs"),
+                (settings.CALGS_CATALOG_SEED, "캘리포니아 (CGS)", "usa", "calgs"),
+                # 유럽 — 오스트리아 GeoSphere·폴란드 PIG·네덜란드 TNO·벨기에(플랑드르 DOV·왈로니아 SPW) (wetherilli 237)
+                (settings.GEOSPHERE_CATALOG_SEED, "오스트리아 (GeoSphere)", "austria", "geosphere"),
+                (settings.PIG_CATALOG_SEED, "폴란드 (PIG-PIB)", "poland", "pig"),
+                (settings.TNO_CATALOG_SEED, "네덜란드 (TNO)", "netherlands", "tno"),
+                (settings.DOV_CATALOG_SEED, "플랑드르 (DOV)", "belgium", "dov"),
+                (settings.SPW_CATALOG_SEED, "왈로니아 (SPW)", "belgium", "spw"),
                 # 이탈리아 ISPRA·포르투갈 LNEG·스위스 swisstopo (wetherilli 211)
                 (settings.ISPRA_CATALOG_SEED, "이탈리아 (ISPRA)", "italy", "ispra"),
                 (settings.LNEG_CATALOG_SEED, "포르투갈 (LNEG)", "portugal", "lneg"),

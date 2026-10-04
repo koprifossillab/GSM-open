@@ -268,10 +268,10 @@ class IngemmetPlan:
         self.name = name
 
     def seconds(self, rate, meta):
-        return max(1 / rate, 2.0 if self.name in ingemmet.STRUCTURES else 1.5)   # 캐시 1.3–1.8 초, 단층·습곡 export 1.5–2 초 (2026-10-04)
+        return max(1 / rate, 2.0 if ingemmet.first_zoom(self.name) else 1.5)   # 캐시 1.3–1.8 초, 단층·습곡 export 1.5–2 초 (2026-10-04)
 
     def tiles_for(self, bbox, z):
-        first = ingemmet.STRUCTURES.get(self.name, {}).get("min")     # 단층·습곡은 화면이 그리는 줌부터 (wetherilli 222)
+        first = ingemmet.first_zoom(self.name)     # 단층·습곡은 화면이 그리는 줌부터 (wetherilli 222)
         if z > ingemmet.max_zoom(self.name) or (first and z < first):
             return iter(())
         return tilegrid.tiles_for(bbox, z)        # 칸 수(2^z)로 세므로 256 px z/x/y 에도 맞는다 — 일본과 같다
@@ -430,7 +430,7 @@ NOT_LAYERS = {
 #: (wetherilli 182). 같은 상류도 판마다(IGME 1:100만 4326·MAGNA 3857), 레이어군마다(EMODnet 북극해 3413·유럽 바다 3857) 다르다.
 #: PGC 경사·등고선(wetherilli 099)도 같은 길이다 — 182 가 "더하면 된다" 고 남긴 것 (wetherilli 203)
 PROJECTED = ("pgc", "emodnet", "ngu", "gtk", "bgs", "brgm", "egdi", "bgr", "igme", "gsi", "gsni", "sgc", "sgb", "segemar", "dinamige",
-             "iige", "mrdata", "sgm", "cgmw", "aga", "nrcan", "ogs", "sigeom", "ygs", "ga", "gsq", "gsv", "gssa", "ispra", "lneg", "swisstopo", "sgu", "natt", "gns", "mris", "gsiindia", "sgs")
+             "iige", "mrdata", "sgm", "cgmw", "aga", "nrcan", "ogs", "sigeom", "ygs", "ga", "gsq", "gsv", "gssa", "ispra", "lneg", "swisstopo", "sgu", "natt", "gns", "mris", "gsiindia", "sgs", "esdm", "jmg", "mgb", "dmr", "bcgs", "calgs", "geosphere", "pig", "tno", "dov", "spw")
 
 
 def _projected_plan(name, upstream):

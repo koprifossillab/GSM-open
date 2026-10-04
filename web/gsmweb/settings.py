@@ -164,6 +164,11 @@ GSIINDIA_FEATURE_URL = env("GSM_GSIINDIA_FEATURE_URL", "https://services7.arcgis
                                                        "Geology_2M_WFL1/FeatureServer")
 #: 사우디 1:25만 — SGS 국가 지질 자료(NGD) ArcGIS 의 앞 주소 (`viewer/sgs.py`, wetherilli 227). 열쇠가 없다
 SGS_URL = env("GSM_SGS_URL", "https://ngdgis.sgs.gov.sa/ngdgis")
+#: 동남아 — 인도네시아 ESDM·필리핀 MGB·태국 DMR ArcGIS(WMS)·말레이시아 JMG ArcGIS(REST)의 앞 주소 (wetherilli 228). 열쇠가 없다
+ESDM_URL = env("GSM_ESDM_URL", "https://geoportal.esdm.go.id/gis4")
+MGB_URL = env("GSM_MGB_URL", "https://controlmap.mgb.gov.ph/arcgis")
+DMR_URL = env("GSM_DMR_URL", "https://gisportal.dmr.go.th/arcgis")
+JMG_URL = env("GSM_JMG_URL", "https://mygems.jmg.gov.my/server")
 #: 영국·프랑스·범유럽 지질도 — BGS ArcGIS·BRGM MapServer·EGDI GeoServer WMS (`viewer/bgs.py`·`brgm.py`·`egdi.py`, wetherilli 143). 열쇠가 없다
 BGS_WMS_URL = env("GSM_BGS_WMS_URL", "https://map.bgs.ac.uk/arcgis/services/BGS_Detailed_Geology/MapServer/WMSServer")
 BRGM_WMS_URL = env("GSM_BRGM_WMS_URL", "https://geoservices.brgm.fr/geologie")
@@ -207,6 +212,16 @@ OGS_URL = env("GSM_OGS_URL", "https://ws.lioservices.lrc.gov.on.ca/arcgis1071a")
 #: 캐나다의 주 판 — 퀘벡 SIGÉOM(GeoServer 앞단, WMS 1.1.1)·유콘 YGS(ArcGIS WMS) (wetherilli 210). 열쇠가 없다
 SIGEOM_WMS_URL = env("GSM_SIGEOM_WMS_URL", "https://servicesvectoriels.atlas.gouv.qc.ca/IDS_SGM_WMS/service.svc/get")
 YGS_WMS_URL = env("GSM_YGS_WMS_URL", "https://mapservices.gov.yk.ca/arcgis/services/GeoYukon/GY_Geological/MapServer/WMSServer")
+#: 브리티시컬럼비아 BC Digital Geology — openmaps GeoServer WMS (`viewer/bcgs.py`, wetherilli 231). 열쇠가 없다
+BCGS_WMS_URL = env("GSM_BCGS_WMS_URL", "https://openmaps.gov.bc.ca/geo/pub/WHSE_MINERAL_TENURE.GEOL_BEDROCK_UNIT_POLY_SVW/ows")
+#: 캘리포니아 지질도 1:75만 — CGS ArcGIS 의 앞 주소 (`viewer/calgs.py`, wetherilli 231). 열쇠가 없다
+CALGS_URL = env("GSM_CALGS_URL", "https://gis.conservation.ca.gov/server")
+#: 유럽 — 오스트리아 GeoSphere·폴란드 PIG·네덜란드 TNO·플랑드르 DOV·왈로니아 SPW (wetherilli 237). 열쇠가 없다
+GEOSPHERE_URL = env("GSM_GEOSPHERE_URL", "https://gis.geosphere.at/maps")
+PIG_URL = env("GSM_PIG_URL", "https://cbdgmapa.pgi.gov.pl/arcgis")
+TNO_WMS_URL = env("GSM_TNO_WMS_URL", "https://www.gdngeoservices.nl/inspire/geoserver/geomap_as_is/ows")
+DOV_WMS_URL = env("GSM_DOV_WMS_URL", "https://www.dov.vlaanderen.be/geoserver/wms")
+SPW_URL = env("GSM_SPW_URL", "https://geoservices.wallonie.be/arcgis")
 #: 호주 지표 지질도 — Geoscience Australia ArcGIS WMS·REST (wetherilli 212). 열쇠가 없다
 GA_WMS_URL = env("GSM_GA_WMS_URL", "https://services.ga.gov.au/gis/services/GA_Surface_Geology/MapServer/WMSServer")
 GA_REST_URL = env("GSM_GA_REST_URL", "https://services.ga.gov.au/gis/rest/services/GA_Surface_Geology/MapServer")
@@ -478,6 +493,15 @@ OGS_CATALOG_SEED = REPO_DIR / "data" / "ogs_layers.json"
 #: 캐나다의 주 판 — 퀘벡·유콘 (wetherilli 210)
 SIGEOM_CATALOG_SEED = REPO_DIR / "data" / "sigeom_layers.json"
 YGS_CATALOG_SEED = REPO_DIR / "data" / "ygs_layers.json"
+#: 브리티시컬럼비아·캘리포니아 (wetherilli 231)
+BCGS_CATALOG_SEED = REPO_DIR / "data" / "bcgs_layers.json"
+CALGS_CATALOG_SEED = REPO_DIR / "data" / "calgs_layers.json"
+#: 오스트리아·폴란드·네덜란드·벨기에 (wetherilli 237)
+GEOSPHERE_CATALOG_SEED = REPO_DIR / "data" / "geosphere_layers.json"
+PIG_CATALOG_SEED = REPO_DIR / "data" / "pig_layers.json"
+TNO_CATALOG_SEED = REPO_DIR / "data" / "tno_layers.json"
+DOV_CATALOG_SEED = REPO_DIR / "data" / "dov_layers.json"
+SPW_CATALOG_SEED = REPO_DIR / "data" / "spw_layers.json"
 #: 호주 (wetherilli 212)
 GA_CATALOG_SEED = REPO_DIR / "data" / "ga_layers.json"
 #: 호주의 주 판 — 퀸즐랜드·빅토리아·남호주 (wetherilli 225)
@@ -493,6 +517,11 @@ MRIS_CATALOG_SEED = REPO_DIR / "data" / "mris_layers.json"
 GSIINDIA_CATALOG_SEED = REPO_DIR / "data" / "gsiindia_layers.json"
 #: 사우디아라비아 (wetherilli 227)
 SGS_CATALOG_SEED = REPO_DIR / "data" / "sgs_layers.json"
+#: 동남아 (wetherilli 228)
+ESDM_CATALOG_SEED = REPO_DIR / "data" / "esdm_layers.json"
+JMG_CATALOG_SEED = REPO_DIR / "data" / "jmg_layers.json"
+MGB_CATALOG_SEED = REPO_DIR / "data" / "mgb_layers.json"
+DMR_CATALOG_SEED = REPO_DIR / "data" / "dmr_layers.json"
 #: 이탈리아·포르투갈·스위스 (wetherilli 211)
 ISPRA_CATALOG_SEED = REPO_DIR / "data" / "ispra_layers.json"
 LNEG_CATALOG_SEED = REPO_DIR / "data" / "lneg_layers.json"

@@ -1,5 +1,5 @@
 {
- "_주석": "SGM(멕시코 지질조사소) 지질·광업도 씨앗이다 — 멕시코 탭. ArcGIS REST(WMS 는 400)라 문(web/viewer/sgm.py)이 WMS 변수를 export 로 옮긴다. 레이어명은 sgm:<REST 번호>. 한글 제목과 레이어군은 사람이 붙였다 (wetherilli 206). 같은 서버의 지질 연대 측정·고생물 산지·광상 1:25만은 sgm:<서비스>:<REST 번호> 로 둔다 — 문의 SERVICES (wetherilli 219).",
+ "_주석": "SGM(멕시코 지질조사소) 지질·광업도 씨앗이다 — 멕시코 탭. ArcGIS REST(WMS 는 400)라 문(web/viewer/sgm.py)이 WMS 변수를 export 로 옮긴다. 레이어명은 sgm:<REST 번호>. 한글 제목과 레이어군은 사람이 붙였다 (wetherilli 206). 같은 서버의 지질 연대 측정·고생물 산지·광상 1:25만은 sgm:<서비스>:<REST 번호> 로 둔다 — 문의 SERVICES (wetherilli 219). 지화학(하천 퇴적물 시료·원소 이상 지점)과 광상의 나머지(변질대·비금속 광화 지역·광산 1:5만)도 (wetherilli 233).",
  "_뽑은날": "2026-10-04",
  "_출처": "https://portal.sgm.gob.mx/arcgis/rest/services/SGM/SUNGeologiaContinuoMineDatosEs/MapServer?f=json",
  "_지역": "mexico",
@@ -9,7 +9,8 @@
   "멕시코 지질도 (SGM 1:25만)",
   "멕시코 지질도 (SGM 1:5만, 광업 지구)",
   "멕시코 지질 연대·화석 (SGM)",
-  "멕시코 광상 (SGM 1:25만)"
+  "멕시코 광상 (SGM 1:25만)",
+  "멕시코 지화학 (SGM)"
  ],
  "레이어": [
   {
@@ -113,6 +114,198 @@
    "title": "광산 지구",
    "group": "멕시코 광상 (SGM 1:25만)",
    "abstract": "Distritos mineros — 305 면",
+   "bbox": [
+    -118.5,
+    14.5,
+    -86.7,
+    32.8
+   ]
+  },
+  {
+   "name": "sgm:geoq:0",
+   "title": "하천 퇴적물 지화학 시료",
+   "group": "멕시코 지화학 (SGM)",
+   "abstract": "Geoquímica — 21 만 5 천 점, 원소 34 가지. 줌 9 부터",
+   "bbox": [
+    -118.5,
+    14.5,
+    -86.7,
+    32.8
+   ]
+  },
+  {
+   "name": "sgm:anom250:0",
+   "title": "은(Ag) 이상 (1:25만)",
+   "group": "멕시코 지화학 (SGM)",
+   "abstract": "Anomalías de Ag esc 1:250,000 — 함량 구간 다섯. 줌 8 부터",
+   "bbox": [
+    -118.5,
+    14.5,
+    -86.7,
+    32.8
+   ]
+  },
+  {
+   "name": "sgm:anom250:1",
+   "title": "코발트(Co) 이상 (1:25만)",
+   "group": "멕시코 지화학 (SGM)",
+   "abstract": "Anomalías de Co esc 1:250,000 — 함량 구간 다섯. 줌 8 부터",
+   "bbox": [
+    -118.5,
+    14.5,
+    -86.7,
+    32.8
+   ]
+  },
+  {
+   "name": "sgm:anom250:2",
+   "title": "구리(Cu) 이상 (1:25만)",
+   "group": "멕시코 지화학 (SGM)",
+   "abstract": "Anomalías de Cu esc 1:250,000 — 함량 구간 다섯. 줌 8 부터",
+   "bbox": [
+    -118.5,
+    14.5,
+    -86.7,
+    32.8
+   ]
+  },
+  {
+   "name": "sgm:anom250:3",
+   "title": "망간(Mn) 이상 (1:25만)",
+   "group": "멕시코 지화학 (SGM)",
+   "abstract": "Anomalías de Mn esc 1:250,000 — 함량 구간 다섯. 줌 8 부터",
+   "bbox": [
+    -118.5,
+    14.5,
+    -86.7,
+    32.8
+   ]
+  },
+  {
+   "name": "sgm:anom250:4",
+   "title": "납(Pb) 이상 (1:25만)",
+   "group": "멕시코 지화학 (SGM)",
+   "abstract": "Anomalías de Pb esc 1:250,000 — 함량 구간 다섯. 줌 8 부터",
+   "bbox": [
+    -118.5,
+    14.5,
+    -86.7,
+    32.8
+   ]
+  },
+  {
+   "name": "sgm:anom250:5",
+   "title": "아연(Zn) 이상 (1:25만)",
+   "group": "멕시코 지화학 (SGM)",
+   "abstract": "Anomalías de Zn esc 1:250,000 — 함량 구간 다섯. 줌 8 부터",
+   "bbox": [
+    -118.5,
+    14.5,
+    -86.7,
+    32.8
+   ]
+  },
+  {
+   "name": "sgm:anom50:0",
+   "title": "은(Ag) 이상 (1:5만)",
+   "group": "멕시코 지화학 (SGM)",
+   "abstract": "Anomalías de Ag esc 1:50,000 — 함량 구간 다섯. 줌 10 부터",
+   "bbox": [
+    -118.5,
+    14.5,
+    -86.7,
+    32.8
+   ]
+  },
+  {
+   "name": "sgm:anom50:1",
+   "title": "코발트(Co) 이상 (1:5만)",
+   "group": "멕시코 지화학 (SGM)",
+   "abstract": "Anomalías de Co esc 1:50,000 — 함량 구간 다섯. 줌 10 부터",
+   "bbox": [
+    -118.5,
+    14.5,
+    -86.7,
+    32.8
+   ]
+  },
+  {
+   "name": "sgm:anom50:2",
+   "title": "구리(Cu) 이상 (1:5만)",
+   "group": "멕시코 지화학 (SGM)",
+   "abstract": "Anomalías de Cu esc 1:50,000 — 함량 구간 다섯. 줌 10 부터",
+   "bbox": [
+    -118.5,
+    14.5,
+    -86.7,
+    32.8
+   ]
+  },
+  {
+   "name": "sgm:anom50:3",
+   "title": "망간(Mn) 이상 (1:5만)",
+   "group": "멕시코 지화학 (SGM)",
+   "abstract": "Anomalías de Mn esc 1:50,000 — 함량 구간 다섯. 줌 10 부터",
+   "bbox": [
+    -118.5,
+    14.5,
+    -86.7,
+    32.8
+   ]
+  },
+  {
+   "name": "sgm:anom50:4",
+   "title": "납(Pb) 이상 (1:5만)",
+   "group": "멕시코 지화학 (SGM)",
+   "abstract": "Anomalías de Pb esc 1:50,000 — 함량 구간 다섯. 줌 10 부터",
+   "bbox": [
+    -118.5,
+    14.5,
+    -86.7,
+    32.8
+   ]
+  },
+  {
+   "name": "sgm:anom50:5",
+   "title": "아연(Zn) 이상 (1:5만)",
+   "group": "멕시코 지화학 (SGM)",
+   "abstract": "Anomalías de Zn esc 1:50,000 — 함량 구간 다섯. 줌 10 부터",
+   "bbox": [
+    -118.5,
+    14.5,
+    -86.7,
+    32.8
+   ]
+  },
+  {
+   "name": "sgm:yac:1",
+   "title": "변질대",
+   "group": "멕시코 광상 (SGM 1:25만)",
+   "abstract": "Alteraciones — 2 262 면",
+   "bbox": [
+    -118.5,
+    14.5,
+    -86.7,
+    32.8
+   ]
+  },
+  {
+   "name": "sgm:yac:4",
+   "title": "비금속 광화 지역",
+   "group": "멕시코 광상 (SGM 1:25만)",
+   "abstract": "Regiones no metálicas — 179 면",
+   "bbox": [
+    -118.5,
+    14.5,
+    -86.7,
+    32.8
+   ]
+  },
+  {
+   "name": "sgm:yac50:0",
+   "title": "광산·광상 (1:5만)",
+   "group": "멕시코 광상 (SGM 1:25만)",
+   "abstract": "Yacimientos minerales — Minas 45 878 점. 줌 10 부터",
    "bbox": [
     -118.5,
     14.5,

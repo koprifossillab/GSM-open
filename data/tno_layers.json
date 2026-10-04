@@ -1,0 +1,25 @@
+{
+ "_주석": "TNO 지질조사부(GDN) 지표 지질도 씨앗이다 — 네덜란드 탭(유럽 묶음에도 든다). gdngeoservices.nl 의 geomap_as_is GeoServer 에서 골랐다. 한글 제목과 레이어군은 사람이 붙였다 (wetherilli 237).",
+ "_뽑은날": "2026-10-04",
+ "_출처": "https://www.gdngeoservices.nl/inspire/geoserver/geomap_as_is/ows?SERVICE=WMS&REQUEST=GetCapabilities",
+ "_지역": "netherlands",
+ "_상류": "tno",
+ "_레이어군차례": 1,
+ "레이어군순서": [
+  "네덜란드 지질도 (TNO)"
+ ],
+ "레이어": [
+  {
+   "name": "tno:geology",
+   "title": "지표 지질도",
+   "group": "네덜란드 지질도 (TNO)",
+   "abstract": "GKNederlandGeolVlak — geological_map_v2021",
+   "bbox": [
+    3.3,
+    50.7,
+    7.3,
+    53.6
+   ]
+  }
+ ]
+}

@@ -272,6 +272,13 @@
 | wetherilli 229 | 2026-10-04 | [달·수성 — USGS Astrogeology WMS 의 옛 탐사선 배경 (루나 오비터·클레멘타인·마리너 10)](20261004_wetherilli_229_moon_astro_basemaps.md) |
 | wetherilli 230 | 2026-10-04 | [일본의 좌표 → 주소 — 국토지리원 역지오코더를 브라우저가 곧장](20261004_wetherilli_230_japan_reverse_geocode.md) |
 | wetherilli 232 | 2026-10-04 | [호주 주 판 — 퀸즐랜드·남호주의 범례와 구조선](20261004_wetherilli_232_australia_states_legends.md) |
+| wetherilli 217 | 2026-10-04 | [유럽 1:500만 — BGR IGME5000](20261004_wetherilli_217_bgr_igme5000.md) |
+| wetherilli 228 | 2026-10-04 | [동남아 — 인도네시아·말레이시아·필리핀·태국 탭과 묶음](20261004_wetherilli_228_southeast_asia.md) |
+| wetherilli 231 | 2026-10-04 | [브리티시컬럼비아·캘리포니아 — 캐나다 탭과 미국 탭에 주 지질도 둘](20261004_wetherilli_231_bc_california.md) |
+| wetherilli 233 | 2026-10-04 | [멕시코 — SGM 의 지화학·원소 이상·광상 나머지](20261004_wetherilli_233_mexico_geochem.md) |
+| wetherilli 234 | 2026-10-04 | [페루 — INGEMMET 1:5만 지질 단위만(단층·습곡 없이)](20261004_wetherilli_234_ingemmet_units.md) |
+| wetherilli 236 | 2026-10-04 | [달 — 누른 자리의 값, 남은 판](20261004_wetherilli_236_moon_values_rest.md) |
+| wetherilli 237 | 2026-10-05 | [유럽 넷 더 — 오스트리아·폴란드·네덜란드·벨기에, 체코·덴마크는 사람에게](20261005_wetherilli_237_europe_more_3.md) |
 | koprifossillab P01 | 2026-09-30 | [백업 — WegenersDream 의 틀로, 바뀌는 빠르기에 따라 넷으로 (계획)](20260930_koprifossillab_P01_backup_plan.md) |
 | koprifossillab 001 | 2026-09-30 | [매주 월요일 새벽: 운영 자료 백업과 KPDC 목록 갱신](20260930_koprifossillab_001_weekly_backup.md) |
 | koprifossillab 002 | 2026-09-30 | [`/healthz/` — 판·DB·백업 상태를 한 장으로](20260930_koprifossillab_002_healthz.md) |

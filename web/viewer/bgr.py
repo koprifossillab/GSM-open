@@ -1,6 +1,10 @@
-"""BGR(독일 연방 지구과학·자원청)로 나가는 문 — 독일 지질도 (wetherilli 147).
+"""BGR(독일 연방 지구과학·자원청)로 나가는 문 — 독일 지질도 (wetherilli 147), 유럽 1:500만 IGME5000 (wetherilli 217).
 
-- 주소: `services.bgr.de/wms/geologie/<판>/` (ArcGIS WMS). 판은 둘 — `gk1000`(1:100만)·`guek250`(1:25만). 열쇠가 없다
+- 주소: `services.bgr.de/wms/geologie/<판>/` (ArcGIS WMS). 판은 셋 — `gk1000`(1:100만)·`guek250`(1:25만)·`igme5000`(유럽과 이웃 1:500만,
+  2005–2007). 열쇠가 없다
+- IGME5000 은 아이슬란드에서 우랄·노바야젬랴·카자흐스탄 서북, 튀르키예·북아프리카 가장자리까지 덮는다. 상류가 축척마다 다른 레이어로
+  가른 단층·변성암·연대 기호는 `+` 로 이어 한 레이어로 부른다(`bgr:igme5000:46+47+48` → WMS `46,47,48`). 1:23만보다 가까우면 그리지
+  않아 줌 11 까지다. 속성은 판 셋이 다 같은 꼴(`application/geo+json`)이고 IGME5000 은 영어 열(`name older rock age` …)이다
 - 조건: BGR 일반 약관(AGB). INSPIRE·WMS 자료는 출처를 밝히면 무료로 쓴다 — 인용 꼴은 GetCapabilities 의 것
   ("Datenquelle: GÜK250 (WMS), (c) BGR, Hannover, 2019"). `ATTRIBUTION`
 - 3857 을 그대로 받는다. 판마다 그리는 줌이 좁다 — GK1000 은 9–10, GÜK250 은 10–14(2026-10-02 에 카셀에서 잰 것, `ZOOMS`)
@@ -12,15 +16,20 @@ import logging
 import requests
 from django.conf import settings
 
-from . import usage
+from . import i18n, usage
 
 log = logging.getLogger(__name__)
 
 PREFIX = "bgr:"
 ATTRIBUTION = ('Datenquelle: GÜK250 · GK1000 (WMS), <a href="https://www.bgr.bund.de/" target="_blank" rel="noopener">'
                '© BGR</a>, Hannover')
+#: 판마다 다른 인용 — Capabilities 가 적은 꼴 그대로
+ATTRIBUTIONS = {"igme5000": ('Datenquelle: IGME5000, <a href="https://www.bgr.bund.de/" target="_blank" rel="noopener">'
+                             '© BGR</a> Hannover, 2007')}
 #: 판마다 그리는 화면 줌(3857, 처음·끝)
-ZOOMS = {"gk1000": (9, 10), "guek250": (10, 14)}
+ZOOMS = {"gk1000": (9, 10), "guek250": (10, 14), "igme5000": (None, 11)}
+#: 누를 것이 없는 레이어 — 단층(선의 갈래 하나뿐)·연대 기호(글자)
+NOT_QUERYABLE = ("igme5000:46+47+48", "igme5000:51+53+55+57")
 
 
 class BgrError(RuntimeError):
@@ -38,10 +47,21 @@ def split(name: str):
         if sheet not in ZOOMS or not layer:
             raise BgrError(f"모르는 레이어다: {one}")
         sheets.add(sheet)
-        layers.append(layer)
+        layers.append(layer.replace("+", ","))
     if len(sheets) != 1:
         raise BgrError("판이 다른 레이어를 한 번에 물을 수 없다")
     return sheets.pop(), ",".join(layers)
+
+
+def attribution(name: str) -> str:
+    try:
+        return ATTRIBUTIONS.get(split(name)[0], ATTRIBUTION)
+    except BgrError:
+        return ATTRIBUTION
+
+
+def queryable(name: str) -> bool:
+    return str(name).removeprefix(PREFIX) not in NOT_QUERYABLE
 
 
 def _get(sheet: str, params: dict):
@@ -82,7 +102,7 @@ def get_map(params: dict):
 def get_legend(layer: str):
     sheet, name = split(layer)
     r = _get(sheet, {"service": "WMS", "version": "1.1.1", "request": "GetLegendGraphic", "format": "image/png",
-                     "layer": name})
+                     "layer": name.split(",")[0]})
     if r.status_code != 200 or not r.headers.get("content-type", "").startswith("image/"):
         raise BgrError(f"범례가 아닌 것이 왔다 (status={r.status_code})")
     return r.content, r.headers.get("content-type")
@@ -117,7 +137,28 @@ FRIENDLY = (
 )
 
 
-def friendly(props: dict) -> dict:
+def _v(props: dict, key: str) -> str:
+    value = str(props.get(key) if props.get(key) is not None else "").strip()
+    return "" if value.lower() in ("null", "none") else value
+
+
+def igme5000_friendly(props: dict, lang: str = "ko") -> dict:
+    """IGME5000 의 영어 열 → 한국어. 시대 이름만 옮긴다(`Devonian - Permian` → 데본기~페름기). `Alpine`·`Proterozoic III` 처럼
+    ICS 에 없는 이름은 그대로 둔다. 연대(Ma)는 소수점이 쉼표로 온다"""
+    v = lambda k: _v(props, k)          # noqa: E731
+    age = v("name older rock age")
+    ma = " – ".join(x.replace(",", ".") for x in (v("younger rock age"), v("older rock age")) if x)
+    rock = ", ".join(x for x in (v(f"petrography{n}") for n in range(1, 5)) if x and x != "undifferentiated")
+    rows = (("기호", v("symbol older rock age")), ("지질시대", i18n.age_ko(age) if lang == "ko" and age else age),
+            ("연대 (Ma)", ma), ("암석", rock), ("변성암", v("metamorphic rock")), ("화성암", v("igneous rock")),
+            ("해양 지질", v("marin geology")), ("성인", v("genetic element")), ("지역", v("regional name")),
+            ("경계·구조선", v("boundary or structure line")))
+    return {k: x for k, x in rows if x}
+
+
+def friendly(props: dict, lang: str = "ko") -> dict:
+    if "name older rock age" in props or "boundary or structure line" in props:
+        return igme5000_friendly(props, lang)
     out = {}
     for key, label in FRIENDLY:
         value = str(props.get(key) or "").strip()

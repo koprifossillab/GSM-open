@@ -149,7 +149,7 @@ urlpatterns = [
     # 브라질 — 보는 범위의 범례 (sgb.py, wetherilli 191)
     path("sgb/legend/", views.sgb_legend, name="sgb-legend"),
     # 페루 — REST 타일 캐시 중계·누른 자리·보는 범위의 범례 (ingemmet.py, wetherilli 195), 단층·습곡은 export 를 타일 칸으로 (222)
-    re_path(r"^ingemmet/(?P<sheet>50k|100k|faults_1m|faults_100k|folds_100k|faults_50k|folds_50k)/(?P<z>\d{1,2})/(?P<x>\d{1,6})/(?P<y>\d{1,6})\.png$",
+    re_path(r"^ingemmet/(?P<sheet>50k|50k_units|100k|faults_1m|faults_100k|folds_100k|faults_50k|folds_50k)/(?P<z>\d{1,2})/(?P<x>\d{1,6})/(?P<y>\d{1,6})\.png$",
             views.ingemmet_tile, name="ingemmet-tile"),
     path("ingemmet/info/", views.ingemmet_info, name="ingemmet-info"),
     path("ingemmet/legend/", views.ingemmet_legend, name="ingemmet-legend"),
@@ -159,6 +159,8 @@ urlpatterns = [
     path("mris/legend/", views.mris_legend, name="mris-legend"),
     # 사우디 — 보는 범위의 범례 (sgs.py, wetherilli 227)
     path("sgs/legend/", views.sgs_legend, name="sgs-legend"),
+    # 동남아 — ArcGIS REST 범례를 목록으로, 문 여럿이 함께 (jmg.py·dmr.py, wetherilli 228)
+    path("list/legend/", views.list_legend, name="list-legend"),
     # 남아공 — REST 범례를 목록으로 (cgs.py, wetherilli 209)
     path("cgs/legend/", views.cgs_legend, name="cgs-legend"),
     # 에콰도르 — 보는 범위의 범례 (iige.py, wetherilli 198)

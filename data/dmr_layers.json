@@ -1,0 +1,25 @@
+{
+ "_주석": "태국 광물자원국(DMR) 씨앗이다 — 태국 탭(동남아 묶음에도 든다). 2026-10-04 에 gisportal.dmr.go.th 의 GEOL 폴더 WMS 에서 골랐다. 한글 제목과 레이어군은 사람이 붙였다 (wetherilli 228).",
+ "_뽑은날": "2026-10-04",
+ "_출처": "https://gisportal.dmr.go.th/arcgis/services/GEOL/ROCK_UNIT_250K/MapServer/WMSServer?SERVICE=WMS&REQUEST=GetCapabilities",
+ "_지역": "thailand",
+ "_상류": "dmr",
+ "_레이어군차례": 1,
+ "레이어군순서": [
+  "태국 지질도 (DMR)"
+ ],
+ "레이어": [
+  {
+   "name": "dmr:rock_units",
+   "title": "암석 단위 (1:25만)",
+   "group": "태국 지질도 (DMR)",
+   "abstract": "ROCK_UNIT_250K — หน่วยหิน 1:250,000",
+   "bbox": [
+    97.3,
+    5.6,
+    105.7,
+    20.5
+   ]
+  }
+ ]
+}

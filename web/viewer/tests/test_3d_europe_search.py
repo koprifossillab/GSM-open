@@ -47,7 +47,7 @@ class Map3D(TestCase):
 
     def test_유럽_묶음(self):
         js = MAP3D_JS.read_text(encoding="utf-8")
-        self.assertIn('europe: ["uk", "ireland", "france", "germany", "spain", "portugal", "italy", "switzerland"]', js)   # wetherilli 211
+        self.assertIn('europe: ["uk", "ireland", "france", "germany", "spain", "portugal", "italy", "switzerland", "austria", "poland", "netherlands", "belgium"]', js)   # wetherilli 211
         self.assertIn("data-tiles", js)
         self.assertIn("layer.minzoom", js)
 

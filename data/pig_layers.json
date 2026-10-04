@@ -1,0 +1,37 @@
+{
+ "_주석": "폴란드 지질연구소(PIG-PIB) 1:50만 2022 판 씨앗이다 — 폴란드 탭(유럽 묶음에도 든다). WMS 번호가 REST 와 거꾸로다. 한글 제목과 레이어군은 사람이 붙였다 (wetherilli 237).",
+ "_뽑은날": "2026-10-04",
+ "_출처": "https://cbdgmapa.pgi.gov.pl/arcgis/services/kartografia/mgp500k_2022/MapServer/WMSServer?SERVICE=WMS&REQUEST=GetCapabilities",
+ "_지역": "poland",
+ "_상류": "pig",
+ "_레이어군차례": 1,
+ "레이어군순서": [
+  "폴란드 지질도 (PIG-PIB 1:50만)"
+ ],
+ "레이어": [
+  {
+   "name": "pig:mgp500k",
+   "title": "지질도 (1:50만, 2022)",
+   "group": "폴란드 지질도 (PIG-PIB 1:50만)",
+   "abstract": "MGP500k 1·6·11 — 신생대 밑 기반·고신제3기·제4기를 겹친다. 줌 12 너머는 늘려 그린다",
+   "bbox": [
+    14.1,
+    49.0,
+    24.2,
+    54.9
+   ]
+  },
+  {
+   "name": "pig:faults",
+   "title": "단층 (1:50만)",
+   "group": "폴란드 지질도 (PIG-PIB 1:50만)",
+   "abstract": "MGP500k 3·9 — 기반·제3기의 단층. 줌 10 부터",
+   "bbox": [
+    14.1,
+    49.0,
+    24.2,
+    54.9
+   ]
+  }
+ ]
+}

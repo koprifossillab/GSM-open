@@ -1,0 +1,37 @@
+{
+ "_주석": "플랑드르 지하 자료은행(DOV) 씨앗이다 — 벨기에 탭(유럽 묶음에도 든다). 한글 제목과 레이어군은 사람이 붙였다 (wetherilli 237).",
+ "_뽑은날": "2026-10-04",
+ "_출처": "https://www.dov.vlaanderen.be/geoserver/wms",
+ "_지역": "belgium",
+ "_상류": "dov",
+ "_레이어군차례": 1,
+ "레이어군순서": [
+  "플랑드르 지질도 (DOV)"
+ ],
+ "레이어": [
+  {
+   "name": "dov:tertiair_50k",
+   "title": "제3기 지질도 (1:5만)",
+   "group": "플랑드르 지질도 (DOV)",
+   "abstract": "neo_paleo:tertiair_50k — Tertiair geologische kaart",
+   "bbox": [
+    2.5,
+    50.65,
+    5.95,
+    51.55
+   ]
+  },
+  {
+   "name": "dov:quartair_200k",
+   "title": "제4기 단면형 지도 (1:20만)",
+   "group": "플랑드르 지질도 (DOV)",
+   "abstract": "quartair:quartair_200k — Quartairgeologische kaart",
+   "bbox": [
+    2.5,
+    50.65,
+    5.95,
+    51.55
+   ]
+  }
+ ]
+}

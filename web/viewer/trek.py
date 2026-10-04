@@ -548,10 +548,62 @@ VALUES = {
                   "NASA Moon Trek"),
     "ice_paleo": ("trekarcgis", "np_ice_depth_new_240m_mat_paleo_27_Oct_2016", "얼음이 버틸 깊이 — 옛 자전축", "m", 1, 0, 2.5, 2,
                   "NASA Moon Trek"),
+    # 남은 판 (wetherilli 236) — 2026-10-04 에 한 점씩 받아 보았다. 단위는 서비스 이름·자료의 꼴에서 왔다. SMFe 는 이름에 단위가 없다
+    "omat": ("trekarcgis", "Lunar_Kaguya_MIMap_MineralDeconv_OpticalMaturityIndex_50N50S", "광학 성숙도 지수 (OMAT)", "", 1, 0, 1, 3,
+             "Kaguya MI"),
+    "plag_grain": ("trekarcgis", "Lunar_Kaguya_MIMap_MineralDeconv_PlagioclaseGrainSizeMicrons_50N50S", "사장석 알갱이 크기", "µm", 1,
+                   0, 200, 1, "Kaguya MI"),
+    "smfe": ("trekarcgis", "Lunar_Kaguya_MIMap_MineralDeconv_AbundanceSMFe_50N50S", "미세 금속철(SMFe) 상대값 (단위 미확인)", "", 1,
+             0, 7, 2, "Kaguya MI"),
+    **{f"cmi{n}": ("trekarcgis", f"Model{n}_cmi_eq", "지각–맨틀 경계 (기준 반지름 대비 높이)", "km", 1, -200, 100, 1,
+                   f"GRAIL · Wieczorek et al. 2013, model {n}") for n in range(1, 5)},
+    "grain_density": ("trekarcgis2", "grain_density_310_eq", "지각 알갱이 밀도", "kg/m³", 1, 2000, 4000, 0,
+                      "GRAIL · Wieczorek et al. 2013"),
+    "relief": ("trekarcgis", "LOLA_PA_310_eq", "표면 기복 (기준 반지름 대비)", "km", 1, -20, 20, 2, "GRAIL · LOLA"),
+    **{f"cf_{kind}_{ppd}": ("trekarcgis2", f"dgdr_{kind}_cf_clc_cyl_{ppd}_jp2", "크리스티안센 특성 파장", "µm", 1, 6, 10, 2,
+                            "LRO Diviner") for kind in ("std", "nen") for ppd in ("032", "128")},
+    **{f"tbol_{name}": ("trekarcgis2", f"diviner_tbol_{name}", label, "K", 1, 0, 450, 1, "LRO Diviner")
+       for name, label in (("max", "가장 높은 온도"), ("min", "가장 낮은 온도"), ("hour00", "자정의 온도"), ("hour12", "정오의 온도"))},
+    **{f"tbol_{name}": ("trekarcgis2", f"diviner_tbol_{name}", label, "K", 1, -300, 300, 1, "LRO Diviner")
+       for name, label in (("max_anom", "가장 높은 온도의 이상"), ("min_anom", "가장 낮은 온도의 이상"),
+                           ("max_sub_min_anom", "온도 이상의 차"))},
+    "tbol_max_div_min_anom": ("trekarcgis2", "diviner_tbol_max_div_min_anom", "온도 이상의 비", "", 1, -20, 20, 3, "LRO Diviner"),
+    "minirf_cpr": ("trekarcgis2", "minirf_s1_49dnorm_EQ", "원편광 비 (CPR)", "", 1, 0, 15, 2, "LRO Mini-RF"),
+    # 표고를 그린 판(색 음영·음영)은 화성·수성처럼 LOLA 높이를 낸다. 점묶음의 표고(`lola_values`)와 같은 서비스다
+    "moon_elev": ("trekarcgis", DEM_SERVICE, "높이 — 달 기준구 1737.4 km", "m", 1, -10000, 11000, 0, "LRO LOLA 256 ppd"),
 }
 
+#: 한 자리만 덮는 판 — 판 밖은 상류가 오류를 주어 빈 값으로 돌린다 (wetherilli 236)
+LOCAL_VALUES = ("minirf_cpr",)
+
+#: 판이 여럿인 갈래 (wetherilli 236) — 열쇠가 서비스 이름을 품는다. GRAIL 중력은 차수(L50–1200)마다, NAC 경사는 착륙 후보지마다 판이 있다
+#: 갈래 → (열쇠의 꼴, 서비스 뿌리, 이름, 단위, 아래, 위, 자릿수, 출처)
+_GRAV = {"boug": ("부게 중력 교란", "mGal", -3000, 3000, 1), "anom": ("프리에어 중력 이상", "mGal", -3000, 3000, 1),
+         "dist": ("중력 교란", "mGal", -3000, 3000, 1), "geoid": ("지오이드 높이", "m", -2000, 2000, 1),
+         "anomerr": ("중력 이상 오차", "mGal", 0, 1000, 2)}
+_GRAV_KEY = re.compile(r"^grav:(boug|anom|dist|geoid|anomerr):(\d{2,4})$")
+_SLOPE_KEY = re.compile(r"^slope:(LRO_NAC_(?:Slope_\d+m_\w+|CraterSlopes(?:Masked)?_\d+mpp_Site\w|Slope_2_5mpp_Shioli))$")
+
+
+def value_spec(key: str):
+    """갈래 → `VALUES` 꼴의 명세. 고정된 갈래는 `VALUES`, 판이 여럿인 갈래(`grav:…`·`slope:…`)는 열쇠에서 짓는다. 모르면 None."""
+    if key in VALUES:
+        return VALUES[key]
+    m = _GRAV_KEY.match(key)
+    if m:
+        label, unit, lo, hi, digits = _GRAV[m.group(1)]
+        return ("trekarcgis2", f"gggrx_1200a_{m.group(1)}_l{m.group(2)}_eq", label, unit, 1, lo, hi, digits,
+                f"GRAIL GRGM1200A · L{m.group(2)}")
+    if key == "grav:degstr":
+        return ("trekarcgis2", "gggrx_1200a_degstr_eq", "중력 차수 강도", "", 1, 0, 1500, 0, "GRAIL GRGM1200A")
+    m = _SLOPE_KEY.match(key)
+    if m:
+        root = "trekarcgis2" if m.group(1).startswith("LRO_NAC_Slope_") and "mpp" not in m.group(1) else "trekarcgis3"
+        return (root, m.group(1), "경사도", "°", 1, 0, 90, 1, "LRO NAC DEM")     # "경사" 는 팝업에서 지층의 경사(dip)다
+    return None
+
 #: 판이 덮는 위도 끝 — 없으면 온 달
-VALUE_LAT = {key: 50 for key in ("feo", "olivine", "cpx", "opx", "plag")}
+VALUE_LAT = {key: 50 for key in ("feo", "olivine", "cpx", "opx", "plag", "omat", "plag_grain", "smfe")}
 #: 북극 판이 덮는 위도 밑 — 그 밑은 묻지 않는다. 극 평사도법 네모의 가장 먼 귀(FeO ±1 266 km, 얼음 ±300 km)보다 조금 안쪽
 VALUE_NORTH = {"np_feo": 50, "ice_today": 80, "ice_paleo": 80}
 
@@ -573,6 +625,20 @@ _VALUE_IDS = (
     (re.compile(r"^np_feo_mlemelin_031417$"), "np_feo"),
     (re.compile(r"^np_ice_depth_new_240m_mat_today_27_Oct_2016$"), "ice_today"),
     (re.compile(r"^np_ice_depth_new_240m_mat_paleo_27_Oct_2016$"), "ice_paleo"),
+    # 남은 판 (wetherilli 236)
+    (re.compile(r"^Lunar_Kaguya_MIMap_MineralDeconv_OpticalMaturityIndex_50N50S"), "omat"),
+    (re.compile(r"^Lunar_Kaguya_MIMap_MineralDeconv_PlagioclaseGrainSizeMicrons_50N50S"), "plag_grain"),
+    (re.compile(r"^Lunar_Kaguya_MIMap_MineralDeconv_AbundanceSMFe_50N50S"), "smfe"),
+    (re.compile(r"^Model([1-4])_cmi\.eq$"), "cmi"),
+    (re.compile(r"^grain_density_310\.eq$"), "grain_density"),
+    (re.compile(r"^LOLA_PA_310\.eq$"), "relief"),
+    (re.compile(r"^dgdr_(?:Clr)?(std|nen)_cf_clc_cyl_(032|128)_jp2$"), "cf"),
+    (re.compile(r"^diviner_(?:Clr)?tbol_(max|min|hour00|hour12|max_anom|min_anom|max_sub_min_anom|max_div_min_anom)$"), "tbol"),
+    (re.compile(r"^minirf_s1_(?:Clr)?49dnorm_EQ$"), "minirf_cpr"),
+    (re.compile(r"^LRO_LOLA_(?:Clr)?Shade_Global_(?:128ppd_v04|256ppd_v06)$"), "moon_elev"),
+    (re.compile(r"^gggrx_1200a_(boug|anom|dist|geoid|anomerr)_l(\d{2,4})\.eq$"), "grav"),
+    (re.compile(r"^gggrx_1200a_degstr\.eq$"), "grav:degstr"),
+    (re.compile(r"^LRO_NAC_(?:Clr)?(Slope_\d+m_\w+|CraterSlopes(?:Masked)?_\d+mpp_Site\w|Slope_2_5mpp_Shioli)$"), "slope"),
 )
 
 
@@ -618,8 +684,19 @@ def value_key(body: str, label: str) -> str:
         return ""
     for pattern, key in _VALUE_IDS:
         m = pattern.match(label)
-        if m:
-            return key + (m.group(1) if key == "thick" else "")
+        if not m:
+            continue
+        if key in ("thick", "cmi"):
+            return key + m.group(1)
+        if key == "cf":
+            return f"cf_{m.group(1)}_{m.group(2)}"
+        if key == "tbol":
+            return f"tbol_{m.group(1)}"
+        if key == "grav":
+            return f"grav:{m.group(1)}:{m.group(2)}"
+        if key == "slope":
+            return f"slope:LRO_NAC_{m.group(1)}"
+        return key
     return ""
 
 
@@ -629,15 +706,22 @@ def value_at(key: str, lon: float, lat: float) -> dict:
         return _value_rows(MARS_VALUES[key], lon, lat, MARS_SR, _body_base("mars"))
     if key in MERCURY_VALUES:
         return _value_rows(MERCURY_VALUES[key], lon, lat, MERCURY_SR, _body_base("mercury"))
-    root, service, label, unit, scale, lo, hi, digits, source = VALUES[key]
+    root, service, label, unit, scale, lo, hi, digits, source = value_spec(key)
     # Kaguya MI 는 남북위 50° 안뿐이다. 밖을 물으면 빈 값이 아니라 "Invalid … parameters" 오류가 온다(2026-09-30)
     if abs(lat) > VALUE_LAT.get(key, 90) or lat < VALUE_NORTH.get(key, -90):
         return {"rows": []}
     geometry = {"points": [[round(lon, 6), round(lat, 6)]], "spatialReference": {"wkid": SR}}
-    data = _json(_get(f"{root}/rest/services/{service}/ImageServer/getSamples", {
-        "geometry": json.dumps(geometry), "geometryType": "esriGeometryMultipoint",
-        "returnFirstValueOnly": "true", "f": "json",
-    }))
+    try:
+        data = _json(_get(f"{root}/rest/services/{service}/ImageServer/getSamples", {
+            "geometry": json.dumps(geometry), "geometryType": "esriGeometryMultipoint",
+            "returnFirstValueOnly": "true", "f": "json",
+        }))
+    except TrekError as exc:
+        # 한 자리만 덮는 판(NAC 경사·Mini-RF, wetherilli 236)은 판 밖을 물으면 빈 값이 아니라 "Invalid … parameters" 가 온다
+        if key in LOCAL_VALUES or key.startswith("slope:"):
+            if "Invalid" in str(exc):
+                return {"rows": []}
+        raise
     for sample in data.get("samples") or []:
         try:
             value = float(sample.get("value")) * scale

@@ -96,6 +96,15 @@ EN = {
     "인도": "India", "인도 지질조사소 (그림: BGS)": "Geological Survey of India (map by BGS)",
     # 사우디아라비아 (wetherilli 227)
     "사우디아라비아": "Saudi Arabia", "사우디 지질조사소": "Saudi Geological Survey",
+    # 동남아 (wetherilli 228)
+    "인도네시아": "Indonesia", "말레이시아": "Malaysia", "필리핀": "Philippines", "태국": "Thailand", "동남아": "Southeast Asia",
+    # 오스트리아·폴란드·네덜란드·벨기에 (wetherilli 237)
+    "오스트리아": "Austria", "폴란드": "Poland", "네덜란드": "Netherlands", "벨기에": "Belgium",
+    "폴란드 지질연구소 (PIG-PIB)": "Polish Geological Institute (PIG-PIB)", "네덜란드 지질조사부 (TNO)": "Geological Survey of the Netherlands (TNO)",
+    "플랑드르 지하 자료은행 (DOV)": "Flanders Subsurface Database (DOV)", "왈로니아 공공서비스 (SPW)": "Public Service of Wallonia (SPW)",
+    "브리티시컬럼비아 지질조사소": "British Columbia Geological Survey", "캘리포니아 지질조사소": "California Geological Survey",
+    "인도네시아 지질청 (ESDM)": "Geological Agency of Indonesia (ESDM)", "말레이시아 광물지구과학국": "Minerals and Geoscience Department Malaysia",
+    "필리핀 광산지질국": "Mines and Geosciences Bureau (Philippines)", "태국 광물자원국": "Department of Mineral Resources (Thailand)",
     # KIGAM 5만 단층·습곡·광종·변질대 (wetherilli 202)
     "드러스트": "Thrust", "추정 드러스트": "Inferred thrust", "정단층": "Normal fault", "추정 정단층": "Inferred normal fault",
     "주향이동단층": "Strike-slip fault", "추정 주향이동단층": "Inferred strike-slip fault", "추정 단층": "Inferred fault",
@@ -1766,7 +1775,8 @@ PROP_EN = {
     "시대별 암석": "Rock by age", "변성 정도": "Metamorphic grade", "지질구": "Geological province", "영역": "Domain",
     "편집": "Compiled by", "층서": "Stratigraphy", "물질": "Material",
     "심성암": "Plutonic intrusion", "원 설명": "Original description", "조산 주기": "Orogenic cycle",
-    "초층군": "Supergroup", "지구조 대구역": "Tectonic megazone",
+    "초층군": "Supergroup", "지구조 대구역": "Tectonic megazone", "편집 연도": "Compilation year", "빙하 층서": "Glacial stratigraphy", "층서 명명집": "Stratigraphic nomenclator",
+    "부층": "Member", "단면": "Profile", "층 설명": "Unit notes",
     "고지자기": "Magnetic polarity",                     # 아이슬란드 1:10만의 `segultimatal`(BRUN 따위, wetherilli 216)
     "광종 기호": "Commodity symbol", "지층 기호": "Unit symbol", "대표 암상": "Representative lithology",
     "조사연도": "Survey year",
@@ -2106,6 +2116,31 @@ PROP_EN = {
     "해석": "Interpretation",
     "광물": "Mineral",
     "측정법": "Technique",
+    # 달의 누른 자리 값 — 남은 판 (wetherilli 236)
+    "광학 성숙도 지수 (OMAT)": "Optical maturity index (OMAT)",
+    "사장석 알갱이 크기": "Plagioclase grain size",
+    "미세 금속철(SMFe) 상대값 (단위 미확인)": "Submicroscopic iron (SMFe), relative (unit unconfirmed)",
+    "지각–맨틀 경계 (기준 반지름 대비 높이)": "Crust–mantle interface (height relative to reference radius)",
+    "지각 알갱이 밀도": "Crustal grain density",
+    "표면 기복 (기준 반지름 대비)": "Surface relief (relative to reference radius)",
+    "크리스티안센 특성 파장": "Christiansen feature position",
+    "가장 높은 온도": "Maximum temperature",
+    "가장 낮은 온도": "Minimum temperature",
+    "자정의 온도": "Midnight temperature",
+    "정오의 온도": "Noon temperature",
+    "가장 높은 온도의 이상": "Maximum temperature anomaly",
+    "가장 낮은 온도의 이상": "Minimum temperature anomaly",
+    "온도 이상의 차": "Temperature anomaly difference",
+    "온도 이상의 비": "Temperature anomaly ratio",
+    "원편광 비 (CPR)": "Circular polarization ratio (CPR)",
+    "높이 — 달 기준구 1737.4 km": "Height — lunar sphere 1737.4 km",
+    "경사도": "Slope",
+    "부게 중력 교란": "Bouguer gravity disturbance",
+    "프리에어 중력 이상": "Free-air gravity anomaly",
+    "중력 교란": "Gravity disturbance",
+    "지오이드 높이": "Geoid height",
+    "중력 이상 오차": "Gravity anomaly error",
+    "중력 차수 강도": "Gravity degree strength",
     # 호주의 주 판 (wetherilli 225)
     "지질 이력": "Geologic history",
     # 아르헨티나 SEGEMAR 의 제4기 변형·화산 위험도·구조선 (wetherilli 220)
@@ -2271,9 +2306,15 @@ PROP_EN = {
     # 독일 BGR·스페인 IGME (wetherilli 147)
     "대": "Era",
     "성인": "Genesis",
+    "변성암": "Metamorphic rock",
+    "화성암": "Igneous rock",
+    "해양 지질": "Marine geology",
+    "경계·구조선": "Boundary or structure line",
     # 멕시코 광상 (wetherilli 219)
     "광화 유형": "Mineralization type", "구조": "Structure", "변질": "Alteration", "광상 형태": "Deposit form",
     "광산 지구": "Mining district",
+    # 멕시코 지화학 (wetherilli 233)
+    "원소": "Element", "함량 (ppm)": "Content (ppm)",
     # 영국 BGS (wetherilli 143)
     "세": "Epoch",
     "가장 오랜 시기": "Oldest age",
@@ -2566,6 +2607,110 @@ def age_es(value: str) -> str:
     return text
 
 
+#: 상류의 영어 시대 값에 섞인 오탈자·옛 말 (wetherilli 228) — 말레이시아 `Caroboniferous`, 필리핀 `Pliestocene`
+#: 유럽 나라 지질도의 시대 낱말(독일어·네덜란드어·폴란드어·프랑스어) → ICS 영어 (wetherilli 237). 소문자·악센트 그대로 찾는다
+AGE_LOCAL_WORDS = {
+    # 대·기·세
+    "quartär": "Quaternary", "kwartair": "Quaternary", "czwartorzęd": "Quaternary", "quaternaire": "Quaternary",
+    "holozän": "Holocene", "holoceen": "Holocene", "holocen": "Holocene", "holocène": "Holocene",
+    "pleistozän": "Pleistocene", "pleistoceen": "Pleistocene", "plejstocen": "Pleistocene", "pléistocène": "Pleistocene",
+    "neogen": "Neogene", "néogène": "Neogene", "paläogen": "Paleogene", "paleogen": "Paleogene", "paléogène": "Paleogene",
+    "tertiär": "Tertiary", "tertiair": "Tertiary", "trzeciorzęd": "Tertiary", "tertiaire": "Tertiary",
+    "pliozän": "Pliocene", "plioceen": "Pliocene", "pliocen": "Pliocene", "pliocène": "Pliocene",
+    "miozän": "Miocene", "mioceen": "Miocene", "miocen": "Miocene", "miocène": "Miocene",
+    "oligozän": "Oligocene", "oligoceen": "Oligocene", "oligocen": "Oligocene", "oligocène": "Oligocene",
+    "eozän": "Eocene", "eoceen": "Eocene", "eocen": "Eocene", "éocène": "Eocene",
+    "paläozän": "Paleocene", "paleoceen": "Paleocene", "paleocen": "Paleocene", "paléocène": "Paleocene",
+    "kreide": "Cretaceous", "krijt": "Cretaceous", "kreda": "Cretaceous", "crétacé": "Cretaceous",
+    "jura": "Jurassic", "jurassique": "Jurassic", "trias": "Triassic", "perm": "Permian", "permien": "Permian",
+    "karbon": "Carboniferous", "carboon": "Carboniferous", "carbonifère": "Carboniferous",
+    "devon": "Devonian", "devoon": "Devonian", "dewon": "Devonian", "dévonien": "Devonian",
+    "silur": "Silurian", "siluur": "Silurian", "sylur": "Silurian", "silurien": "Silurian",
+    "ordovizium": "Ordovician", "ordovicium": "Ordovician", "ordowik": "Ordovician", "ordovicien": "Ordovician",
+    "kambrium": "Cambrian", "cambrium": "Cambrian", "kambr": "Cambrian", "cambrien": "Cambrian",
+    "känozoikum": "Cenozoic", "kenozoik": "Cenozoic", "mesozoikum": "Mesozoic", "mezozoik": "Mesozoic",
+    "paläozoikum": "Paleozoic", "paleozoik": "Paleozoic", "paléozoïque": "Paleozoic",
+    "proterozoikum": "Proterozoic", "proterozoik": "Proterozoic", "protérozoïque": "Proterozoic",
+    "neoproterozoikum": "Neoproterozoic", "neoproterozoik": "Neoproterozoic",
+    "präkambrium": "Precambrian", "prekambr": "Precambrian", "précambrien": "Precambrian",
+    # 폴란드 MGP 의 절(Stage) — ICS 절 이름을 폴란드어로 적었다
+    "mastrycht": "Maastrichtian", "kampan": "Campanian", "santon": "Santonian", "koniak": "Coniacian", "turon": "Turonian",
+    "cenoman": "Cenomanian", "alb": "Albian", "apt": "Aptian", "barrem": "Barremian", "hoteryw": "Hauterivian",
+    "walanżyn": "Valanginian", "berias": "Berriasian", "tyton": "Tithonian", "kimeryd": "Kimmeridgian", "oksford": "Oxfordian",
+    "kelowej": "Callovian", "baton": "Bathonian", "bajos": "Bajocian", "aalen": "Aalenian", "toark": "Toarcian",
+    "pliensbach": "Pliensbachian", "synemur": "Sinemurian", "hetang": "Hettangian", "retyk": "Rhaetian", "noryk": "Norian",
+    "karnik": "Carnian", "ladyn": "Ladinian", "anizyk": "Anisian",
+    # 왈로니아의 통·절(프랑스어)
+    "famennien": "Famennian", "frasnien": "Frasnian", "givétien": "Givetian", "eifelien": "Eifelian", "emsien": "Emsian",
+    "praguien": "Pragian", "lochkovien": "Lochkovian", "tournaisien": "Tournaisian", "viséen": "Visean",
+    "yprésien": "Ypresian", "lutétien": "Lutetian", "rupélien": "Rupelian",
+}
+#: 꾸밈말 — 앞에 오든(독·네·프 — `frühe Kreide`) 뒤에 오든(폴·프 — `jura górna`·`Dévonien inférieur`) 받는다
+AGE_LOCAL_MODIFIERS = {
+    "früh": "Early", "frühe": "Early", "früher": "Early", "unter": "Early", "vroeg": "Early", "dolny": "Early", "dolna": "Early",
+    "inférieur": "Early", "inférieure": "Early",
+    "mittel": "Middle", "mittlere": "Middle", "midden": "Middle", "środkowy": "Middle", "środkowa": "Middle", "moyen": "Middle",
+    "moyenne": "Middle",
+    "spät": "Late", "späte": "Late", "später": "Late", "ober": "Late", "laat": "Late", "górny": "Late", "górna": "Late",
+    "supérieur": "Late", "supérieure": "Late",
+}
+
+
+def age_local(value: str) -> str:
+    """독일어·네덜란드어·폴란드어·프랑스어 시대(`Perm - frühe Kreide`·`jura górna`·`Dévonien inférieur`·`Holoceen`) → ICS 영어
+    (`Permian – Early Cretaceous`). 낱말 하나라도 모르면 빈 글 — 부르는 쪽이 원문을 보인다 (wetherilli 237)"""
+    text = str(value or "").strip()
+    if not text or text.lower() == "null":
+        return ""
+    parts = []
+    for part in re.split(r"\s+(?:-|–|bis|tot|do|à)\s+|\s*–\s*|\s*,\s*", text):
+        words = [w for w in re.split(r"[\s\-]+", part.strip().lower()) if w]
+        if not words:
+            continue
+        noun, mod = "", ""
+        for w in words:
+            if w in AGE_LOCAL_WORDS and not noun:
+                noun = AGE_LOCAL_WORDS[w]
+            elif w in AGE_LOCAL_MODIFIERS and not mod:
+                mod = AGE_LOCAL_MODIFIERS[w]
+            else:
+                return ""
+        if not noun:
+            return ""
+        parts.append(f"{mod} {noun}" if mod else noun)
+    if not parts:
+        return ""
+    return parts[0] if len(set(parts)) == 1 else f"{parts[0]} – {parts[-1]}"
+
+
+_AGE_TYPOS = {"caroboniferous": "Carboniferous", "pliestocene": "Pleistocene", "neoproteozoic": "Neoproterozoic"}
+
+
+def age_tidy(value: str) -> str:
+    """영어 시대 값을 `age_ko` 가 읽는 꼴로 — 대문자를 낱말 꼴로, `Upper`·`Lower` 를 `Late`·`Early` 로, `-`·`TO` 를 ` – ` 로,
+    오탈자를 고친다. `Quaternary [Holocene]` 처럼 괄호 안이 더 자세하면 그쪽을 쓴다. `CRETACEOUS, JURASSIC`(젊은, 오랜)은 `오랜 – 젊은`."""
+    text = str(value or "").strip()
+    if not text:
+        return ""
+    inner = re.search(r"\[([^\]]+)\]", text)
+    if inner:
+        text = inner.group(1).strip()
+    if "," in text:
+        young, _, old = (p.strip() for p in text.partition(","))
+        text = young if young.lower() == old.lower() or not old else f"{old} - {young}"
+    text = re.sub(r"\s+(?:TO|to|To)\s+", " - ", text)
+    text = re.sub(r"(?<![Pp]re)(?<!PRE)\s*-\s*", " – ", text)        # `Pre-Jurassic` 의 붙임표는 둔다
+    words = []
+    for word in text.split():
+        if word == "–":
+            words.append(word)
+            continue
+        low = word.lower()
+        word = _AGE_TYPOS.get(low) or {"upper": "Late", "lower": "Early"}.get(low) or (word.title() if word.isupper() else word)
+        words.append(word.replace("Palaeo", "Paleo").replace("Archaean", "Archean"))
+    return " ".join(words)
+
+
 def age_ko(value: str) -> str:
     """영문 지질시대 값 하나를 한국어로. 못 옮기면 원문을 그대로 돌려준다.
 
@@ -2831,6 +2976,12 @@ GROUP_EN = {
     "몽골 지질도 (MonGeoCat)": "Geology of Mongolia (MonGeoCat)",
     "인도 지질도 1:200만 (GSI)": "Geological Map of India 1:2M (GSI)",
     "사우디 지질도 1:25만 (SGS)": "Geology of Saudi Arabia 1:250k (SGS)",
+    "오스트리아 지질도 (GeoSphere 1:100만)": "Geology of Austria (GeoSphere 1:1M)", "폴란드 지질도 (PIG-PIB 1:50만)": "Geology of Poland (PIG-PIB 1:500k)",
+    "네덜란드 지질도 (TNO)": "Geology of the Netherlands (TNO)", "플랑드르 지질도 (DOV)": "Geology of Flanders (DOV)",
+    "왈로니아 지질도 (SPW 1:2.5만)": "Geology of Wallonia (SPW 1:25k)",
+    "브리티시컬럼비아 지질도 (BCGS)": "Geology of British Columbia (BCGS)", "캘리포니아 지질도 (CGS 1:75만)": "Geologic Map of California (CGS 1:750k)",
+    "인도네시아 지질도 (ESDM)": "Geology of Indonesia (ESDM)", "말레이시아 지질도 (JMG)": "Geology of Malaysia (JMG)",
+    "필리핀 지질도 (MGB)": "Geology of the Philippines (MGB)", "태국 지질도 (DMR)": "Geology of Thailand (DMR)",
     "지질 구조 (5만)": "Geological structures (1:50k)",
     "화석·화산·지진": "Fossils, volcanoes, earthquakes",
     "국토지리원 주제도": "GSI thematic maps",
@@ -2892,6 +3043,7 @@ GROUP_EN = {
     "프랑스 지질 (BRGM)": "France geology (BRGM)",
     "유럽 지질 (EGDI 1:100만)": "Europe geology (EGDI 1:1M)",
     "독일 지질 (BGR)": "Germany geology (BGR)",
+    "유럽 1:500만 (IGME5000)": "Europe 1:5M (IGME5000)",
     "스페인 지질 (IGME)": "Spain geology (IGME)",
     "아일랜드 기반암 (GSI·GSNI)": "Ireland bedrock (GSI · GSNI)",
     "남미 지질도 (CGMW 1:500만)": "South America geology (CGMW 1:5M)",
@@ -2918,7 +3070,7 @@ GROUP_EN = {
     "멕시코 지질도 (SGM 1:25만)": "Mexico geology (SGM 1:250k)",
     "호주 지표 지질도 (GA 1:250만·1:100만)": "Australia surface geology (GA 1:2.5M · 1:1M)",
     "멕시코 지질도 (SGM 1:5만, 광업 지구)": "Mexico geology (SGM 1:50k, mining districts)",
-    "멕시코 지질 연대·화석 (SGM)": "Mexico geochronology and fossils (SGM)", "멕시코 광상 (SGM 1:25만)": "Mexico mineral deposits (SGM 1:250k)",
+    "멕시코 지질 연대·화석 (SGM)": "Mexico geochronology and fossils (SGM)", "멕시코 광상 (SGM 1:25만)": "Mexico mineral deposits (SGM 1:250k)", "멕시코 지화학 (SGM)": "Mexico geochemistry (SGM)",
 }
 
 LAYER_EN = {
@@ -2953,6 +3105,14 @@ LAYER_EN = {
     "gsiindia:geology": "Geology (1:2M)", "gsiindia:faults": "Faults (1:2M)", "gsiindia:thrusts": "Thrusts (1:2M)",
     # 사우디아라비아 (wetherilli 227)
     "sgs:geology": "Geology (1:250k compilation)",
+    # 동남아 (wetherilli 228)
+    "geosphere:geology": "Geology (1:1M)", "geosphere:faults": "Faults and nappe boundaries (1:1M)",
+    "pig:mgp500k": "Geology (1:500k, 2022)", "pig:faults": "Faults (1:500k)", "tno:geology": "Surface geology",
+    "dov:tertiair_50k": "Tertiary geology (1:50k)", "dov:quartair_200k": "Quaternary profile-type map (1:200k)",
+    "spw:geology": "Geology (1:25k compilation)", "spw:faults": "Faults",
+    "bcgs:bedrock": "Bedrock (BC Digital Geology)", "calgs:geology": "Geologic map (1:750k)",
+    "esdm:geology": "Geology (1:100k compilation 2018)", "jmg:lithology": "Lithology (by state)", "jmg:age": "Rock age (by state)",
+    "mgb:geology": "Regional geology", "dmr:rock_units": "Rock units (1:250k)",
     # KIGAM 5만 단층·습곡·광종·변질대 (wetherilli 202)
     "kigam50k:fault": "Faults (1:50k)", "kigam50k:fold": "Folds (1:50k)",
     "kigam50k:zones": "Alteration and metamorphic zones (1:50k)", "kigam50k:oretype": "Ore commodities (1:50k)",
@@ -2991,6 +3151,13 @@ LAYER_EN = {
     "bgr:guek250:7": "Stratigraphy (1:250k)",
     "bgr:guek250:4": "Lithology (1:250k)",
     "bgr:guek250:11": "Structural lines (1:250k)",
+    "bgr:igme5000:37": "Geology — age, onshore (1:5M)",
+    "bgr:igme5000:3": "Seafloor geology — age (1:5M)",
+    "bgr:igme5000:43+44": "Metamorphic rocks (1:5M)",
+    "bgr:igme5000:39": "Igneous rocks (1:5M)",
+    "bgr:igme5000:41": "Ophiolite complexes (1:5M)",
+    "bgr:igme5000:46+47+48": "Faults and geological boundaries (1:5M)",
+    "bgr:igme5000:51+53+55+57": "Age symbols (1:5M)",
     "igme:geologico1m:0": "Lithology (1:1M)",
     "igme:magna50:0": "MAGNA lithology (1:50k)",
     "igme:magna50:2": "MAGNA contacts & faults (1:50k)",
@@ -3021,6 +3188,7 @@ LAYER_EN = {
     "sgb:fossils": "Fossil occurrences",
     # 페루 (wetherilli 195)
     "ingemmet:50k": "Geological map 1:50k (integrated)",
+    "ingemmet:50k_units": "Geological units only 1:50k (no faults or folds, from zoom 9)",
     "ingemmet:100k": "Geological map 1:100k (integrated)",
     "ingemmet:faults_1m": "Faults (1:1M)",
     "ingemmet:faults_100k": "Faults (1:100k)",
@@ -3086,6 +3254,11 @@ LAYER_EN = {
     # 멕시코 SGM 의 다른 서비스 (wetherilli 219)
     "sgm:edades:0": "Geochronology samples", "sgm:paleo:0": "Fossil localities", "sgm:yac:0": "Mines and deposits (1:250k)",
     "sgm:yac:3": "Mineralized regions", "sgm:yac:2": "Mining districts",
+    # 멕시코 지화학·광상 나머지 (wetherilli 233)
+    "sgm:geoq:0": "Stream-sediment geochemistry samples",
+    "sgm:anom250:0": "Silver (Ag) anomalies (1:250k)", "sgm:anom250:1": "Cobalt (Co) anomalies (1:250k)", "sgm:anom250:2": "Copper (Cu) anomalies (1:250k)", "sgm:anom250:3": "Manganese (Mn) anomalies (1:250k)", "sgm:anom250:4": "Lead (Pb) anomalies (1:250k)", "sgm:anom250:5": "Zinc (Zn) anomalies (1:250k)",
+    "sgm:anom50:0": "Silver (Ag) anomalies (1:50k)", "sgm:anom50:1": "Cobalt (Co) anomalies (1:50k)", "sgm:anom50:2": "Copper (Cu) anomalies (1:50k)", "sgm:anom50:3": "Manganese (Mn) anomalies (1:50k)", "sgm:anom50:4": "Lead (Pb) anomalies (1:50k)", "sgm:anom50:5": "Zinc (Zn) anomalies (1:50k)",
+    "sgm:yac:1": "Alteration zones", "sgm:yac:4": "Non-metallic mineralized regions", "sgm:yac50:0": "Mines and deposits (1:50k)",
     # 스웨덴 기반암 (wetherilli 213)
     "sgu:bedrock": "Bedrock (1:1M · 1:50k–250k when zoomed in)",
     "sgu:deformation": "Deformation zones (1:1M)",

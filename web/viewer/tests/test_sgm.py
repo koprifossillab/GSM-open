@@ -1,4 +1,5 @@
 """멕시코 — SGM 1:25만·1:5만 (wetherilli 206). 상류를 부르지 않는다 — 꼴은 2026-10-04 에 사카테카스 둘레에서 받은 그대로다."""
+import base64
 import io
 import tempfile
 from unittest import mock
@@ -152,3 +153,45 @@ class OtherViews(Views):
         self.assertIn("/SGM/SunEdadesGeocronologicas/MapServer/0/query", called.call_args_list[0].args[0])
         self.assertEqual([(r["lithology"], r["color"]) for r in rows],
                          [("트라이아스기 후기", "#b478c8"), ("마스트리히트절", "#cccccc")])
+
+
+# ── 지화학·광상 나머지 (wetherilli 233) ──────────────────────────────
+GEOQ = {"Fe %": "4.05", "Ga ppm": "Null", "Au ppb": "1", "Cu ppm": "23", "Zn ppm": "96", "Geom": "Point",
+        "Escala": "Esc:1:50,000", "Gid_sdo": "1", "NMuestra": "118", "Carta": "G12-B38"}
+#: REST 범례 — 원의 크기가 칸마다 다르다(그림 20·24 px)
+LEGEND = {"layers": [{"layerId": 2, "legend": [
+    {"label": "15.000000 - 110.900000", "imageData": "iVBORw0KGgoAAAANSUhEUgAAABQAAAAUCAYAAACNiR0NAAAAIklEQVR4nGO0WMHwn4GKgImaho0aOGrgqIGjBo4aOJQMBABXQAIHjHS+4AAAAABJRU5ErkJggg=="},
+    {"label": "110.900001 - 336.200000", "imageData": "iVBORw0KGgoAAAANSUhEUgAAABgAAAAYCAYAAADgdz34AAAAKElEQVR4nGO0WMHwn4GGgImWho9aMGrBqAWjFoxaMGrBqAWjFlAPAADiuwIPQWKmewAAAABJRU5ErkJggg=="}]}]}
+
+
+class GeochemParse(SimpleTestCase):
+    def test_지화학_시료(self):
+        got = sgm.friendly(GEOQ)
+        self.assertEqual(list(got.items())[:4], [("시료", "118"), ("도폭", "G12-B38"), ("Fe (%)", "4.05"), ("Au (ppb)", "1")])
+        self.assertNotIn("Ga (ppm)", got)                                   # "Null" 은 뺀다
+
+    def test_이상_지점(self):
+        self.assertEqual(sgm.friendly({"OBJECTID": "7", "Geom": "Point", "Cu_ppm": "840.6"}),
+                         {"원소": "Cu", "함량 (ppm)": "840.6"})
+
+    def test_변질대(self):
+        self.assertEqual(sgm.friendly({"Alteración": "Silicificación", "Escala": "1:250,000", "Objectid": "3"}),
+                         {"변질": "Silicificación"})
+
+
+class GeochemViews(Views):
+    def test_씨앗(self):
+        self.assertEqual(self.layers["sgm:geoq:0"]["minZoom"], 9)
+        self.assertEqual((self.layers["sgm:anom50:2"]["minZoom"], self.layers["sgm:anom250:2"]["legend"]), (10, "extent"))
+        self.assertEqual(Layer.objects.get(name="sgm:yac50:0").group.region, "mexico")
+
+    def test_이상_지점_범례는_구간(self):
+        with mock.patch.object(sgm.requests, "get", return_value=answer(LEGEND, ctype="application/json")) as get:
+            data = self.client.get(reverse("viewer:sgm-legend"), {"layer": "sgm:anom250:2"}).json()
+        self.assertTrue(get.call_args.args[0].endswith("/SGM/SUNAnomalias250/MapServer/legend"))
+        self.assertTrue(data["fixed"])
+        rows = data["rows"]
+        self.assertEqual([r["lithology"] for r in rows], ["15 – 110.9 ppm", "110.9 – 336.2 ppm"])
+        from PIL import Image
+        sizes = {Image.open(io.BytesIO(base64.b64decode(r["swatch"].split(",", 1)[1]))).size for r in rows}
+        self.assertEqual(sizes, {(24, 24)})                                     # 가장 큰 칸에 맞춰 가운데
