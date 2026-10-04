@@ -239,6 +239,9 @@ IBCSO_DIR = env("GSM_IBCSO_DIR") or str(_data_dir() / "ibcso")
 #: `manage.py fetch_kopri` 가 천천히 모아 여기 쓴다(두 시간 남짓, 다음부터는 새 것만). 저장소·이미지에
 #: 두지 않는다. 없으면 그 레이어에 "자료가 없다" 가 뜰 뿐 뷰어는 돈다 (devlog 053·055). 기본은 `<DB 옆>/kopri/`.
 KOPRI_DIR = env("GSM_KOPRI_DIR") or str(_data_dir() / "kopri")
+#: KIGAM 오픈플랫폼의 자료 목록·상세(`/openapi/data`) — `manage.py fetch_kigam_data` 가 1 초 간격으로 모아 둔 것과 행정구역을
+#: 찾은 자리. 저장소·이미지에 두지 않는다. 지도에 무엇을 올릴지는 아직 정하지 않았다(이슈 #153, wetherilli 169).
+KIGAM_DATA_DIR = env("GSM_KIGAM_DATA_DIR") or str(_data_dir() / "kigam_data")
 #: KIGAM 5만 지질도의 층리·엽리·절리 등 — GeoServer WFS 에서 한 번 받아 둔 것(`raw/<YYYYMMDD>/`).
 #: 저장소·이미지에 두지 않는다. 없으면 자세 기호에 커서가 안 바뀔 뿐 뷰어는 돈다 (jikhanjung 004).
 KIGAM50K_DIR = env("GSM_KIGAM50K_DIR") or str(_data_dir() / "kigam50k")
@@ -371,6 +374,8 @@ CCOP_CATALOG_SEED = REPO_DIR / "data" / "ccop_layers.json"
 GSMMA_CATALOG_SEED = REPO_DIR / "data" / "gsmma_layers.json"
 #: 북극해 — EMODnet 해저 지질 (wetherilli 135)
 EMODNET_CATALOG_SEED = REPO_DIR / "data" / "emodnet_layers.json"
+# 유럽 바다의 제4기 퇴적층·지질 사건 — 영국에 두고 유럽 탭들이 빌린다 (wetherilli 176)
+EMODNET_EUROPE_CATALOG_SEED = REPO_DIR / "data" / "emodnet_europe_layers.json"
 #: 노르웨이·핀란드 — NGU·GTK 기반암 지질도 (wetherilli 140)
 NGU_CATALOG_SEED = REPO_DIR / "data" / "ngu_layers.json"
 GTK_CATALOG_SEED = REPO_DIR / "data" / "gtk_layers.json"

@@ -96,6 +96,76 @@
    "bbox": [-73.25, 59.75, -11.41, 83.68]
   },
   {
+   "name": "grportal:cpx_classes",
+   "title": "단사휘석 분류",
+   "group": "광물 자원 (정부 포털)",
+   "abstract": "다이아몬드 탐사 자료(DED) — 단사휘석 낟알의 화학 갈래(CPX_CGP·CPX_CPP)를 시료마다 센 것 2 824 곳. 가장 많은 갈래의 색",
+   "bbox": [-53.4, 60.81, -43.38, 71.85]
+  },
+  {
+   "name": "grportal:ilm_classes",
+   "title": "티탄철석 분류",
+   "group": "광물 자원 (정부 포털)",
+   "abstract": "다이아몬드 탐사 자료(DED) — 티탄철석 낟알의 화학 갈래(ILM_KIM·ILM_INTER) 2 933 곳",
+   "bbox": [-53.83, 61.32, -45.34, 69.69]
+  },
+  {
+   "name": "grportal:spinel_classes",
+   "title": "첨정석 분류",
+   "group": "광물 자원 (정부 포털)",
+   "abstract": "다이아몬드 탐사 자료(DED) — 첨정석 낟알의 화학 갈래(SP_CID·SP_GT_PER·가르지 못한 것) 2 790 곳",
+   "bbox": [-53.6, 61.08, -45.23, 69.91]
+  },
+  {
+   "name": "grportal:opx_classes",
+   "title": "사방휘석 분류",
+   "group": "광물 자원 (정부 포털)",
+   "abstract": "다이아몬드 탐사 자료(DED) — 사방휘석 낟알의 화학 갈래(OPX_OGM·OGP·ODH·ODL) 154 곳",
+   "bbox": [-53.31, 61.26, -45.26, 68.31]
+  },
+  {
+   "name": "grportal:diamond_macro",
+   "title": "거둔 큰 다이아몬드 (macro)",
+   "group": "광물 자원 (정부 포털)",
+   "abstract": "다이아몬드 탐사 자료(DED) — 시료에서 거둔 큰 다이아몬드의 수 49 곳",
+   "bbox": [-52.06, 61.37, -48.21, 69.79]
+  },
+  {
+   "name": "grportal:diamond_micro",
+   "title": "거둔 작은 다이아몬드 (micro)",
+   "group": "광물 자원 (정부 포털)",
+   "abstract": "다이아몬드 탐사 자료(DED) — 시료에서 거둔 작은 다이아몬드의 수 163 곳",
+   "bbox": [-53.99, 61.39, -48.19, 71.88]
+  },
+  {
+   "name": "grportal:diamond_ages",
+   "title": "산출지의 관입 연대",
+   "group": "광물 자원 (정부 포털)",
+   "abstract": "다이아몬드 탐사 자료(DED) — 킴벌라이트 등 산출지의 관입 연대 56 (150–3 007 Ma), 측정법·문헌",
+   "bbox": [-53.44, 61.14, -42.01, 71.25]
+  },
+  {
+   "name": "grportal:diamond_bodies",
+   "title": "산출지 면 (관입체)",
+   "group": "광물 자원 (정부 포털)",
+   "abstract": "다이아몬드 탐사 자료(DED) — 지도로 그린 관입체 32",
+   "bbox": [-51.85, 61.12, -41.97, 66.54]
+  },
+  {
+   "name": "grportal:diamond_dykes",
+   "title": "산출지 선 (암맥)",
+   "group": "광물 자원 (정부 포털)",
+   "abstract": "다이아몬드 탐사 자료(DED) — 확인된 암맥 239 (킴벌라이트 137)",
+   "bbox": [-53.82, 61.37, -48.12, 67.13]
+  },
+  {
+   "name": "grportal:diamond_inferred",
+   "title": "추정 암맥",
+   "group": "광물 자원 (정부 포털)",
+   "abstract": "다이아몬드 탐사 자료(DED) — 추정한 암맥 144",
+   "bbox": [-52.13, 65.08, -50.94, 66.4]
+  },
+  {
    "name": "grportal:unstable_slopes",
    "title": "불안정 사면",
    "group": "사면 재해 (정부 포털)",

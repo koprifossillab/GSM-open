@@ -297,3 +297,55 @@ def fetch_capabilities() -> str:
             "이 주소가 닫혔을 수 있다 — data/kigam_layers.json 의 씨앗을 쓴다.",
             status=r.status_code)
     return r.text
+
+
+# ── 데이터셋 API — `/openapi/data` (wetherilli 169) ─────────────────────
+#
+# 지오빅데이터 오픈플랫폼의 자료 목록(시료·분석, 조사·탐사, 지질자원주제도)이다. **인증키가 필요한 길**이라 이 문으로만
+# 간다. 2026-10-02 에 쟀다 — 목록 3 450 건, `page` 는 0 부터, `size` 는 100 까지(200 은 500), `collection=` 거르기가 먹지
+# 않는다. 목록에는 좌표가 없어 한 건씩 상세(`/openapi/data/<id>`)를 받는다. 좌표는 상세의 `metadata.위치정보.좌표` 에
+# WKT 로 — `POINT (경도 위도)`, 주제도는 `POLYGON`. 한 번에 다 받지 않고 `manage.py fetch_kigam_data` 가 1 초 간격으로 모은다
+
+DATA_URL = "https://data.kigam.re.kr/openapi/data"
+DATA_PAGE = 100
+
+
+def data_page_url(dataset_id: str) -> str:
+    """사람이 읽는 자료 쪽."""
+    return f"https://data.kigam.re.kr/data/{dataset_id}"
+
+
+def _data_get(url: str, params: dict = None) -> dict:
+    if not settings.KIGAM_KEY:
+        raise UpstreamError("인증키가 없다")
+    left = usage.paused()
+    if left:
+        raise UpstreamError(f"차단 조짐이 있어 {int(left)}초 동안 상류에 묻지 않는다")
+    try:
+        r = requests.get(url, params=dict(params or {}, key=settings.KIGAM_KEY),
+                         timeout=(settings.UPSTREAM_TIMEOUT, 120), verify=_verify(),
+                         headers={"User-Agent": "GSM/0.1"})
+    except requests.RequestException as exc:
+        usage.record("kigam", ok=False)
+        raise UpstreamError(f"상류에 닿지 못했다: {redact(str(exc))}") from exc
+    log.info("상류 %s -> %s", redact(r.url), r.status_code)
+    blocked = usage.looks_blocked(r.status_code, r.content[:1000])
+    usage.record("kigam", ok=r.status_code == 200, blocked=blocked)
+    if r.status_code != 200:
+        raise UpstreamError(f"자료 API 가 {r.status_code} 로 답했다")
+    try:
+        return r.json()
+    except ValueError as exc:
+        raise UpstreamError("자료 API 가 JSON 이 아닌 것을 주었다") from exc
+
+
+def data_list(page: int) -> dict:
+    """목록 한 쪽 — `{"totalElements", "totalPages", "content": [...]}`."""
+    return (_data_get(DATA_URL, {"page": int(page), "size": DATA_PAGE}).get("response") or {})
+
+
+def data_detail(dataset_id: str) -> dict:
+    """자료 하나의 상세 — 메타데이터(위치·시료 정보)와 파일 묶음."""
+    if not re.fullmatch(r"[0-9a-f-]{36}", dataset_id or ""):
+        raise UpstreamError("자료 번호의 꼴이 아니다")
+    return _data_get(f"{DATA_URL}/{dataset_id}")

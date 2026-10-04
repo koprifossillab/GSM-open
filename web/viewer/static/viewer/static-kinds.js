@@ -282,7 +282,7 @@
   /** 상류 feature 하나 → 우리 것 (`arcpoints.compact`). 점이 아니면 null — `areal` 이면 면도 */
   function compact(feature, spec) {
     var geom = feature.geometry || {}, coords = geom.coordinates, geometry;
-    if (spec.areal && (geom.type === "Polygon" || geom.type === "MultiPolygon") && coords) {
+    if (spec.areal && ["Polygon", "MultiPolygon", "LineString", "MultiLineString"].indexOf(geom.type) >= 0 && coords) {
       geometry = { type: geom.type, coordinates: roundCoords(coords) };
     } else if (geom.type !== "Point" || !coords || coords.length < 2) {
       return null;
@@ -299,13 +299,17 @@
   }
 
   /** 갈래 (`grportal.class_of`) — 위에서부터 먼저 맞는 것. 머리는 셋 가운데 하나다:
-   *  `{gt0: 열}`(그 열의 값이 0 보다 크다, 석류석), 구간 `[이상, 미만]`(`numeric`, 미만이 null 이면 끝이 없다), 머리말 묶음 */
+   *  `{gt0: 열}`(그 열의 값이 0 보다 크다, 석류석)·`{top: 열, of: [열…]}`(그 열이 가장 크다), 구간 `[이상, 미만]`(`numeric`, 미만이 null 이면 끝이 없다), 머리말 묶음 */
   function classOf(classes, props) {
     var raw = classes.by ? props[classes.by] : null;
     var value = String(raw == null ? "" : raw);
     for (var i = 0; i < classes.table.length; i++) {
       var row = classes.table[i], heads = row[4], hit;
-      if (heads && !Array.isArray(heads)) hit = (Number(props[heads.gt0]) || 0) > 0;
+      if (heads && !Array.isArray(heads) && heads.top) {
+        // 그 열이 `of` 가운데 가장 크고 0 보다 크다 — 지시광물 화학 갈래 (wetherilli 178)
+        var top = Number(props[heads.top]) || 0;
+        hit = top > 0 && heads.of.every(function (k) { return top >= (Number(props[k]) || 0); });
+      } else if (heads && !Array.isArray(heads)) hit = (Number(props[heads.gt0]) || 0) > 0;
       else if (classes.numeric) hit = typeof raw === "number" && raw >= heads[0] && (heads[1] == null || raw < heads[1]);
       else hit = heads.some(function (head) { return value.indexOf(head) === 0; });
       if (hit) return row.slice(0, 4);

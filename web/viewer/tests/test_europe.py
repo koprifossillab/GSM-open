@@ -79,7 +79,7 @@ class Views(TestCase):
         scan = self.layers["brgm:SCAN_F_GEOL250"]
         self.assertEqual((scan["minZoom"], scan["lastZoom"], scan["queryable"]), (11, 12, False))
         self.assertNotIn("lastZoom", self.layers["brgm:SCAN_H_GEOL50"])
-        self.assertIs(self.layers["egdi:GeologicUnitView_Age"]["queryable"], False)
+        self.assertIs(self.layers["egdi:GeologicUnitView_Age"]["queryable"], True)   # 속성을 켰다 (wetherilli 177)
 
     def test_bgs_타일은_접두사를_떼고(self):
         with mock.patch.object(bgs.requests, "get", return_value=answer()) as get:
@@ -106,10 +106,32 @@ class Views(TestCase):
                 "request": "GetFeatureInfo", **MERC}).json()
         self.assertEqual(data["features"][0]["props"]["암상"], "Calcaires, marnes et gypse")
 
-    def test_egdi_속성은_묻지_않는다(self):
-        with mock.patch.object(egdi.requests, "get") as get:
+    def egdi_info(self, response):
+        with mock.patch.object(egdi.requests, "get", return_value=response) as get:
             data = self.client.get(reverse("viewer:featureinfo"), {
                 "layers": "egdi:GeologicUnitView_Age", "query_layers": "egdi:GeologicUnitView_Age", "i": 256, "j": 256,
                 "request": "GetFeatureInfo", **MERC}).json()
-        get.assert_not_called()
+        return data, get
+
+    def test_egdi_속성은_암상_판에_묻는다(self):
+        # 2026-10-04 에 파리 한복판에서 받은 꼴 — 모양은 줄였다 (wetherilli 177)
+        body = {"type": "FeatureCollection", "features": [{"id": "GeologicUnitView.FR-BRGM.1960.70078",
+            "geometry": {"type": "Polygon", "coordinates": [[[0, 0], [1, 0], [1, 1], [0, 0]]]},
+            "properties": {"name": "gu.gsml.1960", "lithology": "clay",
+                           "identifier": "https://geoserver.geo-zs.si/egdi-surface-geology/id/gsmlp/GeologicUnitView/FR-BRGM.1960.70078",
+                           "representativeAge_uri": "http://inspire.ec.europa.eu/codelist/GeochronologicEraValue/ionian",
+                           "representativeOlderAge_uri": "http://www.opengis.net/def/nil/OGC/0/unknown"}}]}
+        data, get = self.egdi_info(answer(json=mock.Mock(return_value=body)))
+        sent = get.call_args.kwargs["params"]
+        self.assertEqual((sent["query_layers"], sent["info_format"]), ("GeologicUnitView_Lithology", "application/json"))
+        self.assertEqual(data["features"][0]["props"], {"암상": "clay", "지질시대": "지바절", "제공 기관": "FR-BRGM"})
+
+    def test_egdi_시대는_통과_위아래를_옮긴다(self):
+        self.assertEqual(egdi.friendly({"representativeOlderAge_uri": "x/lowerCretaceous",
+                                        "representativeYoungerAge_uri": "x/upperCretaceous"}, "en"),
+                         {"지질시대": "Early Cretaceous - Late Cretaceous"})
+
+    def test_egdi_상류_예외는_오류로(self):
+        data, _ = self.egdi_info(answer(json=mock.Mock(side_effect=ValueError)))
         self.assertEqual(data["features"], [])
+        self.assertIn("error", data)

@@ -147,6 +147,21 @@ class Build(SimpleTestCase):
         self.assertIn("G_Geologi_Svalbard_S250_S750", json.dumps(tables["npolar"]["tiles"]))
 
 
+    def test_판_이력을_떠_둔다(self):
+        """설정 창의 판 이력 — 서버의 `patchnotes/` 가 없으니 굽을 때 `patchnotes.json` 으로 떠 둔다."""
+        notes = json.loads((self.site / "patchnotes.json").read_text(encoding="utf-8"))
+        self.assertTrue(notes["notes"])
+
+    def test_소개의_첫_장면에_서버_화면이_없다(self):
+        """정적 판에 없는 화면(온 지구·달·화성·수성·3D)은 소개의 첫 장면에서 뺀다."""
+        for intro in (self.site / "index.html", self.site / "en" / "index.html"):
+            html = intro.read_text(encoding="utf-8")
+            title = html[html.index('id="title"'):html.index('id="hook"')]
+            self.assertNotIn("data-moon", title)
+            self.assertNotIn('class="moon"', title)
+            self.assertNotIn("3D", title)
+
+
 class _Quiet(http.server.SimpleHTTPRequestHandler):
     def log_message(self, *args):
         pass
@@ -256,4 +271,27 @@ class Browser(SimpleTestCase):
         page.press("#goto-input", "Enter")
         page.wait_for_selector("#search-results li[data-i]", timeout=10000)
         self.assertIn("Longyearbyen", page.inner_text("#search-results"))
+        self.assertEqual(errors, [])
+
+    def test_설정_창에_판_이력이_뜬다(self):
+        page, errors = self.open("korea")
+        page.click("#gear")
+        page.wait_for_function("document.getElementById('notes').textContent.length > 20", timeout=5000)
+        self.assertNotIn("판 이력을 읽지 못했다", page.inner_text("#notes"))
+        self.assertEqual(errors, [])
+
+    def test_소개는_실린_지역의_칩만(self):
+        ctx = self.browser.new_context(viewport={"width": 1280, "height": 800}, locale="ko-KR")
+        self.addCleanup(ctx.close)
+        page = ctx.new_page()
+        errors = []
+        page.on("pageerror", lambda e: errors.append(str(e)))
+        page.route("**/*", lambda r: r.continue_() if r.request.url.startswith(self.base) else r.abort())
+        page.goto(self.base, wait_until="load")
+        page.wait_for_timeout(1000)
+        shown = page.eval_on_selector_all(".chips.regions li", "els => els.filter(e => !e.hidden).map(e => e.textContent)")
+        self.assertIn("한국", shown)
+        self.assertIn("남극", shown)
+        self.assertNotIn("일본", shown)
+        self.assertNotIn("동아시아", shown)
         self.assertEqual(errors, [])

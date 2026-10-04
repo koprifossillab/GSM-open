@@ -1,0 +1,34 @@
+{
+ "_주석": "EMODnet Geology 의 해저 지질 가운데 유럽 바다에서 쓸모 있는 것 — 영국 탭에 두고 프랑스·독일·스페인·아일랜드 탭이 빌린다(map.js 의 REGIONS.*.borrow). 북극해 씨앗(emodnet_layers.json)이 135 에 북극 둘레에서 거의 비어 뺀 것 가운데, 2026-10-04 에 북해·발트해·영국해협–켈트해·비스케이만·서지중해 네모마다 한 장씩 받아 덮는 몫을 재고 넣었다 — 제4기 퇴적층 16–57 %, 지질 사건 31–74 %. 해저 침식은 0–2 % 라 뺐다. 레이어군 이름이 북극해의 것과 같아 화면이 한 칸으로 합친다 (wetherilli 176).",
+ "_뽑은날": "2026-10-04",
+ "_출처": "https://drive.emodnet-geology.eu/geoserver/ows?SERVICE=WMS&REQUEST=GetCapabilities",
+ "_지역": "uk",
+ "_상류": "emodnet",
+ "_레이어군차례": 30,
+ "레이어군순서": [
+  "해저 지질 (EMODnet)"
+ ],
+ "레이어": [
+  {
+   "name": "emodnet:bgr:quaternary_lithology",
+   "title": "제4기 퇴적층 — 암상",
+   "group": "해저 지질 (EMODnet)",
+   "abstract": "해저 표층 밑, 제4기(258만 년 전부터)에 쌓인 지층의 암상. 나라마다의 해저 제4기 지질도를 BGR 이 이어 붙였다 — 영국 둘레는 BGS 의 1:100만 판이다",
+   "bbox": [-90.08, 8.04, 60.10, 81.77]
+  },
+  {
+   "name": "emodnet:bgr:quaternary_age",
+   "title": "제4기 퇴적층 — 시대",
+   "group": "해저 지질 (EMODnet)",
+   "abstract": "같은 면을 지질시대로 칠한 것 — 바이크젤 빙기·홀로세처럼 빙기 단위까지 나뉜다",
+   "bbox": [-90.08, 8.04, 60.10, 81.77]
+  },
+  {
+   "name": "emodnet:cp_wp6_geological_event_distribution_250k",
+   "title": "지질 사건 분포 (색은 해저 사태)",
+   "group": "해저 지질 (EMODnet)",
+   "abstract": "바다를 칸으로 나눠 사건마다 '보고됨·없음·자료 없음' 을 적은 색인도. 색은 해저 사태만 칠한다 — 누르면 해저 화산·제4기 구조운동·지진해일·해저 유체 분출까지 그 칸의 다섯 가지가 다 보인다",
+   "bbox": [-35.58, 24.60, 81.06, 85.19]
+  }
+ ]
+}

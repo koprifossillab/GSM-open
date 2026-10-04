@@ -14,6 +14,7 @@ WegenersDream 의 `deploy/static_site.py`(tupandactyl 029)와 같은 길이다.
   앞머리만 맞으면 된다
 - **뿌리는 소개, `map/` 은 지도, 영어판은 `en/`·`en/map/`**(wetherilli 167). 소개는 서버 화면(3D·온 지구·달·화성·수성)으로 가는 장면·문을
   빼고 그린다(`intro.html` 의 `static_site`). 정적 파일은 한 벌이다
+- 판 이력은 `patchnotes.json` 으로 떠 둔다 — 지도의 설정 창이 `patchnotes/` 대신 읽는다
 - 인증키는 싣지 않는다 — KIGAM 은 보는 사람이 각자 넣는다
 - **VWorld 도 각자 키**다 — 사용자가 정했다(2026-10-02, wetherilli 174). 공개 판을 처음 열 때 KIGAM·VWorld 키를 받는다.
   그래서 굽는 판에는 어떤 키도 싣지 않는다(전에는 공개 판용 VWorld 키 하나를 실었다 — wetherilli 164).
@@ -134,6 +135,11 @@ def main():
                 if page.status_code != 200:
                     sys.exit(f"{name}({lang}) 화면을 그리지 못했다: {page.status_code}")
                 pages[lang, name] = page.content.decode("utf-8")
+        # 판 이력 — 지도의 설정 창이 `patchnotes/` 대신 읽는다. 판 이력은 한국어뿐이라 한 벌이다
+        notes = Client().get("/GSM/patchnotes/")
+        if notes.status_code != 200:
+            sys.exit(f"판 이력을 뜨지 못했다: {notes.status_code}")
+        patchnotes = notes.content
 
     for (lang, name), html in pages.items():
         # 정적 파일은 말과 상관없이 한 벌이다. 영어판의 다른 주소(소개·지도로 가는 길)는 `en/` 밑으로
@@ -142,6 +148,7 @@ def main():
         folder = (out / "en" if lang == "en" else out) / ("map" if name == "map" else "")
         folder.mkdir(parents=True, exist_ok=True)
         (folder / "index.html").write_text(html, encoding="utf-8")
+    (out / "patchnotes.json").write_bytes(patchnotes)
     (out / ".nojekyll").write_text("")   # 밑줄로 시작하는 파일을 Jekyll 이 버리지 않게
 
     if args.baked:

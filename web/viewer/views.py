@@ -2150,8 +2150,10 @@ def _layer_extra(layer, lang: str = "ko") -> dict:
         # KPDC 지도 서버(057) — 남극은 3031 을, 북극은 3413 을 그대로 받는다(NPI 와 같다, wetherilli 095)
         return {"attribution": kopri.ATTRIBUTION, "projection": kopri.wms_projection(layer.name)}
     if layer.upstream == "emodnet":
-        # EMODnet 해저 지질(wetherilli 135) — GeoServer 가 3413 도 그려 준다. 북극해·스발바르 탭이 그대로 받는다
-        return {"attribution": emodnet.ATTRIBUTION, "projection": "EPSG:3413"}
+        # EMODnet 해저 지질(wetherilli 135) — GeoServer 가 3413 도 그려 준다. 북극해·스발바르 탭이 그대로 받는다.
+        # 유럽 바다의 것(영국에 둔 것, wetherilli 176)은 유럽 탭들의 투영(3857)으로
+        projection = "EPSG:3413" if layer.group.region == "arctic_ocean" else "EPSG:3857"
+        return {"attribution": emodnet.ATTRIBUTION, "projection": projection}
     if layer.upstream == "ngu":
         # 노르웨이 NGU(wetherilli 140) — 3413 을 그려 주지 않아 북극 람베르트(3575)로 받고 화면이 옮겨 그린다
         return {"attribution": ngu.ATTRIBUTION, "projection": "EPSG:3575"}
@@ -2957,6 +2959,8 @@ def feature_info(request):
             props = brgm.friendly(props)             # DESCR → 암상. 값은 프랑스어 그대로
         elif door.name == "gsni":
             props = bgs.friendly(props, lang)        # BGS 와 같은 열(LEX_D …)
+        elif door.name == "egdi":
+            props = egdi.friendly(props, lang)       # 암상 판의 INSPIRE 열 → 암상·지질시대·제공 기관 (wetherilli 177)
         elif door.name in ("bgr", "igme", "gsi"):
             props = {"bgr": bgr, "igme": igme, "gsi": gsi}[door.name].friendly(props)   # 값은 그 나라 말 그대로
         elif door.name == "npolar":

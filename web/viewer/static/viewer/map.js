@@ -193,14 +193,16 @@
           home: [-968000, 6420000, 223000, 8850000],
           basemap: "eox_terrain", example: "53.80, -1.55 · Leeds",
           base: ["egdi:GeologicUnitView_Age", "bgs:BGS.50k.Bedrock", "bgs:BGS.50k.Superficial.deposits"],
-          first: ["egdi:GeologicUnitView_Age", "bgs:BGS.50k.Bedrock"] },
+          first: ["egdi:GeologicUnitView_Age", "bgs:BGS.50k.Bedrock"],
+          // 바다 — EMODnet 의 해저 퇴적물·기반암은 북극해 지역에 있다. 제4기 퇴적층·지질 사건은 영국 지역에 둔다 (wetherilli 176)
+          borrow: { arctic_ocean: ["emodnet"] } },
     france: { title: "프랑스", proj: "EPSG:3857", center: [2.5, 46.5], zoom: 6, vworld: false,
               home: [-590000, 5060000, 1080000, 6650000],
               basemap: "eox_terrain", example: "48.857, 2.352 · Paris",
               base: ["brgm:SCAN_F_GEOL1M", "brgm:SCAN_F_GEOL250", "brgm:SCAN_H_GEOL50", "brgm:LITHO_1M_SIMPLIFIEE"],
               first: "brgm:SCAN_F_GEOL1M",
-              // 범유럽 1:100만(EGDI)은 영국 지역에 들어 있다 — 그 상류의 레이어군만 빌린다
-              borrow: { uk: ["egdi"] } },
+              // 범유럽 1:100만(EGDI)·유럽 바다(EMODnet)는 영국 지역에 들어 있다 — 그 상류의 레이어군만 빌린다
+              borrow: { uk: ["egdi", "emodnet"], arctic_ocean: ["emodnet"] } },
     // ── 독일·스페인·아일랜드 (wetherilli 147) ──
     // BGR·IGME·GSI 를 중계한다. 판마다 그리는 줌이 좁아 넓게 볼 때는 EGDI 1:100만을 빌려 깐다. 아일랜드는 섬 전체 —
     // GSI 1:100만이 이미 섬 하나로 이어져 있고, 북아일랜드 1:25만(GSNI, BGS 서버)을 같은 레이어군에 둔다
@@ -209,26 +211,27 @@
                basemap: "eox_terrain", example: "51.31, 9.48 · Kassel",
                base: ["egdi:GeologicUnitView_Age", "bgr:gk1000:0", "bgr:guek250:7", "bgr:guek250:4"],
                first: ["egdi:GeologicUnitView_Age", "bgr:guek250:7"],
-               borrow: { uk: ["egdi"] } },
+               borrow: { uk: ["egdi", "emodnet"], arctic_ocean: ["emodnet"] } },
     spain: { title: "스페인", proj: "EPSG:3857", center: [-3.7, 40.2], zoom: 6, vworld: false,
              home: [-1046000, 4287000, 490000, 5450000],
              basemap: "eox_terrain", example: "40.417, -3.704 · Madrid",
              base: ["igme:geologico1m:0", "igme:magna50:0", "igme:magna50:2"],
              first: "igme:geologico1m:0",
-             borrow: { uk: ["egdi"] } },
+             borrow: { uk: ["egdi", "emodnet"], arctic_ocean: ["emodnet"] } },
     ireland: { title: "아일랜드", proj: "EPSG:3857", center: [-7.8, 53.4], zoom: 7, vworld: false,
                home: [-1191000, 6675000, -601000, 7460000],
                basemap: "eox_terrain", example: "53.35, -6.26 · Dublin",
                base: ["gsi:1m:IE_GSI_GSNI_Bedrock_Geology_1M_IE32_ITM", "gsi:100k:IE_GSI_Bedrock_Geology_100K_IE26_ITM",
                       "gsni:5"],
                first: "gsi:1m:IE_GSI_GSNI_Bedrock_Geology_1M_IE32_ITM",
-               borrow: { uk: ["egdi"] } },
+               borrow: { uk: ["egdi", "emodnet"], arctic_ocean: ["emodnet"] } },
     europe: { title: "유럽", proj: "EPSG:3857", center: [0.0, 50.0], zoom: 5, vworld: false,
               includes: ["uk", "ireland", "france", "germany", "spain"],
               home: [-1225000, 4232000, 1781000, 8626000],
               basemap: "eox_terrain",
               base: ["egdi:GeologicUnitView_Age", "bgs:BGS.50k.Bedrock", "brgm:SCAN_F_GEOL1M"],
-              first: "egdi:GeologicUnitView_Age" },
+              first: "egdi:GeologicUnitView_Age",
+              borrow: { arctic_ocean: ["emodnet"] } },
   };
   if (STATIC) {
     // 정적 판이 싣지 않은 지역은 탭에서 뺀다. 묶음은 품은 지역 가운데 실린 것만 남기고, 하나도 없으면 뺀다
@@ -2262,7 +2265,16 @@
       restCount += layers.length;
       // 북극 탭에서는 레이어군 앞에 지역을 적는다 — 그린란드의 "지질도" 가 어디 것인지
       var where = wherePrefix(group.region, layers[0] && layers[0].upstream);
-      rest.push({ name: where + group.name, layers: layers });
+      // 이름이 같은 레이어군은 한 칸으로 — 유럽 바다의 EMODnet 은 북극해(퇴적물·기반암)와 영국(제4기 퇴적층·지질 사건)에
+      // 나뉘어 있다. 카탈로그의 차례대로 잇는다 (wetherilli 176)
+      var name = where + group.name, at = catalog.indexOf(group);
+      var same = rest.filter(function (g) { return g.name === name; })[0];
+      if (same) {
+        same.layers = at < same.at ? layers.concat(same.layers) : same.layers.concat(layers);
+        same.at = Math.min(same.at, at);
+        return;
+      }
+      rest.push({ name: name, layers: layers, at: at });
     });
     if (restCount) {
       // "추가 지질도" 통째로는 모두 켜기를 두지 않는다 — 수십 장을 한꺼번에 켜게 된다
@@ -6148,7 +6160,8 @@
       renderDeleted();
       if (loaded) return;
       loaded = true;
-      fetch(BASE + "patchnotes/")
+      // 정적 판은 굽을 때 떠 둔 판 이력(`patchnotes.json`, deploy/static_site.py)을 읽는다 — 서버가 없다
+      fetch(BASE + (STATIC ? "patchnotes.json" : "patchnotes/"))
         .then(function (r) { return r.json(); })
         .then(function (d) { renderNotes(d.notes || []); })
         .catch(function () {

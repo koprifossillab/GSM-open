@@ -365,6 +365,160 @@ LAYERS = {
             "g5": _field("GT_G5", "G5 낟알", "number"),
         },
     },
+    # ── 다이아몬드 탐사 자료(DED)의 나머지 둘째 몫 (wetherilli 178) ──
+    # 지시광물의 화학 갈래 — 낟알마다 화학으로 가른 갈래를 시료마다 센 것. 포털처럼 **가장 많은 갈래의 색**으로 칠한다
+    # (`{"top": 열, "of": [열…]}`). 갈래 이름(CGP·KIM·CID …)의 뜻은 Hutchison (2020) Data methods 에 있다 — 옮기지 않고 그대로
+    "grportal:cpx_classes": {
+        "service": "DED_GL_thm_BA_ind_chemCPX", "license": DED_LICENSE,
+        "item": "46f436caf5af4230bb1c5eb2e12bae5d",
+        "style": "class",
+        "classes": {"by": "", "table": (
+            ("cgp", "CPX_CGP 가 가장 많다", "#2e7d32", "dot", {"top": "cgp", "of": ["cgp", "cpp"]}),
+            ("cpp", "CPX_CPP 가 가장 많다", "#9ccc65", "dot", {"top": "cpp", "of": ["cgp", "cpp"]}),
+        ), "else": ("other", "갈래 낟알 없음", "#b0bec5", "dot")},
+        "fields": {
+            "sample": _field("SOUSAMPNA", "시료"),
+            "cgp": _field("CPX_CGP", "CPX_CGP 낟알", "number"),
+            "cpp": _field("CPX_CPP", "CPX_CPP 낟알", "number"),
+        },
+    },
+    "grportal:ilm_classes": {
+        "service": "DED_GL_thm_BA_ind_chemILM", "license": DED_LICENSE,
+        "item": "bee4620dd5614516afedb804f00b36db",
+        "style": "class",
+        "classes": {"by": "", "table": (
+            ("kim", "ILM_KIM 이 가장 많다", "#6a1b9a", "dot", {"top": "kim", "of": ["kim", "inter"]}),
+            ("inter", "ILM_INTER 가 가장 많다", "#ce93d8", "dot", {"top": "inter", "of": ["kim", "inter"]}),
+        ), "else": ("other", "갈래 낟알 없음", "#b0bec5", "dot")},
+        "fields": {
+            "sample": _field("SOUSAMPNA", "시료"),
+            "kim": _field("ILM_KIM", "ILM_KIM 낟알", "number"),
+            "inter": _field("ILM_INTER", "ILM_INTER 낟알", "number"),
+        },
+    },
+    "grportal:spinel_classes": {
+        "service": "DED_GL_thm_BA_ind_chemSP", "license": DED_LICENSE,
+        "item": "47815fcbaed346619ee896a0cf8e382a",
+        "style": "class",
+        "classes": {"by": "", "table": (
+            ("cid", "SP_CID 가 가장 많다", "#b71c1c", "dot", {"top": "cid", "of": ["cid", "per", "uncl"]}),
+            ("per", "SP_GT_PER 가 가장 많다", "#ef6c00", "dot", {"top": "per", "of": ["cid", "per", "uncl"]}),
+            ("uncl", "가르지 못한 첨정석이 가장 많다", "#fdd835", "dot", {"top": "uncl", "of": ["cid", "per", "uncl"]}),
+        ), "else": ("other", "갈래 낟알 없음", "#b0bec5", "dot")},
+        "fields": {
+            "sample": _field("SOUSAMPNA", "시료"),
+            "cid": _field("SP_CID", "SP_CID 낟알", "number"),
+            "per": _field("SP_GT_PER", "SP_GT_PER 낟알", "number"),
+            "uncl": _field("SP_UNCLASS", "가르지 못한 낟알", "number"),
+        },
+    },
+    "grportal:opx_classes": {
+        "service": "DED_GL_thm_BA_ind_chemOPX", "license": DED_LICENSE,
+        "item": "87cdf6adc4c043dd9d543a0e66222cc8",
+        "style": "class",
+        "classes": {"by": "", "table": (
+            ("ogm", "OPX_OGM 이 가장 많다", "#0d47a1", "dot", {"top": "ogm", "of": ["ogm", "ogp", "odh", "odl"]}),
+            ("ogp", "OPX_OGP 가 가장 많다", "#1e88e5", "dot", {"top": "ogp", "of": ["ogm", "ogp", "odh", "odl"]}),
+            ("odh", "OPX_ODH 가 가장 많다", "#00897b", "dot", {"top": "odh", "of": ["ogm", "ogp", "odh", "odl"]}),
+            ("odl", "OPX_ODL 이 가장 많다", "#80cbc4", "dot", {"top": "odl", "of": ["ogm", "ogp", "odh", "odl"]}),
+        ), "else": ("other", "갈래 낟알 없음", "#b0bec5", "dot")},
+        "fields": {
+            "sample": _field("SOUSAMPNA", "시료"),
+            "ogm": _field("OPX_OGM", "OPX_OGM 낟알", "number"),
+            "ogp": _field("OPX_OGP", "OPX_OGP 낟알", "number"),
+            "odh": _field("OPX_ODH", "OPX_ODH 낟알", "number"),
+            "odl": _field("OPX_ODL", "OPX_ODL 낟알", "number"),
+        },
+    },
+    # 거둔 다이아몬드 — 큰 것(macro) 49 곳·작은 것(micro) 163 곳의 개수. 큰 것의 수가 경제성을 가르는 잣대다
+    "grportal:diamond_macro": {
+        "service": "DED_GL_thm_BA_ind_macro", "license": DED_LICENSE,
+        "item": "707de08aa8d7468cb508cb0c6185a1cc",
+        "style": "class",
+        "classes": {"by": "n", "numeric": True, "table": (
+            ("m100", "100 개 넘게", "#4a148c", "diamond", (100, None)),
+            ("m10", "10–99 개", "#8e24aa", "diamond", (10, 100)),
+            ("m2", "2–9 개", "#ba68c8", "diamond", (2, 10)),
+        ), "else": ("m1", "1 개", "#e1bee7", "diamond")},
+        "fields": {
+            "sample": _field("SOUSAMPNA", "시료"),
+            "sub": _field("SOUSUBSAMP", "나눈 시료"),
+            "n": _field("MACRO", "큰 다이아몬드 (개)", "number"),
+        },
+    },
+    "grportal:diamond_micro": {
+        "service": "DED_GL_thm_BA_ind_micro", "license": DED_LICENSE,
+        "item": "e407b27db8f0419689e554edbb4cc3bd",
+        "style": "class",
+        "classes": {"by": "n", "numeric": True, "table": (
+            ("u100", "100 개 넘게", "#880e4f", "diamond", (100, None)),
+            ("u10", "10–99 개", "#d81b60", "diamond", (10, 100)),
+            ("u2", "2–9 개", "#f06292", "diamond", (2, 10)),
+        ), "else": ("u1", "1 개", "#f8bbd0", "diamond")},
+        "fields": {
+            "sample": _field("SOUSAMPNA", "시료"),
+            "sub": _field("SOUSUBSAMP", "나눈 시료"),
+            "n": _field("MICRO", "작은 다이아몬드 (개)", "number"),
+        },
+    },
+    # 관입 연대 56 — 산출지의 관입 연대(150–3 007 Ma). 연대측정(`geochron`)과 같은 연대 색으로 칠한다
+    "grportal:diamond_ages": {
+        "service": "DED_GL_OCCURRENCES_AGES", "license": DED_LICENSE,
+        "item": "ca0a6b39fd474f9d8a9cd639dc49cba6",
+        "style": "age",
+        "fields": {
+            "loc": _field("TITLE", "지점"),
+            "other": _field("OTHER_NAME", "다른 이름"),
+            "age": _field("AGE", "연대 (Ma)", "number"),
+            "err": _field("ERROR", "오차 (Ma)"),
+            "method": _field("METHOD", "측정법"),
+            "what": _field("COMPON_DAT", "잰 것"),
+            "note": _field("COMMENTS", "비고"),
+            "author": _field("REF_AUTHOR", "문헌 저자"),
+            "year": _field("REF_YEAR", "문헌 연도"),
+            "ref": _field("REF_TITLE", "문헌"),
+        },
+    },
+    # 산출지의 꼴 — 지도로 그린 관입체 면 32, 확인된 암맥 선 239, 추정 암맥 선 144
+    "grportal:diamond_bodies": {
+        "service": "DED_GL_Occurrences_Polygons", "license": DED_LICENSE,
+        "item": "7e105d22173e4d7980116859f2402ee6",
+        "style": "class", "areal": True, "generalize": 0.0005,
+        "classes": {"by": "", "table": (), "else": ("body", "산출지 면 (관입체)", "#6a1b9a", "square")},
+        "fields": {
+            "name": _field("Title", "지점"),
+            "src": _field("Source", "원자료"),
+            "ha": _field("Area_ha", "면적 (ha)", "number"),
+        },
+    },
+    "grportal:diamond_dykes": {
+        "service": "DED_GL_Occurrences_Polylines", "license": DED_LICENSE,
+        "item": "528a9d5bc7d840468564da7aceceb28e",
+        "style": "class", "areal": True, "generalize": 0.0005,
+        "classes": {"by": "rock", "table": (
+            ("kimb", "킴벌라이트", "#6a1b9a", "line", ("Kimberlite",)),
+            ("carb", "카보나타이트", "#00897b", "line", ("Carbonatite",)),
+            ("aill", "아일리카이트", "#c2185b", "line", ("Aillikite",)),
+        ), "else": ("other", "그 밖·미상", "#757575", "line")},
+        "fields": {
+            "name": _field("LocalityNa", "지점"),
+            "rock": _field("RockGroup", "암석군"),
+        },
+    },
+    "grportal:diamond_inferred": {
+        "service": "DED_GL_Inferred_Polylines", "license": DED_LICENSE,
+        "item": "a87e43020fb64531912ee823908a2fc2",
+        "style": "class", "areal": True, "generalize": 0.0005,
+        "classes": {"by": "rock", "table": (
+            ("kimb", "킴벌라이트 (추정)", "#6a1b9a", "dash", ("Kimberlite",)),
+            ("carb", "카보나타이트 (추정)", "#00897b", "dash", ("Carbonatite",)),
+            ("lampr", "램프로파이어 (추정)", "#ef6c00", "dash", ("Lamprophyre",)),
+        ), "else": ("other", "그 밖 (추정)", "#757575", "dash")},
+        "fields": {
+            "name": _field("LocalityNa", "지점"),
+            "rock": _field("RockGroup", "암석군"),
+        },
+    },
     # 탐사 구역 — 탐사된 곳(시료 둘레)과 다이아몬드 가능성이 있으나 탐사되지 않은 곳. 둘 다 조각 수천의 면 하나다.
     # 속성은 면을 만든 흔적(첫 시료의 값·원본 셰이프 경로)이라 받지 않는다
     "grportal:diamond_explored": {
@@ -515,8 +669,13 @@ def class_of(spec: dict, props: dict) -> tuple:
     value = str(raw if raw is not None else "")
     for code, label, color, shape, heads in classes["table"]:
         if isinstance(heads, dict):
-            # 다른 열을 보고 가른다 — 석류석 갈래 (wetherilli 157). `gt0` 는 그 열의 값이 0 보다 큰 것
-            if (props.get(heads["gt0"]) or 0) > 0:
+            # 다른 열을 보고 가른다 — 석류석 갈래 (wetherilli 157). `gt0` 는 그 열의 값이 0 보다 큰 것,
+            # `top` 은 그 열이 `of` 가운데 가장 크고 0 보다 큰 것(같으면 표의 앞 줄이 이긴다, wetherilli 178)
+            if "top" in heads:
+                values = [props.get(k) or 0 for k in heads["of"]]
+                if (props.get(heads["top"]) or 0) > 0 and (props.get(heads["top"]) or 0) >= max(values):
+                    return code, label, color, shape
+            elif (props.get(heads["gt0"]) or 0) > 0:
                 return code, label, color, shape
         elif callable(heads):
             if heads(props):

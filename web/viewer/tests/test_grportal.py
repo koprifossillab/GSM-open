@@ -145,6 +145,21 @@ class Areas(SimpleTestCase):
                                      [{"g10d": 1, "g10": 22, "g9": 67}, {"g10d": 0, "g10": 3}, {"g9": 5}, {"g11": 9}]),
                          ["g10d", "g10", "g9", "other"])
 
+    def test_화학_갈래는_가장_많은_것(self):
+        # `{"top": 열, "of": [열…]}` — 같으면 표의 앞 줄 (wetherilli 178)
+        self.assertEqual(self._codes("grportal:spinel_classes",
+                                     [{"cid": 1, "per": 5, "uncl": 2}, {"cid": 3, "per": 3}, {"uncl": 4}, {"cid": 0}]),
+                         ["per", "cid", "uncl", "other"])
+
+    def test_암맥은_선으로_받는다(self):
+        fields = grportal.LAYERS["grportal:diamond_dykes"]["fields"]
+        line = {"id": 1, "geometry": {"type": "LineString", "coordinates": [[-51.174471, 66.301862], [-51.18539, 66.30184]]},
+                "properties": {"RockGroup": "Kimberlite", "LocalityNa": "Pyramidefjeld"}}
+        got = grportal.compact(line, fields, areal=True)
+        self.assertEqual(got["geometry"]["type"], "LineString")
+        self.assertIsNone(grportal.compact(line, fields))                     # 점 레이어는 선을 받지 않는다
+        self.assertEqual(self._codes("grportal:diamond_dykes", [{"rock": "Kimberlite"}, {"rock": " "}]), ["kimb", "other"])
+
     def test_DED_는_이용_조건이_적혀_있다(self):
         self.assertIn("CC BY 4.0", grportal.license_of("grportal:diamond_drillholes"))
         self.assertIn("CC BY 4.0", grportal.license_of("grportal:diamond_occurrences"))

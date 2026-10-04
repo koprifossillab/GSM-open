@@ -61,23 +61,27 @@
          data-go="map/?region=korea" data-go-label="{% t "한국 지도" %}">
   <div class="stage">
     <canvas class="stars" aria-hidden="true"></canvas>
-    <canvas class="globes" data-scene="title" role="img" aria-label="{% t "둥근 지구와 달, 화성, 수성" %}"
+    {# 정적 판에는 달·화성·수성 화면이 없어 지구만 돈다 #}
+    {% if static_site %}<canvas class="globes" data-scene="title" role="img" aria-label="{% t "둥근 지구" %}"
+            data-earth="{% static 'viewer/intro/globe-earth.webp' %}"></canvas>
+    {% else %}<canvas class="globes" data-scene="title" role="img" aria-label="{% t "둥근 지구와 달, 화성, 수성" %}"
             data-earth="{% static 'viewer/intro/globe-earth.webp' %}"
             data-moon="{% static 'viewer/intro/globe-moon.webp' %}"
             data-mars="{% static 'viewer/intro/globe-mars.webp' %}"
-            data-mercury="{% static 'viewer/intro/globe-mercury.webp' %}"></canvas>
+            data-mercury="{% static 'viewer/intro/globe-mercury.webp' %}"></canvas>{% endif %}
     <div class="title-text">
       <p class="kicker"><img class="kicker-icon" src="{% static 'viewer/emblem-polar.png' %}" alt="" width="22" height="22">{% t "극지연구소 고생물진화연구실" %}</p>
       <h1>{% t "대돌여지도" %}<span>{% if lang == "en" %}대돌여지도{% else %}GREAT STONE MAP{% endif %}</span></h1>
       <p class="lead">{% t "지질도를 겹쳐 보고, 눌러 속성을 읽고, 내 좌표를 얹는 지도." %}</p>
       <ul class="chips regions" aria-label="{% t "다루는 곳" %}">
-        <li>{% t "한국" %}</li><li>{% t "일본" %}</li><li>{% t "동아시아" %}</li>
-        <li class="polar">{% t "남극" %}</li><li class="polar">{% t "그린란드" %}</li><li class="polar">{% t "스발바르" %}</li><li class="polar">{% t "얀마옌" %}</li><li class="polar">{% t "북극해" %}</li>
-        <li>{% t "온 지구" %}</li><li class="moon">{% t "달" %}</li><li class="mars">{% t "화성" %}</li><li class="mercury">{% t "수성" %}</li>
+        {# 지역 칩은 정적 판이면 실린 지역만 남는다(intro.js 의 data-region) — 서버 화면(온 지구·달·화성·수성·3D)은 템플릿이 뺀다 #}
+        <li data-region="korea">{% t "한국" %}</li><li data-region="japan">{% t "일본" %}</li><li data-region="eastasia">{% t "동아시아" %}</li>
+        <li class="polar" data-region="antarctica">{% t "남극" %}</li><li class="polar" data-region="greenland">{% t "그린란드" %}</li><li class="polar" data-region="svalbard">{% t "스발바르" %}</li><li class="polar" data-region="jan_mayen">{% t "얀마옌" %}</li><li class="polar" data-region="arctic_ocean">{% t "북극해" %}</li>
+        {% if not static_site %}<li>{% t "온 지구" %}</li><li class="moon">{% t "달" %}</li><li class="mars">{% t "화성" %}</li><li class="mercury">{% t "수성" %}</li>{% endif %}
       </ul>
       <ul class="chips feats" aria-label="{% t "할 수 있는 것" %}">
         <li>{% t "지질도 겹쳐 보기" %}</li><li>{% t "눌러 속성 읽기" %}</li><li>{% t "극 평사도법" %}</li>
-        <li>{% t "3D 지형" %}</li><li>{% t "거리·넓이·단면" %}</li><li>{% t "그림으로 내려받기" %}</li><li>{% t "CSV·GeoJSON 올리기" %}</li>
+        {% if not static_site %}<li>{% t "3D 지형" %}</li>{% endif %}<li>{% t "거리·넓이·단면" %}</li><li>{% t "그림으로 내려받기" %}</li><li>{% t "CSV·GeoJSON 올리기" %}</li>
       </ul>
       <a class="tour" href="#hook" id="tour">{% t "둘러보기" %} <span aria-hidden="true">↓</span></a>
     </div>

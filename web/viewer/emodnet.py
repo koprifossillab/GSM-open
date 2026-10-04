@@ -96,13 +96,23 @@ FRIENDLY = (
     ("folk_7cl_txt", "해저 퇴적물 (Folk 7)"),
     ("folk_16cl_txt", "해저 퇴적물 (Folk 16)"),
     ("original_substrate", "원 분류"),
-    # 제4기 이전 지질
+    # 제4기 이전 지질 — 제4기 퇴적층(wetherilli 176)은 암상 열 이름이 다르다
     ("label_litho", "암상"),
+    ("label_lithology", "암상"),
     ("label_age", "지질시대"),
     # 단층
     ("fault_type", "단층 종류"),
     ("fault_name", "단층 이름"),
     ("original_legend_text", "원 범례"),
+    ("origvalue_legtext", "원 범례"),
+    # 지질 사건 분포 — 칸마다 사건 다섯의 보고 여부 (wetherilli 176)
+    ("landslide", "해저 사태"),
+    ("volcanic_c", "해저 화산"),
+    ("tectonics", "제4기 구조운동"),
+    ("tsunami", "지진해일"),
+    ("fluid_em", "해저 유체 분출"),
+    ("country", "나라"),
+    ("nation", "나라"),
     ("scale", "축척"),
     ("name", "자료"),
     ("data_holder", "자료 보유 기관"),

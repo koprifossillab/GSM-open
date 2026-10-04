@@ -80,12 +80,17 @@ def _round(coords):
     return [_round(c) for c in coords]
 
 
+#: `areal` 레이어가 받는 기하
+AREAL_TYPES = ("Polygon", "MultiPolygon", "LineString", "MultiLineString")
+
+
 def compact(feature: dict, fields: dict, oid: str = "FID", *, areal: bool = False):
     """상류 feature 하나 → 우리 것. 점이 아니면(기하가 없으면) None.
-    `areal` 이면 면(Polygon·MultiPolygon)도 받는다 — 스발바르 도폭 경계."""
+    `areal` 이면 면(Polygon·MultiPolygon)과 선(LineString·MultiLineString — 다이아몬드 산출지의 암맥, wetherilli 178)도
+    받는다 — 스발바르 도폭 경계."""
     geom = feature.get("geometry") or {}
     coords = geom.get("coordinates")
-    if areal and geom.get("type") in ("Polygon", "MultiPolygon") and coords:
+    if areal and geom.get("type") in AREAL_TYPES and coords:
         try:
             geometry = {"type": geom["type"], "coordinates": _round(coords)}
         except (TypeError, ValueError, IndexError):

@@ -103,7 +103,9 @@ class SameAsPython(SimpleTestCase):
             samples = [{}]
             for row in c["table"]:
                 heads = row[4]
-                if isinstance(heads, dict):
+                if isinstance(heads, dict) and "top" in heads:
+                    samples.append({heads["top"]: 3, **{k: 1 for k in heads["of"] if k != heads["top"]}})
+                elif isinstance(heads, dict):
                     samples.append({heads["gt0"]: 2})
                 elif c.get("numeric"):
                     samples.append({c["by"]: heads[0]})

@@ -51,6 +51,19 @@ def answer(**kw):
     return mock.Mock(**defaults)
 
 
+class EuropeFriendly(SimpleTestCase):
+    def test_제4기_퇴적층과_지질_사건의_열(self):
+        q = emodnet.friendly({"label_lithology": "sediment", "label_age": "Holocene", "origvalue_legtext": "SEDIMENT",
+                              "nation": "United Kingdom", "data_provider": "x@bgs.ac.uk", "scale": 1000000}, "ko")
+        self.assertEqual(q["암상"], "sediment")
+        self.assertEqual(q["원 범례"], "SEDIMENT")
+        self.assertEqual(q["나라"], "United Kingdom")
+        self.assertNotIn("x@bgs.ac.uk", q.values())
+        e = emodnet.friendly({"landslide": "occurrences reported", "volcanic_c": "no occurrences", "tectonics": "no data",
+                              "tsunami": "occurrences reported", "fluid_em": "no data", "country": "France", "id": 50}, "ko")
+        self.assertEqual(list(e), ["해저 사태", "해저 화산", "제4기 구조운동", "지진해일", "해저 유체 분출", "나라"])
+
+
 class Views(TestCase):
     def setUp(self):
         patch = override_settings(TILE_CACHE_DIR=tempfile.mkdtemp(prefix="gsm-emodnet-"))
@@ -66,6 +79,17 @@ class Views(TestCase):
         row = Layer.objects.get(name=FAULTS)
         self.assertEqual((row.upstream, row.group.region), ("emodnet", "arctic_ocean"))
         layers = {l["name"]: l for g in self.client.get(reverse("viewer:catalog")).json()["groups"] for l in g["layers"]}
+        self.assertEqual(layers[FAULTS]["projection"], "EPSG:3413")
+
+    def test_유럽_바다는_영국에_3857_로(self):
+        # 제4기 퇴적층·지질 사건 — 유럽 탭들이 빌린다. 해저 침식은 유럽 바다에서도 비어 싣지 않는다 (wetherilli 176)
+        rows = {r.name: r for r in Layer.objects.filter(upstream="emodnet", group__region="uk")}
+        self.assertEqual(set(rows), {"emodnet:bgr:quaternary_lithology", "emodnet:bgr:quaternary_age",
+                                     "emodnet:cp_wp6_geological_event_distribution_250k"})
+        self.assertEqual(rows["emodnet:bgr:quaternary_age"].group.name, Layer.objects.get(name=FAULTS).group.name)
+        self.assertFalse(Layer.objects.filter(name__contains="seabed_erosion").exists())
+        layers = {l["name"]: l for g in self.client.get(reverse("viewer:catalog")).json()["groups"] for l in g["layers"]}
+        self.assertEqual(layers["emodnet:bgr:quaternary_lithology"]["projection"], "EPSG:3857")
         self.assertEqual(layers[FAULTS]["projection"], "EPSG:3413")
 
     def test_타일은_접두사를_떼고_1_1_1_로(self):

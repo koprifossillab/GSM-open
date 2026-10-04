@@ -44,6 +44,14 @@
       if (korea) el.dataset.goLabel = korea.dataset.goLabel;
     });
     document.querySelectorAll(".door").forEach(function (a) { if (!shown(a.getAttribute("href"))) a.hidden = true; });
+    // 둘째 장면에 쏟아지는 그림에서도 정적 판에 없는 화면(3D·온 지구·달·화성·수성·실리지 않은 묶음)은 뺀다
+    var SERVER_SHOTS = ["korea3d", "korea3d_wide", "svalbard3d", "moon", "mars", "mercury", "earth"];
+    document.querySelectorAll("[data-names]").forEach(function (el) {
+      el.dataset.names = el.dataset.names.split(/\s+/).filter(function (n) {
+        return SERVER_SHOTS.indexOf(n) < 0 && (!BUNDLES[n] || loaded(n));
+      }).join(" ");
+    });
+    document.querySelectorAll(".chips [data-region]").forEach(function (li) { if (!loaded(li.dataset.region)) li.hidden = true; });
     document.querySelectorAll(".cat").forEach(function (cat) {
       if (!cat.querySelector(".door:not([hidden])")) cat.hidden = true;
     });
@@ -196,7 +204,9 @@
     try { gl = canvas.getContext("webgl", { premultipliedAlpha: true, alpha: true, antialias: true }); } catch (e) { /* 없음 */ }
     this.gl = gl;
     var self = this;
-    var names = ["earth", "moon", "mars", "mercury"];
+    // 그림이 적힌 몸만 — 정적 판의 첫 장면은 지구 하나다(달·화성·수성 화면이 없다)
+    var names = ["earth", "moon", "mars", "mercury"].filter(function (n) { return canvas.dataset[n]; });
+    this.names = names;
     var left = names.length;
     this.imgs = {};
     names.forEach(function (name) {
@@ -254,7 +264,8 @@
     if (!this.ready) return;
     this.resize();
     var c = this.canvas, w = c.width, h = c.height;
-    list = list.filter(function (g) { return g.r > 1 && g.dim > .01; }).sort(function (a, b) { return a.r - b.r; });
+    var names = this.names;
+    list = list.filter(function (g) { return g.r > 1 && g.dim > .01 && names.indexOf(g.body) >= 0; }).sort(function (a, b) { return a.r - b.r; });
     var gl = this.gl;
     if (!gl) return this.drawFlat(list);
     gl.viewport(0, 0, w, h);
