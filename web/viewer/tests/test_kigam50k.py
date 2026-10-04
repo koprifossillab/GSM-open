@@ -345,3 +345,50 @@ class LinesAndZones(TestCase):
         rows = {l["name"]: l for g in views._catalog("ko") for l in g["layers"]}
         self.assertEqual(rows["kigam50k:fault"]["render"], "image")
         self.assertNotIn("render", rows["kigam50k:oretype"])
+
+
+class Attitudes(TestCase):
+    """선구조·신장광물·습곡축·유동구조 — 방향 기호가 드는 점 (wetherilli 223). 값은 2026-09-30 에 받은 파일의 꼴 그대로다."""
+
+    def setUp(self):
+        self.tmp = tempfile.TemporaryDirectory()
+        self.override = override_settings(KIGAM50K_DIR=self.tmp.name)
+        self.override.enable()
+        self.addCleanup(self.tmp.cleanup)
+        self.addCleanup(self.override.disable)
+        kigam50k._body_cache.clear()
+        self.addCleanup(kigam50k._body_cache.clear)
+        day = Path(self.tmp.name) / "raw" / "20260930"
+        _write(day, "lineation", [_pt(127.0, 36.0, type="2차선구조", roangle=135, tangle=30, mapname="청산", mapidx="GF32"),
+                                  _pt(127.1, 36.1, type="파랑선", roangle=-135, tangle=-99, trend="NE", mapname="x", mapidx="y")])
+        _write(day, "mineralarray", [_pt(126.9, 35.9, type="신장광물", roangle=-30, tangle=51, trend="NE", plunge="NW",
+                                         comt="신장선구조의 방향과 경사", mapname="이리", mapidx="FE35"),
+                                     _pt(126.8, 35.8, type="경사미상 신장광물", roangle=40, tangle=0, mapname="이리", mapidx="FE35")])
+        _write(day, "foldaxis", [_pt(127.5, 37.7, type="소습곡축", roangle=53, tangle=30, mapname="청평", mapidx="GG14")])
+        _write(day, "flowstructure", [_pt(126.5, 35.3, type="유동구조", roangle=86, dipangle=40, strike="NE", dip="SE",
+                                          comt="유리의 주향과 경사", mapname="영광", mapidx="FE21")])
+
+    def read(self, name):
+        return json.loads(kigam50k.layer_body(name))
+
+    def test_선구조는_침강_방향으로_돌린다(self):
+        data = self.read("kigam50k:lineation")
+        first, second = (f["properties"] for f in data["features"])
+        self.assertEqual((first["code"], first["azimuth"], first["tangle"]), ("l2", 135, "30"))
+        self.assertEqual((second["code"], second["azimuth"], second["roangle"]), ("other", 225, "225"))   # -135 → 225
+        self.assertNotIn("tangle", second)                                                           # -99 는 미상
+        self.assertEqual({l["shape"] for l in data["legend"]}, {"arrow"})
+
+    def test_신장광물은_엽리의_주향에서_90도(self):
+        first, second = (f["properties"] for f in self.read("kigam50k:mineralarray")["features"])
+        self.assertEqual((first["azimuth"], first["plunge"]), (60, "NW"))       # -30 + 90 — 화살이 침강 방향을 가리킨다
+        self.assertNotIn("tangle", second)                                       # "경사미상" 의 0 은 미상
+        self.assertEqual(second["code"], "stretch_q")
+
+    def test_습곡축과_유동구조(self):
+        self.assertEqual(self.read("kigam50k:foldaxis")["features"][0]["properties"]["azimuth"], 53)
+        data = self.read("kigam50k:flowstructure")
+        props = data["features"][0]["properties"]
+        self.assertEqual((props["azimuth"], props["dipangle"], props["code"]), (86, "40", "flow"))   # 경사 방향 그대로
+        self.assertEqual(data["legend"][0]["shape"], "strike")
+        self.assertEqual(data["labels"]["roangle"], "경사 방향")

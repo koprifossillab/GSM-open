@@ -239,13 +239,33 @@ def pct(value, scale: float):
 
 
 
+def picture_color(data: str):
+    """그림 기호(base64 PNG)의 가장 많은 불투명 색 → "#rrggbb". 테두리·그림자보다 속 칠이 넓다는 데 기댄다. 읽지 못하면 None"""
+    import base64
+    import io
+    from collections import Counter
+
+    from PIL import Image
+    try:
+        img = Image.open(io.BytesIO(base64.b64decode(data))).convert("RGBA")
+    except Exception:          # noqa: BLE001 — 깨진 그림은 회색으로 둔다
+        return None
+    counts = Counter(px[:3] for px in img.getdata() if px[3] >= 200)
+    if not counts:
+        return None
+    return "#" + "".join(f"{v:02x}" for v in counts.most_common(1)[0][0])
+
+
 def renderer_colors(renderer: dict) -> dict:
     """ArcGIS 칠하기 규칙(`drawingInfo.renderer`, uniqueValue) → `{값: "#rrggbb"}` (wetherilli 195·198).
 
     옛 꼴은 `uniqueValueInfos` 의 `value` 하나, 새 꼴(ArcGIS Pro 로 올린 것)은 `uniqueValueGroups[].classes[].values` 에 값 묶음이다
-    (에콰도르 IIGE). 둘 다 읽는다. 값은 앞뒤 빈칸을 떼고 글자로 둔다."""
+    (에콰도르 IIGE). 둘 다 읽는다. 값은 앞뒤 빈칸을 떼고 글자로 둔다. 기호가 그림(`esriPMS`, 멕시코 지질 연대 점 — wetherilli 219)이면
+    그림에서 가장 많은 불투명 색을 쓴다."""
     def hexa(symbol):
         color = (symbol or {}).get("color")
+        if not color and (symbol or {}).get("imageData"):
+            return picture_color(symbol["imageData"])
         return "#" + "".join(f"{int(v):02x}" for v in list(color)[:3]) if color else None
 
     table = {}

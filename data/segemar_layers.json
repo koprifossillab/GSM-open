@@ -1,5 +1,5 @@
 {
- "_주석": "SEGEMAR(아르헨티나 지질광업조사소) SIGAM 지질도 씨앗이다 — 아르헨티나 탭(남미 묶음에도 든다). 1:250만은 나라 전체, 1:25만은 간행된 도폭만 덮어 가까이서만 그린다. 레이어명은 segemar:<상류 이름에서 sigam: 을 뗀 것> (web/viewer/segemar.py). 한글 제목과 레이어군은 사람이 붙였다 (wetherilli 196).",
+ "_주석": "SEGEMAR(아르헨티나 지질광업조사소) SIGAM 지질도 씨앗이다 — 아르헨티나 탭(남미 묶음에도 든다). 1:250만은 나라 전체, 1:25만은 간행된 도폭만 덮어 가까이서만 그린다. 레이어명은 segemar:<상류 이름에서 sigam: 을 뗀 것> (web/viewer/segemar.py). 한글 제목과 레이어군은 사람이 붙였다 (wetherilli 196). 지역 판(1:100만 북서부·코리엔테스, 주별 1:75만, 국경 1:50만, 포클랜드(말비나스) 1:25만)과 제4기 변형·화산 위험도를 더했다 — `segemar:e750K.ProvEstr` 는 주별 구조선 여섯을 묶은 것이다 (wetherilli 220).",
  "_뽑은날": "2026-10-04",
  "_출처": "https://sigam.segemar.gov.ar/geoserver217/ows?service=WMS&request=GetCapabilities",
  "_지역": "argentina",
@@ -7,7 +7,9 @@
  "_레이어군차례": 0,
  "레이어군순서": [
   "아르헨티나 지질도 (SEGEMAR 1:250만)",
-  "아르헨티나 지질도 (SEGEMAR 1:25만, 간행 도폭)"
+  "아르헨티나 지질도 (SEGEMAR 1:25만, 간행 도폭)",
+  "아르헨티나 지역 지질도 (SEGEMAR 1:100만·1:75만·1:50만)",
+  "아르헨티나 지질 위험 (SEGEMAR)"
  ],
  "레이어": [
   {
@@ -68,6 +70,210 @@
     -52.15,
     -63.57,
     -21.79
+   ]
+  },
+  {
+   "name": "segemar:e1M.NOA.Geol",
+   "title": "북서부 지질 단위 (1:100만)",
+   "group": "아르헨티나 지역 지질도 (SEGEMAR 1:100만·1:75만·1:50만)",
+   "abstract": "NOA Unidades Geologicas 1M",
+   "bbox": [
+    -69.26,
+    -28.0,
+    -65.63,
+    -21.77
+   ]
+  },
+  {
+   "name": "segemar:e1M.NOA.Fallas",
+   "title": "북서부 단층 (1:100만)",
+   "group": "아르헨티나 지역 지질도 (SEGEMAR 1:100만·1:75만·1:50만)",
+   "abstract": "NOA Fallas 1M",
+   "bbox": [
+    -69.1,
+    -28.0,
+    -65.74,
+    -21.78
+   ]
+  },
+  {
+   "name": "segemar:e1M.SH21.Geol",
+   "title": "코리엔테스 지질 단위 (1:100만, SH21)",
+   "group": "아르헨티나 지역 지질도 (SEGEMAR 1:100만·1:75만·1:50만)",
+   "abstract": "SH21 Corrientes Unidades Geologicas 1M",
+   "bbox": [
+    -60.01,
+    -32.01,
+    -55.37,
+    -28.0
+   ]
+  },
+  {
+   "name": "segemar:e1M.SH21.Fallas",
+   "title": "코리엔테스 구조선 (1:100만, SH21)",
+   "group": "아르헨티나 지역 지질도 (SEGEMAR 1:100만·1:75만·1:50만)",
+   "abstract": "SH21 Corrientes Fallas 1M",
+   "bbox": [
+    -60.01,
+    -32.0,
+    -56.11,
+    -28.0
+   ]
+  },
+  {
+   "name": "segemar:e750K.ProvChacoUGeol",
+   "title": "차코주 지질 단위 (1:75만)",
+   "group": "아르헨티나 지역 지질도 (SEGEMAR 1:100만·1:75만·1:50만)",
+   "abstract": "Prov. Chaco Unidades Geologicas 750K",
+   "bbox": [
+    -63.43,
+    -28.01,
+    -58.32,
+    -24.08
+   ]
+  },
+  {
+   "name": "segemar:e750K.ProvChubutGeol",
+   "title": "추부트주 지질 단위 (1:75만)",
+   "group": "아르헨티나 지역 지질도 (SEGEMAR 1:100만·1:75만·1:50만)",
+   "abstract": "Prov. Chubut Unidades Geologicas 750K",
+   "bbox": [
+    -72.19,
+    -46.01,
+    -63.58,
+    -41.99
+   ]
+  },
+  {
+   "name": "segemar:e750K.ProvJujuyGeol",
+   "title": "후후이주 지질 단위 (1:75만)",
+   "group": "아르헨티나 지역 지질도 (SEGEMAR 1:100만·1:75만·1:50만)",
+   "abstract": "Prov. Jujuy Unidades Geologicas 750K",
+   "bbox": [
+    -67.23,
+    -24.62,
+    -64.16,
+    -21.77
+   ]
+  },
+  {
+   "name": "segemar:e750K.ProvMendozaGeol",
+   "title": "멘도사주 지질 단위 (1:75만)",
+   "group": "아르헨티나 지역 지질도 (SEGEMAR 1:100만·1:75만·1:50만)",
+   "abstract": "Prov. Mendoza Unidades Geologicas 750K",
+   "bbox": [
+    -70.59,
+    -37.58,
+    -66.47,
+    -31.99
+   ]
+  },
+  {
+   "name": "segemar:e750K.ProvSantaFeGeol",
+   "title": "산타페주 지질 단위 (1:75만)",
+   "group": "아르헨티나 지역 지질도 (SEGEMAR 1:100만·1:75만·1:50만)",
+   "abstract": "Prov. Santa Fe Unidades Geologicas 750K",
+   "bbox": [
+    -62.89,
+    -34.39,
+    -58.82,
+    -27.97
+   ]
+  },
+  {
+   "name": "segemar:e750K.ProvTucumanGeol",
+   "title": "투쿠만주 지질 단위 (1:75만)",
+   "group": "아르헨티나 지역 지질도 (SEGEMAR 1:100만·1:75만·1:50만)",
+   "abstract": "Prov. Tucuman Unidades Geologicas 750K",
+   "bbox": [
+    -66.19,
+    -28.02,
+    -64.46,
+    -26.05
+   ]
+  },
+  {
+   "name": "segemar:e750K.ProvEstr",
+   "title": "주별 구조선 (1:75만, 여섯 주)",
+   "group": "아르헨티나 지역 지질도 (SEGEMAR 1:100만·1:75만·1:50만)",
+   "abstract": "Estructuras 750K — Chaco, Chubut, Jujuy, Mendoza, Santa Fe, Tucumán",
+   "bbox": [
+    -72.19,
+    -46.01,
+    -58.31,
+    -21.77
+   ]
+  },
+  {
+   "name": "segemar:e500K.Front.ArCh.Geol",
+   "title": "아르헨티나–칠레 국경 지질 단위 (1:50만)",
+   "group": "아르헨티나 지역 지질도 (SEGEMAR 1:100만·1:75만·1:50만)",
+   "abstract": "Frontera Argentina Chile Unidades Geologicas 500K",
+   "bbox": [
+    -70.58,
+    -34.0,
+    -68.44,
+    -27.99
+   ]
+  },
+  {
+   "name": "segemar:e500K.Front.ArCh.Fallas",
+   "title": "아르헨티나–칠레 국경 단층 (1:50만)",
+   "group": "아르헨티나 지역 지질도 (SEGEMAR 1:100만·1:75만·1:50만)",
+   "abstract": "Frontera Argentina Chile Fallas 500K",
+   "bbox": [
+    -70.54,
+    -34.0,
+    -68.44,
+    -27.99
+   ]
+  },
+  {
+   "name": "segemar:e250K.IslasMalvinasGeol",
+   "title": "포클랜드(말비나스) 제도 지질 단위 (1:25만)",
+   "group": "아르헨티나 지역 지질도 (SEGEMAR 1:100만·1:75만·1:50만)",
+   "abstract": "Islas Malvinas Unidades Geologicas 250K",
+   "bbox": [
+    -61.46,
+    -52.96,
+    -57.71,
+    -50.99
+   ]
+  },
+  {
+   "name": "segemar:e250K.IslasMalvinasFallas",
+   "title": "포클랜드(말비나스) 제도 단층 (1:25만)",
+   "group": "아르헨티나 지역 지질도 (SEGEMAR 1:100만·1:75만·1:50만)",
+   "abstract": "Islas Malvinas Fallas 250K",
+   "bbox": [
+    -61.33,
+    -52.4,
+    -57.72,
+    -51.03
+   ]
+  },
+  {
+   "name": "segemar:DeformacionesCuaternarias_250K",
+   "title": "제4기 변형 (단층·습곡)",
+   "group": "아르헨티나 지질 위험 (SEGEMAR)",
+   "abstract": "Deformaciones Cuaternarias 250K",
+   "bbox": [
+    -75.6,
+    -55.1,
+    -53.6,
+    -21.7
+   ]
+  },
+  {
+   "name": "segemar:e2.5M.VolcanesEvaluacionPeligrosidad",
+   "title": "화산 위험도 (화산별)",
+   "group": "아르헨티나 지질 위험 (SEGEMAR)",
+   "abstract": "Peligrosidad volcánica",
+   "bbox": [
+    -75.6,
+    -55.1,
+    -53.6,
+    -21.7
    ]
   }
  ]

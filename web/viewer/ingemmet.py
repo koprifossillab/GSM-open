@@ -10,6 +10,10 @@
   조금 다르다(`TIP_UNIDAD`·`TIPO_UNIDAD`) — REST 하나로 맞춘다. 빈 값이 `" "`·`"<Null>"` 로 온다
 - **범례는 보는 범위의 것** — REST 범례는 1:5만 암상만 3 261 칸이다. 범위 안의 단위는 통계 질의(`groupByFieldsForStatistics` + 개수)로 받고
   (리마 둘레 57 줄·9 KB·2 초), 색은 레이어 정보의 칠하기 규칙(`drawingInfo.renderer`, 1:5만 880 KB)에서 찾는다. 규칙은 한 번 받아 담는다
+- **단층·습곡은 따로 켠다**(wetherilli 222) — 통합판 캐시에는 단층·습곡이 구워져 있어 끌 수 없다. 같은 GEOCATMIN 의
+  `SERV_GEOLOGIA_FALLAS`(1:100만 단층, 1:10만·1:5만 단층·습곡, 캐시 없음)를 REST `export` 로 타일 칸만큼(256 px) 받는다 — 한 장에
+  1.5–2 초(2026-10-04). 통합판 서비스의 단층·습곡 레이어는 1:50만보다 넓으면 빈 그림이라(`minScale`) 쓰지 않는다. 주소는 지질도와 같은
+  `ingemmet/<이름>/{z}/{x}/{y}.png` 다. 선이라 누르지 않고 범례도 두지 않는다
 - 지질시대는 에스파냐어다(`Cretácico`). ICS 영문 이름으로 옮긴 뒤 한국어판이면 `i18n.age_ko` 로 한 번 더 옮긴다
 - 조건: Capabilities 의 AccessConstraints 는 `referencial`. GEOCATMIN 이용 허락은 INGEMMET 를 출처로 밝히면 쓰기·옮기기를 허락하고,
   메타데이터에 **CC BY-NC-SA 4.0** 이 붙어 있다 — 비상업. 정적 판에는 싣지 않는다
@@ -36,6 +40,17 @@ LAYERS = {
     "ingemmet:100k": {"service": "SERV_GEOLOGIA_100K_INTEGRADA", "max": 16, "units": 6, "by": "NAME",
                       "label": ("NAME", "UNIDAD"), "span": 6},
 }
+#: 단층·습곡(wetherilli 222) → `SERV_GEOLOGIA_FALLAS` 의 레이어 번호, 처음 그리는 줌. 1:10만·1:5만은 넓게 보면 새카맣다
+STRUCTURES = {
+    "ingemmet:faults_1m": {"show": 0, "min": None},
+    "ingemmet:faults_100k": {"show": 2, "min": 8},
+    "ingemmet:folds_100k": {"show": 3, "min": 8},
+    "ingemmet:faults_50k": {"show": 5, "min": 9},
+    "ingemmet:folds_50k": {"show": 6, "min": 9},
+}
+STRUCTURES_SERVICE = "SERV_GEOLOGIA_FALLAS"
+#: 단층·습곡을 그리는 마지막 줌 — 캐시가 아니라 그때그때 그리므로 상류가 정한 끝이 없다
+STRUCTURES_MAX = 18
 #: 범례 칸을 몇 개까지 싣나
 MAX_LEGEND = 60
 #: 칠하기 규칙(색 표)을 담아 두는 날 — 판이 바뀔 일이 드물다
@@ -47,7 +62,16 @@ class IngemmetError(RuntimeError):
 
 
 def knows(name: str) -> bool:
+    """지질도(통합판) — 누른 자리·범례가 있는 것. 단층·습곡은 `knows_tiles` 만 안다"""
     return name in LAYERS
+
+
+def knows_tiles(name: str) -> bool:
+    return name in LAYERS or name in STRUCTURES
+
+
+def max_zoom(name: str) -> int:
+    return LAYERS[name]["max"] if name in LAYERS else STRUCTURES_MAX
 
 
 def sheet_of(name: str) -> str:
@@ -56,7 +80,7 @@ def sheet_of(name: str) -> str:
 
 
 def valid_tile(name: str, z: int, x: int, y: int) -> bool:
-    return name in LAYERS and 0 <= z <= LAYERS[name]["max"] and 0 <= x < 2 ** z and 0 <= y < 2 ** z
+    return knows_tiles(name) and 0 <= z <= max_zoom(name) and 0 <= x < 2 ** z and 0 <= y < 2 ** z
 
 
 def _base(name: str) -> str:
@@ -83,9 +107,30 @@ def get_tile(name: str, z: int, x: int, y: int):
     """캐시 타일 한 장(PNG). 캐시 밖(바다·나라 밖·마지막 줌 너머)이면 None — 화면에는 빈 타일이 선다."""
     if not valid_tile(name, z, x, y):
         raise IngemmetError("그런 타일은 없다")
+    if name in STRUCTURES:
+        return structure_tile(name, z, x, y)
     r = _get(f"{_base(name)}/tile/{z}/{y}/{x}")
     if r.status_code == 404:
         return None
+    ctype = r.headers.get("content-type", "")
+    if r.status_code != 200 or not ctype.startswith("image/"):
+        raise IngemmetError(f"그림이 아닌 것이 왔다 (status={r.status_code}, type={ctype})")
+    return r.content
+
+
+def tile_bbox(z: int, x: int, y: int) -> tuple:
+    """z/x/y 칸의 3857 범위 (서, 남, 동, 북)."""
+    half = 20037508.342789244
+    size = 2 * half / 2 ** z
+    return (-half + x * size, half - (y + 1) * size, -half + (x + 1) * size, half - y * size)
+
+
+def structure_tile(name: str, z: int, x: int, y: int) -> bytes:
+    """단층·습곡 한 칸 — `SERV_GEOLOGIA_FALLAS` 의 `export` 를 타일 칸만큼. 선이 없는 칸은 투명한 그림이 온다."""
+    base = f"{settings.INGEMMET_URL.rstrip('/')}/{STRUCTURES_SERVICE}/MapServer"
+    r = _get(f"{base}/export", {"bbox": ",".join(f"{v:.3f}" for v in tile_bbox(z, x, y)), "bboxSR": 3857,
+                                "imageSR": 3857, "size": "256,256", "dpi": 96, "format": "png32", "transparent": "true",
+                                "layers": f"show:{STRUCTURES[name]['show']}", "f": "image"})
     ctype = r.headers.get("content-type", "")
     if r.status_code != 200 or not ctype.startswith("image/"):
         raise IngemmetError(f"그림이 아닌 것이 왔다 (status={r.status_code}, type={ctype})")

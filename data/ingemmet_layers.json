@@ -1,12 +1,13 @@
 {
- "_주석": "INGEMMET(페루 지질광업야금연구소) 지질도 씨앗이다 — 페루 탭(남미 묶음에도 든다). GEOCATMIN 의 통합판 둘을 REST 타일 캐시로 그린다 — 1:5만(줌 13 까지)·1:10만(줌 16 까지). 레이어명은 ingemmet:<판> 이고 서비스 이름은 문(web/viewer/ingemmet.py)이 안다. 한글 제목과 레이어군은 사람이 붙였다 (wetherilli 195).",
+ "_주석": "INGEMMET(페루 지질광업야금연구소) 지질도 씨앗이다 — 페루 탭(남미 묶음에도 든다). GEOCATMIN 의 통합판 둘을 REST 타일 캐시로 그린다 — 1:5만(줌 13 까지)·1:10만(줌 16 까지). 레이어명은 ingemmet:<판> 이고 서비스 이름은 문(web/viewer/ingemmet.py)이 안다. 한글 제목과 레이어군은 사람이 붙였다 (wetherilli 195). 단층·습곡은 SERV_GEOLOGIA_FALLAS 를 export 로 따로 받는다 (wetherilli 222).",
  "_뽑은날": "2026-10-04",
  "_출처": "https://geocatmin.ingemmet.gob.pe/arcgis/rest/services/SERV_GEOLOGIA_50K_INTEGRADA/MapServer · …/SERV_GEOLOGIA_100K_INTEGRADA/MapServer",
  "_지역": "peru",
  "_상류": "ingemmet",
  "_레이어군차례": 0,
  "레이어군순서": [
-  "페루 지질도 (INGEMMET)"
+  "페루 지질도 (INGEMMET)",
+  "페루 단층·습곡 (INGEMMET)"
  ],
  "레이어": [
   {
@@ -30,6 +31,66 @@
     -81.84,
     -18.58,
     -64.5,
+    0.0
+   ]
+  },
+  {
+   "name": "ingemmet:faults_1m",
+   "title": "단층 (1:100만)",
+   "group": "페루 단층·습곡 (INGEMMET)",
+   "abstract": "Fallas 1000k (SERV_GEOLOGIA_FALLAS)",
+   "bbox": [
+    -81.84,
+    -18.58,
+    -68.0,
+    0.0
+   ]
+  },
+  {
+   "name": "ingemmet:faults_100k",
+   "title": "단층 (1:10만)",
+   "group": "페루 단층·습곡 (INGEMMET)",
+   "abstract": "Fallas 100k (SERV_GEOLOGIA_FALLAS)",
+   "bbox": [
+    -81.84,
+    -18.58,
+    -68.0,
+    0.0
+   ]
+  },
+  {
+   "name": "ingemmet:folds_100k",
+   "title": "습곡 (1:10만)",
+   "group": "페루 단층·습곡 (INGEMMET)",
+   "abstract": "Pliegues 100k (SERV_GEOLOGIA_FALLAS)",
+   "bbox": [
+    -81.84,
+    -18.58,
+    -68.0,
+    0.0
+   ]
+  },
+  {
+   "name": "ingemmet:faults_50k",
+   "title": "단층 (1:5만)",
+   "group": "페루 단층·습곡 (INGEMMET)",
+   "abstract": "Fallas 50k (SERV_GEOLOGIA_FALLAS)",
+   "bbox": [
+    -81.84,
+    -18.58,
+    -68.0,
+    0.0
+   ]
+  },
+  {
+   "name": "ingemmet:folds_50k",
+   "title": "습곡 (1:5만)",
+   "group": "페루 단층·습곡 (INGEMMET)",
+   "abstract": "Pliegues 50k (SERV_GEOLOGIA_FALLAS)",
+   "bbox": [
+    -81.84,
+    -18.58,
+    -68.0,
     0.0
    ]
   }

@@ -150,9 +150,20 @@
                            "gtk:kalliopera_1m_kivilajiseurueet", "gtk:Litologiset_yksiköt_200k25132", "sgu:bedrock"],
                     first: ["ngu:Berggrunn_nasjonal_bergartsenheter", "gtk:kalliopera_1m_kivilajiseurueet", "sgu:bedrock"],
                     borrow: { arctic_ocean: ["earth"] } },
+    // ── 아이슬란드 (wetherilli 216) ──
+    // 자연사연구소(NÍ)의 1:60만 기반암과 1:10만(서부 화산대·동부)을 중계한다. GeoServer 가 3413 으로 다시 그려 주어 곧장 받는다(GTK 와 같다).
+    // 섬을 둘러싼 바다의 EMODnet 과 지구 자료 점은 북극해에서 빌린다 — 스발바르와 같다
+    iceland: { title: "아이슬란드", proj: "EPSG:3413", center: [-19.0, 64.9], zoom: 6, vworld: false,
+               home: [887000, -2773000, 1557000, -2184000],
+               basemap: "eox_terrain", example: "64.147, -21.942 · Reykjavík",
+               base: ["ni:ni_j600v_berg_2_jardlog_2utg_fl", "ni:ni_j100v_vesturgosbelti_berggrunnur_1utg_fl",
+                      "ni:ni_j100v_austurland_berggrunnur_1utg_fl"],
+               first: ["ni:ni_j600v_berg_2_jardlog_2utg_fl", "ni:ni_j600v_hoggun_eldstodvakerfi_li"],
+               borrow: { arctic_ocean: ["emodnet", "earth"] } },
     arctic: { title: "북극", proj: "EPSG:3413", center: [-20.0, 76.0], zoom: 3, vworld: false,
-              includes: ["greenland", "svalbard", "jan_mayen", "arctic_ocean", "fennoscandia"],
-              home: [-612000, -3344000, 1380000, -212000],
+              includes: ["greenland", "svalbard", "jan_mayen", "arctic_ocean", "fennoscandia", "iceland"],
+              // 아이슬란드 동쪽 끝까지 — 오른쪽을 넓혔다 (wetherilli 216)
+              home: [-612000, -3344000, 1560000, -212000],
               basemap: "eox_s2", places: "78.223, 15.647 · Longyearbyen",
               base: ["grl_g500_lithostr_search", "npolar:svalbard_units", "janmayen:units"],
               first: ["grl_g500_lithostr_search", "npolar:svalbard_units", "janmayen:units"] },
@@ -184,13 +195,29 @@
               basemap: "nlsc_grey", example: "25.033, 121.565",
               base: ["gsmma:geology_50k", "gsmma:geology_250k", "gsmma:geology_500k", "gsmma:geology_1m"],
               first: "gsmma:geology_50k" },
+    // ── 몽골 (wetherilli 221) ──
+    // 국가지질조사소 MonGeoCat 의 국가지질도첩 지질도와 1:50만 단층(ArcGIS WMS, 3857 로). 속성은 영어 열, 시대는 기호(러시아식
+    // 층서 지수)에서 푼다. 동아시아 묶음에 든다 — 같은 3857 이고 중국(geo3al)과 맞닿는다
+    mongolia: { title: "몽골", proj: "EPSG:3857", center: [103.0, 46.8], zoom: 5, vworld: false,
+                home: [9763000, 5086000, 13358000, 6836000],
+                basemap: "eox_terrain", example: "47.918, 106.917 · Ulaanbaatar",
+                base: ["mris:geology:1", "mris:faults:0"],
+                first: ["mris:geology:1", "mris:faults:0"] },
+    // ── 인도 (wetherilli 226) ──
+    // GSI 1:200만. GSI 의 지도 창(Bhukosh)이 나라 밖에서 닿지 않아, 그림은 BGS 가 OneGeology 로 여는 WMS, 누른 자리는 GSI 의
+    // ArcGIS Online 피처 서비스에서 받는다(서버 문이 엮는다). 범례는 두지 않는다 — BGS 의 범례 그림은 번호뿐이다
+    india: { title: "인도", proj: "EPSG:3857", center: [79.0, 22.0], zoom: 5, vworld: false,
+             home: [7570000, 725000, 10854000, 4467000],
+             basemap: "eox_terrain", example: "28.614, 77.209 · New Delhi",
+             base: ["gsiindia:geology", "gsiindia:faults", "gsiindia:thrusts"],
+             first: ["gsiindia:geology", "gsiindia:faults", "gsiindia:thrusts"] },
     eastasia: { title: "동아시아", proj: "EPSG:3857", center: [135.0, 37.5], zoom: 5, vworld: true,
-                includes: ["korea", "japan", "china", "taiwan"],
+                includes: ["korea", "japan", "china", "taiwan", "mongolia"],
                 home: [13803617, 3763311, 16252646, 5388389],
                 basemap: "eox_terrain",
                 // 중국(geo3al, 025)은 한반도·일본까지 덮는 1:500만이라 늘 펼쳐 두되 켜지는 않는다
                 base: ["L_1M_Geology_Map", "L_250K_Geology_Map", "gsj:geology", "gsj:faults", "gsmma:geology_500k",
-                       "geo3al:age"],
+                       "geo3al:age", "mris:geology:1"],
                 // 넓게 보는 탭이라 한국은 100만, 일본은 20만(가장 넓은 판)을 켠다
                 first: ["L_1M_Geology_Map", "gsj:geology"] },
     // ── 영국·프랑스·유럽 (wetherilli 143) ──
@@ -340,6 +367,21 @@
                  basemap: "eox_terrain", example: "-31.95, 115.86 · Perth",
                  base: ["ga:lithostratigraphy", "ga:age", "ga:lithology", "ga:faults"],
                  first: "ga:lithostratigraphy" },
+    // 뉴질랜드(wetherilli 218) — GNS Science 의 QMAP 1:25만 합본과 1:100만. 합본은 넓게 보면 느려 줌 7 부터이고, 그보다 넓으면
+    // 1:100만이 바탕이다. 둘 다 켜 두면 가까이 갈 때 합본이 위에 얹힌다
+    new_zealand: { title: "뉴질랜드", proj: "EPSG:3857", center: [172.5, -41.0], zoom: 5, vworld: false,
+                   home: [18479000, -6041000, 19926000, -4029000],
+                   basemap: "eox_terrain", example: "-41.289, 174.777 · Wellington",
+                   base: ["gns:NZL_GNS_1M_geological_units", "gns:qmap", "gns:NZL_GNS_1M_faults"],
+                   first: ["gns:NZL_GNS_1M_geological_units", "gns:qmap"] },
+    // 오세아니아는 묶음이다(wetherilli 218) — 호주·뉴질랜드가 같은 3857 이라 한 화면에 모은다. 남위 10–48° 라 많이 부풀지 않는다.
+    // 3857 의 가장 넓은 줌(5)에는 두 나라가 다 들지 않아 처음엔 호주 동부와 뉴질랜드를 연다
+    oceania: { title: "오세아니아", proj: "EPSG:3857", center: [159.0, -35.0], zoom: 5, vworld: false,
+               includes: ["australia", "new_zealand"],
+               home: [12468000, -6107000, 19982000, -1006000],
+               basemap: "eox_terrain",
+               base: ["ga:lithostratigraphy", "gns:NZL_GNS_1M_geological_units", "gns:qmap"],
+               first: ["ga:lithostratigraphy", "gns:NZL_GNS_1M_geological_units", "gns:qmap"] },
     europe: { title: "유럽", proj: "EPSG:3857", center: [0.0, 50.0], zoom: 5, vworld: false,
               includes: ["uk", "ireland", "france", "germany", "spain", "portugal", "italy", "switzerland"],
               // 이탈리아(풀리아·시칠리아)까지 — 동쪽을 넓혔다 (wetherilli 211)
@@ -423,7 +465,7 @@
     return g.region === "antarctica" && g.layers.length;
   });
   //: 스발바르·북극·일본·중국도 카탈로그에 레이어군이 하나도 없으면 "준비 중" 이다 (씨앗을 안 넣은 DB)
-  ["svalbard", "arctic", "arctic_ocean", "fennoscandia", "japan", "china", "taiwan", "uk", "france", "germany", "spain", "ireland", "europe", "colombia", "brazil", "peru", "argentina", "uruguay", "ecuador", "south_america", "canada", "africa", "italy", "portugal", "switzerland", "usa", "mexico", "north_america", "australia"].forEach(function (key) {
+  ["svalbard", "arctic", "arctic_ocean", "fennoscandia", "iceland", "japan", "china", "taiwan", "mongolia", "india", "uk", "france", "germany", "spain", "ireland", "europe", "colombia", "brazil", "peru", "argentina", "uruguay", "ecuador", "south_america", "canada", "africa", "italy", "portugal", "switzerland", "usa", "mexico", "north_america", "australia", "new_zealand", "oceania"].forEach(function (key) {
     if (!REGIONS[key]) return;            // 정적 판이 싣지 않은 지역
     var keys = REGIONS[key].includes || [key];
     REGIONS[key].pending = !catalog.some(function (g) {
@@ -905,6 +947,14 @@
     ispra: { source: npolarSource, info: wmsInfoUrl },
     lneg: { source: npolarSource, info: wmsInfoUrl },
     swisstopo: { source: npolarSource, info: wmsInfoUrl },
+    // 아이슬란드 NÍ(wetherilli 216) — 카탈로그 행의 투영(3413)으로 서버 문을 거쳐 받는다
+    natt: { source: npolarSource, info: wmsInfoUrl },
+    // 뉴질랜드·남빅토리아랜드 GNS(wetherilli 218) — 카탈로그 행의 투영(3857·3031)으로 서버 문을 거쳐 받는다
+    gns: { source: npolarSource, info: wmsInfoUrl },
+    // 몽골 MonGeoCat(wetherilli 221) — 카탈로그 행의 투영(3857)으로 서버 문을 거친다. 범례는 목록(`mris/legend/`)
+    mris: { source: npolarSource, info: wmsInfoUrl },
+    // 인도 GSI(wetherilli 226) — 그림은 BGS WMS(3857), 누른 자리는 서버 문이 GSI 피처 서비스로 옮긴다
+    gsiindia: { source: npolarSource, info: wmsInfoUrl },
     phyloserver: { source: phyloserverSource, info: null },
     peninsula: { source: peninsulaSource, info: null },
     // 남극 IBCSO 자료 출처(071) — GeoMAP 과 같은 3031 격자에 우리가 잘라 둔 것
@@ -1373,23 +1423,23 @@
   BASEMAPS.eox_s2 = {
     title: T("Sentinel-2 위성 (EOX)"),
     note: T("EOX · Copernicus Sentinel-2 (2023). 비상업 이용만 된다. 북위 82° 위는 해안선이 거칠다 — ArcticDEM 을 쓴다"),
-    regions: ["greenland", "jan_mayen", "svalbard", "arctic_ocean", "fennoscandia", "japan", "china", "taiwan", "uk", "france",
+    regions: ["greenland", "jan_mayen", "svalbard", "arctic_ocean", "fennoscandia", "iceland", "japan", "china", "taiwan", "uk", "france",
               "germany", "spain", "ireland", "colombia", "brazil", "peru", "argentina", "uruguay", "ecuador", "usa", "mexico", "africa", "canada", "australia",
-              "italy", "portugal", "switzerland"],
+              "italy", "portugal", "switzerland", "new_zealand", "mongolia", "india"],
     make: function () { return eoxLayer("s2cloudless-2023_3857", 16, EOX_S2); },
   };
   BASEMAPS.eox_terrain = {
     title: T("지형 음영 (EOX)"),
     note: T("EOX · OpenStreetMap. 비상업 이용만 된다. 북위 82° 위는 해안선이 거칠다 — ArcticDEM 을 쓴다"),
-    regions: ["greenland", "jan_mayen", "svalbard", "arctic_ocean", "fennoscandia", "japan", "china", "taiwan", "uk", "france",
+    regions: ["greenland", "jan_mayen", "svalbard", "arctic_ocean", "fennoscandia", "iceland", "japan", "china", "taiwan", "uk", "france",
               "germany", "spain", "ireland", "colombia", "brazil", "peru", "argentina", "uruguay", "ecuador", "usa", "mexico", "africa", "canada", "australia",
-              "italy", "portugal", "switzerland"],
+              "italy", "portugal", "switzerland", "new_zealand", "mongolia", "india"],
     make: function () { return eoxLayer("terrain-light_3857", 13, EOX_TERRAIN); },
   };
   BASEMAPS.arcticdem = {
     title: T("ArcticDEM 음영"),
     note: T("Polar Geospatial Center. 2 m 표고에서 그린 음영"),
-    regions: ["greenland", "jan_mayen", "svalbard", "arctic_ocean", "fennoscandia"], needs: "EPSG:3413",
+    regions: ["greenland", "jan_mayen", "svalbard", "arctic_ocean", "fennoscandia", "iceland"], needs: "EPSG:3413",
     make: function () { return pgcHillshade("arcticdem_latest", "EPSG:3413", PGC_ARCTICDEM); },
   };
   // 같은 ImageServer 의 다른 그리는 법 둘 (wetherilli 092). 여러 방향 음영은 한 방향 음영이 그늘에 묻는
@@ -1397,19 +1447,19 @@
   BASEMAPS.arcticdem_multi = {
     title: T("ArcticDEM 음영 (여러 방향)"),
     note: T("Polar Geospatial Center. 여러 방향에서 비춘 음영 — 한 방향 음영에서 그늘진 사면이 살아난다"),
-    regions: ["greenland", "jan_mayen", "svalbard", "arctic_ocean", "fennoscandia"], needs: "EPSG:3413",
+    regions: ["greenland", "jan_mayen", "svalbard", "arctic_ocean", "fennoscandia", "iceland"], needs: "EPSG:3413",
     make: function () { return pgcHillshade("arcticdem_latest", "EPSG:3413", PGC_ARCTICDEM, "Hillshade Multidirectional"); },
   };
   BASEMAPS.arcticdem_tinted = {
     title: T("ArcticDEM 높이 색 음영"),
     note: T("Polar Geospatial Center. 높이를 색으로 칠한 음영"),
-    regions: ["greenland", "jan_mayen", "svalbard", "arctic_ocean", "fennoscandia"], needs: "EPSG:3413",
+    regions: ["greenland", "jan_mayen", "svalbard", "arctic_ocean", "fennoscandia", "iceland"], needs: "EPSG:3413",
     make: function () { return pgcHillshade("arcticdem_latest", "EPSG:3413", PGC_ARCTICDEM, "Hillshade Elevation Tinted"); },
   };
   BASEMAPS.gibs_bm_n = {
     title: T("Blue Marble 위성 (NASA)"),
     note: T("NASA GIBS. 500 m 해상도라 넓게 볼 때 쓴다"),
-    regions: ["greenland", "jan_mayen", "svalbard", "arctic_ocean", "fennoscandia"], needs: "EPSG:3413",
+    regions: ["greenland", "jan_mayen", "svalbard", "arctic_ocean", "fennoscandia", "iceland"], needs: "EPSG:3413",
     make: function () { return gibsLayer("3413", "BlueMarble_ShadedRelief_Bathymetry", 4); },
   };
   BASEMAPS.gibs_bm_s = {
@@ -2377,7 +2427,7 @@
   //: 상류의 짧은 이름 — 기관 이름이라 옮기지 않는다
   var UPSTREAM_TAGS = {
     kigam: "KIGAM", vworld: "VWorld", geus: "GEUS", grportal: "GRL", npolar: "NPI", janmayen: "NPI",
-    gsj: "GSJ", gsitile: "GSIJ", geonavi: "GSJ", ccop: "CCOP", gsmma: "GSMMA", emodnet: "EMOD", ngu: "NGU", gtk: "GTK", sgu: "SGU", bgs: "BGS", brgm: "BRGM", egdi: "EGDI", bgr: "BGR", igme: "IGME", gsi: "GSI", gsni: "GSNI", sgc: "SGC", sgb: "SGB", ingemmet: "INGEMMET", iige: "IIGE", cgmw: "CGMW", aga: "BGS", cgs: "CGS", gsn: "GSN", mrdata: "USGS", sgm: "SGM", nrcan: "NRCan", ogs: "OGS", sigeom: "SIGÉOM", ygs: "YGS", ga: "GA", ispra: "ISPRA", lneg: "LNEG", swisstopo: "swisstopo", segemar: "SEGEMAR", dinamige: "DINAMIGE", geomap: "GeoMAP", geo3al: "USGS", kopri: "KOPRI", pgc: "PGC", ibcso: "IBCSO",
+    gsj: "GSJ", gsitile: "GSIJ", geonavi: "GSJ", ccop: "CCOP", gsmma: "GSMMA", emodnet: "EMOD", ngu: "NGU", gtk: "GTK", sgu: "SGU", natt: "NÍ", bgs: "BGS", brgm: "BRGM", egdi: "EGDI", bgr: "BGR", igme: "IGME", gsi: "GSI", gsni: "GSNI", sgc: "SGC", sgb: "SGB", ingemmet: "INGEMMET", iige: "IIGE", cgmw: "CGMW", aga: "BGS", cgs: "CGS", gsn: "GSN", mrdata: "USGS", sgm: "SGM", nrcan: "NRCan", ogs: "OGS", sigeom: "SIGÉOM", ygs: "YGS", ga: "GA", gns: "GNS", mris: "NGS", gsiindia: "GSI-IN", ispra: "ISPRA", lneg: "LNEG", swisstopo: "swisstopo", segemar: "SEGEMAR", dinamige: "DINAMIGE", geomap: "GeoMAP", geo3al: "USGS", kopri: "KOPRI", pgc: "PGC", ibcso: "IBCSO",
     phyloserver: "LAB", peninsula: "LAB",
     // 지구 자료 점(wetherilli 185) — 기관이 넷이라 딱지는 하나로 두고 이름은 레이어 제목이 적는다
     earth: "EARTH",
@@ -2393,7 +2443,7 @@
     bgr: T("독일 연방 지구과학·자원청"), igme: T("스페인 지질광물연구소"), gsi: T("아일랜드 지질조사소"),
     sgc: T("콜롬비아 지질조사소"), sgb: T("브라질 지질조사소"), ingemmet: T("페루 지질광업야금연구소"), iige: T("에콰도르 지질·에너지 연구소"), mrdata: T("미국 지질조사국"), sgm: T("멕시코 지질조사소"),
     nrcan: T("캐나다 천연자원부"), ogs: T("온타리오 지질조사소"), sigeom: T("퀘벡 지질 광업 정보 체계"), ygs: T("유콘 지질조사소"),
-    ispra: T("이탈리아 지질조사소 (ISPRA)"), lneg: T("포르투갈 국립 에너지·지질연구소"), swisstopo: T("스위스 연방 지형청"),
+    ispra: T("이탈리아 지질조사소 (ISPRA)"), lneg: T("포르투갈 국립 에너지·지질연구소"), swisstopo: T("스위스 연방 지형청"), natt: T("아이슬란드 자연사연구소"), gns: T("뉴질랜드 지질·핵과학연구소 (GNS)"), mris: T("몽골 국가지질조사소 (MonGeoCat)"), gsiindia: T("인도 지질조사소 (그림: BGS)"),
     segemar: T("아르헨티나 지질광업조사소"), dinamige: T("우루과이 광업지질국"),
     cgmw: T("세계지질도위원회·프랑스 지질광물조사소"), aga: T("영국 지질조사소 — 아프리카 지하수 지도책"),
     cgs: T("남아프리카공화국 지질조사소"), gsn: T("나미비아 지질조사소"), ga: "Geoscience Australia",
@@ -4384,6 +4434,21 @@
     };
   }
 
+  /** 방향 기호(wetherilli 223) — 위(북)를 가리키는 SVG. `arrow` 는 선구조의 침강 방향 화살, `strike` 는 주향선과 경사 방향의 짧은 눈금.
+   *  지도에서는 서버의 `azimuth`(°)만큼 돌린다 — 화살은 침강 방향, 주향 기호는 경사 방향이 위다. */
+  function attitudeSvg(shape, color, size) {
+    var c = esc(color || "#888"), h = size / 2;
+    var body = shape === "arrow"
+      ? '<line x1="' + h + '" y1="' + (size - 2) + '" x2="' + h + '" y2="5" stroke="#fff" stroke-width="4"/>' +
+        '<line x1="' + h + '" y1="' + (size - 2) + '" x2="' + h + '" y2="5" stroke="' + c + '" stroke-width="2"/>' +
+        '<path d="M' + h + ' 1 L' + (h - 4) + ' 8 L' + (h + 4) + ' 8 Z" fill="' + c + '" stroke="#fff" stroke-width="0.8"/>'
+      : '<line x1="2" y1="' + h + '" x2="' + (size - 2) + '" y2="' + h + '" stroke="#fff" stroke-width="4"/>' +
+        '<line x1="' + h + '" y1="' + h + '" x2="' + h + '" y2="' + (h - 6) + '" stroke="#fff" stroke-width="4"/>' +
+        '<line x1="2" y1="' + h + '" x2="' + (size - 2) + '" y2="' + h + '" stroke="' + c + '" stroke-width="2"/>' +
+        '<line x1="' + h + '" y1="' + h + '" x2="' + h + '" y2="' + (h - 6) + '" stroke="' + c + '" stroke-width="2"/>';
+    return '<svg xmlns="http://www.w3.org/2000/svg" width="' + size + '" height="' + size + '">' + body + "</svg>";
+  }
+
   /** 극지연구소(053–056) — 서버가 갈래(`code`)마다 색·모양을 준다. 점은 모양대로, 범위(면·선)는
    *  같은 색의 테두리와 옅은 속으로 그린다. 멀리서는 점을 작게 — 암석 시료가 빅토리아랜드에 몰려 있다. */
   function classStyle(feature, resolution, getLayer, cache) {
@@ -4396,7 +4461,8 @@
       fade = periodFade(periods, ago);
       if (!fade) return null;
     }
-    var key = code + "|" + type + (far ? "f" : "n") + fade;
+    var azimuth = feature.get("azimuth");
+    var key = code + "|" + type + (far ? "f" : "n") + fade + (azimuth != null ? "|" + Math.round(azimuth / 5) * 5 : "");
     if (cache[key]) return cache[key];
     var spec = {};
     (getLayer().get("gsmLegend") || []).forEach(function (r) { if (r.code === code) spec = r; });
@@ -4411,6 +4477,11 @@
       // 5만 단층·습곡(wetherilli 202) — 굵기·끊김을 서버의 표가 준다. 선이 수천이라 테두리 없이 가늘게
       style = new ol.style.Style({ stroke: new ol.style.Stroke({ color: color, width: spec.width || 1.4,
                                                                 lineDash: spec.dash || undefined }) });
+    } else if ((spec.shape === "arrow" || spec.shape === "strike") && azimuth != null) {
+      // 5만 선구조·유동구조(wetherilli 223) — 방향을 돌린 기호. 5° 칸으로 담아 둔다
+      style = new ol.style.Style({ image: new ol.style.Icon({
+        src: "data:image/svg+xml;charset=utf-8," + encodeURIComponent(attitudeSvg(spec.shape, color, 22)),
+        rotation: (Math.round(azimuth / 5) * 5) * Math.PI / 180, rotateWithView: true, scale: far ? 0.6 : 1 }) });
     } else if (spec.shape === "dash") {
       // 날짜만 아는 지난 항적(koprifossillab 009) — 지금 쌓는 것과 갈라 보이게 가늘게 끊어
       style = new ol.style.Style({ stroke: new ol.style.Stroke({ color: color, width: 1.6, lineDash: [6, 4] }) });
@@ -4466,6 +4537,10 @@
         sw.className = "sw-line";
         sw.innerHTML = '<svg width="30" height="10" aria-hidden="true"><line x1="1" y1="5" x2="29" y2="5" stroke="' +
           esc(r.color || "#888") + '" stroke-width="' + (r.shape === "dash" ? '1.6" stroke-dasharray="6 4' : "2.5") + '"/></svg>';
+      } else if (row.style === "class" && (r.shape === "arrow" || r.shape === "strike")) {
+        sw = document.createElement("span");
+        sw.className = "sw-line";
+        sw.innerHTML = attitudeSvg(r.shape, r.color, 16).replace("<svg ", '<svg aria-hidden="true" ');
       } else if (row.style === "class") {
         sw = document.createElement("span");
         sw.className = "sw " + ({ square: "box", star: "star", diamond: "diamond", triangle: "triangle" }[r.shape] || "dot");

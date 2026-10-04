@@ -1,0 +1,86 @@
+{
+ "_주석": "GNS Science(뉴질랜드) 지질도 씨앗이다 — 뉴질랜드 탭(오세아니아 묶음에도 든다). 2026-10-04 에 maps.gns.cri.nz GeoServer 의 Capabilities 에서 골랐다. 이름은 우리 것이고(`gns:`), 문(web/viewer/gns.py)이 상류 이름으로 바꾼다. 합본(gns:qmap)은 넓게 보면 느려 줌 7 부터다. 한글 제목과 레이어군은 사람이 붙였다 (wetherilli 218).",
+ "_뽑은날": "2026-10-04",
+ "_출처": "https://maps.gns.cri.nz/geology/wms?SERVICE=WMS&REQUEST=GetCapabilities",
+ "_지역": "new_zealand",
+ "_상류": "gns",
+ "_레이어군차례": 1,
+ "레이어군순서": [
+  "뉴질랜드 지질도 (GNS)",
+  "뉴질랜드 구조 (GNS 1:25만)"
+ ],
+ "레이어": [
+  {
+   "name": "gns:qmap",
+   "title": "QMAP 지질도 (1:25만)",
+   "group": "뉴질랜드 지질도 (GNS)",
+   "abstract": "NZL_GNS_250K_seamless_qmap_geological_map_current_view — QMAP 21 도폭의 합본(2023 판 기준), 단층·경계까지 한 장. 줌 7 부터",
+   "bbox": [
+    166.0,
+    -47.6,
+    179.0,
+    -34.0
+   ]
+  },
+  {
+   "name": "gns:NZL_GNS_1M_geological_units",
+   "title": "지질 단위 (1:100만)",
+   "group": "뉴질랜드 지질도 (GNS)",
+   "abstract": "Geological Map of New Zealand 1:1 000 000 (GMNZ 2014) — 넓게 볼 때의 바탕",
+   "bbox": [
+    165.8,
+    -52.7,
+    179.2,
+    -34.0
+   ]
+  },
+  {
+   "name": "gns:NZL_GNS_1M_faults",
+   "title": "단층 (1:100만)",
+   "group": "뉴질랜드 지질도 (GNS)",
+   "abstract": "NZL GNS 1:1M faults",
+   "bbox": [
+    166.0,
+    -47.6,
+    179.0,
+    -34.0
+   ]
+  },
+  {
+   "name": "gns:NZL_GNS_250K_faults",
+   "title": "단층 (1:25만)",
+   "group": "뉴질랜드 구조 (GNS 1:25만)",
+   "abstract": "NZL GNS 1:250K faults. 줌 7 부터",
+   "bbox": [
+    165.4,
+    -48.2,
+    180.0,
+    -33.3
+   ]
+  },
+  {
+   "name": "gns:NZL_GNS_250K_folds",
+   "title": "습곡축 (1:25만)",
+   "group": "뉴질랜드 구조 (GNS 1:25만)",
+   "abstract": "NZL GNS 1:250K fold axes. 줌 8 부터",
+   "bbox": [
+    166.0,
+    -47.6,
+    179.0,
+    -34.0
+   ]
+  },
+  {
+   "name": "gns:NZL_GNS_250K_metamorphic_zones",
+   "title": "변성대 (1:25만)",
+   "group": "뉴질랜드 구조 (GNS 1:25만)",
+   "abstract": "NZL GNS 1:250K metamorphic zones. 줌 7 부터",
+   "bbox": [
+    163.9,
+    -49.4,
+    180.0,
+    -32.0
+   ]
+  }
+ ]
+}

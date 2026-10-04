@@ -1,5 +1,5 @@
 {
- "_주석": "KIGAM 5만 지질도 구조 요소의 씨앗이다 (wetherilli 199, jikhanjung P01 §2·§5). 받아 둔 WFS 파일(<DB 옆>/kigam50k/raw/<날짜>/, manage.py fetch_kigam50k)에서 화면이 점·면으로 받는다 — web/viewer/kigam50k.py 의 LAYERS. 레이어군 이름 \"지질 구조 (5만)\" 은 P01 §8 의 기본안이고 사람이 고친다. 층리·엽리·편리·절리는 5만 지질도 카드에 딸린 것이라 여기 없다(jikhanjung 004·005). 단층·습곡·광종·변질대·변성대는 wetherilli 202 에서 더했다. 정적 판에는 싣지 않는다.",
+ "_주석": "KIGAM 5만 지질도 구조 요소의 씨앗이다 (wetherilli 199, jikhanjung P01 §2·§5). 받아 둔 WFS 파일(<DB 옆>/kigam50k/raw/<날짜>/, manage.py fetch_kigam50k)에서 화면이 점·면으로 받는다 — web/viewer/kigam50k.py 의 LAYERS. 레이어군 이름 \"지질 구조 (5만)\" 은 P01 §8 의 기본안이고 사람이 고친다. 층리·엽리·편리·절리는 5만 지질도 카드에 딸린 것이라 여기 없다(jikhanjung 004·005). 단층·습곡·광종·변질대·변성대는 wetherilli 202, 선구조·신장광물·습곡축·유동구조(방향 기호)는 223 에서 더했다. 정적 판에는 싣지 않는다.",
  "_뽑은날": "2026-10-04",
  "_출처": "https://data.kigam.re.kr/",
  "_지역": "korea",
@@ -98,6 +98,54 @@
    "title": "광종 (5만)",
    "group": "지질 구조 (5만)",
    "abstract": "Ore commodities at mines on the KIGAM 1:50,000 maps",
+   "bbox": [
+    124.5,
+    33.0,
+    131.0,
+    38.7
+   ]
+  },
+  {
+   "name": "kigam50k:lineation",
+   "title": "선구조 (5만)",
+   "group": "지질 구조 (5만)",
+   "abstract": "KIGAM 1:50,000 lineations — plunge direction and plunge",
+   "bbox": [
+    124.5,
+    33.0,
+    131.0,
+    38.7
+   ]
+  },
+  {
+   "name": "kigam50k:mineralarray",
+   "title": "신장광물 (5만)",
+   "group": "지질 구조 (5만)",
+   "abstract": "KIGAM 1:50,000 stretched mineral lineations",
+   "bbox": [
+    124.5,
+    33.0,
+    131.0,
+    38.7
+   ]
+  },
+  {
+   "name": "kigam50k:foldaxis",
+   "title": "습곡축 (5만)",
+   "group": "지질 구조 (5만)",
+   "abstract": "KIGAM 1:50,000 minor fold axes — plunge direction and plunge",
+   "bbox": [
+    124.5,
+    33.0,
+    131.0,
+    38.7
+   ]
+  },
+  {
+   "name": "kigam50k:flowstructure",
+   "title": "유동구조 (5만)",
+   "group": "지질 구조 (5만)",
+   "abstract": "KIGAM 1:50,000 flow structures — dip direction and dip",
    "bbox": [
     124.5,
     33.0,

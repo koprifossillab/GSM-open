@@ -1,4 +1,4 @@
-"""페루 — INGEMMET 1:5만·1:10만 통합판 (wetherilli 195). 상류를 부르지 않는다 — 꼴은 2026-10-04 에 리마 둘레에서 받은 그대로다."""
+"""페루 — INGEMMET 1:5만·1:10만 통합판 (wetherilli 195), 따로 켜는 단층·습곡 (222). 상류를 부르지 않는다 — 꼴은 2026-10-04 에 리마 둘레에서 받은 그대로다."""
 import io
 import json
 import tempfile
@@ -128,6 +128,28 @@ class Views(TestCase):
         self.assertEqual(r.status_code, 422)
         get.assert_not_called()
 
+    def test_단층_습곡은_따로_켠다(self):
+        row = self.layers["ingemmet:faults_50k"]
+        self.assertEqual((row["tiles"], row["minZoom"], row["maxZoom"], row["queryable"], row["noLegend"]),
+                         ("ingemmet/faults_50k/{z}/{x}/{y}.png", 9, 18, False, True))
+        self.assertNotIn("minZoom", self.layers["ingemmet:faults_1m"])
+        self.assertEqual(Layer.objects.get(name="ingemmet:folds_100k").group.region, "peru")
+
+    def test_단층_습곡은_export_를_타일_칸만큼(self):
+        url = reverse("viewer:ingemmet-tile", kwargs={"sheet": "folds_50k", "z": 12, "x": 1171, "y": 2186})
+        with mock.patch.object(ingemmet.requests, "get", return_value=answer()) as get:
+            first, again = self.client.get(url), self.client.get(url)
+        get.assert_called_once()
+        self.assertTrue(get.call_args.args[0].endswith("/SERV_GEOLOGIA_FALLAS/MapServer/export"))
+        sent = get.call_args.kwargs["params"]
+        self.assertEqual((sent["layers"], sent["size"], sent["bboxSR"], sent["transparent"]), ("show:6", "256,256", 3857, "true"))
+        west, south, east, north = (float(v) for v in sent["bbox"].split(","))
+        self.assertAlmostEqual(east - west, 2 * 20037508.342789244 / 2 ** 12, places=2)
+        self.assertEqual((first["X-GSM-Cache"], again["X-GSM-Cache"]), ("miss", "hit"))
+        # 단층·습곡은 지질도가 아니다 — 누른 자리·범례를 묻지 않는다
+        self.assertEqual(self.client.get(reverse("viewer:ingemmet-info"),
+                                         {"layer": "ingemmet:faults_50k", "lat": -12, "lon": -77}).status_code, 400)
+
 
 class Prewarm(SimpleTestCase):
     def test_캐시가_있는_줌까지_뷰의_열쇠로(self):
@@ -141,3 +163,9 @@ class Prewarm(SimpleTestCase):
                 mock.patch.object(ingemmet, "get_tile", return_value=None):
             plan.fetch_block(12, 1171, 2186, 1)
             self.assertEqual(tilecache.get(plan.key(12, 1171, 2186)), views.tiles.blank_tile(256, 256))
+
+    def test_단층_습곡은_화면이_그리는_줌부터(self):
+        plan = prewarm.plan_for("ingemmet:faults_100k", "ingemmet")
+        lima = (-77.1, -12.1, -77.0, -12.0)
+        self.assertEqual(list(plan.tiles_for(lima, 7)), [])
+        self.assertTrue(list(plan.tiles_for(lima, 15)))

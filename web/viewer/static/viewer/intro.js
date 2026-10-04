@@ -27,7 +27,7 @@
       location.replace(SITE_ROOT + "en/");
     }
     // 묶음(map.js 의 `REGIONS.*.includes`)은 품은 지역이 둘 이상 실려야 문을 세운다 — 하나뿐이면 그 지역의 지도와 같다
-    var BUNDLES = { arctic: ["greenland", "svalbard", "jan_mayen", "arctic_ocean", "fennoscandia"],
+    var BUNDLES = { arctic: ["greenland", "svalbard", "jan_mayen", "arctic_ocean", "fennoscandia", "iceland"],
                     eastasia: ["korea", "japan", "china", "taiwan"] };
     var loaded = function (key) {
       return STATIC.regions.indexOf(key) >= 0 ||

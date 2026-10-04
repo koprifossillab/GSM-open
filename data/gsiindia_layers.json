@@ -1,0 +1,49 @@
+{
+ "_주석": "인도 지질조사소(GSI) 1:200만 씨앗이다 — 인도 탭. GSI 의 지도 창(Bhukosh)은 나라 밖에서 닿지 않아, 그림은 BGS 가 OneGeology 로 여는 WMS, 속성은 GSI 가 ArcGIS Online 에 올린 피처 서비스에서 받는다(web/viewer/gsiindia.py). 2026-10-04 에 BGS Capabilities 에서 골랐다. 한글 제목과 레이어군은 사람이 붙였다 (wetherilli 226).",
+ "_뽑은날": "2026-10-04",
+ "_출처": "https://ogc.bgs.ac.uk/cgi-bin/BGS_GSI_Geology/wms?SERVICE=WMS&REQUEST=GetCapabilities",
+ "_지역": "india",
+ "_상류": "gsiindia",
+ "_레이어군차례": 1,
+ "레이어군순서": [
+  "인도 지질도 1:200만 (GSI)"
+ ],
+ "레이어": [
+  {
+   "name": "gsiindia:geology",
+   "title": "지질도 (1:200만)",
+   "group": "인도 지질도 1:200만 (GSI)",
+   "abstract": "Geological Map of India 1:2M — 그림은 BGS 의 OneGeology WMS(IND_GSI_2M_Geology), 속성은 GSI 의 피처 서비스",
+   "bbox": [
+    68.0,
+    6.5,
+    97.5,
+    37.2
+   ]
+  },
+  {
+   "name": "gsiindia:faults",
+   "title": "단층 (1:200만)",
+   "group": "인도 지질도 1:200만 (GSI)",
+   "abstract": "IND_GSI_2M_Faults",
+   "bbox": [
+    68.0,
+    6.5,
+    97.5,
+    37.2
+   ]
+  },
+  {
+   "name": "gsiindia:thrusts",
+   "title": "충상단층 (1:200만)",
+   "group": "인도 지질도 1:200만 (GSI)",
+   "abstract": "IND_GSI_2M_Thrusts",
+   "bbox": [
+    68.0,
+    6.5,
+    97.5,
+    37.2
+   ]
+  }
+ ]
+}

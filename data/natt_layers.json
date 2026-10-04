@@ -1,0 +1,122 @@
+{
+ "_주석": "아이슬란드 자연사연구소(Náttúrufræðistofnun, NÍ) 지질도 씨앗이다 — 아이슬란드 탭(북극 묶음에도 든다). 2026-10-04 에 gis.natt.is GeoServer 의 Capabilities 에서 지질 레이어(워크스페이스 ni:)만 골랐다. 레이어명은 상류 이름 그대로다 — 문(web/viewer/natt.py)이 아는 것만 부른다. 범위(bbox)는 Capabilities 의 것을 둘째 자리에서 잘랐다. 한글 제목과 레이어군은 사람이 붙였다 (wetherilli 216).",
+ "_뽑은날": "2026-10-04",
+ "_출처": "https://gis.natt.is/geoserver/wms?SERVICE=WMS&REQUEST=GetCapabilities",
+ "_지역": "iceland",
+ "_상류": "natt",
+ "_레이어군차례": 1,
+ "레이어군순서": [
+  "아이슬란드 기반암 1:60만 (NÍ)",
+  "아이슬란드 1:10만 (NÍ)"
+ ],
+ "레이어": [
+  {
+   "name": "ni:ni_j600v_berg_2_jardlog_2utg_fl",
+   "title": "기반암 지층 (1:60만)",
+   "group": "아이슬란드 기반암 1:60만 (NÍ)",
+   "abstract": "Berggrunnur jarðlög — 1:600 000, 2. útgáfa (Haukur Jóhannesson 2014). 섬 전체",
+   "bbox": [
+    -24.75,
+    63.21,
+    -13.19,
+    66.57
+   ]
+  },
+  {
+   "name": "ni:ni_j600v_berg_2_jardlogMork_2utg_li",
+   "title": "지층 경계 (1:60만)",
+   "group": "아이슬란드 기반암 1:60만 (NÍ)",
+   "abstract": "Berggrunnur jarðlög mörk",
+   "bbox": [
+    -24.26,
+    63.22,
+    -13.21,
+    66.51
+   ]
+  },
+  {
+   "name": "ni:ni_j600v_berg_2_brotalina_1utg_li",
+   "title": "단층 (1:60만)",
+   "group": "아이슬란드 기반암 1:60만 (NÍ)",
+   "abstract": "Berggrunnur brotalínur",
+   "bbox": [
+    -23.1,
+    63.81,
+    -15.84,
+    66.52
+   ]
+  },
+  {
+   "name": "ni:ni_j600v_berg_2_gosspr_1utg_li",
+   "title": "분화 틈 (1:60만)",
+   "group": "아이슬란드 기반암 1:60만 (NÍ)",
+   "abstract": "Berggrunnur gossprungur",
+   "bbox": [
+    -24.14,
+    63.23,
+    -16.12,
+    66.26
+   ]
+  },
+  {
+   "name": "ni:ni_j600v_berg_2_gigar_1utg_p",
+   "title": "분화구 (1:60만)",
+   "group": "아이슬란드 기반암 1:60만 (NÍ)",
+   "abstract": "Berggrunnur gígar",
+   "bbox": [
+    -24.18,
+    63.33,
+    -16.33,
+    65.97
+   ]
+  },
+  {
+   "name": "ni:ni_j600v_hoggun_eldstodvakerfi_li",
+   "title": "화산계 (1:60만)",
+   "group": "아이슬란드 기반암 1:60만 (NÍ)",
+   "abstract": "Höggun eldstöðvakerfi — 구조도의 화산계(중심 화산·열극 무리)",
+   "bbox": [
+    -24.28,
+    63.21,
+    -13.29,
+    66.54
+   ]
+  },
+  {
+   "name": "ni:ni_j100v_vesturgosbelti_berggrunnur_1utg_fl",
+   "title": "서부 화산대 기반암 (1:10만)",
+   "group": "아이슬란드 1:10만 (NÍ)",
+   "abstract": "Jarðfræði Vesturgosbelti berggrunnur — 랑요쿨 둘레",
+   "bbox": [
+    -21.05,
+    64.19,
+    -19.64,
+    65.09
+   ]
+  },
+  {
+   "name": "ni:ni_j100v_vesturgosbelti_jardgrunnur_1utg_fl",
+   "title": "서부 화산대 표층 퇴적물 (1:10만)",
+   "group": "아이슬란드 1:10만 (NÍ)",
+   "abstract": "Jarðfræði Vesturgosbelti jarðgrunnur",
+   "bbox": [
+    -21.04,
+    64.19,
+    -19.64,
+    64.98
+   ]
+  },
+  {
+   "name": "ni:ni_j100v_austurland_berggrunnur_1utg_fl",
+   "title": "동부 기반암 (1:10만)",
+   "group": "아이슬란드 1:10만 (NÍ)",
+   "abstract": "Jarðfræði Austurland berggrunnur — 동부 피오르",
+   "bbox": [
+    -14.78,
+    64.59,
+    -13.43,
+    65.41
+   ]
+  }
+ ]
+}

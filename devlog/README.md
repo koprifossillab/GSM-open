@@ -258,6 +258,14 @@
 | wetherilli 213 | 2026-10-04 | [스웨덴 — SGU 기반암 1:100만·1:5만–25만을 노르웨이·핀란드 탭에](20261004_wetherilli_213_sweden_sgu.md) |
 | wetherilli 214 | 2026-10-04 | [지역 탭 접기 — 한국·북극·남극만 서고 나머지는 "그 외"](20261004_wetherilli_214_region_fold.md) |
 | wetherilli 215 | 2026-10-04 | [브라질 — SGB 의 노두·연대측정·화석 산지 점](20261004_wetherilli_215_brazil_points.md) |
+| wetherilli 216 | 2026-10-04 | [아이슬란드 — 자연사연구소(NÍ) 1:60만·1:10만, 북극 묶음에](20261004_wetherilli_216_iceland.md) |
+| wetherilli 218 | 2026-10-04 | [뉴질랜드 — GNS QMAP 1:25만·1:100만, 남극 남빅토리아랜드, 오세아니아 묶음](20261004_wetherilli_218_new_zealand.md) |
+| wetherilli 219 | 2026-10-04 | [멕시코 — SGM 의 지질 연대·고생물·광상](20261004_wetherilli_219_mexico_more.md) |
+| wetherilli 220 | 2026-10-04 | [아르헨티나 — SEGEMAR 의 지역 판·제4기 변형·화산 위험도](20261004_wetherilli_220_segemar_more.md) |
+| wetherilli 221 | 2026-10-04 | [몽골 — MonGeoCat 국가지질도첩 지질도·단층, 동아시아 묶음에](20261004_wetherilli_221_mongolia.md) |
+| wetherilli 222 | 2026-10-04 | [페루 — INGEMMET 의 단층·습곡을 따로 켜는 레이어](20261004_wetherilli_222_ingemmet_structures.md) |
+| wetherilli 223 | 2026-10-04 | [한국 — KIGAM 5만의 선구조·신장광물·습곡축·유동구조를 방향 기호로](20261004_wetherilli_223_kigam50k_attitudes.md) |
+| wetherilli 226 | 2026-10-04 | [인도 — GSI 1:200만, 그림은 BGS 의 OneGeology WMS·속성은 GSI 피처 서비스](20261004_wetherilli_226_india.md) |
 | koprifossillab P01 | 2026-09-30 | [백업 — WegenersDream 의 틀로, 바뀌는 빠르기에 따라 넷으로 (계획)](20260930_koprifossillab_P01_backup_plan.md) |
 | koprifossillab 001 | 2026-09-30 | [매주 월요일 새벽: 운영 자료 백업과 KPDC 목록 갱신](20260930_koprifossillab_001_weekly_backup.md) |
 | koprifossillab 002 | 2026-09-30 | [`/healthz/` — 판·DB·백업 상태를 한 장으로](20260930_koprifossillab_002_healthz.md) |

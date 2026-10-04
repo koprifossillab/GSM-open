@@ -1,0 +1,37 @@
+{
+ "_주석": "GNS Science 의 남극 남빅토리아랜드 1:25만 씨앗이다 — 남극 탭. 뉴질랜드와 같은 서버(maps.gns.cri.nz)라 같은 문을 쓴다. 3031 로 곧장 받는다 (wetherilli 218).",
+ "_뽑은날": "2026-10-04",
+ "_출처": "https://maps.gns.cri.nz/geology/wms?SERVICE=WMS&REQUEST=GetCapabilities",
+ "_지역": "antarctica",
+ "_상류": "gns",
+ "_레이어군차례": 12,
+ "레이어군순서": [
+  "남빅토리아랜드 1:25만 (GNS)"
+ ],
+ "레이어": [
+  {
+   "name": "gns:ATA_SVL_GNS_250K_geological_units",
+   "title": "지질 단위 (1:25만)",
+   "group": "남빅토리아랜드 1:25만 (GNS)",
+   "abstract": "ATA SVL GNS 1:250K geological units — 맥머도 건조 계곡·로스섬 둘레",
+   "bbox": [
+    157.0,
+    -78.9,
+    170.0,
+    -76.4
+   ]
+  },
+  {
+   "name": "gns:ATA_SVL_GNS_250K_faults",
+   "title": "단층 (1:25만)",
+   "group": "남빅토리아랜드 1:25만 (GNS)",
+   "abstract": "ATA SVL GNS 1:250K faults",
+   "bbox": [
+    158.8,
+    -78.9,
+    166.5,
+    -76.5
+   ]
+  }
+ ]
+}

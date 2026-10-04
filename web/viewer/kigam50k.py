@@ -185,6 +185,16 @@ def rose(rows: list) -> dict:
 # 받아 둔 파일에서 점·면을 극지연구소 파일 레이어와 같은 꼴(`style: class` · `legend` · `labels` · `links`)로 낸다. 레이어군은
 # 한국 탭의 "지질 구조 (5만)"(P01 §2·§8 의 기본안 — 사람이 고친다). 단층·습곡·변질대는 다음이다
 
+#: 선구조·신장광물·습곡축의 팝업 열 (wetherilli 223) — `roangle` 이 침강 방향, `tangle` 이 침강각, `trend` 는 사분면 원문
+LINEAR_COLS = (("type", "갈래"), ("roangle", "침강 방향"), ("tangle", "침강각"), ("trend", "방향 (사분면)"), ("comt", "설명"),
+               ("mapname", "도폭"), ("mapidx", "도폭 번호"))
+#: 방향 기호의 모양 — 이 모양의 갈래는 `roangle` 을 `azimuth` 로 싣는다
+ROTATED = ("arrow", "strike")
+#: `roangle` 에 더할 각 (wetherilli 223). 신장광물의 `roangle` 은 침강 방향이 아니라 엽리의 주향이다 — `roangle + 90` 이 `plunge` 사분면에
+#: 드는 것이 443 점 가운데 89 %, `roangle` 그대로는 4 % 다. 유동구조는 층리처럼 `roangle` 이 경사 방향이다(97 %). 선구조·습곡축은 사분면이
+#: 드물어(49 점) 층리의 읽기를 따른다
+ROTATE_OFFSET = {"kigam50k:mineralarray": 90}
+
 #: 레이어 → (파일, 팝업 열, 갈래 표). 갈래 표는 (코드, `type` 값들, 범례 글, 색, 모양). 값이 어디에도 없으면 마지막 갈래
 LAYERS = {
     "kigam50k:fossil": ("fossil", (("type", "갈래"), ("comt", "설명"), ("mapname", "도폭"), ("mapidx", "도폭 번호")), (
@@ -243,6 +253,33 @@ LAYERS = {
         ("hydrothermal", ("열수광화대",), msg("열수광화대"), "#d01c8b", "square"),
         ("contact_meta", ("접촉변성대",), msg("접촉변성대"), "#542788", "square"),
         ("other", (), msg("그 밖의 변질·변성대"), "#999999", "square"),
+    )),
+    # 방향 기호가 드는 점 (wetherilli 223) — 선구조 셋은 침강 방향의 화살(`arrow`), 유동구조는 주향선과 경사 방향의 눈금(`strike`).
+    # 돌리는 각은 `roangle`(선구조는 침강 방향, 유동구조는 경사 방향)이고 `azimuth` 로 싣는다
+    "kigam50k:lineation": ("lineation", LINEAR_COLS, (
+        ("l1", ("1차선구조",), msg("1차 선구조"), "#08519c", "arrow"),
+        ("l2", ("2차선구조",), msg("2차 선구조"), "#3182bd", "arrow"),
+        ("l3", ("3차선구조",), msg("3차 선구조"), "#6baed6", "arrow"),
+        ("lineation", ("선구조",), msg("선구조"), "#08306b", "arrow"),
+        ("other", (), msg("그 밖의 선구조"), "#737373", "arrow"),
+    )),
+    "kigam50k:mineralarray": ("mineralarray", (("type", "갈래"), ("roangle", "침강 방향"), ("tangle", "침강각"),
+                                               ("plunge", "침강 방향 (사분면)"), ("comt", "설명"), ("mapname", "도폭"),
+                                               ("mapidx", "도폭 번호")), (
+        ("stretch", ("신장광물",), msg("신장광물"), "#a63603", "arrow"),
+        ("stretch_q", ("경사미상 신장광물",), msg("침강각 미상 신장광물"), "#fd8d3c", "arrow"),
+        ("other", (), msg("그 밖의 신장광물"), "#737373", "arrow"),
+    )),
+    "kigam50k:foldaxis": ("foldaxis", LINEAR_COLS, (
+        ("axis", ("습곡축",), msg("습곡축"), "#54278f", "arrow"),
+        ("minor", ("소습곡축",), msg("소습곡축"), "#807dba", "arrow"),
+        ("other", (), msg("2·3차 습곡축"), "#bcbddc", "arrow"),
+    )),
+    "kigam50k:flowstructure": ("flowstructure", (("type", "갈래"), ("roangle", "경사 방향"), ("dipangle", "경사"),
+                                                 ("comt", "설명"), ("mapname", "도폭"), ("mapidx", "도폭 번호")), (
+        ("flow", ("유동구조",), msg("유동구조"), "#006d2c", "strike"),
+        ("flowband", ("유상구조",), msg("유상구조"), "#41ab5d", "strike"),
+        ("other", (), msg("수직 유동구조"), "#00441b", "strike"),
     )),
     "kigam50k:frame": ("frame", (("mapname", "도폭"), ("mapidx", "도폭 번호"), ("surveyor", "조사자"),
                                  ("suryear", "조사연도"), ("comt", "비고"), ("doi", "DOI")), (
@@ -330,7 +367,17 @@ def _build(name: str) -> bytes:
                 del props[key]
         if "doi" in props and not props["doi"].lower().startswith(("http://", "https://")):
             del props["doi"]
+        # 각은 0–90 만 적는다(-99 는 미상). "경사미상" 갈래의 0 도 미상이다 (wetherilli 223)
+        for key in ("tangle", "dipangle"):
+            if key in props:
+                value = p.get(key)
+                if not isinstance(value, (int, float)) or not 0 <= value <= 90 or (value == 0 and "미상" in str(p.get("type"))):
+                    del props[key]
         props["code"] = _code(table, p.get("type"))
+        shape = next((row[4] for row in table if row[0] == props["code"]), None)
+        if shape in ROTATED and isinstance(p.get("roangle"), (int, float)):
+            props["azimuth"] = (round(p["roangle"]) + ROTATE_OFFSET.get(name, 0)) % 360
+            props["roangle"] = str(props["azimuth"])
         counts[props["code"]] = counts.get(props["code"], 0) + 1
         out.append({"type": "Feature", "id": i, "geometry": geom, "properties": props})
     legend = [dict({"code": code, "label": str(label), "color": color, "shape": shape, "count": counts[code]},

@@ -31,7 +31,7 @@
 떠야 해서 여기서 주소(?region=)와 기억한 지역(gsm.region)만 보고 고른다. 극지 = 평사도법으로 보는 지역이다{% endcomment %}
 <script>
 (function () {
-  var POLAR = ["antarctica", "greenland", "svalbard", "jan_mayen", "arctic", "arctic_ocean", "fennoscandia"];
+  var POLAR = ["antarctica", "greenland", "svalbard", "jan_mayen", "arctic", "arctic_ocean", "fennoscandia", "iceland"];
   var r = new URLSearchParams(location.search).get("region");
   try { if (!r) r = localStorage.getItem("gsm.region"); } catch (e) { /* 사생활 모드 */ }
   if (POLAR.indexOf(r) < 0) return;

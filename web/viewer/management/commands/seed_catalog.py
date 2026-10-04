@@ -71,6 +71,8 @@ class Command(BaseCommand):
                 (settings.NGU_CATALOG_SEED, "노르웨이 (NGU)", "fennoscandia", "ngu"),
                 (settings.GTK_CATALOG_SEED, "핀란드 (GTK)", "fennoscandia", "gtk"),
                 (settings.SGU_CATALOG_SEED, "스웨덴 (SGU)", "fennoscandia", "sgu"),   # wetherilli 213
+                # 아이슬란드 NÍ 1:60만·1:10만 (wetherilli 216)
+                (settings.NATT_CATALOG_SEED, "아이슬란드 (NÍ)", "iceland", "natt"),
                 # 영국·프랑스 — BGS·BRGM, 그리고 넓게 볼 때 까는 EGDI 1:100만(영국에 두고 프랑스가 빌린다) (wetherilli 143)
                 (settings.EGDI_CATALOG_SEED, "유럽 (EGDI)", "uk", "egdi"),
                 (settings.BGS_CATALOG_SEED, "영국 (BGS)", "uk", "bgs"),
@@ -99,6 +101,13 @@ class Command(BaseCommand):
                 (settings.SGM_CATALOG_SEED, "멕시코 (SGM)", "mexico", "sgm"),
                 # 호주 — Geoscience Australia 1:250만·1:100만 (wetherilli 212)
                 (settings.GA_CATALOG_SEED, "호주 (GA)", "australia", "ga"),
+                # 뉴질랜드 GNS QMAP 1:25만·1:100만, 같은 서버의 남극 남빅토리아랜드 1:25만 (wetherilli 218)
+                (settings.GNS_CATALOG_SEED, "뉴질랜드 (GNS)", "new_zealand", "gns"),
+                (settings.GNS_ANTARCTICA_CATALOG_SEED, "남빅토리아랜드 (GNS)", "antarctica", "gns"),
+                # 몽골 — 국가지질도첩 지질도·단층 1:50만 (MonGeoCat, wetherilli 221)
+                (settings.MRIS_CATALOG_SEED, "몽골 (MonGeoCat)", "mongolia", "mris"),
+                # 인도 — GSI 1:200만, 그림은 BGS(OneGeology) (wetherilli 226)
+                (settings.GSIINDIA_CATALOG_SEED, "인도 (GSI)", "india", "gsiindia"),
                 # 아프리카 — CGMW–BRGM 1:1000만, BGS 지하수 지도책 나라별 1:500만 지질 (wetherilli 207)
                 (settings.CGMW_CATALOG_SEED, "아프리카 (CGMW–BRGM)", "africa", "cgmw"),
                 (settings.AGA_CATALOG_SEED, "아프리카 나라별 (BGS AGA)", "africa", "aga"),

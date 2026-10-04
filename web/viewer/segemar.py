@@ -9,6 +9,9 @@
 - 범례: `GetLegendGraphic` 그림(1:250만 554×3 280). JSON 범례·`hideEmptyRules` 는 이 판의 GeoServer 가 받지 못한다(NPE·빈 그림,
   2026-10-04) — 그림 한 장을 그대로 낸다
 - **CORS 가 없다** — 브라우저가 곧장 못 부른다. 서버 문으로만 가고 정적 판에는 싣지 않는다
+- **다른 판**(wetherilli 220) — 1:100만 북서부(NOA)·코리엔테스(SH21), 주별 1:75만 여섯, 아르헨–칠레 국경 1:50만,
+  포클랜드(말비나스) 1:25만, 제4기 변형(단층·습곡 카드), 화산별 위험도. 주별 구조선 여섯은 레이어 하나로 묶는다(`COMBINED`).
+  북서부 1:100만의 글은 DOS 코드(cp850)를 latin-1 로 읽은 꼴로 온다("Dep¢sitos") — `friendly` 가 바로잡는다
 - 조건: AccessConstraints "SEGEMAR 의 재산. 크리에이티브 커먼즈 아르헨티나 라이선스로 쓸 때 저작자를 밝힌다", Fees "보기는 자유·무료"
 """
 import logging
@@ -30,8 +33,21 @@ ZOOMS = {"e250K_UnidadGeologica": (9, None), "e250K.Fallas": (9, None)}
 PROPERTIES = {
     "e2.5M.UnidadesGeologicas": "sigla,nombre,ambiente,edad_inf,edad_sup,litologia,region",
     "e250K_UnidadGeologica": "nro_hoja,nom_hoja,nombre,descrip_litologica,edad_inf,edad_sup,jerarquia",
+    # 다른 판(wetherilli 220). 국경 1:50만의 암석 열 이름에는 `Í` 가 들어 있다(상류가 그렇게 지었다)
+    "e1M.NOA.Geol": "unidad,edad,tipoderoca",
+    "e1M.SH21.Geol": "sigla_unid,nom_unidad,litotipo1,litotipo2,ambiente1,period_max,period_min,idade_max,idade_min,jerarquia,prov_tect",
+    **{f"e750K.Prov{p}": "sigla,nombre,descrip_litologica,edad_inf,edad_sup,jerarquia,ambiente"
+       for p in ("ChacoUGeol", "ChubutGeol", "JujuyGeol", "MendozaGeol", "SantaFeGeol", "TucumanGeol")},
+    "e500K.Front.ArCh.Geol": "sigla,edad,litologÍa",
+    "e250K.IslasMalvinasGeol": "sigla,nombre,descrip_litologica,edad_inf,edad_sup,jerarquia,paleontologia,otros_nombres",
+    "DeformacionesCuaternarias_250K": "id_estructura,nombre,tipo_estructura,tipo_traza,actividad,edad_ultimo_mov,tasa,recurrencia",
 }
 TIMEOUT = 45
+#: 레이어 하나가 여럿을 함께 부른다(wetherilli 220) — 주별 1:75만 구조선. 범례는 없다(선 갈래 몇 개뿐이고 주마다 그림이 따로다)
+COMBINED = {
+    "e750K.ProvEstr": ("e750K.ProvChacoEstr", "e750K.ProvChubutEstruct", "e750K.ProvJujuyEstruct", "e750K.ProvMendozaEstr",
+                       "e750K.ProvSantaFeEstr", "e750K.ProvTucumanEstr"),
+}
 
 
 class SegemarError(RuntimeError):
@@ -52,7 +68,8 @@ def _qualify(names: str) -> str:
         one = one.strip()
         if not knows(one):
             raise SegemarError(f"모르는 레이어다: {one}")
-        out.append(WORKSPACE + one[len(PREFIX):])
+        bare = one[len(PREFIX):]
+        out.extend(WORKSPACE + part for part in COMBINED.get(bare, (bare,)))
     return ",".join(out)
 
 
@@ -90,6 +107,8 @@ def get_map(params: dict):
 
 
 def get_legend(layer: str):
+    if upstream_name(layer) in COMBINED:
+        raise SegemarError(f"범례가 없는 레이어다: {layer}")
     r = _get({"service": "WMS", "version": "1.1.1", "request": "GetLegendGraphic", "format": "image/png",
               "layer": _qualify(layer)})
     if r.status_code != 200 or not r.headers.get("content-type", "").startswith("image/"):
@@ -116,26 +135,67 @@ def get_feature_info(params: dict) -> dict:
 
 FRIENDLY = (
     ("sigla", "기호"),
+    ("unidad", "기호"),                          # 북서부 1:100만
+    ("sigla_unid", "기호"),                      # 코리엔테스 1:100만(브라질 CPRM 의 열)
+    ("id_estructura", "번호"),                   # 제4기 변형
     ("nombre", "이름"),
+    ("nom_unidad", "이름"),
+    ("otros_nombres", "다른 이름"),
+    ("tipo_traza", "갈래"),
+    ("tipo_estructura", "구조 갈래"),
+    ("tipo", "갈래"),                            # 단층·구조선
+    ("subtipo", "세부 갈래"),
+    ("certidumbre", "확실성"),
+    ("actividad", "활동성"),
+    ("edad_ultimo_mov", "마지막 움직임"),
+    ("tasa", "움직임 속도"),
+    ("recurrencia", "재발 간격 (년)"),
+    ("nivel_de_peligrosidad", "위험도"),         # 화산별 위험도
+    ("indice_peligrosidad", "위험 지수"),
+    ("fecha", "평가일"),
     ("litologia", "암석"),
+    ("litologÍa", "암석"),
     ("descrip_litologica", "암석"),
+    ("tipoderoca", "암석"),
+    ("litotipo1", "암석"),
     ("ambiente", "퇴적 환경"),
+    ("ambiente1", "퇴적 환경"),
     ("region", "지역"),
     ("jerarquia", "층서 단위"),
+    ("prov_tect", "지구조 구역"),
+    ("paleontologia", "화석"),
     ("nom_hoja", "도폭"),
+    ("referencia", "문헌"),
 )
+
+
+def _cp850(value: str) -> str:
+    """북서부 1:100만의 글 — DOS 코드(cp850) 바이트를 latin-1 로 읽은 꼴("Cret\xa0cico", "Dep¢sitos")을 되돌린다"""
+    try:
+        return value.encode("latin-1").decode("cp850")
+    except UnicodeError:
+        return value
 
 
 def friendly(props: dict, lang: str = "ko") -> dict:
     """열 이름을 한국어로. 값(에스파냐어)은 그대로 둔다. 시대는 아래·위가 같으면 하나, 다르면 `아래 - 위` 로 잇는다."""
+    if "tipoderoca" in props:
+        props = {k: _cp850(v) if isinstance(v, str) else v for k, v in props.items()}
     out = {}
     for key, label in FRIENDLY:
-        value = str(props.get(key) or "").strip()
+        value = str(props.get(key) if props.get(key) is not None else "").strip()
         if value and label not in out:
             if key == "nom_hoja" and props.get("nro_hoja"):
                 value = f"{props['nro_hoja']} {value}"
             out[label] = value
     low, high = str(props.get("edad_inf") or "").strip(), str(props.get("edad_sup") or "").strip()
+    if not (low or high):        # 코리엔테스 1:100만은 오랜 것이 `_max`, 젊은 것이 `_min` 이다
+        low, high = str(props.get("period_max") or "").strip(), str(props.get("period_min") or "").strip()
     if low or high:
         out["지질시대"] = low if low == high or not high else (high if not low else f"{low} - {high}")
+    elif str(props.get("edad") or "").strip() not in ("", "n/a"):        # 북서부 1:100만·국경 1:50만은 한 칸이다
+        out["지질시대"] = str(props["edad"]).strip()
+    old, young = props.get("idade_max"), props.get("idade_min")
+    if old or young:
+        out["연대 (Ma)"] = f"{young}–{old}" if old and young and old != young else str(old or young)
     return out

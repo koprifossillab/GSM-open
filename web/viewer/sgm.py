@@ -10,6 +10,10 @@
   색은 칠하기 규칙(`CLAVE_SGM`)에서 찾는다
 - 시대는 에스파냐어다 — `i18n.age_es` 로 ICS 영문을 거쳐 한국어판이면 `i18n.age_ko`
 - 조건: datos.gob.mx 의 "Cartografía Geológica de la República Mexicana 1:250,000" 이 **CC BY 4.0**. 서비스 저작권 "© SGM"
+- **같은 서버의 다른 서비스도 이 문으로 간다** (wetherilli 219) — 지질 연대 측정 점(`SunEdadesGeocronologicas`, 7 740 점, 시대 색),
+  고생물 산지(`Paleontologia`, 105 곳 — 서버 목록에는 감춰져 있고 주소로만 열린다), 광상 1:25만(`SUNYacimientosMinerales250` — 광산 9 465 점·
+  광화 지역·광산 지구). 이름은 `sgm:<서비스>:<REST 번호>`(`SERVICES`). 그림·누른 자리·범례의 길은 지질도와 같다. 광산은 나라 전체로 보면
+  기호가 땅을 덮어 줌 8 부터다
 """
 import json
 import logging
@@ -24,17 +28,25 @@ log = logging.getLogger(__name__)
 PREFIX = "sgm:"
 ATTRIBUTION = ('<a href="https://www.sgm.gob.mx/GeoInfoMexGobMx/" target="_blank" rel="noopener">© SGM</a> '
                "(Servicio Geológico Mexicano, CC BY 4.0)")
-#: 레이어 → (REST 번호, 처음 그리는 화면 줌, 범례·누르기가 되는 단위 면인가)
+#: 이름 가운데 마디 → REST 서비스(`SGM_URL` 의 `services/` 뒤). 마디가 없는 `sgm:8` 은 지질도(`SGM_URL`) 그대로
+SERVICES = {"edades": "SGM/SunEdadesGeocronologicas", "paleo": "SGM/Paleontologia", "yac": "SGM/SUNYacimientosMinerales250"}
+#: 레이어 → (REST 번호, 처음 그리는 화면 줌, 누르기가 되나)
 LAYERS = {
     "sgm:8": (8, None, True),
     "sgm:7": (7, 10, True),         # 상류 minScale 75만 — 화면 줌 10 남짓부터 그린다
     "sgm:6": (6, None, False),
     "sgm:5": (5, 8, False),         # 상류 minScale 200만
+    "sgm:edades:0": (0, None, True),
+    "sgm:paleo:0": (0, None, True),
+    "sgm:yac:0": (0, 8, True),      # 광산 9 465 점 — 넓게 보면 기호가 땅을 덮는다
+    "sgm:yac:3": (3, None, True),   # 광화 지역
+    "sgm:yac:2": (2, None, True),   # 광산 지구
 }
 #: 범례에 실을 열 — 기호, 암상, 지층, 시대
 LABEL = ("CLAVE_SGM", "LITOLOGIA", "FORMACION", "PERIODO")
-#: 범례를 뜨는 가장 넓은 범위(°)
-SPAN = {8: 8, 7: 3}
+#: 보는 범위의 범례 — 레이어 → (칠하기 열, 묶을 열, 범례를 뜨는 가장 넓은 범위(°))
+LEGENDS = {"sgm:8": ("CLAVE_SGM", LABEL, 8), "sgm:7": ("CLAVE_SGM", LABEL, 3),
+           "sgm:edades:0": ("DES_CLAV", ("DES_CLAV",), 40)}
 MAX_LEGEND = 60
 COLORS_MAX_AGE = 30 * 86400
 
@@ -52,7 +64,11 @@ def zooms(name: str) -> tuple:
 
 
 def legend_layers() -> list:
-    return [n for n, spec in LAYERS.items() if spec[2]]
+    return list(LEGENDS)
+
+
+def queryable(name: str) -> bool:
+    return name in LAYERS and LAYERS[name][2]
 
 
 def _one(params_or_name):
@@ -64,16 +80,20 @@ def _one(params_or_name):
     return names[0], LAYERS[names[0]][0]
 
 
-def _base() -> str:
+def _base(name: str = "") -> str:
+    parts = str(name).split(":")
+    if len(parts) == 3 and parts[1] in SERVICES:
+        root = settings.SGM_URL.split("/rest/services/", 1)[0]
+        return f"{root}/rest/services/{SERVICES[parts[1]]}/MapServer"
     return settings.SGM_URL.rstrip("/")
 
 
-def _get(path: str, params: dict):
+def _get(path: str, params: dict, name: str = ""):
     left = usage.paused()
     if left:
         raise SgmError(f"차단 조짐이 있어 {int(left)}초 동안 상류에 묻지 않는다")
     try:
-        r = requests.get(f"{_base()}/{path}", params=params, timeout=max(settings.UPSTREAM_TIMEOUT, 45),
+        r = requests.get(f"{_base(name)}/{path}", params=params, timeout=max(settings.UPSTREAM_TIMEOUT, 45),
                          verify=settings.CA_BUNDLE or True, headers={"User-Agent": "GSM/0.1"})
     except requests.RequestException as exc:
         usage.record("sgm", ok=False)
@@ -100,11 +120,11 @@ def _view(params: dict):
 
 def get_map(params: dict):
     """WMS GetMap → REST export. 받은 그림은 투명 PNG 다."""
-    _, layer = _one(params)
+    name, layer = _one(params)
     bbox, width, height = _view(params)
     r = _get("export", {"bbox": ",".join(repr(v) for v in bbox), "bboxSR": "3857", "imageSR": "3857",
                         "size": f"{width},{height}", "format": "png32", "transparent": "true", "dpi": "96",
-                        "layers": f"show:{layer}", "f": "image"})
+                        "layers": f"show:{layer}", "f": "image"}, name)
     ctype = r.headers.get("content-type", "")
     if r.status_code != 200 or not ctype.startswith("image/"):
         raise SgmError(f"그림이 아닌 것이 왔다 (status={r.status_code}, type={ctype})")
@@ -118,7 +138,7 @@ def get_legend(layer: str):
 def get_feature_info(params: dict) -> dict:
     """WMS GetFeatureInfo → REST identify. 누른 자리(I·J)를 3857 의 한 점으로 셈해 그 레이어만 묻는다."""
     name, layer = _one(params)
-    if not LAYERS[name][2]:
+    if not queryable(name):
         return {"features": []}
     bbox, width, height = _view(params)
     try:
@@ -130,7 +150,7 @@ def get_feature_info(params: dict) -> dict:
     y = bbox[3] - (bbox[3] - bbox[1]) * (j + 0.5) / height
     r = _get("identify", {"geometry": f"{x!r},{y!r}", "geometryType": "esriGeometryPoint", "sr": "3857",
                           "layers": f"all:{layer}", "tolerance": "2", "mapExtent": ",".join(repr(v) for v in bbox),
-                          "imageDisplay": f"{width},{height},96", "returnGeometry": "false", "f": "json"})
+                          "imageDisplay": f"{width},{height},96", "returnGeometry": "false", "f": "json"}, name)
     if r.status_code != 200:
         raise SgmError(f"속성을 읽지 못했다 (status={r.status_code})")
     try:
@@ -155,8 +175,47 @@ def _span(old: str, young: str, lang: str) -> str:
     return i18n.age_ko(age) if lang == "ko" and age else age
 
 
+def edad(value: str, lang: str = "ko") -> str:
+    """지질 연대 점의 시대(`Cretácico Superior-Maastrichtiano`) → 가장 자세한 마디 하나(마스트리히트절). `Triásico Superior` 는 통째로"""
+    text = _clean(value)
+    if not text:
+        return ""
+    return _span(text.split("-")[-1].strip(), "", lang)
+
+
+def _link(url: str):
+    url = _clean(url)
+    return {"text": "", "links": [{"url": url, "label": "열기"}]} if url.startswith(("http://", "https://")) else None
+
+
+def other_friendly(props: dict, lang: str = "ko"):
+    """지질도 밖의 서비스(wetherilli 219) — identify 별칭 열로 가른다. 지질도면 None"""
+    v = lambda k: _clean(props.get(k))          # noqa: E731
+    if "Método" in props:                       # 지질 연대 측정 점
+        ma = " ± ".join(x for x in (v("Edad (millones de años)"), v("Error")) if x)
+        rows = (("지질시대", edad(v("Edad"), lang)), ("연대 (Ma)", ma), ("측정법", " · ".join(x for x in (v("Método"), v("Mineral")) if x)),
+                ("연대 갈래", v("Tipo de edad")), ("암석", v("Roca") or v("Tipo de roca")), ("단위", v("Unidad")),
+                ("시료", v("Muestra")), ("산지", v("Localidad")), ("참고 문헌", v("Referencia")), ("보고서", _link(v("Informe"))))
+    elif "No de fósiles" in props:              # 고생물 산지
+        rows = (("산지", v("Localidad")), ("지층", v("Formación")), ("화석 수", v("No de fósiles")),
+                ("주", " · ".join(x for x in (v("Municipio"), v("Estado")) if x)), ("사진", _link(v("Ver fotos"))))
+    elif "Sustancia" in props:                  # 광산
+        rows = (("이름", v("Nombre")), ("광종", v("Sustancia")), ("운영", v("Tipo de operación")),
+                ("광화 유형", v("Tipo de mineralización")), ("구조", v("Estructura")), ("변질", v("Alteración")))
+    elif "Mineralización" in props:             # 광화 지역
+        rows = (("지역", v("Región")), ("광종", v("Mineralización")), ("광상 형태", v("Yacimiento")), ("광산 지구", v("Distrito minero")))
+    elif "DIST_MINER" in props:                 # 광산 지구
+        rows = (("광산 지구", v("DIST_MINER")), ("지역", v("REGION")))
+    else:
+        return None
+    return {k: x for k, x in rows if x and str(x).upper() != "SE DESCONOCE"}
+
+
 def friendly(props: dict, lang: str = "ko") -> dict:
     """identify 의 별칭 열 → 한국어. 암상·지층은 에스파냐어 그대로, 시대만 옮긴다."""
+    other = other_friendly(props, lang)
+    if other is not None:
+        return other
     v = lambda k: _clean(props.get(k))          # noqa: E731
     period = _span(v("Periodo"), "", lang)
     stage = _span(v("Edad inicial"), v("Edad final"), lang)
@@ -167,12 +226,14 @@ def friendly(props: dict, lang: str = "ko") -> dict:
 
 # ── 보는 범위의 범례 — 페루(`ingemmet.py`)와 같은 꼴 ───────────────
 
-def colors(layer: int) -> dict:
-    key = tilecache.key_text("sgm-colors", str(layer))
+def colors(name: str) -> dict:
+    _, layer = _one(name)
+    # 지질도의 열쇠는 앞 판 그대로(번호만) — 다른 서비스는 이름째
+    key = tilecache.key_text("sgm-colors", str(layer) if name.count(":") == 1 else name)
     held = tilecache.get(key, ".json", max_age=COLORS_MAX_AGE)
     if held is not None:
         return json.loads(held)
-    r = _get(str(layer), {"f": "json"})
+    r = _get(str(layer), {"f": "json"}, name)
     try:
         table = arcpoints.renderer_colors(r.json()["drawingInfo"]["renderer"])
     except (ValueError, KeyError, TypeError) as exc:
@@ -187,11 +248,12 @@ def colors(layer: int) -> dict:
 def extent_legend(name: str, bbox: tuple) -> list:
     """범위 `(서, 남, 동, 북)`(위경도)에 든 단위 — `[{"value", "fields", "count"}, …]`, 면이 많은 것부터."""
     _, layer = _one(name)
+    field, label, _ = LEGENDS[name]
     r = _get(f"{layer}/query", {
         "geometry": ",".join(str(v) for v in bbox), "geometryType": "esriGeometryEnvelope", "inSR": "4326",
-        "spatialRel": "esriSpatialRelIntersects", "groupByFieldsForStatistics": ",".join(LABEL),
+        "spatialRel": "esriSpatialRelIntersects", "groupByFieldsForStatistics": ",".join(label),
         "outStatistics": json.dumps([{"statisticType": "count", "onStatisticField": "OBJECTID", "outStatisticFieldName": "n"}]),
-        "returnGeometry": "false", "f": "json"})
+        "returnGeometry": "false", "f": "json"}, name)
     try:
         data = r.json()
     except ValueError as exc:
@@ -201,23 +263,26 @@ def extent_legend(name: str, bbox: tuple) -> list:
     rows = {}
     for f in data.get("features") or []:
         a = f.get("attributes") or {}
-        value = _clean(a.get("CLAVE_SGM"))
+        value = _clean(a.get(field))
         if not value:
             continue
         count = int(a.get("n") or a.get("N") or 0)
         if value in rows:
             rows[value]["count"] += count
         else:
-            rows[value] = {"value": value, "fields": {k: _clean(a.get(k)) for k in LABEL}, "count": count}
+            rows[value] = {"value": value, "fields": {k: _clean(a.get(k)) for k in label}, "count": count}
     return sorted(rows.values(), key=lambda r: -r["count"])
 
 
 def legend_row(row: dict, table: dict, lang: str = "ko") -> dict:
     f = row["fields"]
+    if "DES_CLAV" in f:                         # 지질 연대 점 — 시대 하나가 한 칸
+        return {"color": table.get(row["value"], "#cccccc"), "symbol": "", "swatch": "",
+                "lithology": edad(row["value"], lang) or row["value"], "age": ""}
     name = " · ".join(x for x in (f.get("LITOLOGIA"), f.get("FORMACION")) if x)
     return {"color": table.get(row["value"], "#cccccc"), "symbol": row["value"], "swatch": "",
             "lithology": f"{row['value']} {name}".strip(), "age": _span(f.get("PERIODO", ""), "", lang)}
 
 
 def legend_span(name: str) -> float:
-    return SPAN[LAYERS[name][0]]
+    return LEGENDS[name][2]
