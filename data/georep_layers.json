@@ -1,0 +1,25 @@
+{
+ "_주석": "누벨칼레도니 지질도 씨앗이다 — 정부 Géorep 의 geologie_nc(DIMENC). 축척마다 상류가 1:100만·1:20만·1:5만을 바꿔 그려 레이어 하나로 둔다(web/viewer/georep.py). 한글 제목과 레이어군은 사람이 붙였다 (wetherilli 260).",
+ "_뽑은날": "2026-10-05",
+ "_출처": "https://carto.gouv.nc/arcgis/rest/services/geologie_nc/MapServer",
+ "_지역": "new_caledonia",
+ "_상류": "georep",
+ "_레이어군차례": 1,
+ "레이어군순서": [
+  "누벨칼레도니 지질도 (DIMENC)"
+ ],
+ "레이어": [
+  {
+   "name": "georep:geology",
+   "title": "지질도 (1:100만·1:20만·1:5만)",
+   "group": "누벨칼레도니 지질도 (DIMENC)",
+   "abstract": "Géologie de la Nouvelle-Calédonie — 1:30만보다 멀면 1:100만, 1:10만까지 1:20만, 그보다 가까우면 1:5만(재정비 중)",
+   "bbox": [
+    163.5,
+    -22.8,
+    168.2,
+    -19.5
+   ]
+  }
+ ]
+}

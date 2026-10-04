@@ -282,3 +282,42 @@ class Seed(TestCase):
         layer = Layer.objects.get(name="gsj:geology")
         self.assertEqual((layer.upstream, layer.group.region), ("gsj", "japan"))
         self.assertIsNotNone(layer.verified_at)                         # 한 장씩 받아 보고 넣었다
+
+
+class GsjOws(TestCase):
+    """GSJ 의 다른 WMS — 1:200만 지질도·부게 중력·지구화학도 (wetherilli 255)"""
+
+    def setUp(self):
+        patch = override_settings(TILE_CACHE_DIR=tempfile.mkdtemp(prefix="gsm-gsjows-"))
+        patch.enable()
+        self.addCleanup(patch.disable)
+        call_command("seed_catalog", stdout=open("/dev/null", "w"))
+        for name, value in (("record", None), ("paused", 0)):
+            p = mock.patch.object(gsj.usage, name, return_value=value)
+            p.start()
+            self.addCleanup(p.stop)
+
+    def png(self):
+        r = mock.Mock(status_code=200, content=b"\x89PNG", url="…", headers={"content-type": "image/png"})
+        return r
+
+    def test_호스트가_둘(self):
+        with mock.patch.object(gsj.requests, "get", return_value=self.png()) as get:
+            gsj.gsjows_get_map({"layers": "gsjows:geochem:Cu", "crs": "EPSG:3857", "bbox": "0,0,1,1", "width": 256, "height": 256})
+        self.assertEqual(get.call_args.args[0], "https://gbank.gsj.jp/ows/geochemmap")
+        self.assertEqual(get.call_args.kwargs["params"]["layers"], "Cu")
+        with mock.patch.object(gsj.requests, "get", return_value=self.png()) as get:
+            gsj.gsjows_get_map({"layers": "gsjows:japan2m", "crs": "EPSG:3857", "bbox": "0,0,1,1", "width": 256, "height": 256})
+        self.assertEqual((get.call_args.args[0], get.call_args.kwargs["params"]["layers"]), ("https://ows.gsj.jp/ows/geologicmap2000k", "area,line"))
+
+    def test_범례는_그림_누르기는_없다(self):
+        with mock.patch.object(gsj.requests, "get", return_value=self.png()) as get:
+            gsj.gsjows_get_legend("gsjows:gravity")
+        self.assertEqual(get.call_args.kwargs["params"]["layer"], "GravityContour267")
+        self.assertEqual(gsj.gsjows_get_feature_info({"layers": "gsjows:gravity"}), {"features": []})
+
+    def test_카탈로그(self):
+        self.assertEqual(Layer.objects.get(name="gsjows:geochem:Hg").group.region, "japan")
+        rows = {l["name"]: l for g in self.client.get("/GSM/catalog/").json()["groups"] for l in g["layers"]}
+        self.assertIs(rows["gsjows:japan2m"]["queryable"], False)
+        self.assertEqual(rows["gsjows:gravity"]["projection"], "EPSG:3857")

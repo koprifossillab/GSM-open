@@ -11,7 +11,31 @@ KOPRI 점(시료·운석·KPDC 목록)은 여기 없다 — 굽는 쪽(`bake_sta
 """
 from django.conf import settings
 
-from . import arcpoints, elevation, emodnet, ga, geus, grportal, i18n, kopri, mrdata, npolar, sgc, sgu
+from . import arcpoints, dov, elevation, emodnet, ga, geosphere, geus, grportal, i18n, kopri, mrdata, npolar, pig, sgc, sgu, spw, tno
+
+
+#: `arcwms.Door` 를 쓰는 상류 가운데 정적 판에 고를 수 있게 둔 것 (wetherilli 257) — 상류 → (출처, 문들, 범례에 쓸 WMS 레이어를 고르는 손).
+#: 범례 손이 None 이면 범례를 두지 않는다(서버 판도 두지 않는다). 손은 서버 문의 `get_legend` 가 고르는 것과 같아야 한다
+ARC = {
+    "tno": (tno.ATTRIBUTION, (tno.DOOR,), lambda wms: wms),
+    "dov": (dov.ATTRIBUTION, (dov.DOOR,), lambda wms: wms),
+    "spw": (spw.ATTRIBUTION, (spw.DOOR,), None),
+    "geosphere": (geosphere.ATTRIBUTION, geosphere.DOORS, lambda wms: wms.split(",")[0]),
+    "pig": (pig.ATTRIBUTION, pig.DOORS, lambda wms: wms.split(",")[-1]),
+}
+
+
+def arc_layers(upstream: str) -> set:
+    """정적 판이 곧장 부를 수 있는 그 상류의 레이어 — WMS 로 도는 것만. 지오스피어 1:5만처럼 REST 로 옮기는 것은 빠진다"""
+    return {name for door in ARC[upstream][1] for name in door.layers} if upstream in ARC else set()
+
+
+def _arc(upstream: str) -> dict:
+    attribution, doors, legend = ARC[upstream]
+    return {"attribution": attribution,
+            "doors": [{"url": door.url(), "layers": door.layers, "queryable": list(door.queryable),
+                       "infoFormat": door.info_format, "infoParams": door.info_params} for door in doors],
+            "legend": {name: legend(wms) for door in doors for name, wms in door.layers.items()} if legend else {}}
 
 
 def _points(spec: dict, url: str, oid: str, page: int, max_pages: int) -> dict:
@@ -114,9 +138,15 @@ def tables() -> dict:
             "url": settings.GA_WMS_URL, "attribution": ga.ATTRIBUTION,
             "layers": {name: f"{spec[0]},{spec[1]}" for name, spec in ga.LAYERS.items()},
             "queryable": ga.legend_layers(),
+            # 지질구·핵심 광물·지구물리 격자(wetherilli 241) — 다른 서비스라 주소가 따로다. 레이어 → [주소, WMS 레이어, 누르기가 되나]
+            "other": {name: [ga._url(name), spec[1], spec[2]] for name, spec in ga.OTHER.items()},
         },
+        # 유럽 넷(wetherilli 257) — `arcwms.Door` 를 쓰는 상류. 싣는 것은 굽는 사람이 고른다(`static_site.py --with netherlands` 따위)
+        **{up: _arc(up) for up in ARC},
         # 지질시대 — 영문 ICS 값을 한국어로(`i18n.age_ko` 의 표)
         "age": {"words": i18n.AGE_WORDS_KO, "modifiers": i18n.AGE_MODIFIERS_KO, "joiners": i18n.AGE_JOINERS_KO},
+        # 독일어·네덜란드어·폴란드어·프랑스어 시대 → ICS 영어(`i18n.age_local` 의 표, wetherilli 257)
+        "ageLocal": {"words": i18n.AGE_LOCAL_WORDS, "modifiers": i18n.AGE_LOCAL_MODIFIERS, "glued": list(i18n._AGE_GLUED)},
         # 영어판 팝업 이름(`i18n.PROP_EN`)과 링크 이름표
         "propEn": i18n.PROP_EN, "linkEn": i18n.LINK_EN,
     }

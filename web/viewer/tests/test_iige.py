@@ -80,7 +80,7 @@ class Views(TestCase):
 
     def test_남미_묶음(self):
         js = (iige.settings.BASE_DIR / "viewer" / "static" / "viewer" / "map.js").read_text(encoding="utf-8")
-        self.assertIn('includes: ["colombia", "ecuador", "peru", "brazil", "uruguay", "argentina"]', js)
+        self.assertIn('includes: ["colombia", "ecuador", "peru", "brazil", "paraguay", "uruguay", "argentina"]', js)
         first = js[js.index("    south_america:"):].split("first:", 1)[1].split("]", 1)[0]
         self.assertTrue(first.strip().startswith('["sgc:sa:8"'))                  # 대륙 바탕이 맨 밑
         self.assertNotIn("iige:", first)                                           # 에콰도르는 처음에 켜지 않는다

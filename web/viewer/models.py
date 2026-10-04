@@ -83,7 +83,11 @@ REGIONS = (("korea", "한국"), ("greenland", "그린란드"), ("antarctica", "�
            # 카리브 — USGS 카리브 지질도로 쿠바·아이티·자메이카·소앤틸리스와 중미를 거칠게 덮는다 (wetherilli 248)
            ("caribbean", "카리브"),
            # 파나마 — STRI 가 디지털로 옮긴 MICI 1990 1:25만 (wetherilli 253)
-           ("panama", "파나마"))
+           ("panama", "파나마"),
+           # 파라과이 — 광업·에너지 차관실(VMME) 지질도 (wetherilli 256)
+           ("paraguay", "파라과이"),
+           # 프랑스 해외 영토(wetherilli 260) — 누벨칼레도니 Géorep, 프랑스령 폴리네시아 BRGM 스캔
+           ("new_caledonia", "누벨칼레도니"), ("french_polynesia", "프랑스령 폴리네시아"))
 
 
 class LayerGroup(models.Model):
@@ -156,6 +160,8 @@ class Layer(models.Model):
     #: esdm·jmg·mgb·dmr → `esdm.py`·`jmg.py`·`mgb.py`·`dmr.py` (인도네시아·말레이시아·필리핀·태국, wetherilli 228)
     #: geosphere·pig·tno·dov·spw → 오스트리아·폴란드·네덜란드·플랑드르·왈로니아 지질도 (wetherilli 237)
     #: ineter → `ineter.py` (니카라과 지질도·단층, wetherilli 242)
+    #: georep → `georep.py` (누벨칼레도니 지질도 1:100만·1:20만·1:5만, wetherilli 260)
+    #: vmme → `vmme.py` (파라과이 지질도 — 면을 한 덩이로, wetherilli 256)
     #: stri → `stri.py` (파나마 지질도 1:25만 — 면·단층을 한 덩이로, wetherilli 253)
     #: usgscarib → `usgscarib.py` (USGS 카리브 지질도 — 면을 한 덩이로, wetherilli 248)
     #: bcgs → `bcgs.py` (브리티시컬럼비아, 캐나다 탭), calgs → `calgs.py` (캘리포니아, 미국 탭 — `cgs` 는 남아공이 쓴다, wetherilli 231)

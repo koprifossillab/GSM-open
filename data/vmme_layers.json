@@ -1,0 +1,25 @@
+{
+ "_주석": "파라과이 지질도 씨앗이다 — 광업·에너지 차관실(VMME, MOPC)이 ArcGIS Online 에 둔 피처 서비스(면 61)를 문(web/viewer/vmme.py)이 한 덩이로 받아 화면이 그린다. 한글 제목과 레이어군은 사람이 붙였다 (wetherilli 256).",
+ "_뽑은날": "2026-10-05",
+ "_출처": "https://services5.arcgis.com/LSvRaxOMGSmUKhcq/arcgis/rest/services/Mapa_WFL1/FeatureServer/5",
+ "_지역": "paraguay",
+ "_상류": "vmme",
+ "_레이어군차례": 1,
+ "레이어군순서": [
+  "파라과이 지질도 (VMME)"
+ ],
+ "레이어": [
+  {
+   "name": "vmme:geology",
+   "title": "지질도 (개략)",
+   "group": "파라과이 지질도 (VMME)",
+   "abstract": "Geología — 면 61, 단위 13, 기호(Cod_)·층군 이름(Descrip_)",
+   "bbox": [
+    -62.7,
+    -27.7,
+    -54.2,
+    -19.2
+   ]
+  }
+ ]
+}

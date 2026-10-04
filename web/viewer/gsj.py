@@ -330,6 +330,78 @@ def ccop_friendly(props: dict, lang: str = "ko") -> dict:
 CCOP = _NS(get_map=ccop_get_map, get_feature_info=ccop_get_feature_info, get_legend=ccop_get_legend)
 
 
+# ── GSJ 의 다른 WMS — 1:200만 일본 지질도·부게 중력·지구화학도 (wetherilli 255) ──────────────
+#
+# 안내 쪽(`gbank.gsj.jp/owscontents/`)에서 이름을 찾았다. 상류 이름은 `gsjows` 로 따로 두되 문은 여기 하나다(CCOP 와 같다).
+#
+# - 조건: WMS·WMTS 의 지질도는 **정부표준이용규약 2.0**(안내 쪽 "Terms of Use") — 출처를 밝히면 된다. 중력도의 AccessConstraints 는 "저작권은
+#   산총연 GSJ 에 있다" 고 적는데, 이용 조건은 위의 규약이다
+# - 1:200만 지질도·중력도는 새 호스트(`ows.gsj.jp/ows/`), **지구화학도는 옛 호스트에만**(`gbank.gsj.jp/ows/geochemmap` — 새 호스트는 404)
+# - 셋 다 MapServer 라 3857 로 그린다. **누르지 않는다** — CCOP 처럼 3857 로 물으면 "no results", 4326 으로 물어도 기호 번호(`GEO200 = '25'`)
+#   뿐이다. 범례 그림(GetLegendGraphic)이 번호·색·이름을 다 싣는다
+# - 지구화학도는 원소 53 가지(하천 퇴적물, 이마이 외 2004) — 금속·환경 원소 열하나만 골랐다(`GEOCHEM`)
+GSJOWS_LAYERS = {
+    "gsjows:japan2m": ("ows", "geologicmap2000k", "area,line", "area"),
+    "gsjows:gravity": ("ows", "gravdb", "AssumedDensity267", "GravityContour267"),
+}
+GEOCHEM = ("Cu", "Pb", "Zn", "As", "Hg", "Cr", "Ni", "Fe2O3", "K2O", "U", "Th")
+GSJOWS_LAYERS.update({f"gsjows:geochem:{el}": ("gbank", "geochemmap", el, el) for el in GEOCHEM})
+GSJOWS_ATTRIBUTION = ('© <a href="https://gbank.gsj.jp/owscontents/" target="_blank" rel="noopener">Geological Survey of Japan, AIST</a> '
+                      "(政府標準利用規約 2.0)")
+
+
+def gsjows_knows(name: str) -> bool:
+    return name in GSJOWS_LAYERS
+
+
+def _gsjows(name: str):
+    if name not in GSJOWS_LAYERS:
+        raise GsjError(f"모르는 레이어다: {name}")
+    host, service, layers, legend = GSJOWS_LAYERS[name]
+    root = settings.GSJ_OWS_URL if host == "ows" else settings.GSJ_GBANK_OWS_URL
+    return f"{root.rstrip('/')}/{service}", layers, legend
+
+
+def _gsjows_get(url: str, params: dict):
+    left = usage.paused()
+    if left:
+        raise GsjError(f"차단 조짐이 있어 {int(left)}초 동안 상류에 묻지 않는다")
+    try:
+        r = requests.get(url, params=params, timeout=settings.UPSTREAM_TIMEOUT, verify=settings.CA_BUNDLE or True,
+                         headers={"User-Agent": "GSM/0.1"})
+    except requests.RequestException as exc:
+        usage.record("gsjows", ok=False)
+        raise GsjError(f"GSJ 에 닿지 못했다: {exc}") from exc
+    log.info("GSJ-OWS %s -> %s", r.url, r.status_code)
+    usage.record("gsjows", ok=r.status_code == 200, blocked=usage.looks_blocked(r.status_code, r.content[:1000]))
+    return r
+
+
+def gsjows_get_map(params: dict):
+    url, layers, _ = _gsjows(str(params.get("layers") or "").strip())
+    r = _gsjows_get(url, dict(params, service="WMS", request="GetMap", layers=layers, styles=""))
+    ctype = r.headers.get("content-type", "")
+    if r.status_code != 200 or not ctype.startswith("image/"):
+        raise GsjError(f"그림이 아닌 것이 왔다 (status={r.status_code}, type={ctype})")
+    return r.content, ctype
+
+
+def gsjows_get_legend(layer: str):
+    url, _, legend = _gsjows(layer)
+    r = _gsjows_get(url, {"service": "WMS", "version": "1.3.0", "request": "GetLegendGraphic", "format": "image/png",
+                          "layer": legend, "sld_version": "1.1.0"})
+    if r.status_code != 200 or not r.headers.get("content-type", "").startswith("image/"):
+        raise GsjError(f"범례가 아닌 것이 왔다 (status={r.status_code})")
+    return r.content, r.headers.get("content-type")
+
+
+def gsjows_get_feature_info(params: dict) -> dict:
+    return {"features": []}
+
+
+OWS = _NS(get_map=gsjows_get_map, get_feature_info=gsjows_get_feature_info, get_legend=gsjows_get_legend)
+
+
 # ── 지질도Navi 판 (wetherilli 171) ─────────────────────────────────
 #
 # 지질도Navi(`gbank.gsj.jp/geonavi`)가 싣는 판 1 849 장 — 5만 지질도폭 763, 해저지질도, 중력·자기도, 화산지질도 …

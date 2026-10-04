@@ -99,7 +99,7 @@ Docker Hub 이미지(`koprifossillab/gsm`), 브라우저 `localStorage` 키.
 KIGAM·VWorld 키를 넣고(처음 열 때 묻는다, wetherilli 174)(그 브라우저 localStorage, 30 일), 브라우저가 `/openapi/wms` 를 곧장 부른다(`map.js` 의 `STATIC_KIGAM`).
 서버 없이 돌므로 위의 "서버가 키를 붙인다" 가 없다. 판 세션이 판마다 `deploy/publish_pages.sh` 로 굽고 민다
 (wetherilli P11·162). 실을 지역·상류는 `deploy/static_site.py` 의 `REGIONS`·`UPSTREAMS`. 조건은 열렸지만 실을지 사람이 정할 것은
-`OPTIONAL` 에 두고 고를 때만 싣는다(`--with colombia` — 콜롬비아 1:50만, wetherilli 201; `--with usa` — 미국 USGS, 공공 도메인, wetherilli 205; `--with australia` — 호주 GA, CC BY 4.0, wetherilli 212; `--with sweden` — 스웨덴 SGU, CC0, wetherilli 213).
+`OPTIONAL` 에 두고 고를 때만 싣는다(`--with colombia` — 콜롬비아 1:50만, wetherilli 201; `--with usa` — 미국 USGS, 공공 도메인, wetherilli 205; `--with australia` — 호주 GA, CC BY 4.0, wetherilli 212; `--with sweden` — 스웨덴 SGU, CC0, wetherilli 213; `--with netherlands`·`belgium`·`austria`·`poland` — `arcwms.Door` 상류를 표 하나·손 하나(`static-kinds.js` 의 `arcKind`)로, wetherilli 257).
 
 ## 상류의 함정 — 문서를 믿지 않는다
 
@@ -219,13 +219,13 @@ WMS·z/x/y·우리가 굽는 것) 계획을 따로 둔다 (029).
 줄이고 싶으면 사람이 `manage.py prune_tiles` 를 부른다. 자료의 주인은
 한국지질자원연구원이다 — 우리는 받은 것을 다시 내주지 않는다.
 
-## 지역 — 한국·일본·중국·대만·몽골·인도·사우디아라비아·인도네시아·말레이시아·필리핀·태국·그린란드·스발바르·얀마옌·북극해·노르웨이·스웨덴·핀란드·아이슬란드·영국·프랑스·독일·스페인·아일랜드·포르투갈·이탈리아·스위스·오스트리아·폴란드·네덜란드·벨기에·콜롬비아·브라질·페루·에콰도르·아르헨티나·우루과이·미국·멕시코·니카라과·파나마·도미니카공화국·카리브·아프리카·캐나다·호주·뉴질랜드·남극, 그리고 동아시아·북극·유럽·남미·북미·중미·카리브·오세아니아·동남아
+## 지역 — 한국·일본·중국·대만·몽골·인도·사우디아라비아·인도네시아·말레이시아·필리핀·태국·그린란드·스발바르·얀마옌·북극해·노르웨이·스웨덴·핀란드·아이슬란드·영국·프랑스·독일·스페인·아일랜드·포르투갈·이탈리아·스위스·오스트리아·폴란드·네덜란드·벨기에·콜롬비아·브라질·페루·에콰도르·아르헨티나·우루과이·파라과이·미국·멕시코·니카라과·파나마·도미니카공화국·카리브·아프리카·캐나다·호주·뉴질랜드·누벨칼레도니·프랑스령 폴리네시아·남극, 그리고 동아시아·북극·유럽·남미·북미·중미·카리브·오세아니아·동남아
 
 화면 위 지역 탭으로 가른다 (devlog 016). **한국이 기본**이고 다른 지역은
 "+ 추가 지역" 에서 더한다. 탭 줄에는 한국·북극·남극만 늘 서고 나머지는 "그 외" 하나로 접힌다 — 접힌 지역을 보면
 단추가 그 이름이 된다(`map.js` 의 `PINNED`, wetherilli 214). 지역마다 레이어 목록·켠 레이어·보던 자리·배경·색이
 따로다 — 한국은 먹갈색·금, 일본은 벚꽃, 중국은 청화백자, 대만은 보라얼룩나비, 몽골은 고비 바얀작 절벽의 주황, 인도는 사프란, 사우디아라비아는 홍해 산호의 청록, 인도네시아는 라플레시아의 적갈, 말레이시아는 보르네오 우림의 초록, 필리핀은 필리핀 해의 남청, 태국은 비단의 자홍, 그린란드는 빙하빛, 스발바르는 노르웨이
-국기의 남색·빨강, 얀마옌은 현무암 숯빛·용암 주황, 북극해는 극야의 얼음 라일락, 노르웨이·스웨덴·핀란드는 타이가의 순록이끼, 아이슬란드는 용암밭의 루피너스 꽃, 영국은 히스꽃 자주, 프랑스는 포도잎 초록, 독일은 점판암 청회, 스페인은 리오하 장밋빛, 아일랜드는 코네마라 대리석, 이탈리아는 카라라 대리석의 테라코타, 포르투갈은 아줄레주의 코발트 청, 스위스는 빙하 호수의 옥빛, 오스트리아는 할슈타트 석회의 분홍, 폴란드는 발트해 호박, 네덜란드는 튤립 밭의 주홍, 벨기에는 아르덴의 붉은 대리석, 콜롬비아는 커피 열매의 진홍, 브라질은 이페 꽃의 노랑, 페루는 티티카카 호수의 쪽빛, 에콰도르는 푸른발부비새의 하늘청록, 미국은 모뉴먼트밸리의 붉은 사암, 멕시코는 로사 메히카노, 니카라과는 마사야 용암 호수의 주황, 파나마는 황금개구리의 노랑, 도미니카공화국은 라리마르의 하늘청, 카리브는 블루마운틴의 남청, 아르헨티나는 페리토 모레노 빙하의 청록, 우루과이는 마노 지오드의 보라, 아프리카는 사바나 황토, 캐나다는 단풍잎의 붉은빛, 호주는 그레이트배리어리프의 산호빛, 뉴질랜드는 포후투카와 꽃의 진홍, 남극은 오로라 청록, 북극은 흰 얼음빛(색을 빼고 밝기로), 동아시아는 청자, 남미는 안데스의 구리빛, 북미는 대평원의 밀빛, 오세아니아는 남태평양 석호의 청록, 동남아는 몬순 숲 이끼의 연두, 중미·카리브는 카리브 바다의 청록,
+국기의 남색·빨강, 얀마옌은 현무암 숯빛·용암 주황, 북극해는 극야의 얼음 라일락, 노르웨이·스웨덴·핀란드는 타이가의 순록이끼, 아이슬란드는 용암밭의 루피너스 꽃, 영국은 히스꽃 자주, 프랑스는 포도잎 초록, 독일은 점판암 청회, 스페인은 리오하 장밋빛, 아일랜드는 코네마라 대리석, 이탈리아는 카라라 대리석의 테라코타, 포르투갈은 아줄레주의 코발트 청, 스위스는 빙하 호수의 옥빛, 오스트리아는 할슈타트 석회의 분홍, 폴란드는 발트해 호박, 네덜란드는 튤립 밭의 주홍, 벨기에는 아르덴의 붉은 대리석, 콜롬비아는 커피 열매의 진홍, 브라질은 이페 꽃의 노랑, 페루는 티티카카 호수의 쪽빛, 에콰도르는 푸른발부비새의 하늘청록, 미국은 모뉴먼트밸리의 붉은 사암, 멕시코는 로사 메히카노, 니카라과는 마사야 용암 호수의 주황, 파나마는 황금개구리의 노랑, 도미니카공화국은 라리마르의 하늘청, 카리브는 블루마운틴의 남청, 아르헨티나는 페리토 모레노 빙하의 청록, 우루과이는 마노 지오드의 보라, 파라과이는 테라 로하의 적갈, 아프리카는 사바나 황토, 캐나다는 단풍잎의 붉은빛, 호주는 그레이트배리어리프의 산호빛, 뉴질랜드는 포후투카와 꽃의 진홍, 누벨칼레도니는 석호의 비취빛, 프랑스령 폴리네시아는 흑진주의 청보라, 남극은 오로라 청록, 북극은 흰 얼음빛(색을 빼고 밝기로), 동아시아는 청자, 남미는 안데스의 구리빛, 북미는 대평원의 밀빛, 오세아니아는 남태평양 석호의 청록, 동남아는 몬순 숲 이끼의 연두, 중미·카리브는 카리브 바다의 청록,
 유럽은 백악의 회백.
 
 - **달은 지역이 아니다** — 대돌여지도 아이콘의 숨은 차림에서 들어가는 따로 화면(`/GSM/moon/`)이다.
@@ -284,7 +284,7 @@ WMS·z/x/y·우리가 굽는 것) 계획을 따로 둔다 (029).
 - **점묶음은 몸을 갖는다**(`PointSet.body` — `earth`·`moon`·`mars`·`mercury`, 037·058·P10). 지구 화면은 `earth` 만, 달 화면은
   `moon` 만, 화성 화면은 `mars` 만, 수성 화면은 `mercury` 만 읽는다. 몸을 적지 않은 요청은 지구다. 달 점묶음의 표고는 LOLA(`trek.lola_values`),
   화성은 MOLA–HRSC(`trek.mars_values`, 화성 기준면), 수성은 MESSENGER(`trek.mercury_values`, 2 439.4 km 구)
-- **지역마다 화면 투영이 다르다** — 한국·일본·중국·대만·몽골·인도·사우디아라비아·인도네시아·말레이시아·필리핀·태국·동남아·동아시아·영국·프랑스·독일·스페인·아일랜드·포르투갈·이탈리아·스위스·오스트리아·폴란드·네덜란드·벨기에·유럽·콜롬비아·브라질·페루·에콰도르·아르헨티나·우루과이·남미·멕시코·니카라과·파나마·도미니카공화국·카리브·중미·카리브·아프리카·호주·뉴질랜드·오세아니아 3857, 그린란드·스발바르·얀마옌·북극해·노르웨이·스웨덴·핀란드·아이슬란드·북극
+- **지역마다 화면 투영이 다르다** — 한국·일본·중국·대만·몽골·인도·사우디아라비아·인도네시아·말레이시아·필리핀·태국·동남아·동아시아·영국·프랑스·독일·스페인·아일랜드·포르투갈·이탈리아·스위스·오스트리아·폴란드·네덜란드·벨기에·유럽·콜롬비아·브라질·페루·에콰도르·아르헨티나·우루과이·파라과이·남미·멕시코·니카라과·파나마·도미니카공화국·카리브·중미·카리브·아프리카·호주·뉴질랜드·누벨칼레도니·프랑스령 폴리네시아·오세아니아 3857, 그린란드·스발바르·얀마옌·북극해·노르웨이·스웨덴·핀란드·아이슬란드·북극
   3413, 남극 3031 이고 남극점이 가운데다 (017). **캐나다·미국·북미는 캐나다 람베르트(3978)** 다(미국은 wetherilli 210 부터) — 3857 은 북극 섬을 크게 부풀리고 3413 은 서경 45° 가
   위라 나라가 50° 기운다. 범위는 3857 과 같은 너비라 줌 번호가 같은 해상도다(`map.js`·`tilegrid.EXTENT`, wetherilli 204). 좌표를 옮길 때는 `toLL`/`fromLL`
   (화면 투영)을 쓰고 `ol.proj.toLonLat` 을 투영 없이 부르지 않는다. 지금의 투영은 축척 막대 옆에
@@ -294,19 +294,19 @@ WMS·z/x/y·우리가 굽는 것) 계획을 따로 둔다 (029).
   **동아시아도 묶음이다** — `REGIONS.eastasia.includes` 가 한국·일본·중국·대만·몽골을 모은다. 묶음
   탭(3857)에서는 레이어가 제 범위(`bbox` + 0.5°) 밖 타일을 묻지 않는다 (024).
   **유럽도 묶음이다** — `REGIONS.europe.includes` 가 영국·아일랜드·프랑스·독일·스페인·포르투갈·이탈리아·스위스·오스트리아·폴란드·네덜란드·벨기에를 모은다 (wetherilli 143·147·211·237).
-  **남미도 묶음이다** — `REGIONS.south_america.includes` 가 콜롬비아·에콰도르·페루·브라질·우루과이·아르헨티나를 모은다 (wetherilli 188·191·195·196·198).
+  **남미도 묶음이다** — `REGIONS.south_america.includes` 가 콜롬비아·에콰도르·페루·브라질·파라과이·우루과이·아르헨티나를 모은다 (wetherilli 188·191·195·196·198·256).
   **동남아도 묶음이다** — `REGIONS.southeast_asia.includes` 가 태국·말레이시아·인도네시아·필리핀을 모은다. 베트남·라오스·캄보디아·미얀마는
   공개 서비스가 없어 동아시아의 CCOP 200만이 덮는다 (wetherilli 228).
   **중미·카리브도 묶음이다** — `REGIONS.central_america.includes` 가 니카라과·파나마(STRI 1:25만, wetherilli 253)·도미니카공화국·카리브(USGS 1:250만, wetherilli 248)를 3857 한 화면에 모으고, 미국 탭의 푸에르토리코(`mrdata:pr:`)를 빌린다.
   북미 묶음(3978)에 넣지 않았다 — 북위 10–20° 는 캐나다 람베르트의 가장자리다 (wetherilli 242).
-  **오세아니아도 묶음이다** — `REGIONS.oceania.includes` 가 호주·뉴질랜드를 모은다. 3857 의 가장 넓은 줌(5)에 두 나라가 다 들지 않아 처음엔 호주 동부와 뉴질랜드를 연다 (wetherilli 218).
+  **오세아니아도 묶음이다** — `REGIONS.oceania.includes` 가 호주·뉴질랜드·누벨칼레도니·프랑스령 폴리네시아를 모은다(뒤의 둘은 wetherilli 260). 3857 의 가장 넓은 줌(5)에 두 나라가 다 들지 않아 처음엔 호주 동부와 뉴질랜드를 연다 (wetherilli 218).
   **북미도 묶음이다** — `REGIONS.north_america.includes` 가 캐나다·미국·멕시코를 캐나다 람베르트(3978) 한 화면에 모은다. 미국 탭도 3978 이다 —
   알래스카가 부풀지 않게 (wetherilli 210).
   지역 하나가 다른 지역의 상류 하나만 **빌릴** 수도 있다(`REGIONS.<지역>.borrow`) — 스발바르가 북극해의 EMODnet 을(135),
   프랑스·독일·스페인·아일랜드가 영국에 둔 EGDI 1:100만을(143·147). 레이어명이 지역 하나에만 걸리기 때문이다.
   상류 이름 대신 `:` 로 끝나는 레이어 이름 앞머리도 된다 — 브라질·페루·에콰도르·아르헨티나·우루과이가 콜롬비아 지역의 SGC 가운데 남미 1:500만(`sgc:sa:`)만 빌린다(191·195·196·198)
 - 레이어군은 지역을 갖고(`LayerGroup.region`), 레이어는 상류를 갖는다
-  (`Layer.upstream` — kigam·kigam50k·geus·vworld·grportal·npolar·gsj·gsitile·ccop·gsmma·emodnet·ngu·gtk·sgu·natt·bgs·brgm·egdi·bgr·igme·gsi·gsni·sgc·sgb·ingemmet·segemar·dinamige·iige·mrdata·sgm·cgmw·aga·ispra·lneg·swisstopo·cgs·gsn·bumigeb·irgm·ga·gsq·gsv·gssa·gns·mris·gsiindia·sgs·esdm·jmg·mgb·dmr·nrcan·ogs·sigeom·ygs·skgs·nsgs·ags·bcgs·calgs·geosphere·pig·tno·dov·spw·ineter·stri·usgscarib·phyloserver·geomap·janmayen·geo3al·kopri·earth). 서버는 레이어의
+  (`Layer.upstream` — kigam·kigam50k·geus·vworld·grportal·npolar·gsj·gsitile·ccop·gsjows·gsmma·emodnet·ngu·gtk·sgu·natt·bgs·brgm·egdi·bgr·igme·gsi·gsni·sgc·sgb·ingemmet·segemar·dinamige·iige·mrdata·sgm·cgmw·aga·ispra·lneg·swisstopo·cgs·gsn·bumigeb·irgm·ga·gsq·gsv·gssa·gns·mris·gsiindia·sgs·esdm·jmg·mgb·dmr·nrcan·ogs·sigeom·ygs·skgs·nsgs·ags·bcgs·calgs·geosphere·pig·tno·dov·spw·ineter·stri·usgscarib·vmme·georep·phyloserver·geomap·janmayen·geo3al·kopri·earth). 서버는 레이어의
   상류를 보고 문을 고른다
 - 레이어는 그리는 법도 갖는다 — 타일(WMS)이 거의 전부이고, `kind: vector` 는 단층
   선을 1° 칸으로 받아 우리가 그리고(020), `kind: points` 는 점·모양을 한 덩이로
@@ -373,7 +373,8 @@ WMS·z/x/y·우리가 굽는 것) 계획을 따로 둔다 (029).
   목록 Robbins 2012(`GSM_MARS_DIR`, 기본 `<DB 옆>/mars`, 067 — `manage.py build_mars_craters <zip>` 이 sqlite 한 장으로 굽고 타일은 그때그때 그린다), 화성 옛 지질도·지역도 — I-1802·SIM 2888·I-2650·MTM(같은 자리, 068·wetherilli 079 —
   `manage.py build_mars_originals <zip…>`, 달 원도의 틀을 빌렸다), 수성 지질도 — USGS 1:500만 도폭 합본(`GSM_MERCURY_DIR`, 기본
   `<DB 옆>/mercury`, wetherilli 144 — `manage.py build_mercury_geology <zip>`), 온 지구의 옛 해안선(`GSM_EARTH_DIR`, 기본 `<DB 옆>/earth`,
-  wetherilli 097). 운영은
+  wetherilli 097), 카리브 대앤틸리스 지질도 USGS SIM 3534(`GSM_CARIBBEAN_DIR`, 기본 `<DB 옆>/caribbean`, wetherilli 254 —
+  `manage.py build_caribbean <zip>`, 옛 판 OFR 2019-1036 의 셰이프 zip — 웹서비스가 없다). 운영은
   `/srv/GSM/db/` 아래다 — 배포한 자리의 compose 를 못 고쳐도 `db/` 는 붙어 있다. **저장소에 두지 않는다.** 원본은 NAS 의 `N:\GSM\sources\` 에 있다.
   파일이 없어도 뷰어는 돌고 그 자리에 안내가 뜬다. GeoMAP 의 그리는 법을 고치면
   `geomap.RENDERER` 를 올린다 — 안 올리면 캐시가 옛 그림을 낸다
@@ -430,7 +431,8 @@ web/viewer/       뷰어 앱 하나뿐이다. 앱을 더 가르지 않는다
   geus.py         GEUS 로 나가는 문 (그린란드 지질도)
   grportal.py     그린란드 정부 포털(ArcGIS)로 나가는 문 (시료·연대 점을 통째로)
   npolar.py       노르웨이 극지연구소(NPI)로 나가는 문 (스발바르·드로닝모드랜드)
-  gsj.py          일본 지질조사종합센터(GSJ)로 나가는 문 (심리스 지질도 V2 타일·속성·범례, 새 호스트의 CCOP 200만 지질도 WMS, 지질도Navi 판 목록)
+  gsj.py          일본 지질조사종합센터(GSJ)로 나가는 문 (심리스 지질도 V2 타일·속성·범례, 새 호스트의 CCOP 200만 지질도 WMS, 지질도Navi 판 목록,
+                  1:200만 일본 지질도·부게 중력·지구화학도 WMS — 상류 `gsjows`, 정부표준이용규약 2.0, wetherilli 255)
   gsmma.py        대만 경제부 지질조사·광업관리중심(GSMMA)으로 나가는 문 (지질도 WMS 는 4326 만, 누른 자리의 지층은 지질운 GeoJSON)
   emodnet.py      EMODnet Geology 로 나가는 문 (유럽 바다의 해저 퇴적물·해저 지질 WMS). 북극해에 두고 스발바르 탭이 빌린다. 3413 으로 곧장
   ngu.py          노르웨이 지질조사소(NGU)로 나가는 문 (본토 기반암 1:135만·25만·5만 MapServer WMS). 3413 을 안 그려 북극 람베르트(3575)로
@@ -443,6 +445,7 @@ web/viewer/       뷰어 앱 하나뿐이다. 앱을 더 가르지 않는다
   cgs.py          남아공 지질조사소(CGS) 1:100만으로 나가는 문 — 정부(DPME) GIS 사본. WMS 가 꺼져 WMS 변수를 ArcGIS REST export·identify 로 옮긴다
   brgm.py         프랑스 지질광물조사소(BRGM)로 나가는 문 (1:100만·25만·5만 스캔, 1:100만 단순 암상도 MapServer WMS). mapsref 서버의
                   CGMW–BRGM 아프리카 1:1000만(`cgmw`, 속성은 GML, 범례는 정적 PNG, wetherilli 207)·카메룬 IRGM 1:100만(`irgm`, 4326 만, 246)도
+                  해외 영토의 스캔도(앤틸리스·폴리네시아·레위니옹·마요트·생피에르 미클롱 — 지역은 씨앗마다, wetherilli 260)
   egdi.py         EGDI(EuroGeoSurveys)로 나가는 문 (범유럽 1:100만 지표 지질 GeoServer WMS). 느리다. 속성은 두 판 모두 암상 판에 묻는다(wetherilli 177)
   bgr.py          독일 연방 지구과학·자원청(BGR)으로 나가는 문 (GK1000·GÜK250 ArcGIS WMS). 이름은 `bgr:<판>:<번호>`. 유럽 1:500만 IGME5000 도
                   (축척마다 갈린 상류 레이어는 `+` 로 잇는다, 독일 탭에 두고 유럽 나라 탭이 빌린다, wetherilli 217)
@@ -489,7 +492,9 @@ web/viewer/       뷰어 앱 하나뿐이다. 앱을 더 가르지 않는다
   spw.py          왈로니아 공공서비스(SPW)로 나가는 문 (지질도 개정판 1:2.5만 ArcGIS WMS, 줌 9 부터. 시대는 프랑스어 계·통·절에서)
   ineter.py       니카라과 국토연구원(INETER)으로 나가는 문 (나라 지질도·단층 GeoServer WMS, 3857 로. 속성은 열을 골라, 시대는 스페인어 — 단층은 글자가 깨져 누르지 않는다)
   stri.py         스미스소니언 열대연구소(STRI)로 나가는 문 (파나마 1:25만 MICI 1990 피처 서비스 — 면·단층을 한 덩이씩 받아 캐시에 30 일, 화면이 그린다. 시대는 기호 앞머리)
-  usgscarib.py    USGS 카리브 지질도(French & Schenk 2004)로 나가는 문 (ArcGIS Online 피처 서비스 — 그림이 없어 면 6 343 을 한 덩이로 받아 캐시에 30 일, 화면이 구워 그린다)
+  usgscarib.py    USGS World Energy Project 지질도로 나가는 문 — 카리브(French & Schenk 2004)와 남미(Schenk 외 1999, wetherilli 256). ArcGIS Online 피처 서비스라 면을 한 덩이로 받아 캐시에 30 일, 화면이 그린다
+  vmme.py         파라과이 광업·에너지 차관실(VMME)로 나가는 문 (개략 지질도 피처 서비스 — 면 61 을 한 덩이로, 색은 우리가 붙인다)
+  georep.py       누벨칼레도니 정부 Géorep 으로 나가는 문 (DIMENC 지질도 1:100만·1:20만·1:5만 ArcGIS WMS 를 3857 로 — 축척마다 상류가 판을 바꾼다. 속성은 REST identify, 범례는 REST 목록)
   sgb.py          브라질 지질조사소(SGB)로 나가는 문 (GeoServer 둘 — 1:250만 2025·1:100만·1:25만, 속성은 `propertyName` 으로, 범례는 보는 범위의 것). 단위 이름표는 모아 둔다(`fetch_sgb_units`). 노두·연대측정·화석 산지 점도 같은 WMS 로
   segemar.py      아르헨티나 지질광업조사소(SEGEMAR)로 나가는 문 (SIGAM GeoServer — 1:250만 단위·구조선·화산, 1:25만 간행 도폭, 지역 판 1:100만·주별 1:75만·국경 1:50만·포클랜드(말비나스), 제4기 변형·화산 위험도). 이름은 `segemar:<상류 이름>`. CORS 가 없다
   dinamige.py     우루과이 광업지질국(DINAMIGE, MIEM)으로 나가는 문 (1:50만 ArcGIS WMS, 3857 로). 이름은 WMS 번호 — REST 와 거꾸로다. 범례는 REST 를 목록으로
@@ -520,6 +525,7 @@ web/viewer/       뷰어 앱 하나뿐이다. 앱을 더 가르지 않는다
   marscraters.py  화성 크레이터 38 만 개(Robbins 2012) -> sqlite(3 차원 R*Tree) -> 화성 경위도·극 타일. 문이 아니다
   marsmap.py      화성 옛 지질도·지역도(USGS I-1802·SIM 2888·I-2650·MTM) 셰이프파일 -> sqlite -> 화성 경위도·극 타일. moonmap 의 짝. 문이 아니다
   mercurymap.py   수성 지질도(USGS 1:500만 도폭 아홉의 합본) 셰이프파일 -> sqlite -> 수성 경위도 타일·누른 자리·범례. marsmap 의 짝. 문이 아니다
+  caribmap.py     USGS 대앤틸리스 지질도(SIM 3534 의 옛 판 OFR 2019-1036) 셰이프파일(람베르트) -> sqlite(3857 미터) -> 3857 타일·누른 자리·범례. 문이 아니다
   spamap.py       남극–에이트켄 분지 지질도 원본(팔레트 GeoTIFF) -> 누른 자리의 단위. 타일은 Trek 의 것. 문이 아니다
   paleo.py        PALEOMAP 2016 판 회전(data/paleomap2016.json) -> 오늘의 한 자리가 옛 연대에 있던 곳. 문이 아니다
   paleocoast.py   옛 해안선 PaleoCoastlines v7.1 -> 그때의 지구에 얹는 경위도 타일. 문이 아니다
@@ -554,11 +560,11 @@ web/.tilecache/   받아둔 타일. 커밋하지 않는다 (운영은 /data/GSM/
 devlog/           왜 그렇게 했는지 — 색인은 devlog/README.md
 ```
 
-**상류마다 문이 하나다 — `kigam.py`·`vworld.py`·`geus.py`·`grportal.py`·`npolar.py`·`gsj.py`·`gsmma.py`·`emodnet.py`·`ngu.py`·`gtk.py`·`sgu.py`·`natt.py`·`bgs.py`·`brgm.py`·`egdi.py`·`bgr.py`·`cgs.py`·`igme.py`·`gsi.py`·`sgc.py`·`sgb.py`·`ingemmet.py`·`iige.py`·`mrdata.py`·`sgm.py`·`ga.py`·`austates.py`·`gns.py`·`mris.py`·`gsiindia.py`·`sgs.py`·`esdm.py`·`jmg.py`·`mgb.py`·`dmr.py`·`segemar.py`·`dinamige.py`·`ispra.py`·`lneg.py`·`swisstopo.py`·`nrcan.py`·`ogs.py`·`sigeom.py`·`ygs.py`·`skgs.py`·`nsgs.py`·`ags.py`·`bcgs.py`·`calgs.py`·`geosphere.py`·`pig.py`·`tno.py`·`dov.py`·`spw.py`·`ineter.py`·`stri.py`·`usgscarib.py`·`phyloserver.py`·`elevation.py`·`trek.py`·`kopri.py`·`macrostrat.py`·`pbdb.py`·`gvp.py`·`usgs.py`·`neotoma.py`·`basemaps.py`·`linked.py`·`gfs.py`·`era5.py`·`gmgsi.py`·`ecco.py`.**
-이 일흔둘 말고는 어디서도 `requests` 를 쓰지 않는다. `gfs.py`·`era5.py`·`gmgsi.py`·`ecco.py` 는 **호스트에서만** 부른다 — 바람·해류를 받아
+**상류마다 문이 하나다 — `kigam.py`·`vworld.py`·`geus.py`·`grportal.py`·`npolar.py`·`gsj.py`·`gsmma.py`·`emodnet.py`·`ngu.py`·`gtk.py`·`sgu.py`·`natt.py`·`bgs.py`·`brgm.py`·`egdi.py`·`bgr.py`·`cgs.py`·`igme.py`·`gsi.py`·`sgc.py`·`sgb.py`·`ingemmet.py`·`iige.py`·`mrdata.py`·`sgm.py`·`ga.py`·`austates.py`·`gns.py`·`mris.py`·`gsiindia.py`·`sgs.py`·`esdm.py`·`jmg.py`·`mgb.py`·`dmr.py`·`segemar.py`·`dinamige.py`·`ispra.py`·`lneg.py`·`swisstopo.py`·`nrcan.py`·`ogs.py`·`sigeom.py`·`ygs.py`·`skgs.py`·`nsgs.py`·`ags.py`·`bcgs.py`·`calgs.py`·`geosphere.py`·`pig.py`·`tno.py`·`dov.py`·`spw.py`·`ineter.py`·`stri.py`·`usgscarib.py`·`vmme.py`·`georep.py`·`phyloserver.py`·`elevation.py`·`trek.py`·`kopri.py`·`macrostrat.py`·`pbdb.py`·`gvp.py`·`usgs.py`·`neotoma.py`·`basemaps.py`·`linked.py`·`gfs.py`·`era5.py`·`gmgsi.py`·`ecco.py`.**
+이 일흔넷 말고는 어디서도 `requests` 를 쓰지 않는다. `gfs.py`·`era5.py`·`gmgsi.py`·`ecco.py` 는 **호스트에서만** 부른다 — 바람·해류를 받아
 굽는 일(numpy·ecCodes·numcodecs, `requirements-wind.txt`)이 `/srv/GSM/scripts/run.sh` 의 전용 venv 에서 돌고(koprifossillab 005), 컨테이너는 구운 PNG 를 내주기만 한다(koprifossillab P02). `linked.py` 만은 주소를 우리가 정하지 않는다 — 개인 레이어를 남의 API 에
 이을 때 브라우저가 곧장 못 받으면 거친다(wetherilli P09·122). 사설망은 `GSM_LINKED_ALLOW` 에 적은 호스트만, 밖에 열면 닫는다. 뷰가 직접 부르지 않는다. 상류가 바뀌거나 주소가
-닫힐 때 고칠 자리를 하나로 묶어두려는 것이다. `geomap.py`·`janmayen.py`·`geo3al.py`·`peninsula.py`·`moonmap.py`·`ibcso.py`·`kigam50k.py`·`kigamdata.py`·`zhurong.py`·`marscraters.py`·`marsmap.py`·`mercurymap.py`·`spamap.py`·`paleo.py`·`paleocoast.py`·`fossils.py`·`volcanoes.py`·`quakes.py`·`paleoeco.py`·`crust.py`·`naturalearth.py`·`icemargins.py`·`mantle.py`·`earthpoints.py`·`pointvalues.py` 는
+닫힐 때 고칠 자리를 하나로 묶어두려는 것이다. `geomap.py`·`janmayen.py`·`geo3al.py`·`peninsula.py`·`moonmap.py`·`caribmap.py`·`ibcso.py`·`kigam50k.py`·`kigamdata.py`·`zhurong.py`·`marscraters.py`·`marsmap.py`·`mercurymap.py`·`spamap.py`·`paleo.py`·`paleocoast.py`·`fossils.py`·`volcanoes.py`·`quakes.py`·`paleoeco.py`·`crust.py`·`naturalearth.py`·`icemargins.py`·`mantle.py`·`earthpoints.py`·`pointvalues.py` 는
 상류가 아니라 우리 디스크의 파일을 읽으므로 문이 아니다. `warp.py` 도 문이 아니다 — 원본은 부르는 쪽이 넘긴다. 문은 서로를 타지 않는다 —
 주소 검색은 KIGAM 을 거치지 않고, KIGAM 인증키도 쓰지 않는다.
 

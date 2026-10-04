@@ -7,6 +7,8 @@
   1:5만 스캔은 1:25만보다 가까울 때. 카탈로그가 판마다 `minZoom`·`maxZoom` 을 알려 화면이 그 밖에서는 묻지 않는다
 - 지질도는 **스캔(그림)** 이라 누를 것이 없다. 속성은 1:100만 단순 암상도만 준다(`text/plain`)
 - 레이어명에 `brgm:` 를 붙여 카탈로그에 둔다. 상류로 나갈 때 뗀다
+- **해외 영토**(wetherilli 260) — 같은 서버가 앤틸리스·폴리네시아·레위니옹·마요트·생피에르 미클롱의 스캔도 준다. 기아나(`GEOL_GUYTest`)만은
+  빈 그림이라 두지 않는다. 지역은 씨앗마다 다르다(카리브·프랑스령 폴리네시아·아프리카·캐나다)
 """
 import logging
 import re
@@ -22,10 +24,17 @@ PREFIX = "brgm:"
 ATTRIBUTION = ('<a href="https://infoterre.brgm.fr/page/conditions-dutilisation-donnees" target="_blank" rel="noopener">'
                '© BRGM</a> (Licence Ouverte Etalab 2.0)')
 #: 그림(스캔)이라 누를 것이 없는 판
-SCANS = {"SCAN_F_GEOL1M", "SCAN_F_GEOL250", "SCAN_H_GEOL50"}
+SCANS = {"SCAN_F_GEOL1M", "SCAN_F_GEOL250", "SCAN_H_GEOL50",
+         # 해외 영토(wetherilli 260) — 앤틸리스·폴리네시아·레위니옹·마요트·생피에르 미클롱. 누르면 LayerNotDefined 다
+         "GEOL_MART", "GEOL_GUAD_ANNE", "GEOL_GUAD_MAR", "GEOL_PYF_5S", "GEOL_PYF_6S", "GEOL_PYF_7S",
+         "GEOL_REU_100K", "GEOL_REU_50K", "GEOL_MYT_30K", "GEOL_SPM_50K"}
 #: 판마다 그리는 화면 줌(3857, 처음·끝) — 2026-10-02 에 파리에서 한 장씩 받아 잰 것. 화면은 그 밖에서 묻지 않는다
 ZOOMS = {"SCAN_F_GEOL1M": (6, 11), "SCAN_F_GEOL250": (11, 12), "SCAN_H_GEOL50": (12, None),
-         "LITHO_1M_SIMPLIFIEE": (6, 14)}
+         "LITHO_1M_SIMPLIFIEE": (6, 14),
+         # 해외 영토(wetherilli 260) — 2026-10-05 에 섬마다 한 장씩 받아 잰 것(그 밖의 줌은 116 B 빈 그림)
+         "GEOL_MART": (12, None), "GEOL_GUAD_ANNE": (12, None), "GEOL_GUAD_MAR": (12, None),
+         "GEOL_PYF_5S": (11, None), "GEOL_PYF_6S": (11, None), "GEOL_PYF_7S": (11, None),
+         "GEOL_REU_100K": (11, 12), "GEOL_REU_50K": (13, None), "GEOL_MYT_30K": (13, None), "GEOL_SPM_50K": (12, None)}
 
 
 class BrgmError(RuntimeError):

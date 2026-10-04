@@ -1,0 +1,49 @@
+{
+ "_주석": "BRGM 해외 영토 지질도 스캔 씨앗이다 — 카리브 탭(마르티니크·과들루프·생마르탱). 스캔이라 누를 것이 없고 판마다 그리는 줌이 정해져 있다(web/viewer/brgm.py 의 ZOOMS, 2026-10-05 에 잰 것). 상류 이름 앞에 brgm: 를 붙였다 (wetherilli 260).",
+ "_뽑은날": "2026-10-05",
+ "_출처": "https://geoservices.brgm.fr/geologie?SERVICE=WMS&REQUEST=GetCapabilities",
+ "_지역": "caribbean",
+ "_상류": "brgm",
+ "_레이어군차례": 2,
+ "레이어군순서": [
+  "프랑스령 앤틸리스 지질도 (BRGM)"
+ ],
+ "레이어": [
+  {
+   "name": "brgm:GEOL_MART",
+   "title": "마르티니크 1:5만 (스캔)",
+   "abstract": "Carte géologique Martinique 1/50 000 — 줌 12 부터",
+   "bbox": [
+    -61.25,
+    14.38,
+    -60.8,
+    14.9
+   ],
+   "group": "프랑스령 앤틸리스 지질도 (BRGM)"
+  },
+  {
+   "name": "brgm:GEOL_GUAD_ANNE",
+   "title": "과들루프 1:5만 (스캔)",
+   "abstract": "Cartes géologiques Guadeloupe (Sainte-Anne) — 줌 12 부터",
+   "bbox": [
+    -61.85,
+    15.83,
+    -61.0,
+    16.52
+   ],
+   "group": "프랑스령 앤틸리스 지질도 (BRGM)"
+  },
+  {
+   "name": "brgm:GEOL_GUAD_MAR",
+   "title": "생마르탱·생바르텔레미 1:5만 (스캔)",
+   "abstract": "Cartes géologiques Guadeloupe (Marigot) — 줌 12 부터",
+   "bbox": [
+    -63.21,
+    17.82,
+    -62.73,
+    18.17
+   ],
+   "group": "프랑스령 앤틸리스 지질도 (BRGM)"
+  }
+ ]
+}

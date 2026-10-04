@@ -1,0 +1,49 @@
+{
+ "_주석": "BRGM 해외 영토 지질도 스캔 씨앗이다 — 프랑스령 폴리네시아 탭(오세아니아 묶음에도 든다). 스캔이라 누를 것이 없고 판마다 그리는 줌이 정해져 있다(web/viewer/brgm.py 의 ZOOMS, 2026-10-05 에 잰 것). 상류 이름 앞에 brgm: 를 붙였다 (wetherilli 260).",
+ "_뽑은날": "2026-10-05",
+ "_출처": "https://geoservices.brgm.fr/geologie?SERVICE=WMS&REQUEST=GetCapabilities",
+ "_지역": "french_polynesia",
+ "_상류": "brgm",
+ "_레이어군차례": 1,
+ "레이어군순서": [
+  "프랑스령 폴리네시아 지질도 (BRGM)"
+ ],
+ "레이어": [
+  {
+   "name": "brgm:GEOL_PYF_6S",
+   "title": "지질도 스캔 — UTM 6S (타히티·투아모투 서부)",
+   "abstract": "Cartes géologiques Polynésie (6 Sud) — 서경 150°–143.5°, 줌 11 부터",
+   "bbox": [
+    -150.0,
+    -31.2,
+    -143.5,
+    -7.3
+   ],
+   "group": "프랑스령 폴리네시아 지질도 (BRGM)"
+  },
+  {
+   "name": "brgm:GEOL_PYF_5S",
+   "title": "지질도 스캔 — UTM 5S (무레아·리워드 제도·오스트랄 서부)",
+   "abstract": "Cartes géologiques Polynésie (5 Sud) — 서경 158°–149.7°, 줌 11 부터",
+   "bbox": [
+    -158.1,
+    -26.8,
+    -149.7,
+    -12.5
+   ],
+   "group": "프랑스령 폴리네시아 지질도 (BRGM)"
+  },
+  {
+   "name": "brgm:GEOL_PYF_7S",
+   "title": "지질도 스캔 — UTM 7S (마르키즈·투아모투 동부·감비에)",
+   "abstract": "Cartes géologiques Polynésie (7 Sud) — 서경 144°–137.5°, 줌 11 부터",
+   "bbox": [
+    -144.0,
+    -31.3,
+    -137.5,
+    -4.5
+   ],
+   "group": "프랑스령 폴리네시아 지질도 (BRGM)"
+  }
+ ]
+}

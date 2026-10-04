@@ -137,6 +137,45 @@
     return out.map(function (p, n) { return p + (n < joiners.length ? joiners[n] : ""); }).join("");
   }
 
+  /** `i18n.age_local` 을 옮긴 것 — 독일어·네덜란드어·폴란드어·프랑스어 시대(`Perm - frühe Kreide`·`jura górna`) → ICS 영어.
+   *  낱말 하나라도 모르면 빈 글 — 부르는 쪽이 원문을 보인다 (wetherilli 257) */
+  function ageLocal(value) {
+    var t = T.ageLocal || {}, words = t.words || {}, mods = t.modifiers || {}, glued = t.glued || [];
+    var has = function (o, k) { return Object.prototype.hasOwnProperty.call(o, k); };
+    var text = String(value == null ? "" : value).trim();
+    if (!text || text.toLowerCase() === "null") return "";
+    var parts = [], pieces = text.split(/\s+(?:-|–|bis|tot|do|à)\s+|\s*–\s*|\s*,\s*/);
+    for (var i = 0; i < pieces.length; i++) {
+      var ws = pieces[i].trim().toLowerCase().split(/[\s\-]+/).filter(Boolean);
+      if (!ws.length) continue;
+      var noun = "", mod = "";
+      for (var j = 0; j < ws.length; j++) {
+        var w = ws[j];
+        if (has(words, w) && !noun) noun = words[w];
+        else if (has(mods, w) && !mod) mod = mods[w];
+        else {
+          // 독일어는 꾸밈말을 붙여 쓴다 — `Obertrias`·`Unterkreide`
+          var g = null;
+          for (var k = 0; k < glued.length && !g; k++) {
+            if (w.indexOf(glued[k]) === 0 && has(words, w.slice(glued[k].length))) g = [glued[k], w.slice(glued[k].length)];
+          }
+          if (!g || noun || mod) return "";
+          mod = mods[g[0]]; noun = words[g[1]];
+        }
+      }
+      if (!noun) return "";
+      parts.push(mod ? mod + " " + noun : noun);
+    }
+    if (!parts.length) return "";
+    return parts.every(function (p) { return p === parts[0]; }) ? parts[0] : parts[0] + " – " + parts[parts.length - 1];
+  }
+
+  /** 시대 원문 → 화면 말. 옮기면 한국어판은 한국어·영어판은 ICS 영어, 못 옮기면 원문 (서버 문들의 같은 세 줄) */
+  function localAge(raw) {
+    var ics = ageLocal(raw);
+    return ics ? (lang() === "ko" ? ageKo(ics) : ics) : String(raw == null ? "" : raw).trim();
+  }
+
   /** 누른 자리 둘레 — 지금 화면의 해상도로. identify 의 mapExtent·imageDisplay 로 쓴다(101 칸, 가운데가 누른 자리) */
   function around(coordinate, view, code) {
     var viewCode = view.getProjection().getCode();
@@ -625,10 +664,38 @@
     url = String(url || "").trim();
     return /^https?:\/\//.test(url) ? { text: "", links: [{ url: url, label: "열기" }] } : null;
   }
-  /** `mrdata.friendly` 와 같다 — 값은 영어 그대로, 알래스카의 시대만 옮긴다 */
+  /** `mrdata._island_age` — upper·lower 를 ICS 의 late·early 로, `?` 는 뒤에. 못 옮기면 원문 */
+  function islandAge(age) {
+    if (lang() !== "ko" || !age) return age;
+    var doubt = age.indexOf("?") >= 0;
+    var map = { upper: "Late", lower: "Early", middle: "Middle" };
+    var ics = age.replace(/\?/g, " ").split(/\s+/).filter(Boolean)
+      .map(function (w) { return map[w.toLowerCase()] || w; }).join(" ") + (doubt ? " (?)" : "");
+    var ko = ageKo(ics);
+    return ko !== ics ? ko : age;
+  }
+  /** `mrdata.friendly` 와 같다 — 값은 영어 그대로, 알래스카·섬의 시대만 옮긴다. 광물 자원·광산 기호·연대 기록(wetherilli 247)과
+   *  하와이·푸에르토리코(238)도 같은 갈래로 */
   function usgsFriendly(props) {
     var v = function (k) { return String(props[k] == null ? "" : props[k]).trim(); }, rows;
-    if ("state_unit" in props || "age_range" in props) {
+    var join = function (xs, sep) { return xs.filter(Boolean).join(sep); };
+    if ("dep_id" in props) {
+      rows = [["이름", v("site_name")], ["광종", v("code_list")], ["개발 단계", v("dev_stat")], ["보고서", usgsLink(v("url"))]];
+    } else if ("ftr_type" in props) {
+      var scale = v("topo_scale");
+      var topo = join([v("topo_name"), /^\d+$/.test(scale) ? "(" + v("topo_date") + ", 1:" + Number(scale).toLocaleString("en-US") + ")" : ""], " ");
+      rows = [["갈래", v("ftr_type")], ["이름", v("ftr_name")], ["주", join([v("county"), v("state")], " · ")],
+              ["지형도", topo], ["비고", v("remarks")]];
+    } else if ("recno" in props) {
+      rows = [["기록 번호", v("recno")], ["상세", usgsLink(v("url"))]];
+    } else if ("volcano" in props) {
+      rows = [["이름", v("name") || v("unit")], ["기호", v("symbol")], ["지질시대", islandAge(v("age_range"))],
+              ["암석", join([v("rock_type"), v("lithology")], " · ")], ["조성", v("compositio")], ["섬", v("island")],
+              ["화산 성장 단계", v("volc_stage")], ["원도", v("source")], ["단위 설명", usgsLink(v("url"))]];
+    } else if ("fmatn" in props) {
+      rows = [["이름", v("name")], ["기호", v("fmatn")], ["지질시대", islandAge(v("age"))], ["암상", v("lith62name")],
+              ["설명", v("descript")], ["참고 문헌", v("refs")], ["단위 설명", usgsLink(v("url"))]];
+    } else if ("state_unit" in props || "age_range" in props) {
       var age = v("age_range");
       rows = [["이름", v("state_unit")], ["기호", v("label")], ["지질시대", age && lang() === "ko" ? ageKo(age) : age],
               ["단위 설명", usgsLink(v("url"))]];
@@ -688,12 +755,27 @@
   // ── 호주 — Geoscience Australia (wetherilli 212) ──
   // CC BY 4.0, Origin 을 되비춘다. 레이어 하나가 1:250만·1:100만 두 판을 함께 부르고 상류가 축척에 맞는 판을 그린다(서버의 `ga._wms`)
   var gaT = T.ga || {};
-  /** `ga.friendly` 와 같다 — 이름·설명·암상은 영어 그대로, 시대만 옮긴다 */
+  /** `ga.friendly` 와 같다 — 이름·설명·암상은 영어 그대로, 시대만 옮긴다. 지질구·핵심 광물(`ga.other_friendly`, wetherilli 241)도 */
   function gaFriendly(props) {
     var v = function (k) {
       var s = String(props[k] == null ? "" : props[k]).trim();
       return ["null", "none"].indexOf(s.toLowerCase()) >= 0 ? "" : s;
     };
+    var other = null;
+    if ("provinceName" in props) {
+      var older = v("olderNameAge"), younger = v("youngerNamedAge");
+      var span = [older, younger !== older ? younger : ""].filter(Boolean).join(" - ") || v("geologicHistory");
+      other = [["이름", v("provinceName")], ["갈래", [v("type"), v("subtype"), v("rank")].filter(Boolean).join(" · ")],
+               ["상위 단위", v("parentName")], ["지질시대", span && lang() === "ko" ? ageKo(span) : span],
+               ["설명", v("description")], ["주", v("state")], ["참고 문헌", v("source")]];
+    } else if ("Commodities" in props || "ProjectName" in props) {
+      other = [["이름", v("ProjectName")], ["광종", v("Commodities")], ["운영", v("Status")], ["주", v("STATE")]];
+    }
+    if (other) {
+      var o = {};
+      other.forEach(function (r) { if (r[1]) o[r[0]] = r[1]; });
+      return o;
+    }
     var hist = v("geologicHistory").split(" to ").map(function (p) { return p.trim(); }).filter(Boolean).join(" - ");
     var scale = v("resolutionScale");
     var rows = [["기호", v("mapSymbol") || v("plotSymbol")], ["이름", v("name")], ["설명", v("description")],
@@ -703,10 +785,117 @@
     rows.forEach(function (r) { if (r[1]) out[r[0]] = r[1]; });
     return out;
   }
-  KINDS.ga = wmsKind(gaT.url, function (name) { return (gaT.layers || {})[name]; }, function () { return "EPSG:3857"; },
-                     gaFriendly, gaT.attribution, "application/geo+json");
-  // 범례 그림은 198×4096 이라 싣지 않는다 — 서버 판은 보는 범위의 범례를 뜨지만 정적 판에는 그 길이 없다
-  KINDS.ga.legend = function () { return Promise.resolve(null); };
+  // 지질구·핵심 광물·지구물리 격자(wetherilli 241)는 다른 서비스다 — 주소·레이어를 `gaT.other` 에서
+  function gaOther(name) { return (gaT.other || {})[name]; }
+  KINDS.ga = wmsKind(function (name) { return gaOther(name) ? gaOther(name)[0] : gaT.url; },
+                     function (name) { return gaOther(name) ? gaOther(name)[1] : (gaT.layers || {})[name]; },
+                     function () { return "EPSG:3857"; }, gaFriendly, gaT.attribution, "application/geo+json");
+  var gaInfo = KINDS.ga.info;
+  KINDS.ga.info = function (source, coordinate, view) {
+    var name = source.get("gsmName"), other = gaOther(name);
+    if (other ? !other[2] : (gaT.queryable || []).indexOf(name) < 0) return null;     // 서버의 `ga.queryable`
+    return gaInfo(source, coordinate, view);
+  };
+  // 지표 지질도의 범례 그림은 198×4096 이라 싣지 않는다 — 서버 판은 보는 범위의 범례를 뜨지만 정적 판에는 그 길이 없다.
+  // 지질구·핵심 광물은 서버처럼 상류의 그림(첫 레이어), 격자는 범례가 없다
+  KINDS.ga.legend = function (name) {
+    var other = gaOther(name);
+    if (!other || !other[2]) return Promise.resolve(null);
+    return Promise.resolve({ img: query(other[0], { service: "WMS", version: "1.3.0", request: "GetLegendGraphic", format: "image/png",
+                                                    layer: other[1].split(",")[0] }) });
+  };
+
+  // ── 유럽 넷 — `arcwms.Door` 를 쓰는 상류 (wetherilli 257) ──
+  // 네덜란드 TNO(CC0)·벨기에 DOV(무료 재사용)·SPW(CC BY 4.0)·오스트리아 GeoSphere(CC BY 4.0)·폴란드 PIG-PIB(조건 없음).
+  // 모두 CORS 가 열려 있다(`*` 이거나 Origin 을 되비춘다, 2026-10-05). 서버의 `arcwms.Door` 처럼 1.1.1 로 묻고, 속성 꼴·더 붙일 변수
+  // (`propertyName` 따위)는 표가 문에서 떠 온다. 손질만 상류마다 여기 둔다
+  function arcKind(upstream, friendly) {
+    var t = T[upstream] || {};
+    function door(name) {
+      var ds = t.doors || [];
+      for (var i = 0; i < ds.length; i++) if (Object.prototype.hasOwnProperty.call(ds[i].layers, name)) return ds[i];
+      return null;
+    }
+    return {
+      source: function (name) {
+        var d = door(name) || { url: "", layers: {} };
+        return named(name, new ol.source.TileWMS({
+          url: d.url, params: { LAYERS: d.layers[name], VERSION: "1.1.1", TILED: true, FORMAT: "image/png", TRANSPARENT: true },
+          projection: "EPSG:3857", tileGrid: tileGrid("EPSG:3857"), crossOrigin: "anonymous", transition: 0, attributions: t.attribution,
+        }));
+      },
+      info: function (source, coordinate, view) {
+        var name = source.get("gsmName"), d = door(name);
+        if (!d || d.queryable.indexOf(name) < 0) return null;
+        var extra = { INFO_FORMAT: d.infoFormat, FEATURE_COUNT: 5 };
+        var more = (d.infoParams || {})[name] || {};
+        Object.keys(more).forEach(function (k) { extra[k.toLowerCase() === "feature_count" ? "FEATURE_COUNT" : k] = more[k]; });
+        var u = source.getFeatureInfoUrl(coordinate, view.getResolution(), view.getProjection(), extra);
+        if (!u) return null;
+        return getJson(u).then(function (data) {
+          return tidy((data.features || []).map(function (f) { return { id: f.id, props: forLang(friendly(f.properties || {})) }; }));
+        });
+      },
+      legend: function (name) {
+        var layer = (t.legend || {})[name], d = door(name);
+        if (!layer || !d) return Promise.resolve(null);
+        return Promise.resolve({ img: query(d.url, { service: "WMS", version: "1.1.1", request: "GetLegendGraphic",
+                                                     format: "image/png", layer: layer }) });
+      },
+    };
+  }
+  /** 서버 문들의 `_value` — 빈칸·"null" 은 빈 글 */
+  function val(props, key) {
+    var s = String(props[key] == null ? "" : props[key]).trim();
+    return s.toLowerCase() === "null" ? "" : s;
+  }
+  function rowsOut(rows) {
+    var out = {};
+    rows.forEach(function (r) { if (r[1]) out[r[0]] = r[1]; });
+    return out;
+  }
+  /** `tno.friendly` — 값은 네덜란드어 그대로, 시대만 옮긴다 */
+  function tnoFriendly(props) {
+    var s = function (x) { return String(x == null ? "" : x).trim(); };
+    return rowsOut([["기호", s(props.CODE)], ["이름", s(props.NAAM1 || props.LITHOSTRAT)], ["설명", s(props.OMSCHRIJVI)],
+                    ["지질시대", localAge(s(props.OUDERDOM))], ["층서 명명집", s(props.VERWIJZING)]]);
+  }
+  /** `dov.friendly` — 값은 네덜란드어 그대로, 시대 열이 없다 */
+  function dovFriendly(props) {
+    return rowsOut([["기호", val(props, "code")], ["이름", val(props, "formatie")], ["부층", val(props, "lid")],
+                    ["설명", val(props, "beschrijving")], ["단면", val(props, "profiel")]]);
+  }
+  /** `spw.friendly` — 값은 프랑스어 그대로, 시대는 가장 잘게 가른 것(절 > 통 > 계) */
+  function spwFriendly(props) {
+    var raw = val(props, "Etage") || val(props, "Série") || val(props, "Système");
+    var sheet = [val(props, "Numéro de planche"), val(props, "Nom de planche")].filter(Boolean).join(" ");
+    return rowsOut([["기호", val(props, "Sigle")], ["이름", val(props, "Nom de la formation")],
+                    ["설명", val(props, "Description générale")], ["지질시대", localAge(raw)], ["도폭", sheet],
+                    ["편집", val(props, "Auteurs")], ["층 설명", val(props, "Description de la notice")]]);
+  }
+  /** `pig.friendly` — 값은 폴란드어 그대로, 시대만 옮긴다. 1:5만(`Wydzielenia`)과 1:50만의 열이 다르다 */
+  function pigFriendly(props) {
+    var age = localAge(val(props, "Stratygrafia"));
+    if ("Wydzielenia" in props) {
+      return rowsOut([["설명", val(props, "Wydzielenia")], ["성인", val(props, "Geneza")], ["지질시대", age],
+                      ["도폭", val(props, "Nr arkusza")]]);
+    }
+    return rowsOut([["기호", val(props, "Symbol wydzielenia")], ["설명", val(props, "Opis wydzielenia")],
+                    ["암석", val(props, "Litologia")], ["지질시대", age], ["성인", val(props, "Geneza")],
+                    ["빙하 층서", val(props, "Klimatostratygrafia")]]);
+  }
+  /** `geosphere.friendly` 의 1:100만 갈래 — `Beschreibung` 의 "암상; 시대" 를 뗀다(1:5만은 REST 라 정적 판에 없다) */
+  function geosphereFriendly(props) {
+    var text = String(props.Beschreibung == null ? "" : props.Beschreibung).trim();
+    var cut = text.lastIndexOf(";"), rock = cut >= 0 ? text.slice(0, cut) : text, age = cut >= 0 ? text.slice(cut + 1) : "";
+    return rowsOut([["암석", rock.trim()], ["지질시대", localAge(age)],
+                    ["지구조 구역", String(props.Tektonik == null ? "" : props.Tektonik).trim()]]);
+  }
+  KINDS.tno = arcKind("tno", tnoFriendly);
+  KINDS.dov = arcKind("dov", dovFriendly);
+  KINDS.spw = arcKind("spw", spwFriendly);
+  KINDS.pig = arcKind("pig", pigFriendly);
+  KINDS.geosphere = arcKind("geosphere", geosphereFriendly);
 
   window.GSM_STATIC_KINDS = KINDS;
   // 시험·다른 화면이 같은 손질을 쓰게 — 정적 판의 다른 파일(개인 레이어 따위)도 지질시대를 옮길 수 있다
@@ -714,5 +903,7 @@
                                 npiFriendly: npiFriendly, emodFriendly: emodFriendly, geusFriendly: geusFriendly, sgcFriendly: sgcFriendly,
                                 sguFriendly: sguFriendly,
                                 usgsFriendly: usgsFriendly, usgsGml: usgsGml, gaFriendly: gaFriendly,
+                                ageLocal: ageLocal, tnoFriendly: tnoFriendly, dovFriendly: dovFriendly, spwFriendly: spwFriendly,
+                                pigFriendly: pigFriendly, geosphereFriendly: geosphereFriendly,
                                 tidy: tidy };
 })();

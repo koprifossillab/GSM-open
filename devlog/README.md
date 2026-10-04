@@ -296,6 +296,11 @@
 | wetherilli 251 | 2026-10-05 | [정리 — 영어 빈자리·CLAUDE.md 의 지역 목록·TODOs 의 끝난 일](20261005_wetherilli_251_housekeeping.md) |
 | wetherilli 252 | 2026-10-05 | [새 상류 점검 — 미리 데우기가 화면이 멈춘 줌 너머를 받던 다섯](20261005_wetherilli_252_upstream_audit.md) |
 | wetherilli 253 | 2026-10-05 | [파나마 — STRI 1:25만 면·단층을 한 덩이씩](20261005_wetherilli_253_panama.md) |
+| wetherilli 254 | 2026-10-05 | [카리브 — USGS 대앤틸리스 지질도(SIM 3534)를 우리가 굽는다](20261005_wetherilli_254_caribbean_sim3534.md) |
+| wetherilli 255 | 2026-10-05 | [일본 — GSJ 의 1:200만 지질도·부게 중력·지구화학도](20261005_wetherilli_255_japan_more.md) |
+| wetherilli 256 | 2026-10-05 | [남미 나머지 — 파라과이 탭과 USGS 남미 지질도, 나머지는 실측만](20261005_wetherilli_256_south_america_more.md) |
+| wetherilli 257 | 2026-10-05 | [정적 판 점검 — 오늘 붙은 상류 가운데 고를 수 있는 것](20261005_wetherilli_257_static_optional.md) |
+| wetherilli 260 | 2026-10-05 | [프랑스 해외 영토와 태평양 섬 — 누벨칼레도니 Géorep, BRGM 해외 스캔](20261005_wetherilli_260_overseas.md) |
 | koprifossillab P01 | 2026-09-30 | [백업 — WegenersDream 의 틀로, 바뀌는 빠르기에 따라 넷으로 (계획)](20260930_koprifossillab_P01_backup_plan.md) |
 | koprifossillab 001 | 2026-09-30 | [매주 월요일 새벽: 운영 자료 백업과 KPDC 목록 갱신](20260930_koprifossillab_001_weekly_backup.md) |
 | koprifossillab 002 | 2026-09-30 | [`/healthz/` — 판·DB·백업 상태를 한 장으로](20260930_koprifossillab_002_healthz.md) |

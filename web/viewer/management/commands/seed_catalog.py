@@ -63,6 +63,7 @@ class Command(BaseCommand):
                 (settings.GSITILE_CATALOG_SEED, "일본 (국토지리원)", "japan", "gsitile"),
                 # 동·동남아시아 — CCOP 200만 지질도, GSJ 새 호스트의 WMS (wetherilli 108)
                 (settings.CCOP_CATALOG_SEED, "동아시아 (CCOP)", "china", "ccop"),
+                (settings.GSJOWS_CATALOG_SEED, "일본 (GSJ WMS)", "japan", "gsjows"),
                 # 대만 — 경제부 지질조사·광업관리중심(GSMMA) 지질도 (wetherilli 136)
                 (settings.GSMMA_CATALOG_SEED, "대만 (GSMMA)", "taiwan", "gsmma"),
                 # 북극해 — EMODnet 해저 퇴적물·해저 지질. 스발바르 탭도 빌려 보인다 (wetherilli 135)
@@ -152,8 +153,17 @@ class Command(BaseCommand):
                 (settings.IGME_DR_CATALOG_SEED, "도미니카공화국 (SGN)", "dominican_republic", "igme"),
                 # 카리브 — USGS 카리브 지질도(French & Schenk 2004), 면을 한 덩이로 (wetherilli 248)
                 (settings.USGSCARIB_CATALOG_SEED, "카리브 (USGS)", "caribbean", "usgscarib"),
+                # 대앤틸리스 — USGS SIM 3534(옛 판 OFR 2019-1036), 우리가 구운 sqlite (wetherilli 254)
+                (settings.SIM3534_CATALOG_SEED, "대앤틸리스 (USGS)", "caribbean", "sim3534"),
                 # 파나마 — STRI 의 MICI 1990 1:25만, 면·단층을 한 덩이로 (wetherilli 253)
                 (settings.STRI_CATALOG_SEED, "파나마 (STRI)", "panama", "stri"),
+                # 파라과이 — 광업·에너지 차관실 지질도, 남미 — USGS 1:500만(콜롬비아 지역에 두고 남미 탭들이 빌린다) (wetherilli 256)
+                (settings.VMME_CATALOG_SEED, "파라과이 (VMME)", "paraguay", "vmme"),
+                (settings.USGSCARIB_SA_CATALOG_SEED, "남미 (USGS)", "colombia", "usgscarib"),
+                # 누벨칼레도니 — 정부 Géorep 의 DIMENC 지질도 (wetherilli 260)
+                (settings.GEOREP_CATALOG_SEED, "누벨칼레도니 (Géorep)", "new_caledonia", "georep"),
+                # 프랑스 해외 영토 BRGM 스캔 — 지역은 씨앗이 적는다(카리브·프랑스령 폴리네시아·아프리카·캐나다) (wetherilli 260)
+                *((path, f"BRGM 해외 ({path.stem})", "caribbean", "brgm") for path in settings.BRGM_OVERSEAS_CATALOG_SEEDS),
                 # 이탈리아 ISPRA·포르투갈 LNEG·스위스 swisstopo (wetherilli 211)
                 (settings.ISPRA_CATALOG_SEED, "이탈리아 (ISPRA)", "italy", "ispra"),
                 (settings.LNEG_CATALOG_SEED, "포르투갈 (LNEG)", "portugal", "lneg"),

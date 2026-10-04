@@ -2969,3 +2969,63 @@ a.tool { text-decoration: none; }                /* 3D 단추는 링크다 */
   --hi: #39300c; --hi-deep: #221d07; --on-hi: #fdfcfb; --hi-ink: #9f8620;
   --glass: rgba(253, 252, 251, .95); --glass-line: #f9f2d5;
 }
+
+/* ── 파라과이 (wetherilli 256) — 동부의 붉은 흙(테라 로하)의 적갈: 차코 관목림의 마른 갈색 바탕 ── */
+:root[data-region="paraguay"] {
+  --bg: #15110f; --panel: #1e1b19; --panel-tint: #100d0b; --raise: #2a2625;
+  --ink: #f4f2f0; --ink-soft: #c6c0ba; --ink-faint: #88827c;
+  --line: #3a3735; --line-soft: #2a2625;
+  --gold: #c9573a; --gold-bright: #e1a393; --gold-muted: #ab4a31;
+  --gold-wash: rgba(201, 87, 58, .13); --gold-edge: rgba(201, 87, 58, .42);
+  --hi: #c9573a; --hi-deep: #e1a393; --on-hi: #100d0b; --hi-ink: #e1a393;
+  --glass: rgba(16, 13, 11, .93); --glass-line: rgba(201, 87, 58, .35);
+}
+:root[data-region="paraguay"][data-theme="light"] {
+  --bg: #fcf5f3; --panel: #fdfcfb; --panel-tint: #fdf8f7; --raise: #f7e7e3;
+  --ink: #1e1b19; --ink-soft: #524c47; --ink-faint: #8c8580;
+  --line: #f4ddd8; --line-soft: #f7e7e3;
+  --gold: #8d3d29; --gold-bright: #6f3020; --gold-muted: #8c5446;
+  --gold-wash: #f7e6e1; --gold-edge: #e7b3a6;
+  --hi: #32160e; --hi-deep: #1e0d09; --on-hi: #fdfcfb; --hi-ink: #8d3d29;
+  --glass: rgba(253, 252, 251, .95); --glass-line: #f4ddd8;
+}
+
+/* ── 누벨칼레도니 (wetherilli 260) — 석호의 비취빛: 니켈 광산 라테라이트의 붉은 흙 바탕 ── */
+:root[data-region="new_caledonia"] {
+  --bg: #15100e; --panel: #1e1a18; --panel-tint: #100c0a; --raise: #2a2624;
+  --ink: #f4f2f0; --ink-soft: #c6c0ba; --ink-faint: #88827c;
+  --line: #3a3635; --line-soft: #2a2624;
+  --gold: #2fb5a5; --gold-bright: #8dd6ce; --gold-muted: #289a8c;
+  --gold-wash: rgba(47, 181, 165, .13); --gold-edge: rgba(47, 181, 165, .42);
+  --hi: #2fb5a5; --hi-deep: #8dd6ce; --on-hi: #100c0a; --hi-ink: #8dd6ce;
+  --glass: rgba(16, 12, 10, .93); --glass-line: rgba(47, 181, 165, .35);
+}
+:root[data-region="new_caledonia"][data-theme="light"] {
+  --bg: #f3fbfa; --panel: #fdfcfb; --panel-tint: #f7fcfb; --raise: #e2f5f2;
+  --ink: #1e1b19; --ink-soft: #524c47; --ink-faint: #8c8580;
+  --line: #d5f0ed; --line-soft: #e2f5f2;
+  --gold: #217f74; --gold-bright: #1a645b; --gold-muted: #40827a;
+  --gold-wash: #e0f4f2; --gold-edge: #a1ded6;
+  --hi: #0c2d29; --hi-deep: #071b19; --on-hi: #fdfcfb; --hi-ink: #217f74;
+  --glass: rgba(253, 252, 251, .95); --glass-line: #d5f0ed;
+}
+
+/* ── 프랑스령 폴리네시아 (wetherilli 260) — 티아레 꽃잎 위 흑진주의 청보라: 현무암 모래의 검은 바탕 ── */
+:root[data-region="french_polynesia"] {
+  --bg: #101014; --panel: #1a1a1d; --panel-tint: #0c0c0f; --raise: #262629;
+  --ink: #f4f2f0; --ink-soft: #c6c0ba; --ink-faint: #88827c;
+  --line: #36363a; --line-soft: #262629;
+  --gold: #7b6fd6; --gold-bright: #b6b0e8; --gold-muted: #695eb6;
+  --gold-wash: rgba(123, 111, 214, .13); --gold-edge: rgba(123, 111, 214, .42);
+  --hi: #7b6fd6; --hi-deep: #b6b0e8; --on-hi: #0c0c0f; --hi-ink: #b6b0e8;
+  --glass: rgba(12, 12, 15, .93); --glass-line: rgba(123, 111, 214, .35);
+}
+:root[data-region="french_polynesia"][data-theme="light"] {
+  --bg: #f7f6fd; --panel: #fdfcfb; --panel-tint: #faf9fd; --raise: #edebf9;
+  --ink: #1e1b19; --ink-soft: #524c47; --ink-faint: #8c8580;
+  --line: #e5e2f7; --line-soft: #edebf9;
+  --gold: #564e96; --gold-bright: #443d76; --gold-muted: #655f92;
+  --gold-wash: #ebe9f9; --gold-edge: #c4beed;
+  --hi: #1f1c36; --hi-deep: #121120; --on-hi: #fdfcfb; --hi-ink: #564e96;
+  --glass: rgba(253, 252, 251, .95); --glass-line: #e5e2f7;
+}

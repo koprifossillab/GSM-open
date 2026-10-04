@@ -1,0 +1,49 @@
+{
+ "_주석": "BRGM 해외 영토 지질도 스캔 씨앗이다 — 아프리카 탭(인도양의 프랑스 해외 영토). 스캔이라 누를 것이 없고 판마다 그리는 줌이 정해져 있다(web/viewer/brgm.py 의 ZOOMS, 2026-10-05 에 잰 것). 상류 이름 앞에 brgm: 를 붙였다 (wetherilli 260).",
+ "_뽑은날": "2026-10-05",
+ "_출처": "https://geoservices.brgm.fr/geologie?SERVICE=WMS&REQUEST=GetCapabilities",
+ "_지역": "africa",
+ "_상류": "brgm",
+ "_레이어군차례": 20,
+ "레이어군순서": [
+  "레위니옹·마요트 지질도 (BRGM)"
+ ],
+ "레이어": [
+  {
+   "name": "brgm:GEOL_REU_100K",
+   "title": "레위니옹 1:10만 (스캔)",
+   "abstract": "Carte géologique Réunion 1/100 000 — 줌 11–12",
+   "bbox": [
+    55.2,
+    -21.4,
+    55.85,
+    -20.85
+   ],
+   "group": "레위니옹·마요트 지질도 (BRGM)"
+  },
+  {
+   "name": "brgm:GEOL_REU_50K",
+   "title": "레위니옹 1:5만 (스캔)",
+   "abstract": "Carte géologique Réunion 1/50 000 — 줌 13 부터",
+   "bbox": [
+    55.2,
+    -21.4,
+    55.85,
+    -20.85
+   ],
+   "group": "레위니옹·마요트 지질도 (BRGM)"
+  },
+  {
+   "name": "brgm:GEOL_MYT_30K",
+   "title": "마요트 1:3만 (스캔)",
+   "abstract": "Carte géologique Mayotte 1/30 000 — 줌 13 부터",
+   "bbox": [
+    44.95,
+    -13.05,
+    45.35,
+    -12.6
+   ],
+   "group": "레위니옹·마요트 지질도 (BRGM)"
+  }
+ ]
+}

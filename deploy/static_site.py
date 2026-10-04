@@ -21,7 +21,8 @@ WegenersDream 의 `deploy/static_site.py`(tupandactyl 029)와 같은 길이다.
   **운영 키로 저절로 돌아가지 않는다** — 운영 키와 갈라 두라는 것이 검토의 권고다(남이 뽑아 써 하루 한도를 먹으면 운영도 멈춘다).
   둘 다 없으면 VWorld 를 빼고 굽는다(배경·찾기·좌표→주소·VWorld 레이어가 빠진다)
 - **고를 수 있는 것**(`--with`, `OPTIONAL`) — 조건은 열렸지만 실을지는 사람이 정할 것. 기본으로는 싣지 않는다.
-  콜롬비아 1:50만(SGC 열린자료, CC BY 4.0, wetherilli 201)과 미국 USGS(공공 도메인, wetherilli 205), 스웨덴 SGU(CC0, wetherilli 213)다. 같은 지역의 남미 1:500만(CGMW)은 `views._static_catalog` 가 뺀다
+  콜롬비아 1:50만(SGC 열린자료, CC BY 4.0, wetherilli 201)과 미국 USGS(공공 도메인, wetherilli 205), 스웨덴 SGU(CC0, wetherilli 213),
+  호주 GA(CC BY 4.0, wetherilli 212), 네덜란드·벨기에·오스트리아·폴란드(wetherilli 257)다. 같은 지역의 남미 1:500만(CGMW)은 `views._static_catalog` 가 뺀다
 """
 import argparse
 import json
@@ -53,7 +54,17 @@ OPTIONAL = {"colombia": (["colombia"], ["sgc"]),
             # 스웨덴(wetherilli 213): SGU 기반암 — CC0, CORS `*`. 노르웨이·스웨덴·핀란드 탭에 SGU 만 선다(NGU·GTK 는 서버 판에만)
             "sweden": (["fennoscandia"], ["sgu"]),
             # 호주(wetherilli 212): Geoscience Australia — CC BY 4.0, Origin 을 되비춘다. 브라우저가 GA WMS 를 곧장 부른다
-            "australia": (["australia"], ["ga"])}
+            "australia": (["australia"], ["ga"]),
+            # 유럽 넷(wetherilli 257) — 모두 CORS 가 열려 있고 브라우저가 WMS 를 곧장 부른다(`static-kinds.js` 의 `arcKind`).
+            # 네덜란드 TNO: CC0(Capabilities)
+            "netherlands": (["netherlands"], ["tno"]),
+            # 벨기에: 플랑드르 DOV 는 무료 재사용 표준 라이선스(Modellicentie gratis hergebruik), 왈로니아 SPW 는 CC BY 4.0
+            "belgium": (["belgium"], ["dov", "spw"]),
+            # 오스트리아 GeoSphere 1:100만: CC BY 4.0(1:5만 INSPIRE 메타데이터에서 읽었다 — 1:100만 서비스의 것은 따로 읽지 않았다).
+            # 1:5만은 REST 로 옮기는 것이라 서지 않는다(`static_tables.arc_layers`)
+            "austria": (["austria"], ["geosphere"]),
+            # 폴란드 PIG-PIB 1:50만·1:5만: 메타데이터의 "접근·이용 조건 없음"
+            "poland": (["poland"], ["pig"])}
 
 
 def baked_spec(baked: pathlib.Path) -> dict:

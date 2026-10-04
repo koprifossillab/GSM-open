@@ -152,6 +152,11 @@ urlpatterns = [
     re_path(r"^ingemmet/(?P<sheet>50k|50k_units|100k|faults_1m|faults_100k|folds_100k|faults_50k|folds_50k)/(?P<z>\d{1,2})/(?P<x>\d{1,6})/(?P<y>\d{1,6})\.png$",
             views.ingemmet_tile, name="ingemmet-tile"),
     path("ingemmet/info/", views.ingemmet_info, name="ingemmet-info"),
+    # 대앤틸리스 — 우리가 구운 USGS SIM 3534 (caribmap.py, wetherilli 254)
+    re_path(r"^sim3534/(?P<sheet>units|faults)/(?P<z>\d{1,2})/(?P<x>\d{1,6})/(?P<y>\d{1,6})\.png$",
+            views.sim3534_tile, name="sim3534-tile"),
+    path("sim3534/info/", views.sim3534_info, name="sim3534-info"),
+    path("sim3534/legend/", views.sim3534_legend, name="sim3534-legend"),
     path("ingemmet/legend/", views.ingemmet_legend, name="ingemmet-legend"),
     # 우루과이 — REST 범례를 목록으로 (dinamige.py, wetherilli 196)
     path("dinamige/legend/", views.dinamige_legend, name="dinamige-legend"),

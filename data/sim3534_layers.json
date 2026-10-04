@@ -1,0 +1,27 @@
+{
+ "_주석": "USGS 대앤틸리스·버진아일랜드 지질도(Wilson 외 2019, OFR 2019-1036 — SIM 3534 의 옛 판) 씨앗이다 — 카리브 탭(중앙아메리카·카리브 묶음에도 든다). 웹서비스가 없어 셰이프 zip 을 manage.py build_caribbean 으로 굽고 caribmap.py 가 3857 타일을 그린다(문이 아니다). 한글 제목과 레이어군은 사람이 붙였다 (wetherilli 254).",
+ "_뽑은날": "2026-10-05",
+ "_출처": "https://pubs.usgs.gov/of/2019/1036/",
+ "_지역": "caribbean",
+ "_상류": "sim3534",
+ "_레이어군차례": 2,
+ "레이어군순서": [
+  "대앤틸리스 지질도 (USGS SIM 3534)"
+ ],
+ "레이어": [
+  {
+   "name": "sim3534:units",
+   "title": "지질 단위",
+   "group": "대앤틸리스 지질도 (USGS SIM 3534)",
+   "abstract": "Geologic map of the Greater Antilles and the Virgin Islands — 쿠바·이스파니올라·자메이카·푸에르토리코·버진아일랜드, 면 2 만 3 천, 기호·이름·시대·영어 설명",
+   "bbox": [-85.0, 17.5, -64.2, 23.3]
+  },
+  {
+   "name": "sim3534:faults",
+   "title": "단층",
+   "group": "대앤틸리스 지질도 (USGS SIM 3534)",
+   "abstract": "같은 지도의 단층 4 만 — 역단층·정단층·주향이동·덮인 단층을 색으로 가른다",
+   "bbox": [-85.0, 17.5, -64.2, 23.3]
+  }
+ ]
+}

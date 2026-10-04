@@ -100,9 +100,9 @@ class Catalog(TestCase):
     def test_오세아니아_묶음(self):
         js = (Path(views.__file__).parent / "static/viewer/map.js").read_text(encoding="utf-8")
         oceania = re.search(r'oceania: \{ title: "오세아니아".*?includes: \[([^\]]*)\]', js, re.S).group(1)
-        self.assertEqual(oceania.replace(" ", ""), '"australia","new_zealand"')
+        self.assertEqual(oceania.replace(" ", ""), '"australia","new_zealand","new_caledonia","french_polynesia"')   # 프랑스 해외 영토는 wetherilli 260
         js3d = (Path(views.__file__).parent / "static/viewer/map3d.js").read_text(encoding="utf-8")
-        self.assertIn('oceania: ["australia", "new_zealand"]', js3d)
+        self.assertIn('oceania: ["australia", "new_zealand", "new_caledonia", "french_polynesia"]', js3d)
 
     def test_미리_데우기와_3D(self):
         from viewer.management.commands import prewarm

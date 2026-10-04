@@ -12,7 +12,7 @@ from pathlib import Path
 
 from django.test import SimpleTestCase
 
-from viewer import emodnet, ga, geus, grportal, i18n, kopri, mrdata, npolar, sgc, sgu, static_tables, views
+from viewer import dov, emodnet, ga, geosphere, geus, grportal, i18n, kopri, mrdata, npolar, pig, sgc, sgu, spw, static_tables, tno, views
 
 JS = Path(__file__).resolve().parents[1] / "static" / "viewer" / "static-kinds.js"
 
@@ -56,7 +56,8 @@ class Script(SimpleTestCase):
 
     def test_꼴(self):
         self.assertIn("window.GSM_STATIC_KINDS = KINDS", self.js)
-        for up in ("geus", "npolar", "grportal", "pgc", "emodnet", "kopri", "sgc", "mrdata", "ga", "sgu"):
+        for up in ("geus", "npolar", "grportal", "pgc", "emodnet", "kopri", "sgc", "mrdata", "ga", "sgu",
+                   "tno", "dov", "spw", "geosphere", "pig"):
             self.assertIn(f"KINDS.{up} =", self.js)
 
     def test_서버를_부르지_않는다(self):
@@ -65,7 +66,8 @@ class Script(SimpleTestCase):
 
     def test_상류_주소를_박지_않는다(self):
         # 주소는 빌드가 서버의 문에서 떠 싣는 표에서 읽는다 — 상류가 바뀌면 문 하나만 고친다
-        for host in ("geodata.npolar.no", "data.geus.dk", "arcgis.com", "emodnet-geology", "kpdcgeo", "sgc.gov.co", "mrdata.usgs.gov", "services.ga.gov.au", "sgu.se"):
+        for host in ("geodata.npolar.no", "data.geus.dk", "arcgis.com", "emodnet-geology", "kpdcgeo", "sgc.gov.co", "mrdata.usgs.gov", "services.ga.gov.au", "sgu.se",
+                     "gdngeoservices.nl", "dov.vlaanderen.be", "wallonie.be", "geosphere.at", "pgi.gov.pl"):
             self.assertNotIn(host, self.code)
 
     def test_GEUS_는_정사각이_아닌_타일로(self):
@@ -125,9 +127,35 @@ class SameAsPython(SimpleTestCase):
                      {"geo_enh_tx": "Svekokarelska orogenen, intrusivbergart", "lito_n_tx": "Null:okänt", "bergart_tx": "Granit",
                       "handel1_tx": "intrusionsprocess; orosirium 7 1820-1800 Ma; Null:okänt; Null:ej_tillämpligt", "partik1_tx": ""}]
         usgs_plain = [{"class": "102", "label": "", "state_unit": "Water", "age_range": "late Paleocene",
-                       "url": "https://mrdata.usgs.gov/sim3340/show-sim3340.php?seq=A002"}]
+                       "url": "https://mrdata.usgs.gov/sim3340/show-sim3340.php?seq=A002"},
+                      # 광물 자원·광산 기호·연대 기록(wetherilli 247), 하와이·푸에르토리코(238)
+                      {"dep_id": "10012345", "site_name": "Bingham Canyon", "code_list": "CU AU MO", "dev_stat": "Producer",
+                       "url": "https://mrdata.usgs.gov/mrds/show-mrds.php?dep_id=10012345"},
+                      {"ftr_type": "Mine", "ftr_name": "Lucky Boy", "county": "Mineral", "state": "NV", "topo_name": "Hawthorne",
+                       "topo_date": "1987", "topo_scale": "24000", "remarks": ""},
+                      {"recno": "4711", "url": "https://mrdata.usgs.gov/geochron/show.php?recno=4711"},
+                      {"volcano": "Kilauea", "name": "Puna Basalt", "symbol": "Qp4", "age_range": "upper ? Pleistocene",
+                       "rock_type": "basalt", "lithology": "lava flows", "island": "Hawaii", "volc_stage": "shield"},
+                      {"fmatn": "Kmo", "name": "Monacillo Formation", "age": "lower Cretaceous", "lith62name": "sandstone",
+                       "url": "ftp://not-a-link"}]
         ga_props = [{"mapSymbol": "Cza", "name": "alluvium", "geologicHistory": "Cenozoic to Quaternary", "lithology": "regolith",
-                     "resolutionScale": "2500000", "bodyMorphology": "Null"}, {"plotSymbol": "Ag", "geologicHistory": "Archean"}]
+                     "resolutionScale": "2500000", "bodyMorphology": "Null"}, {"plotSymbol": "Ag", "geologicHistory": "Archean"},
+                    # 지질구·핵심 광물(wetherilli 241)
+                    {"provinceName": "Yilgarn Craton", "type": "craton", "rank": "1", "olderNameAge": "Mesoarchean",
+                     "youngerNamedAge": "Neoarchean", "state": "WA"},
+                    {"ProjectName": "Mount Weld", "Commodities": "REE", "Status": "Operating", "STATE": "WA"}]
+        # 유럽 넷(wetherilli 257) — 값은 그 나라 말 그대로, 시대는 `i18n.age_local` 로
+        local_ages = ["Perm - frühe Kreide", "jura górna", "Dévonien inférieur", "Holoceen", "Obertrias", "Mittel-Eozän", "Kalkstein", ""]
+        arc = {"tno": [{"CODE": "Ur", "NAAM1": "Formatie van Urk", "OUDERDOM": "Holoceen", "OMSCHRIJVI": "zand", "VERWIJZING": None},
+                       {"CODE": "X", "LITHOSTRAT": "Kreide", "OUDERDOM": "onbekend"}],
+               "dov": [{"code": "Bc", "formatie": "Boom", "lid": "null", "beschrijving": "klei"}, {"profiel": "EP", "type": "x"}],
+               "spw": [{"Sigle": "GDV", "Nom de la formation": "Givet", "Etage": "null", "Série": "Dévonien moyen",
+                        "Numéro de planche": "49/5", "Nom de planche": "Namur"}],
+               "pig": [{"Symbol wydzielenia": "Q", "Opis wydzielenia": "piaski", "Stratygrafia": "jura górna", "Litologia": "null"},
+                       {"Wydzielenia": "gliny", "Geneza": "lodowcowa", "Stratygrafia": "Holocen", "Nr arkusza": "0123"}],
+               "geosphere": [{"Beschreibung": "Kalkstein, Dolomit; Perm - frühe Kreide", "Tektonik": "Nördliche Kalkalpen"},
+                             {"Beschreibung": "Granit"}]}
+        arc_python = {"tno": tno.friendly, "dov": dov.friendly, "spw": spw.friendly, "pig": pig.friendly, "geosphere": geosphere.friendly}
         expected = {"ages": [i18n.age_ko(a) for a in ages], "npi": [npolar.friendly(p, "ko") for p in npi],
                     "ga": [ga.friendly(p, "ko") for p in ga_props],
                     "sgc": [sgc.friendly(p, "ko") for p in sgc_props],
@@ -137,6 +165,8 @@ class SameAsPython(SimpleTestCase):
                     + [mrdata.friendly(p, "ko") for p in usgs_plain],
                     "emo": [emodnet.friendly(p, "ko") for p in emo],
                     "plain": [geus.friendly(f["properties"]) for f in geus.parse_plain(plain)],
+                    "local": [i18n.age_local(a) for a in local_ages],
+                    "arc": {k: [arc_python[k](p, "ko") for p in rows] for k, rows in arc.items()},
                     "classes": classes}
         harness = """
 const fs = require('fs'); const inp = JSON.parse(fs.readFileSync(process.argv[2], 'utf8'));
@@ -148,12 +178,15 @@ console.log(JSON.stringify({ages: inp.ages.map(H.ageKo), npi: inp.npi.map(H.npiF
   sgc: inp.sgc.map(H.sgcFriendly), sgu: inp.sgu.map(H.sguFriendly), ga: inp.ga.map(H.gaFriendly),
   usgs: H.usgsGml(inp.usgsGml, "Lithology").map(f => H.usgsFriendly(f.properties)).concat(inp.usgsPlain.map(H.usgsFriendly)),
   plain: H.parsePlain(inp.plain).map(f => H.geusFriendly(f.properties)),
+  local: inp.local.map(H.ageLocal),
+  arc: Object.fromEntries(Object.entries(inp.arc).map(([k, rows]) => [k, rows.map(H[k + "Friendly"])])),
   classes: inp.classes.map(([n, samples]) => [n, samples, samples.map(p => H.classOf(P[n].classes, p)[0])])}));
 """
         with tempfile.TemporaryDirectory() as tmp:
             Path(tmp, "in.json").write_text(json.dumps({"tables": static_tables.tables(), "ages": ages, "npi": npi,
                                                         "emo": emo, "plain": plain, "classes": classes,
-                                                        "sgc": sgc_props, "sgu": sgu_props, "usgsGml": usgs_gml, "usgsPlain": usgs_plain, "ga": ga_props},
+                                                        "sgc": sgc_props, "sgu": sgu_props, "usgsGml": usgs_gml, "usgsPlain": usgs_plain, "ga": ga_props,
+                                                        "local": local_ages, "arc": arc},
                                                        ensure_ascii=False), "utf-8")
             Path(tmp, "h.js").write_text(harness, "utf-8")
             out = subprocess.run([node, str(Path(tmp, "h.js")), str(Path(tmp, "in.json")), str(JS)],

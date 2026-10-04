@@ -1,0 +1,25 @@
+{
+ "_주석": "BRGM 해외 영토 지질도 스캔 씨앗이다 — 캐나다 탭(래브라도·뉴펀들랜드 앞의 프랑스 해외 영토). 스캔이라 누를 것이 없고 판마다 그리는 줌이 정해져 있다(web/viewer/brgm.py 의 ZOOMS, 2026-10-05 에 잰 것). 상류 이름 앞에 brgm: 를 붙였다 (wetherilli 260).",
+ "_뽑은날": "2026-10-05",
+ "_출처": "https://geoservices.brgm.fr/geologie?SERVICE=WMS&REQUEST=GetCapabilities",
+ "_지역": "canada",
+ "_상류": "brgm",
+ "_레이어군차례": 20,
+ "레이어군순서": [
+  "생피에르 미클롱 지질도 (BRGM)"
+ ],
+ "레이어": [
+  {
+   "name": "brgm:GEOL_SPM_50K",
+   "title": "생피에르 미클롱 1:5만 (스캔)",
+   "abstract": "Carte géologique Saint-Pierre-et-Miquelon 1/50 000 — 줌 12 부터",
+   "bbox": [
+    -56.45,
+    46.7,
+    -56.1,
+    47.15
+   ],
+   "group": "생피에르 미클롱 지질도 (BRGM)"
+  }
+ ]
+}
