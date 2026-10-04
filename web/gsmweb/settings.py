@@ -279,6 +279,8 @@ MARS_ZHURONG_FILE = BASE_DIR.parent / "data" / "mars_zhurong.json"
 PALEOMAP_FILE = BASE_DIR.parent / "data" / "paleomap2016.json"
 #: 지각 두께 CRUST 2.0 — 1° 격자 (`viewer/crust.py`, wetherilli 101, `manage.py build_crust <zip>`). CC BY 4.0 이라 저장소에 둔다
 CRUST_FILE = BASE_DIR.parent / "data" / "crust2_thickness.json"
+#: 세계 암상 GLiM 0.5° 격자 (wetherilli 267) — `manage.py build_glim` 이 굽는다. CC BY 3.0
+GLIM_FILE = BASE_DIR.parent / "data" / "glim_05deg.json"
 #: 온 지구의 지명·강·호수·빙하 — Natural Earth 10 m (`viewer/naturalearth.py`, wetherilli 102, `manage.py build_natural_earth`).
 #: 퍼블릭 도메인이라 저장소에 둔다
 EARTH_PLACES_FILE = BASE_DIR.parent / "data" / "earth_places.json"
@@ -338,6 +340,8 @@ PENINSULA_DIR = env("GSM_PENINSULA_DIR") or str(_data_dir() / "peninsula")
 #: `<여기>/IBCSO_v2_{bed,ice-surface}_RGB.tif` 를 `manage.py build_ibcso` 가 `<여기>/tiles-{bed,ice}/`
 #: 로 자른다. 340 MB 라 저장소·이미지에 두지 않는다. 없으면 안내 타일이 뜰 뿐 뷰어는 돈다.
 IBCSO_DIR = env("GSM_IBCSO_DIR") or str(_data_dir() / "ibcso")
+#: 남극 자력 이상 ADMAP-2 를 칠해 잘라 둔 것 (wetherilli 262). 원본은 NAS `sources/admap2/grid.zip`
+ADMAP_DIR = env("GSM_ADMAP_DIR") or str(_data_dir() / "admap2")
 #: 극지연구소(KOPRI)에서 모아 둔 것 — 암석 시료 목록(`rock.json`)과 KPDC 자료 목록·상세(`kpdc.json`).
 #: `manage.py fetch_kopri` 가 천천히 모아 여기 쓴다(두 시간 남짓, 다음부터는 새 것만). 저장소·이미지에
 #: 두지 않는다. 없으면 그 레이어에 "자료가 없다" 가 뜰 뿐 뷰어는 돈다 (devlog 053·055). 기본은 `<DB 옆>/kopri/`.
@@ -583,7 +587,11 @@ PHYLOSERVER_CATALOG_SEED = REPO_DIR / "data" / "phyloserver_layers.json"
 PENINSULA_CATALOG_SEED = REPO_DIR / "data" / "peninsula_layers.json"
 #: 남극 IBCSO 자료 출처(TID) — 우리가 잘라 둔 3031 타일 (071)
 IBCSO_CATALOG_SEED = REPO_DIR / "data" / "ibcso_layers.json"
+ADMAP_CATALOG_SEED = REPO_DIR / "data" / "admap_layers.json"
 #: PGC 경사·등고선 — 지질도 위에 겹치는 극지 레이어 (wetherilli 099). 지역이 셋이라 씨앗도 셋이다
+#: 남극 — BAS 의 Bedmap3 타일(ArcGIS Online, wetherilli 261)
+BAS_TILES_URL = env("GSM_BAS_TILES_URL", "https://tiles.arcgis.com/tiles/tPxy1hrFDhJfZ0Mf/arcgis/rest/services")
+BAS_CATALOG_SEED = REPO_DIR / "data" / "bas_antarctica_layers.json"
 PGC_CATALOG_SEEDS = tuple(REPO_DIR / "data" / f"pgc_{r}_layers.json" for r in ("greenland", "svalbard", "antarctica"))
 #: 극지연구소(KOPRI) — 지역마다 한 장: 남극(시료·KPDC 자료·기지·해안선), 스발바르·그린란드(암석 시료·KPDC 자료),
 #: 북극해(KPDC 자료) (053–057·075·076)

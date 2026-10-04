@@ -339,19 +339,38 @@ CCOP = _NS(get_map=ccop_get_map, get_feature_info=ccop_get_feature_info, get_leg
 # - 1:200만 지질도·중력도는 새 호스트(`ows.gsj.jp/ows/`), **지구화학도는 옛 호스트에만**(`gbank.gsj.jp/ows/geochemmap` — 새 호스트는 404)
 # - 셋 다 MapServer 라 3857 로 그린다. **누르지 않는다** — CCOP 처럼 3857 로 물으면 "no results", 4326 으로 물어도 기호 번호(`GEO200 = '25'`)
 #   뿐이다. 범례 그림(GetLegendGraphic)이 번호·색·이름을 다 싣는다
-# - 지구화학도는 원소 53 가지(하천 퇴적물, 이마이 외 2004) — 금속·환경 원소 열하나만 골랐다(`GEOCHEM`)
+# - 지구화학도는 원소 53 가지(하천 퇴적물, 이마이 외 2004) — 처음엔 금속·환경 원소 열하나만 골랐고(`GEOCHEM`), 나머지 마흔둘은 셋째 판에
+#   더했다(`GEOCHEM_MORE`, wetherilli 266). Capabilities 의 차례 그대로다
+# - **공중 자력은 WMS 가 없다** — 지질도Navi 판으로만 있다. 일본 전체를 덮는 편집도 셋(`GSJOWS_NAVI` — 일본의 자기도 1:200만 1992, 동아시아
+#   자기 이상도 1:400만 1994, 동·동남아시아 자기 이상도 3 판 2021)을 카탈로그 레이어로 올렸다(wetherilli 266). 타일은 Navi 판처럼 브라우저가
+#   `tiles.gsj.jp` 를 곧장 부르고(CORS 가 열려 있다), 범례는 GSJ 가 판마다 떠 둔 범례 그림을 문이 받아 준다. 도폭마다 갈린 공중자기도(MAGN_*)는
+#   지질도Navi 칸에 그대로 둔다
 GSJOWS_LAYERS = {
     "gsjows:japan2m": ("ows", "geologicmap2000k", "area,line", "area"),
     "gsjows:gravity": ("ows", "gravdb", "AssumedDensity267", "GravityContour267"),
 }
 GEOCHEM = ("Cu", "Pb", "Zn", "As", "Hg", "Cr", "Ni", "Fe2O3", "K2O", "U", "Th")
-GSJOWS_LAYERS.update({f"gsjows:geochem:{el}": ("gbank", "geochemmap", el, el) for el in GEOCHEM})
+GEOCHEM_MORE = ("Al2O3", "CaO", "MgO", "MnO", "Na2O", "P2O5", "TiO2", "Ba", "Be", "Bi", "Cd", "Ce", "Co", "Cs", "Dy", "Er", "Eu",
+                "Ga", "Gd", "Hf", "Ho", "La", "Li", "Lu", "Mo", "Nb", "Nd", "Pr", "Rb", "Sb", "Sc", "Sm", "Sn", "Sr", "Ta", "Tb", "Tl",
+                "Tm", "V", "Y", "Yb", "Zr")
+GSJOWS_LAYERS.update({f"gsjows:geochem:{el}": ("gbank", "geochemmap", el, el) for el in GEOCHEM + GEOCHEM_MORE})
+#: 지질도Navi 판을 카탈로그 레이어로 — 우리 이름 → (판 이름, 줌 끝, 범례 그림)
+GSJOWS_NAVI = {
+    "gsjows:magnetic_japan": ("TH_23magne", 8, "orgsize_816_legend_1088.jpg"),
+    "gsjows:magnetic_eastasia_1994": ("MISC_32", 9, "orgsize_1444_legend_1408.jpg"),
+    "gsjows:magnetic_eastasia_2021": ("DGM_P3_2021", 7, "orgsize_1549_legend_1521.jpg"),
+}
 GSJOWS_ATTRIBUTION = ('© <a href="https://gbank.gsj.jp/owscontents/" target="_blank" rel="noopener">Geological Survey of Japan, AIST</a> '
                       "(政府標準利用規約 2.0)")
 
 
 def gsjows_knows(name: str) -> bool:
-    return name in GSJOWS_LAYERS
+    return name in GSJOWS_LAYERS or name in GSJOWS_NAVI
+
+
+def gsjows_tiles(name: str) -> str:
+    """지질도Navi 판으로 올린 레이어의 z/x/y 주소(브라우저가 곧장 부른다). WMS 레이어면 빈 글"""
+    return f"{GEONAVI_TILES}{GSJOWS_NAVI[name][0]}/{{z}}/{{x}}/{{y}}.png" if name in GSJOWS_NAVI else ""
 
 
 def _gsjows(name: str):
@@ -387,6 +406,13 @@ def gsjows_get_map(params: dict):
 
 
 def gsjows_get_legend(layer: str):
+    if layer in GSJOWS_NAVI:
+        # Navi 판의 범례 그림(JPEG) — 원도의 범례를 스캔한 것
+        r = _gsjows_get(GEONAVI_LEGEND + GSJOWS_NAVI[layer][2], {})
+        ctype = r.headers.get("content-type", "")
+        if r.status_code != 200 or not ctype.startswith("image/"):
+            raise GsjError(f"범례를 받지 못했다 (status={r.status_code})")
+        return r.content, ctype
     url, _, legend = _gsjows(layer)
     r = _gsjows_get(url, {"service": "WMS", "version": "1.3.0", "request": "GetLegendGraphic", "format": "image/png",
                           "layer": legend, "sld_version": "1.1.0"})

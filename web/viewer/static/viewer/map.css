@@ -1528,6 +1528,11 @@ button.proplink { font-family: inherit; line-height: inherit; cursor: pointer; }
                               border-left: 1px solid var(--line); border-bottom: 1px solid var(--line); }
 .region-menu li.head { cursor: default; color: var(--ink-faint); font-weight: 600; font-size: 11.5px; }
 .region-menu li.head:hover { color: var(--ink-faint); background: none; }
+/* 대륙 머리 (wetherilli 268) — 작은 대문자처럼, 위에 금을 그어 덩이를 가른다. 굴려도 맨 위에 붙어 지금 어느 대륙인지 보인다 */
+.region-menu li.continent { position: sticky; top: -4px; z-index: 1; margin-top: 4px; padding: 6px 10px 4px;
+                            font-size: 10.5px; letter-spacing: .08em; text-transform: uppercase; color: var(--gold);
+                            background: var(--panel); border-top: 1px solid var(--line-soft); border-radius: 0; }
+.region-menu li.continent:hover { color: var(--gold); background: var(--panel); }
 .region-note { margin-left: 16px; margin-right: 16px; }
 .region-note[hidden] { display: none; }
 

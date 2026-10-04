@@ -47,7 +47,8 @@ LAYERS = {
     "gsmma:geology_1m": {"wms": ["1M_Geomap_strata_1986", "1M_Geomap_strata_boundary_1986"]},
     "gsmma:labels_50k": {"wms": ["50K_Geomap_lable", "50K_Geomap_fault_name", "50K_Geomap_fold_name"]},
     "gsmma:attitude_50k": {"wms": ["50K_Geomap_attitude", "50K_Geomap_dip_angle"]},
-    "gsmma:active_faults": {"wms": ["25K_Geomap_fault_2021"]},
+    # 활성단층은 지질운의 `ActiveFault`(이름·분류·관찰) 선을 화면의 8 픽셀로 묻는다 (wetherilli 263)
+    "gsmma:active_faults": {"wms": ["25K_Geomap_fault_2021"], "info": "ActiveFault", "point": True},
     "gsmma:tectonic_500k": {"wms": ["500K_Tectonic_map_tectonic_element_1978", "500K_Tectonic_map_fault_1978",
                                     "500K_Tectonic_map_fold_1978",
                                     "500K_Tectonic_map_extinct_or_dormant_volcano_1978"]},
@@ -71,6 +72,19 @@ LAYERS = {
     "gsmma:hot_springs": {"wms": ["Spring_2014"], "info": "HotSpring", "point": True},
     "gsmma:boreholes": {"wms": ["Engineering_drilling"], "info": "Drill", "point": True},
     "gsmma:hydro_wells": {"wms": ["Hydrogeological_well"]},
+    # ── 셋째 판 (wetherilli 263) ── 지질운 자료 목록에 없는 것이라 누르지 않는다(범례도 없다)
+    # 5만 유역 지질도(2013) — 하천 유역마다 다시 그린 5만 판. 옛 5만보다 무늬가 많고 섬의 대부분을 덮는다
+    "gsmma:drainage_50k": {"wms": ["50K_Geomap_drainage_strata_2013", "50K_Geomap_drainage_strata_boundary_2013",
+                                   "50K_Geomap_drainage_fault_2013", "50K_Geomap_drainage_fold_2013"]},
+    "gsmma:drainage_labels_50k": {"wms": ["50K_Geomap_drainage_lable_2013", "50K_Geomap_drainage_fault_name_2013",
+                                          "50K_Geomap_drainage_fold_name_2013"]},
+    # 광상 — 5만 지질도의 점·선, 25만(1974)의 광상
+    "gsmma:ore_50k": {"wms": ["50K_Geomap_ore_line", "50K_Geomap_ore_point"]},
+    "gsmma:ore_250k": {"wms": ["250K_Geomap_ore_1974"]},
+    # 5만 불연속면(엽리 따위) 자세
+    "gsmma:discontinuity_50k": {"wms": ["50K_Geomap_discontinuity_attitude", "50K_Geomap_discontinuity_dip_angle"]},
+    # 집집 지진 지표 파열(`50K_Geomap_Chi-Chi_earthquack_rupture`)·5만 추정 자료(`_infer`)·기타(`_other`, 관측정 이름)는
+    # 빈 그림이거나 거의 비어 두지 않는다(2026-10-05)
 }
 
 
@@ -210,7 +224,9 @@ FRIENDLY = {"Name": "지층명", "Abbrev": "기호", "Time": "지질시대", "No
             # 공학 지질 시추(Drill)
             "Project_Name": "조사 사업", "Hole_Point_No": "공번", "Depth": "심도 (m)",
             # 순향사면(DipSlope)
-            "MAP_NAME": "도폭", "SLOPE_DIR": "사면 방향", "COUN_NAME": "시·현"}
+            "MAP_NAME": "도폭", "SLOPE_DIR": "사면 방향", "COUN_NAME": "시·현",
+            # 활성단층(ActiveFault) — 이름 열이 지층과 같은 `Name` 이라 `FaultName` 으로 바꿔 담는다(wetherilli 263)
+            "FaultName": "단층 이름", "FAULT_TYPE": "단층 분류", "observe": "확인 여부"}
 
 
 def pixel_degrees(params: dict) -> float:
@@ -249,17 +265,36 @@ def get_feature_info(params: dict) -> dict:
     except ValueError as exc:
         raise GsmmaError("지질운이 JSON 이 아닌 것을 주었다") from exc
     if point:
-        # 가까운 점부터 셋 — 시추공은 한 자리에 여럿이 겹친다
+        # 가까운 것부터 셋 — 시추공은 한 자리에 여럿이 겹친다. 선(활성단층)은 가장 가까운 꼭짓점으로 잰다
         def far(f):
-            x, y = ((f.get("geometry") or {}).get("coordinates") or [lon, lat])[:2]
-            return (x - lon) ** 2 + (y - lat) ** 2
+            geometry = f.get("geometry") or {}
+            coords = geometry.get("coordinates") or [lon, lat]
+            if geometry.get("type") == "LineString":
+                points = coords
+            elif geometry.get("type") == "MultiLineString":
+                points = [p for line in coords for p in line]
+            else:
+                points = [coords]
+            return min(((p[0] - lon) ** 2 + (p[1] - lat) ** 2 for p in points if len(p) >= 2), default=0)
         chosen = sorted(found, key=far)[:3]
+        if api == "ActiveFault":
+            # 한 단층이 토막 여럿으로 온다 — 이름이 같은 것은 하나만
+            seen, kept = set(), []
+            for f in chosen:
+                name = (f.get("properties") or {}).get("Name")
+                if name not in seen:
+                    seen.add(name)
+                    kept.append(f)
+            chosen = kept
     else:
         inside = [f for f in found if contains(f.get("geometry"), lon, lat)]
         chosen = inside or found
     features = []
     for n, feature in enumerate(chosen):
-        props = {key: str(value).strip() for key, value in (feature.get("properties") or {}).items()
+        raw = dict(feature.get("properties") or {})
+        if api == "ActiveFault" and "Name" in raw:
+            raw["FaultName"] = raw.pop("Name")
+        props = {key: str(value).strip() for key, value in raw.items()
                  if key in FRIENDLY and value not in (None, "")}
         if "SLOPE_DIR" in props:
             props["SLOPE_DIR"] = props["SLOPE_DIR"].lstrip("ABCDEFGH")     # `B東南` — 앞의 글자는 칸 번호다

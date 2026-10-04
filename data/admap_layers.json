@@ -1,0 +1,20 @@
+{
+ "_주석": "남극 자력 이상 ADMAP-2(Golynsky 외 2018, PANGAEA 892723, CC BY 3.0) 씨앗이다. grid.zip 의 ADMAP_2B_2017.grd 를 manage.py build_admap 이 칠해 GSM_ADMAP_DIR/tiles 로 잘라 둔다. 파일은 저장소에 없다. 레이어군을 IBCSO 뒤에 두려고 차례를 16 으로 한다 (wetherilli 262).",
+ "_뽑은날": "2026-10-05",
+ "_출처": "https://doi.org/10.1594/PANGAEA.892723",
+ "_지역": "antarctica",
+ "_상류": "admap",
+ "_레이어군차례": 16,
+ "레이어군순서": [
+  "지구물리 (ADMAP-2)"
+ ],
+ "레이어": [
+  {
+   "name": "admap:anomaly",
+   "title": "자력 이상",
+   "group": "지구물리 (ADMAP-2)",
+   "abstract": "남극 항공·선박 자력 탐사를 이은 자력 이상(nT) — 1.5 km 격자. 붉은 쪽이 양, 푸른 쪽이 음. 누르면 그 자리의 nT",
+   "bbox": [-180, -90, 180, -60]
+  }
+ ]
+}

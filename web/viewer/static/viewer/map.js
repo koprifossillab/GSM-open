@@ -196,7 +196,7 @@
     taiwan: { title: "대만", proj: "EPSG:3857", center: [120.9, 23.7], zoom: 7, vworld: false,
               home: [13277000, 2470000, 13617000, 2948000],
               basemap: "nlsc_grey", example: "25.033, 121.565",
-              base: ["gsmma:geology_50k", "gsmma:geology_250k", "gsmma:geology_500k", "gsmma:geology_1m"],
+              base: ["gsmma:geology_50k", "gsmma:drainage_50k", "gsmma:geology_250k", "gsmma:geology_500k", "gsmma:geology_1m"],
               first: "gsmma:geology_50k" },
     // ── 몽골 (wetherilli 221) ──
     // 국가지질조사소 MonGeoCat 의 국가지질도첩 지질도와 1:50만 단층(ArcGIS WMS, 3857 로). 속성은 영어 열, 시대는 기호(러시아식
@@ -629,6 +629,17 @@
   var addedRegions = ["korea"];
   /** 탭 줄에 늘 서는 지역 — 나머지는 "그 외" 로 접는다 (wetherilli 214) */
   var PINNED = ["korea", "arctic", "antarctica"];
+  /** "그 외" 차림의 대륙 머리 (wetherilli 268) — 탭이 쉰을 넘어 차림이 길어졌다. 머리마다 맨 위의 지역(묶음이나 어느 묶음에도 들지 않는
+   *  지역)을 적는다. 묶음에 딸린 지역은 그 묶음 밑에 선다. 여기 적지 않은 지역은 맨 끝 "그 밖" 에 선다 — 새 지역이 사라지지는 않는다
+   *  (시험 `test_region_menu` 가 적었는지 본다) */
+  var CONTINENTS = [
+    ["아시아", ["eastasia", "southeast_asia", "india", "saudi"]],
+    ["유럽", ["europe"]],
+    ["아메리카", ["north_america", "central_america", "south_america"]],
+    ["아프리카", ["africa"]],
+    ["오세아니아", ["oceania"]],
+    ["극지", ["arctic", "antarctica"]],
+  ];
 
   // ── 공유 링크 (wetherilli 189) ──
   // 주소의 해시(`share.js`)로 들어오면 그 지역·자리·레이어·배경을 덧층에 깔고 연다. 아래의 기억(지역·자리·레이어·배경)은 모두
@@ -848,6 +859,12 @@
     return BASE + "featureinfo/?" + q.toString();
   }
 
+  /** 남극 자력 이상(ADMAP-2)의 속성 주소 — 누른 자리의 위경도로 묻는다(`admap/info/`, wetherilli 262). */
+  function admapInfoUrl(source, coordinate) {
+    var ll = toLL(coordinate);
+    return BASE + "admap/info/?" + new URLSearchParams({ lat: ll[1].toFixed(6), lon: ll[0].toFixed(6) }).toString();
+  }
+
   /** IBCSO 자료 출처(TID)의 속성 주소 — 누른 자리의 위경도로 묻는다(`ibcso/info/`, 071). */
   function ibcsoInfoUrl(source, coordinate) {
     var ll = toLL(coordinate);
@@ -930,6 +947,19 @@
     var row = byName[name] || {};
     return new ol.source.XYZ({
       url: row.tiles, crossOrigin: "anonymous", maxZoom: row.maxZoom || 16, transition: 0,
+      attributions: row.attribution || undefined,
+    });
+  }
+
+  /** Esri 극 격자의 타일(남극 Bedmap3, wetherilli 261) — 3031 이지만 원점·해상도가 우리 격자와 달라 카탈로그 행의 `grid` 로 받는다.
+   *  주소는 상류의 것을 그대로(`…/tile/{z}/{y}/{x}`), 마지막 줌 위는 OpenLayers 가 늘린다. 첫 줌 밑은 첫 줌을 줄여 그린다 */
+  function esriGridSource(name) {
+    var row = byName[name] || {}, g = row.grid || {};
+    return new ol.source.XYZ({
+      url: row.tiles, projection: "EPSG:3031", crossOrigin: "anonymous", transition: 0,
+      // `minZoom` 밑은 캐시가 없다(404) — OpenLayers 가 그 줌의 타일을 줄여 그린다
+      tileGrid: new ol.tilegrid.TileGrid({ origin: g.origin, extent: g.extent, resolutions: g.resolutions, minZoom: g.minZoom || 0,
+                                           tileSize: 256 }),
       attributions: row.attribution || undefined,
     });
   }
@@ -1050,7 +1080,8 @@
     // CCOP 200만 지질도(wetherilli 108) — 여느 WMS 다. 속성의 4326 풀이는 서버의 문(gsj.py)이 한다
     ccop: { source: wmsSource, info: wmsInfoUrl },
     // GSJ 의 다른 WMS — 1:200만 지질도·부게 중력·지구화학도(wetherilli 255). 누르기는 없고 범례 그림
-    gsjows: { source: wmsSource, info: wmsInfoUrl },
+    // 공중 자력 편집도(wetherilli 266)는 지질도Navi 판이라 행에 `tiles` 가 있다 — 그 행만 z/x/y 로
+    gsjows: { source: function (name) { return (byName[name] || {}).tiles ? geonaviSource(name) : wmsSource(name); }, info: wmsInfoUrl },
     // 대만 지질도(wetherilli 136) — 4326 WMS. 속성은 서버의 문(gsmma.py)이 지질운 API 로 바꿔 묻는다
     gsmma: { source: taiwanSource, info: wmsInfoUrl },
     // EMODnet 해저 지질(wetherilli 135) — NPI 처럼 3413 으로 곧장 받는다
@@ -1103,6 +1134,8 @@
     skgs: { source: npolarSource, info: wmsInfoUrl },
     nsgs: { source: npolarSource, info: wmsInfoUrl },
     ags: { source: gsiTileSource, info: pointInfoUrl },
+    // 남극 Bedmap3(wetherilli 261) — BAS 의 Esri 극 격자 타일을 곧장. 누르기는 없다
+    bas: { source: esriGridSource, info: null },
     // 호주 GA(wetherilli 212) — ArcGIS WMS 를 3857 로. 범례는 보는 범위의 것(`ga/legend/`)
     ga: { source: npolarSource, info: wmsInfoUrl },
     // 호주의 주 판(wetherilli 225) — 퀸즐랜드(REST export 를 문이 옮긴다)·빅토리아·남호주, 모두 3857
@@ -1144,6 +1177,8 @@
     peninsula: { source: peninsulaSource, info: null },
     // 남극 IBCSO 자료 출처(071) — GeoMAP 과 같은 3031 격자에 우리가 잘라 둔 것
     ibcso: { source: geomapSource, info: ibcsoInfoUrl },
+    // 남극 자력 이상 ADMAP-2(wetherilli 262) — 우리가 잘라 둔 3031 타일, 누른 자리는 위경도로
+    admap: { source: geomapSource, info: admapInfoUrl },
   };
 
   function layerKind(name) {
@@ -2622,7 +2657,7 @@
   //: 상류의 짧은 이름 — 기관 이름이라 옮기지 않는다
   var UPSTREAM_TAGS = {
     kigam: "KIGAM", vworld: "VWorld", geus: "GEUS", grportal: "GRL", npolar: "NPI", janmayen: "NPI",
-    gsj: "GSJ", gsitile: "GSIJ", geonavi: "GSJ", gsjows: "GSJ", ccop: "CCOP", gsmma: "GSMMA", emodnet: "EMOD", ngu: "NGU", gtk: "GTK", sgu: "SGU", natt: "NÍ", bgs: "BGS", brgm: "BRGM", egdi: "EGDI", bgr: "BGR", igme: "IGME", gsi: "GSI", gsni: "GSNI", sgc: "SGC", sgb: "SGB", ingemmet: "INGEMMET", iige: "IIGE", cgmw: "CGMW", aga: "BGS", cgs: "CGS", gsn: "GSN", bumigeb: "BUMIGEB", irgm: "IRGM", mrdata: "USGS", sgm: "SGM", nrcan: "NRCan", ogs: "OGS", sigeom: "SIGÉOM", ygs: "YGS", skgs: "SGS-SK", nsgs: "NSNRR", ags: "AGS", bcgs: "BCGS", calgs: "CGS", geosphere: "GSA", georep: "NC", ineter: "INETER", usgscarib: "USGS", sim3534: "USGS", stri: "STRI", vmme: "VMME", pig: "PIG", tno: "TNO", dov: "DOV", spw: "SPW", ga: "GA", gsq: "GSQ", gsv: "GSV", gssa: "GSSA", gns: "GNS", mris: "NGS", gsiindia: "GSI-IN", sgs: "SGS", esdm: "ESDM", jmg: "JMG", mgb: "MGB", dmr: "DMR", ispra: "ISPRA", lneg: "LNEG", swisstopo: "swisstopo", segemar: "SEGEMAR", dinamige: "DINAMIGE", geomap: "GeoMAP", geo3al: "USGS", kopri: "KOPRI", pgc: "PGC", ibcso: "IBCSO",
+    gsj: "GSJ", gsitile: "GSIJ", geonavi: "GSJ", gsjows: "GSJ", ccop: "CCOP", gsmma: "GSMMA", emodnet: "EMOD", ngu: "NGU", gtk: "GTK", sgu: "SGU", natt: "NÍ", bgs: "BGS", brgm: "BRGM", egdi: "EGDI", bgr: "BGR", igme: "IGME", gsi: "GSI", gsni: "GSNI", sgc: "SGC", sgb: "SGB", ingemmet: "INGEMMET", iige: "IIGE", cgmw: "CGMW", aga: "BGS", cgs: "CGS", gsn: "GSN", bumigeb: "BUMIGEB", irgm: "IRGM", mrdata: "USGS", sgm: "SGM", nrcan: "NRCan", ogs: "OGS", sigeom: "SIGÉOM", ygs: "YGS", skgs: "SGS-SK", nsgs: "NSNRR", ags: "AGS", bcgs: "BCGS", calgs: "CGS", geosphere: "GSA", georep: "NC", ineter: "INETER", usgscarib: "USGS", bas: "BAS", sim3534: "USGS", stri: "STRI", vmme: "VMME", pig: "PIG", tno: "TNO", dov: "DOV", spw: "SPW", ga: "GA", gsq: "GSQ", gsv: "GSV", gssa: "GSSA", gns: "GNS", mris: "NGS", gsiindia: "GSI-IN", sgs: "SGS", esdm: "ESDM", jmg: "JMG", mgb: "MGB", dmr: "DMR", ispra: "ISPRA", lneg: "LNEG", swisstopo: "swisstopo", segemar: "SEGEMAR", dinamige: "DINAMIGE", geomap: "GeoMAP", geo3al: "USGS", kopri: "KOPRI", pgc: "PGC", ibcso: "IBCSO", admap: "ADMAP",
     phyloserver: "LAB", peninsula: "LAB",
     // 지구 자료 점(wetherilli 185) — 기관이 넷이라 딱지는 하나로 두고 이름은 레이어 제목이 적는다
     earth: "EARTH",
@@ -2639,7 +2674,7 @@
     sgc: T("콜롬비아 지질조사소"), sgb: T("브라질 지질조사소"), ingemmet: T("페루 지질광업야금연구소"), iige: T("에콰도르 지질·에너지 연구소"), mrdata: T("미국 지질조사국"), sgm: T("멕시코 지질조사소"),
     nrcan: T("캐나다 천연자원부"), ogs: T("온타리오 지질조사소"), sigeom: T("퀘벡 지질 광업 정보 체계"), ygs: T("유콘 지질조사소"), bcgs: T("브리티시컬럼비아 지질조사소"),
     georep: T("누벨칼레도니 정부 (Géorep)"),
-    ineter: T("니카라과 국토연구원 (INETER)"), usgscarib: T("미국 지질조사국"), stri: T("스미스소니언 열대연구소 (STRI)"), vmme: T("파라과이 광업·에너지 차관실 (VMME)"), geosphere: "GeoSphere Austria", pig: T("폴란드 지질연구소 (PIG-PIB)"), tno: T("네덜란드 지질조사부 (TNO)"), dov: T("플랑드르 지하 자료은행 (DOV)"), spw: T("왈로니아 공공서비스 (SPW)"), calgs: T("캘리포니아 지질조사소"),
+    ineter: T("니카라과 국토연구원 (INETER)"), usgscarib: T("미국 지질조사국"), bas: T("영국 남극조사소"), sim3534: T("미국 지질조사국"), stri: T("스미스소니언 열대연구소 (STRI)"), vmme: T("파라과이 광업·에너지 차관실 (VMME)"), geosphere: "GeoSphere Austria", pig: T("폴란드 지질연구소 (PIG-PIB)"), tno: T("네덜란드 지질조사부 (TNO)"), dov: T("플랑드르 지하 자료은행 (DOV)"), spw: T("왈로니아 공공서비스 (SPW)"), calgs: T("캘리포니아 지질조사소"),
     skgs: T("사스카치원 지질조사소"), nsgs: T("노바스코샤 자연자원·재생에너지부"), ags: T("앨버타 지질조사소"),
     ispra: T("이탈리아 지질조사소 (ISPRA)"), lneg: T("포르투갈 국립 에너지·지질연구소"), swisstopo: T("스위스 연방 지형청"), natt: T("아이슬란드 자연사연구소"), gns: T("뉴질랜드 지질·핵과학연구소 (GNS)"), mris: T("몽골 국가지질조사소 (MonGeoCat)"), gsiindia: T("인도 지질조사소 (그림: BGS)"), sgs: T("사우디 지질조사소"),
     esdm: T("인도네시아 지질청 (ESDM)"), jmg: T("말레이시아 광물지구과학국"), mgb: T("필리핀 광산지질국"), dmr: T("태국 광물자원국"),
@@ -2649,7 +2684,7 @@
     gsq: T("퀸즐랜드 지질조사소"), gsv: T("빅토리아 지질조사소"), gssa: T("남호주 지질조사소"),
     gsni: T("북아일랜드 지질조사소"),
     geomap: "GeoMAP (SCAR)", geo3al: T("미국 지질조사국"), kopri: T("극지연구소"), pgc: T("미네소타대 극지공간정보센터"),
-    ibcso: "IBCSO", phyloserver: T("연구실 자료"), peninsula: T("연구실 자료"),
+    ibcso: "IBCSO", admap: "ADMAP-2", phyloserver: T("연구실 자료"), peninsula: T("연구실 자료"),
     earth: T("온 지구 화면에 모아 둔 자료 — PBDB·GVP·USGS·Neotoma"),
     kigam50k: T("한국지질자원연구원 5만 수치지질도"),
   };
@@ -6474,6 +6509,7 @@
     // 묶음(`includes` — 동아시아·북극) 밑에 딸린 지역을 들여 세운다 (wetherilli 111). 묶음을 이미 더했으면 머리는
     // 누를 수 없는 제목으로만 남는다. 어느 묶음에도 들지 않는 지역은 그대로
     function item(key, cls) {
+      if (!REGIONS[key]) return;
       var li = document.createElement("li");
       li.className = cls || "";
       li.dataset.region = key;
@@ -6490,12 +6526,27 @@
     Object.keys(REGIONS).forEach(function (k) {
       (REGIONS[k].includes || []).forEach(function (c) { if (!parentOf[c]) parentOf[c] = k; });
     });
-    Object.keys(REGIONS).forEach(function (key) {
-      if (parentOf[key]) return;                                           // 묶음 밑에서 세운다
+    // 대륙 머리 밑에 맨 위의 지역을 세운다 — 묶음이면 딸린 지역을 그 밑에 들여서 (wetherilli 268)
+    function shown(key) {
       var kids = (REGIONS[key].includes || []).filter(function (c) { return more.indexOf(c) >= 0; });
-      if (more.indexOf(key) < 0 && !kids.length) return;
-      item(key, kids.length ? "group" : "");
-      kids.forEach(function (c) { item(c, "sub"); });
+      return { key: key, kids: kids, show: more.indexOf(key) >= 0 || kids.length > 0 };
+    }
+    var placed = {};
+    var tops = Object.keys(REGIONS).filter(function (k) { return !parentOf[k]; });
+    CONTINENTS.concat([["그 밖", null]]).forEach(function (c) {
+      var keys = c[1] ? c[1].filter(function (k) { return REGIONS[k] && !parentOf[k]; })
+                      : tops.filter(function (k) { return !placed[k]; });
+      keys.forEach(function (k) { placed[k] = true; });
+      var rows = keys.map(shown).filter(function (r) { return r.show; });
+      if (!rows.length) return;
+      var li = document.createElement("li");
+      li.className = "head continent";
+      li.textContent = T(c[0]);
+      menu.appendChild(li);
+      rows.forEach(function (r) {
+        item(r.key, r.kids.length ? "group" : "");
+        r.kids.forEach(function (k) { item(k, "sub"); });
+      });
     });
     // 차림은 화면에 붙여(fixed) 단추 밑에 세운다 — 패널과 휴대폰의 탭 줄(가로 굴림)이 넘친 것을 잘라서다
     btn.addEventListener("click", function (e) {

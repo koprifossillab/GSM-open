@@ -1,5 +1,5 @@
 {
- "_주석": "GSJ 의 다른 WMS 씨앗이다 — 일본 탭. 1:200만 일본 지질도·부게 중력(새 호스트 ows.gsj.jp)·지구화학도(옛 호스트 gbank.gsj.jp). 문은 web/viewer/gsj.py 의 OWS. 한글 제목과 레이어군은 사람이 붙였다 (wetherilli 255).",
+ "_주석": "GSJ 의 다른 WMS 씨앗이다 — 일본 탭. 1:200만 일본 지질도·부게 중력(새 호스트 ows.gsj.jp)·지구화학도(옛 호스트 gbank.gsj.jp). 문은 web/viewer/gsj.py 의 OWS. 한글 제목과 레이어군은 사람이 붙였다 (wetherilli 255). 셋째 판(wetherilli 266) — 지구화학도의 나머지 원소 마흔둘, 지질도Navi 의 공중 자력 편집도 셋.",
  "_뽑은날": "2026-10-05",
  "_출처": "https://gbank.gsj.jp/owscontents/index.html",
  "_지역": "japan",
@@ -7,7 +7,9 @@
  "_레이어군차례": 2,
  "레이어군순서": [
   "일본 지질도·중력 (GSJ)",
-  "일본 지구화학도 (GSJ, 하천 퇴적물)"
+  "일본 지구화학도 (GSJ, 하천 퇴적물)",
+  "일본 지구화학도 — 나머지 원소 (GSJ)",
+  "일본 자기 이상도 (GSJ 지질도Navi)"
  ],
  "레이어": [
   {
@@ -164,6 +166,546 @@
     20.0,
     154.0,
     46.0
+   ]
+  },
+  {
+   "name": "gsjows:geochem:Al2O3",
+   "title": "알루미늄(Al₂O₃) — 지구화학도",
+   "group": "일본 지구화학도 — 나머지 원소 (GSJ)",
+   "abstract": "日本の地球化学図 — Al2O3 (하천 퇴적물)",
+   "bbox": [
+    122.0,
+    20.0,
+    154.0,
+    46.0
+   ]
+  },
+  {
+   "name": "gsjows:geochem:CaO",
+   "title": "칼슘(CaO) — 지구화학도",
+   "group": "일본 지구화학도 — 나머지 원소 (GSJ)",
+   "abstract": "日本の地球化学図 — CaO (하천 퇴적물)",
+   "bbox": [
+    122.0,
+    20.0,
+    154.0,
+    46.0
+   ]
+  },
+  {
+   "name": "gsjows:geochem:MgO",
+   "title": "마그네슘(MgO) — 지구화학도",
+   "group": "일본 지구화학도 — 나머지 원소 (GSJ)",
+   "abstract": "日本の地球化学図 — MgO (하천 퇴적물)",
+   "bbox": [
+    122.0,
+    20.0,
+    154.0,
+    46.0
+   ]
+  },
+  {
+   "name": "gsjows:geochem:MnO",
+   "title": "망가니즈(MnO) — 지구화학도",
+   "group": "일본 지구화학도 — 나머지 원소 (GSJ)",
+   "abstract": "日本の地球化学図 — MnO (하천 퇴적물)",
+   "bbox": [
+    122.0,
+    20.0,
+    154.0,
+    46.0
+   ]
+  },
+  {
+   "name": "gsjows:geochem:Na2O",
+   "title": "나트륨(Na₂O) — 지구화학도",
+   "group": "일본 지구화학도 — 나머지 원소 (GSJ)",
+   "abstract": "日本の地球化学図 — Na2O (하천 퇴적물)",
+   "bbox": [
+    122.0,
+    20.0,
+    154.0,
+    46.0
+   ]
+  },
+  {
+   "name": "gsjows:geochem:P2O5",
+   "title": "인(P₂O₅) — 지구화학도",
+   "group": "일본 지구화학도 — 나머지 원소 (GSJ)",
+   "abstract": "日本の地球化学図 — P2O5 (하천 퇴적물)",
+   "bbox": [
+    122.0,
+    20.0,
+    154.0,
+    46.0
+   ]
+  },
+  {
+   "name": "gsjows:geochem:TiO2",
+   "title": "타이타늄(TiO₂) — 지구화학도",
+   "group": "일본 지구화학도 — 나머지 원소 (GSJ)",
+   "abstract": "日本の地球化学図 — TiO2 (하천 퇴적물)",
+   "bbox": [
+    122.0,
+    20.0,
+    154.0,
+    46.0
+   ]
+  },
+  {
+   "name": "gsjows:geochem:Ba",
+   "title": "바륨 — 지구화학도",
+   "group": "일본 지구화학도 — 나머지 원소 (GSJ)",
+   "abstract": "日本の地球化学図 — Ba (하천 퇴적물)",
+   "bbox": [
+    122.0,
+    20.0,
+    154.0,
+    46.0
+   ]
+  },
+  {
+   "name": "gsjows:geochem:Be",
+   "title": "베릴륨 — 지구화학도",
+   "group": "일본 지구화학도 — 나머지 원소 (GSJ)",
+   "abstract": "日本の地球化学図 — Be (하천 퇴적물)",
+   "bbox": [
+    122.0,
+    20.0,
+    154.0,
+    46.0
+   ]
+  },
+  {
+   "name": "gsjows:geochem:Bi",
+   "title": "비스무트 — 지구화학도",
+   "group": "일본 지구화학도 — 나머지 원소 (GSJ)",
+   "abstract": "日本の地球化学図 — Bi (하천 퇴적물)",
+   "bbox": [
+    122.0,
+    20.0,
+    154.0,
+    46.0
+   ]
+  },
+  {
+   "name": "gsjows:geochem:Cd",
+   "title": "카드뮴 — 지구화학도",
+   "group": "일본 지구화학도 — 나머지 원소 (GSJ)",
+   "abstract": "日本の地球化学図 — Cd (하천 퇴적물)",
+   "bbox": [
+    122.0,
+    20.0,
+    154.0,
+    46.0
+   ]
+  },
+  {
+   "name": "gsjows:geochem:Ce",
+   "title": "세륨 — 지구화학도",
+   "group": "일본 지구화학도 — 나머지 원소 (GSJ)",
+   "abstract": "日本の地球化学図 — Ce (하천 퇴적물)",
+   "bbox": [
+    122.0,
+    20.0,
+    154.0,
+    46.0
+   ]
+  },
+  {
+   "name": "gsjows:geochem:Co",
+   "title": "코발트 — 지구화학도",
+   "group": "일본 지구화학도 — 나머지 원소 (GSJ)",
+   "abstract": "日本の地球化学図 — Co (하천 퇴적물)",
+   "bbox": [
+    122.0,
+    20.0,
+    154.0,
+    46.0
+   ]
+  },
+  {
+   "name": "gsjows:geochem:Cs",
+   "title": "세슘 — 지구화학도",
+   "group": "일본 지구화학도 — 나머지 원소 (GSJ)",
+   "abstract": "日本の地球化学図 — Cs (하천 퇴적물)",
+   "bbox": [
+    122.0,
+    20.0,
+    154.0,
+    46.0
+   ]
+  },
+  {
+   "name": "gsjows:geochem:Dy",
+   "title": "디스프로슘 — 지구화학도",
+   "group": "일본 지구화학도 — 나머지 원소 (GSJ)",
+   "abstract": "日本の地球化学図 — Dy (하천 퇴적물)",
+   "bbox": [
+    122.0,
+    20.0,
+    154.0,
+    46.0
+   ]
+  },
+  {
+   "name": "gsjows:geochem:Er",
+   "title": "어븀 — 지구화학도",
+   "group": "일본 지구화학도 — 나머지 원소 (GSJ)",
+   "abstract": "日本の地球化学図 — Er (하천 퇴적물)",
+   "bbox": [
+    122.0,
+    20.0,
+    154.0,
+    46.0
+   ]
+  },
+  {
+   "name": "gsjows:geochem:Eu",
+   "title": "유로퓸 — 지구화학도",
+   "group": "일본 지구화학도 — 나머지 원소 (GSJ)",
+   "abstract": "日本の地球化学図 — Eu (하천 퇴적물)",
+   "bbox": [
+    122.0,
+    20.0,
+    154.0,
+    46.0
+   ]
+  },
+  {
+   "name": "gsjows:geochem:Ga",
+   "title": "갈륨 — 지구화학도",
+   "group": "일본 지구화학도 — 나머지 원소 (GSJ)",
+   "abstract": "日本の地球化学図 — Ga (하천 퇴적물)",
+   "bbox": [
+    122.0,
+    20.0,
+    154.0,
+    46.0
+   ]
+  },
+  {
+   "name": "gsjows:geochem:Gd",
+   "title": "가돌리늄 — 지구화학도",
+   "group": "일본 지구화학도 — 나머지 원소 (GSJ)",
+   "abstract": "日本の地球化学図 — Gd (하천 퇴적물)",
+   "bbox": [
+    122.0,
+    20.0,
+    154.0,
+    46.0
+   ]
+  },
+  {
+   "name": "gsjows:geochem:Hf",
+   "title": "하프늄 — 지구화학도",
+   "group": "일본 지구화학도 — 나머지 원소 (GSJ)",
+   "abstract": "日本の地球化学図 — Hf (하천 퇴적물)",
+   "bbox": [
+    122.0,
+    20.0,
+    154.0,
+    46.0
+   ]
+  },
+  {
+   "name": "gsjows:geochem:Ho",
+   "title": "홀뮴 — 지구화학도",
+   "group": "일본 지구화학도 — 나머지 원소 (GSJ)",
+   "abstract": "日本の地球化学図 — Ho (하천 퇴적물)",
+   "bbox": [
+    122.0,
+    20.0,
+    154.0,
+    46.0
+   ]
+  },
+  {
+   "name": "gsjows:geochem:La",
+   "title": "란타넘 — 지구화학도",
+   "group": "일본 지구화학도 — 나머지 원소 (GSJ)",
+   "abstract": "日本の地球化学図 — La (하천 퇴적물)",
+   "bbox": [
+    122.0,
+    20.0,
+    154.0,
+    46.0
+   ]
+  },
+  {
+   "name": "gsjows:geochem:Li",
+   "title": "리튬 — 지구화학도",
+   "group": "일본 지구화학도 — 나머지 원소 (GSJ)",
+   "abstract": "日本の地球化学図 — Li (하천 퇴적물)",
+   "bbox": [
+    122.0,
+    20.0,
+    154.0,
+    46.0
+   ]
+  },
+  {
+   "name": "gsjows:geochem:Lu",
+   "title": "루테튬 — 지구화학도",
+   "group": "일본 지구화학도 — 나머지 원소 (GSJ)",
+   "abstract": "日本の地球化学図 — Lu (하천 퇴적물)",
+   "bbox": [
+    122.0,
+    20.0,
+    154.0,
+    46.0
+   ]
+  },
+  {
+   "name": "gsjows:geochem:Mo",
+   "title": "몰리브데넘 — 지구화학도",
+   "group": "일본 지구화학도 — 나머지 원소 (GSJ)",
+   "abstract": "日本の地球化学図 — Mo (하천 퇴적물)",
+   "bbox": [
+    122.0,
+    20.0,
+    154.0,
+    46.0
+   ]
+  },
+  {
+   "name": "gsjows:geochem:Nb",
+   "title": "나이오븀 — 지구화학도",
+   "group": "일본 지구화학도 — 나머지 원소 (GSJ)",
+   "abstract": "日本の地球化学図 — Nb (하천 퇴적물)",
+   "bbox": [
+    122.0,
+    20.0,
+    154.0,
+    46.0
+   ]
+  },
+  {
+   "name": "gsjows:geochem:Nd",
+   "title": "네오디뮴 — 지구화학도",
+   "group": "일본 지구화학도 — 나머지 원소 (GSJ)",
+   "abstract": "日本の地球化学図 — Nd (하천 퇴적물)",
+   "bbox": [
+    122.0,
+    20.0,
+    154.0,
+    46.0
+   ]
+  },
+  {
+   "name": "gsjows:geochem:Pr",
+   "title": "프라세오디뮴 — 지구화학도",
+   "group": "일본 지구화학도 — 나머지 원소 (GSJ)",
+   "abstract": "日本の地球化学図 — Pr (하천 퇴적물)",
+   "bbox": [
+    122.0,
+    20.0,
+    154.0,
+    46.0
+   ]
+  },
+  {
+   "name": "gsjows:geochem:Rb",
+   "title": "루비듐 — 지구화학도",
+   "group": "일본 지구화학도 — 나머지 원소 (GSJ)",
+   "abstract": "日本の地球化学図 — Rb (하천 퇴적물)",
+   "bbox": [
+    122.0,
+    20.0,
+    154.0,
+    46.0
+   ]
+  },
+  {
+   "name": "gsjows:geochem:Sb",
+   "title": "안티모니 — 지구화학도",
+   "group": "일본 지구화학도 — 나머지 원소 (GSJ)",
+   "abstract": "日本の地球化学図 — Sb (하천 퇴적물)",
+   "bbox": [
+    122.0,
+    20.0,
+    154.0,
+    46.0
+   ]
+  },
+  {
+   "name": "gsjows:geochem:Sc",
+   "title": "스칸듐 — 지구화학도",
+   "group": "일본 지구화학도 — 나머지 원소 (GSJ)",
+   "abstract": "日本の地球化学図 — Sc (하천 퇴적물)",
+   "bbox": [
+    122.0,
+    20.0,
+    154.0,
+    46.0
+   ]
+  },
+  {
+   "name": "gsjows:geochem:Sm",
+   "title": "사마륨 — 지구화학도",
+   "group": "일본 지구화학도 — 나머지 원소 (GSJ)",
+   "abstract": "日本の地球化学図 — Sm (하천 퇴적물)",
+   "bbox": [
+    122.0,
+    20.0,
+    154.0,
+    46.0
+   ]
+  },
+  {
+   "name": "gsjows:geochem:Sn",
+   "title": "주석 — 지구화학도",
+   "group": "일본 지구화학도 — 나머지 원소 (GSJ)",
+   "abstract": "日本の地球化学図 — Sn (하천 퇴적물)",
+   "bbox": [
+    122.0,
+    20.0,
+    154.0,
+    46.0
+   ]
+  },
+  {
+   "name": "gsjows:geochem:Sr",
+   "title": "스트론튬 — 지구화학도",
+   "group": "일본 지구화학도 — 나머지 원소 (GSJ)",
+   "abstract": "日本の地球化学図 — Sr (하천 퇴적물)",
+   "bbox": [
+    122.0,
+    20.0,
+    154.0,
+    46.0
+   ]
+  },
+  {
+   "name": "gsjows:geochem:Ta",
+   "title": "탄탈럼 — 지구화학도",
+   "group": "일본 지구화학도 — 나머지 원소 (GSJ)",
+   "abstract": "日本の地球化学図 — Ta (하천 퇴적물)",
+   "bbox": [
+    122.0,
+    20.0,
+    154.0,
+    46.0
+   ]
+  },
+  {
+   "name": "gsjows:geochem:Tb",
+   "title": "터븀 — 지구화학도",
+   "group": "일본 지구화학도 — 나머지 원소 (GSJ)",
+   "abstract": "日本の地球化学図 — Tb (하천 퇴적물)",
+   "bbox": [
+    122.0,
+    20.0,
+    154.0,
+    46.0
+   ]
+  },
+  {
+   "name": "gsjows:geochem:Tl",
+   "title": "탈륨 — 지구화학도",
+   "group": "일본 지구화학도 — 나머지 원소 (GSJ)",
+   "abstract": "日本の地球化学図 — Tl (하천 퇴적물)",
+   "bbox": [
+    122.0,
+    20.0,
+    154.0,
+    46.0
+   ]
+  },
+  {
+   "name": "gsjows:geochem:Tm",
+   "title": "툴륨 — 지구화학도",
+   "group": "일본 지구화학도 — 나머지 원소 (GSJ)",
+   "abstract": "日本の地球化学図 — Tm (하천 퇴적물)",
+   "bbox": [
+    122.0,
+    20.0,
+    154.0,
+    46.0
+   ]
+  },
+  {
+   "name": "gsjows:geochem:V",
+   "title": "바나듐 — 지구화학도",
+   "group": "일본 지구화학도 — 나머지 원소 (GSJ)",
+   "abstract": "日本の地球化学図 — V (하천 퇴적물)",
+   "bbox": [
+    122.0,
+    20.0,
+    154.0,
+    46.0
+   ]
+  },
+  {
+   "name": "gsjows:geochem:Y",
+   "title": "이트륨 — 지구화학도",
+   "group": "일본 지구화학도 — 나머지 원소 (GSJ)",
+   "abstract": "日本の地球化学図 — Y (하천 퇴적물)",
+   "bbox": [
+    122.0,
+    20.0,
+    154.0,
+    46.0
+   ]
+  },
+  {
+   "name": "gsjows:geochem:Yb",
+   "title": "이터븀 — 지구화학도",
+   "group": "일본 지구화학도 — 나머지 원소 (GSJ)",
+   "abstract": "日本の地球化学図 — Yb (하천 퇴적물)",
+   "bbox": [
+    122.0,
+    20.0,
+    154.0,
+    46.0
+   ]
+  },
+  {
+   "name": "gsjows:geochem:Zr",
+   "title": "지르코늄 — 지구화학도",
+   "group": "일본 지구화학도 — 나머지 원소 (GSJ)",
+   "abstract": "日本の地球化学図 — Zr (하천 퇴적물)",
+   "bbox": [
+    122.0,
+    20.0,
+    154.0,
+    46.0
+   ]
+  },
+  {
+   "name": "gsjows:magnetic_japan",
+   "title": "일본의 자기도 (1:200만, 1992)",
+   "group": "일본 자기 이상도 (GSJ 지질도Navi)",
+   "abstract": "200万分の1地質編集図 日本の磁気図 (TH_23magne) — 줌 8 까지, 그 너머는 늘려 그린다",
+   "bbox": [
+    127.38,
+    27.5,
+    147.07,
+    47.75
+   ]
+  },
+  {
+   "name": "gsjows:magnetic_eastasia_1994",
+   "title": "동아시아 자기 이상도 (1:400만, 1994)",
+   "group": "일본 자기 이상도 (GSJ 지질도Navi)",
+   "abstract": "東アジア磁気異常図 (MISC_32) — 줌 9 까지",
+   "bbox": [
+    85.55,
+    -9.72,
+    147.56,
+    47.28
+   ]
+  },
+  {
+   "name": "gsjows:magnetic_eastasia_2021",
+   "title": "동·동남아시아 자기 이상도 (3 판, 2021)",
+   "group": "일본 자기 이상도 (GSJ 지질도Navi)",
+   "abstract": "東・東南アジア磁気異常図 第3版 (DGM_P3_2021) — 줌 7 까지",
+   "bbox": [
+    91.62,
+    -13.03,
+    161.42,
+    46.7
    ]
   }
  ]

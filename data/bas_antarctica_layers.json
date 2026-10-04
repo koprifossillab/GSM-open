@@ -1,0 +1,19 @@
+{
+ "_주석": "영국 남극조사소(BAS)가 ArcGIS Online 에 올린 Bedmap3 타일(빙저 지형·얼음 두께·얼음 윗면) 씨앗이다 — 남극 탭. 화면이 타일을 곧장 받고 범례만 문(web/viewer/bas.py)이 묻는다. CC BY 4.0. 한글 제목과 레이어군은 사람이 붙였다 (wetherilli 261).",
+ "_뽑은날": "2026-10-05",
+ "_출처": "https://tiles.arcgis.com/tiles/tPxy1hrFDhJfZ0Mf/arcgis/rest/services",
+ "_지역": "antarctica",
+ "_상류": "bas",
+ "_레이어군차례": 25,
+ "레이어군순서": [
+  "빙하 아래 (Bedmap3)"
+ ],
+ "레이어": [
+  {"name": "bas:bedmap3_bed", "title": "빙저 지형", "group": "빙하 아래 (Bedmap3)",
+   "abstract": "얼음을 걷어 낸 기반암·해저의 높이(해수면 기준) — Bedmap3 500 m 격자, 2025", "bbox": [-180, -90, 180, -60]},
+  {"name": "bas:bedmap3_thickness", "title": "얼음 두께", "group": "빙하 아래 (Bedmap3)",
+   "abstract": "빙상·빙붕의 두께 — Bedmap3 500 m 격자, 2025", "bbox": [-180, -90, 180, -60]},
+  {"name": "bas:bedmap3_surface", "title": "얼음 윗면", "group": "빙하 아래 (Bedmap3)",
+   "abstract": "빙상의 윗면 높이 — Bedmap3 500 m 격자, 2025", "bbox": [-180, -90, 180, -60]}
+ ]
+}

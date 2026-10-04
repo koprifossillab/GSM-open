@@ -1,15 +1,17 @@
 {
- "_주석": "대만 경제부 지질조사·광업관리중심(GSMMA)의 지질도 씨앗이다. MapGuide WMS GetCapabilities(2026-10-02)의 레이어 62 개 가운데 지질도·구조를 골라, 지층·경계·단층처럼 잘게 나뉜 것을 레이어 하나로 엮었다 — 엮는 표는 web/viewer/gsmma.py 의 LAYERS 다. 한글 제목과 레이어군은 사람이 붙였다. 환경지질·지질 민감구역·시추·온천은 둘째 판(wetherilli 141). 조건은 정부 자료 개방 선언(출처 표시) — wetherilli 136.",
+ "_주석": "대만 경제부 지질조사·광업관리중심(GSMMA)의 지질도 씨앗이다. MapGuide WMS GetCapabilities(2026-10-02)의 레이어 62 개 가운데 지질도·구조를 골라, 지층·경계·단층처럼 잘게 나뉜 것을 레이어 하나로 엮었다 — 엮는 표는 web/viewer/gsmma.py 의 LAYERS 다. 한글 제목과 레이어군은 사람이 붙였다. 환경지질·지질 민감구역·시추·온천은 둘째 판(wetherilli 141). 조건은 정부 자료 개방 선언(출처 표시) — wetherilli 136. 셋째 판(wetherilli 263) — 5만 유역 지질도(2013)·광상·5만 불연속면 자세, 활성단층의 속성.",
  "_뽑은날": "2026-10-02",
  "_출처": "https://geomap.gsmma.gov.tw/mapguide/mapagent/mapagent.fcgi?SERVICE=WMS&REQUEST=GetCapabilities&VERSION=1.3.0",
  "_지역": "taiwan",
  "_상류": "gsmma",
  "레이어군순서": [
   "대만 지질도 (GSMMA)",
+  "대만 5만 유역 지질도 (GSMMA)",
   "대만 구조 (GSMMA)",
   "대만 환경지질 (GSMMA)",
   "대만 지질 민감구역 (GSMMA)",
-  "대만 시추·온천 (GSMMA)"
+  "대만 시추·온천 (GSMMA)",
+  "대만 광상 (GSMMA)"
  ],
  "레이어": [
   {
@@ -310,6 +312,66 @@
     26.5
    ],
    "확인한날": "2026-10-02"
+  },
+  {
+   "name": "gsmma:drainage_50k",
+   "title": "5만 유역 지질도 (2013)",
+   "group": "대만 5만 유역 지질도 (GSMMA)",
+   "abstract": "臺灣流域地質圖 — 하천 유역마다 다시 그린 5만 판(지층·경계·단층·습곡)",
+   "bbox": [
+    118.0,
+    21.8,
+    122.2,
+    26.5
+   ]
+  },
+  {
+   "name": "gsmma:drainage_labels_50k",
+   "title": "5만 유역 지질도 이름",
+   "group": "대만 5만 유역 지질도 (GSMMA)",
+   "abstract": "지층·단층·습곡 이름",
+   "bbox": [
+    118.0,
+    21.8,
+    122.2,
+    26.5
+   ]
+  },
+  {
+   "name": "gsmma:discontinuity_50k",
+   "title": "5만 불연속면 자세",
+   "group": "대만 구조 (GSMMA)",
+   "abstract": "不連續面位態·傾角 — 엽리 따위",
+   "bbox": [
+    118.0,
+    21.8,
+    122.2,
+    26.5
+   ]
+  },
+  {
+   "name": "gsmma:ore_50k",
+   "title": "5만 광상",
+   "group": "대만 광상 (GSMMA)",
+   "abstract": "1/50,000 臺灣地質圖-礦床 (점·선)",
+   "bbox": [
+    118.0,
+    21.8,
+    122.2,
+    26.5
+   ]
+  },
+  {
+   "name": "gsmma:ore_250k",
+   "title": "25만 광상 (1974)",
+   "group": "대만 광상 (GSMMA)",
+   "abstract": "1/250,000 臺灣地質圖-礦床",
+   "bbox": [
+    118.0,
+    21.8,
+    122.2,
+    26.5
+   ]
   }
  ]
 }

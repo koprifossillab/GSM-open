@@ -301,6 +301,13 @@
 | wetherilli 256 | 2026-10-05 | [남미 나머지 — 파라과이 탭과 USGS 남미 지질도, 나머지는 실측만](20261005_wetherilli_256_south_america_more.md) |
 | wetherilli 257 | 2026-10-05 | [정적 판 점검 — 오늘 붙은 상류 가운데 고를 수 있는 것](20261005_wetherilli_257_static_optional.md) |
 | wetherilli 260 | 2026-10-05 | [프랑스 해외 영토와 태평양 섬 — 누벨칼레도니 Géorep, BRGM 해외 스캔](20261005_wetherilli_260_overseas.md) |
+| wetherilli 261 | 2026-10-05 | [남극의 다른 자료 — Bedmap3 를 올리고 나머지는 실측만](20261005_wetherilli_261_antarctica_more.md) |
+| wetherilli 262 | 2026-10-05 | [남극 자력 이상 ADMAP-2 — Geosoft 격자를 numpy 없이 굽는다](20261005_wetherilli_262_admap2.md) |
+| wetherilli 263 | 2026-10-05 | [대만 셋째 판 — 5만 유역 지질도·광상·불연속면, 활성단층을 누른다](20261005_wetherilli_263_taiwan_more.md) |
+| wetherilli 264 | 2026-10-05 | [온 지구 — 해양 지각 연대와 해저 퇴적층 두께](20261005_wetherilli_264_earth_ocean_crust.md) |
+| wetherilli 266 | 2026-10-05 | [일본 셋째 판 — 지구화학도 53 원소, 공중 자력 편집도 셋](20261005_wetherilli_266_japan_more.md) |
+| wetherilli 267 | 2026-10-05 | [온 지구 — 지열류(IHFC 2024)와 세계 암상(GLiM)](20261005_wetherilli_267_earth_heatflow.md) |
+| wetherilli 268 | 2026-10-05 | ['그 외' 차림을 대륙 머리로 묶는다](20261005_wetherilli_268_region_menu_groups.md) |
 | koprifossillab P01 | 2026-09-30 | [백업 — WegenersDream 의 틀로, 바뀌는 빠르기에 따라 넷으로 (계획)](20260930_koprifossillab_P01_backup_plan.md) |
 | koprifossillab 001 | 2026-09-30 | [매주 월요일 새벽: 운영 자료 백업과 KPDC 목록 갱신](20260930_koprifossillab_001_weekly_backup.md) |
 | koprifossillab 002 | 2026-09-30 | [`/healthz/` — 판·DB·백업 상태를 한 장으로](20260930_koprifossillab_002_healthz.md) |
