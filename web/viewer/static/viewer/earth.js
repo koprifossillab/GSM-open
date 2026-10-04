@@ -224,10 +224,62 @@
         return { name: row.band, title: row.name, grid: "ll", mineral: true, legend: "mineral", legendTitle: "세계 광상 (USGS)", src: MIN_SRC };
       }) });
   }
+  // 세계 활성단층 — GEM Global Active Faults. 판·지질구 레이어군 곁에 둔다(없으면 지각 두께 앞). 오늘의 지구다 (wetherilli 279)
+  if (THEN.faults && THEN.faults.length) {
+    var FAULT_LAYER = { name: "gemfaults", title: "활성단층 (GEM)", grid: "ll", info: "faults", legend: "gemfaults", max: 8,
+                        src: "GEM Global Active Faults (Styron & Pagani 2020) · CC BY-SA 4.0" };
+    var TECT_GROUP = CATALOG.filter(function (g) { return g.layers.some(function (l) { return l.name === "tbound"; }); })[0];
+    if (TECT_GROUP) TECT_GROUP.layers.splice(1, 0, FAULT_LAYER);
+    else CATALOG.splice(CATALOG.findIndex(function (g) { return g.layers[0].name === "crust"; }), 0,
+                        { group: "활성단층 (GEM)", layers: [FAULT_LAYER] });
+  }
+  // 충돌구(오늘)·거대 화성암 지대(모든 연대 — 대륙 위의 것은 판 회전으로 그때의 자리에) (wetherilli 283)
+  var IMP = THEN.impacts || {};
+  if (IMP.impacts) {
+    CATALOG.splice(CATALOG.findIndex(function (g) { return g.layers[0].name === "fossils"; }) + 1, 0,
+      { group: "충돌구·거대 화성암 지대", layers: [
+        { name: "impacts", title: "충돌구", grid: "ll", info: "impacts", legend: "impacts", max: 7, src: "Wikidata · CC0" },
+        { name: "lips", title: "거대 화성암 지대 (LIP)", grid: "ll", info: "impacts", legend: "lips", always: true, max: 7,
+          src: "Johansson et al. 2018 · EarthByte · CC BY 4.0" }] });
+  }
   if (THEN.araon) {
     CATALOG.filter(function (g) { return g.flux; })[0].layers.push(
       { name: "araon", title: "아라온호 항적", track: true, src: "KOPRI · RV Araon live position" });
   }
+  // ── 레이어군을 주제로 묶는다 (wetherilli 278) ──
+  // 레이어가 늘며 자료마다 레이어군이 하나씩(열일곱) 생기고, 덧붙인 차례대로 끼워 넣어 차례가 뒤섞였다. 위에서 자료마다 지은 레이어를
+  // 그대로 두고, 패널의 레이어군만 주제로 다시 묶는다. 출처는 레이어 카드의 `src` 가 적는다.
+  // **패널의 차례만 바뀐다** — 지도에 쌓는 차례와 누를 때 묻는 차례는 켠 차례(`active`)를 따르고, 처음 켜는 것은 그대로다(지질 단위).
+  // 새 레이어는 아래 표에 이름을 적는다. 적지 않으면 맨 끝 "그 밖" 에 선다(시험 `test_earth_panel` 이 적었는지 본다)
+  var THEMES = [
+    ["지질", ["geology", "glim", "seaage", "sediment", "impacts"]],
+    ["구조·판", ["tbound", "gemfaults", "tprov", "plates", "stress"]],
+    ["지구물리", ["crust", "heatflow", "mantle"]],
+    ["자원", []],                                     // 세계 광상(USGS)의 광종 칸은 `mineral` 로 여기 선다 (wetherilli 276)
+    ["화산·지진", ["volcanoes", "pleistocene", "lips", "quake6", "quake55", "quake5"]],
+    ["화석·고생태", ["fossils"]],                      // 고생태 산지(Neotoma)의 자료형 칸은 `neo` 로 여기 선다
+    ["그때의 지구", ["coast", "icemargins"]],
+    ["움직이는 지구", ["wind", "cloud", "satcloud", "ocean", "araon"]],
+    ["지리", ["names", "water", "ice"]],
+  ];
+  CATALOG = (function (groups) {
+    var theme = {};
+    THEMES.forEach(function (t, i) { t[1].forEach(function (n) { theme[n] = i; }); });
+    var out = THEMES.map(function (t) { return { group: t[0], layers: [] }; }).concat([{ group: "그 밖", layers: [] }]);
+    var rows = [];
+    groups.forEach(function (g) { g.layers.forEach(function (l) { rows.push(l); }); });
+    THEMES.forEach(function (t, i) {                   // 주제 안의 차례는 표의 차례
+      t[1].forEach(function (n) { rows.forEach(function (l) { if (l.name === n) out[i].layers.push(l); }); });
+    });
+    rows.forEach(function (l) {
+      if (theme[l.name] !== undefined) return;
+      // 이름이 자료에서 오는 칸 — 고생태 산지(Neotoma)의 자료형, 세계 광상의 광종
+      var by = l.neo ? "화석·고생태" : l.mineral ? "자원" : "";
+      out[by ? THEMES.findIndex(function (t) { return t[0] === by; }) : out.length - 1].layers.push(l);
+    });
+    out[THEMES.findIndex(function (t) { return t[0] === "움직이는 지구"; })].flux = true;
+    return out.filter(function (g) { return g.layers.length; });
+  })(CATALOG);
   var LAYER = {};
   CATALOG.forEach(function (g) { g.layers.forEach(function (l) { LAYER[l.name] = l; }); });
   var ALL_NAMES = Object.keys(LAYER);
@@ -237,6 +289,9 @@
     if (name === "plates") return paleoUrl("edge", 0);
     if (name === "coast") return paleoUrl("coast", paleoOn() ? age : 0);
     if (name === "crust") return BASE + "earth/crust/tiles/{z}/{x}/{y}.png" + vq("crust");
+    if (name === "impacts") return BASE + "earth/impacts/impacts/0/{z}/{x}/{y}.png" + vq("impacts");
+    if (name === "lips") return BASE + "earth/impacts/lips/" + Math.round(paleoOn() ? age : 0) + "/{z}/{x}/{y}.png" + vq("impacts");
+    if (name === "gemfaults") return BASE + "earth/faults/tiles/{z}/{x}/{y}.png" + vq("faults");
     if (LAYER[name] && LAYER[name].mineral) return BASE + "earth/minerals/tiles/" + name + "/{z}/{x}/{y}.png" + vq("minerals");
     if (name === "stress") return BASE + "earth/stress/tiles/{z}/{x}/{y}.png" + vq("stress");
     if (name === "tbound" || name === "tprov") return BASE + "earth/tectonics/" + name + "/{z}/{x}/{y}.png" + vq("tectonics");
@@ -270,7 +325,12 @@
   var ICE_CREDIT = "NADI-1 (Dalton et al. 2023, CC BY 4.0) · DATED-1 (Hughes et al. 2016, CC BY 3.0)";
   var MANTLE_CREDIT = "Müller et al. (2022) OPT1, Solid Earth (CC BY 4.0)";
   var MIN_CREDIT = "USGS Mineral Resources Data System · Global Mineral Resource Assessment (public domain)";
+  var FAULT_CREDIT = "GEM Global Active Faults (Styron & Pagani 2020) · CC BY-SA 4.0";
+  var IMPACT_CREDIT = "Wikidata (CC0)", LIP_CREDIT = "Johansson et al. 2018 · EarthByte GPlates 2.3 (CC BY 4.0)";
   function creditOf(name) {
+    if (name === "impacts") return IMPACT_CREDIT;
+    if (name === "lips") return LIP_CREDIT;
+    if (name === "gemfaults") return FAULT_CREDIT;
     if (LAYER[name] && LAYER[name].mineral) return MIN_CREDIT;
     if (LAYER[name] && LAYER[name].neo) return NEO_CREDIT;
     return { geology: GEO_CREDIT, plates: PALEO_CREDIT, coast: COAST_CREDIT, fossils: PBDB_CREDIT, volcanoes: GVP_CREDIT, pleistocene: GVP_CREDIT, quake6: QUAKE_CREDIT, quake55: QUAKE_CREDIT, quake5: QUAKE_CREDIT, crust: CRUST_CREDIT, stress: STRESS_CREDIT, tbound: TECT_CREDIT, tprov: TECT_CREDIT, glim: GLIM_CREDIT, heatflow: HEATFLOW_CREDIT, seaage: SEAAGE_CREDIT, sediment: SEDIMENT_CREDIT,
@@ -2226,15 +2286,28 @@
     var mine = ++asked;
     showPopup(head + '<p class="none">' + esc(T("읽는 중")) + "</p>", pixel);
     var at = "?lon=" + ll[0].toFixed(4) + "&lat=" + ll[1].toFixed(4) + "&z=" + hereZoom();
-    var ASK = { geology: "earth/info/", crust: "earth/crust/at/", tectonics: "earth/tectonics/at/", seafloor: "earth/seafloor/at/", glim: "earth/glim/at/" };
+    var ASK = { geology: "earth/info/", crust: "earth/crust/at/", tectonics: "earth/tectonics/at/", seafloor: "earth/seafloor/at/", glim: "earth/glim/at/", faults: "earth/faults/at/", impacts: "earth/impacts/at/" };
     Promise.all(layers.map(function (l) {
-      return fetch(BASE + ASK[l.info] + at + (l.info === "seafloor" ? "&layer=" + l.name : "")).then(function (r) { return r.json(); }).catch(function () { return { error: true }; });
+      return fetch(BASE + ASK[l.info] + at + (l.info === "seafloor" || l.info === "impacts" ? "&layer=" + l.name : "")).then(function (r) { return r.json(); }).catch(function () { return { error: true }; });
     })).then(function (all) {
       if (mine !== asked) return;
       var html = head;
       all.forEach(function (data, i) {
         html += "<h3>" + esc(T(layers[i].title)) + "</h3>";
         if (data.error) { html += '<p class="none">' + esc(T("속성을 받지 못했다")) + "</p>"; return; }
+        if (layers[i].info === "impacts") {
+          html += data.name ? "<p><b>" + esc(data.name) + "</b></p><table>" + data.rows.map(function (row) {
+            return "<tr><th>" + esc(row[0]) + "</th><td>" + esc(row[1]) + "</td></tr>";
+          }).join("") + "</table>" : '<p class="none">' + esc(data.text) + "</p>";
+          return;
+        }
+        if (layers[i].info === "faults") {
+          html += data.fault ? '<p><span class="chip" style="background:' + esc(data.fault.color) + '"></span> <b>' + esc(data.fault.name) +
+            "</b></p><table>" + data.fault.rows.map(function (row) {
+              return "<tr><th>" + esc(row[0]) + "</th><td>" + esc(row[1]) + "</td></tr>";
+            }).join("") + "</table>" : '<p class="none">' + esc(data.text) + "</p>";
+          return;
+        }
         if (layers[i].info === "tectonics") {
           html += data.province ? "<p><b>" + esc(data.province.name) + "</b></p><table>" + data.province.rows.map(function (row) {
             return "<tr><th>" + esc(row[0]) + "</th><td>" + esc(row[1]) + "</td></tr>";
@@ -2386,6 +2459,19 @@
     if (kind === "mineral") {
       legends[kind] = '<li class="empty">' + esc(T("마름모는 세계 광상 표와 대규모 광산, 큰 원은 생산한 곳, 작은 원은 산지·탐사지(줌 4 부터)")) + "</li>" +
         (THEN.minerals || []).map(function (row) {
+          return '<li><span class="chip" style="background:' + esc(row.color) + '"></span>' + esc(row.name) + "</li>";
+        }).join("");
+      return Promise.resolve(legends[kind]);
+    }
+    if (kind === "gemfaults") {
+      legends[kind] = (THEN.faults || []).map(function (row) {
+        return '<li><span class="chip" style="background:' + esc(row.color) + (row.dash ? ";opacity:.6" : "") + '"></span>' + esc(row.name) + "</li>";
+      }).join("");
+      return Promise.resolve(legends[kind]);
+    }
+    if (kind === "impacts" || kind === "lips") {
+      legends[kind] = (kind === "lips" ? '<li class="empty">' + esc(T("색은 생긴 때. 대륙 위의 것은 판 회전으로 그때의 자리에 — 계산이지 관측이 아니다")) + "</li>" : "") +
+        (IMP[kind] || []).map(function (row) {
           return '<li><span class="chip" style="background:' + esc(row.color) + '"></span>' + esc(row.name) + "</li>";
         }).join("");
       return Promise.resolve(legends[kind]);

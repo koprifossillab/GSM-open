@@ -94,3 +94,59 @@ def legend_list(data: dict, layer_ids=None) -> list:
             seen.add(label)
             out.append((label, f"data:{item.get('contentType') or 'image/png'};base64,{item['imageData']}"))
     return out
+
+
+# ── WMS 꼴의 변수 → ArcGIS REST (wetherilli 280) ─────────────────────
+# WMS 를 켜지 않은 서비스(인도네시아 광물 잠재력·몽골 희토류)를 화면의 WMS 꼴 그대로 부르려고 옮긴다. 원본 좌표계가 4326·32648 이어도
+# `bboxSR`·`imageSR` 을 화면의 것으로 주면 상류가 옮겨 그린다
+
+def _box_size(params: dict):
+    try:
+        box = [float(v) for v in str(params.get("bbox") or "").split(",")]
+        w, h = int(float(params.get("width"))), int(float(params.get("height")))
+    except (TypeError, ValueError):
+        return None
+    return (box, (w, h)) if len(box) == 4 else None
+
+
+def _sr(params: dict) -> str:
+    code = str(params.get("crs") or params.get("srs") or "EPSG:3857")
+    return code.split(":")[-1]
+
+
+def rest_export_params(params: dict, show: str) -> dict:
+    """WMS GetMap 변수 → REST `export` 변수. 모르는 꼴이면 ValueError"""
+    got = _box_size(params)
+    if got is None:
+        raise ValueError("bbox·width·height 를 읽지 못했다")
+    (box, (w, h)), sr = got, _sr(params)
+    return {"bbox": ",".join(repr(v) for v in box), "bboxSR": sr, "imageSR": sr, "size": f"{w},{h}", "dpi": 96,
+            "format": "png32", "transparent": "true", "layers": f"show:{show}", "f": "image"}
+
+
+def rest_identify_params(params: dict, layers: str, tolerance: int = 4) -> dict:
+    """WMS GetFeatureInfo 변수 → REST `identify` 변수 — 누른 픽셀(`i`·`j` 또는 `x`·`y`)을 지도 좌표로"""
+    got = _box_size(params)
+    try:
+        i = float(params.get("i", params.get("x")))
+        j = float(params.get("j", params.get("y")))
+    except (TypeError, ValueError):
+        got = None
+    if got is None:
+        raise ValueError("누른 자리를 읽지 못했다")
+    (box, (w, h)), sr = got, _sr(params)
+    x = box[0] + (i + 0.5) * (box[2] - box[0]) / w
+    y = box[3] - (j + 0.5) * (box[3] - box[1]) / h
+    return {"geometry": f"{x!r},{y!r}", "geometryType": "esriGeometryPoint", "sr": sr, "layers": f"visible:{layers}",
+            "tolerance": tolerance, "mapExtent": ",".join(repr(v) for v in box), "imageDisplay": f"{w},{h},96",
+            "returnGeometry": "false", "f": "json"}
+
+
+def identify_features(data: dict, name: str, limit: int = 3) -> list:
+    """REST `identify` 의 결과 → `[{id, properties}]`. 값 `Null` 은 뺀다"""
+    out = []
+    for n, item in enumerate((data.get("results") or [])[:limit]):
+        props = {k: v for k, v in (item.get("attributes") or {}).items()
+                 if v is not None and str(v).strip() and str(v).strip().lower() != "null"}
+        out.append({"id": f"{name}.{n}", "properties": props})
+    return out

@@ -18,6 +18,8 @@ from . import usage
 log = logging.getLogger(__name__)
 
 PREFIX = "gsi:"
+#: 메타타일로 받는다 (wetherilli 287) — 1:100만 512 px 8.6 초(한 번은 연결 실패 — 되받기가 덮는다), 1 024 px 3.0 초. 큰 장 하나가 칸 넷보다 싸다. `metatile.limit` 의 표
+METATILE = {"gsi:1m:": None}
 ATTRIBUTION = ('Contains Irish Public Sector Data (<a href="https://www.gsi.ie/" target="_blank" rel="noopener">'
                'Geological Survey Ireland</a>, CC BY 4.0) · Geological Survey of Northern Ireland (OGL)')
 SHEETS = {"1m": "IE_GSI_GSNI_Bedrock_Geology_1M_IE32_ITM", "100k": "IE_GSI_Bedrock_Geology_Datasets_100K_IE26_ITM"}

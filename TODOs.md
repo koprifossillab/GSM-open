@@ -57,9 +57,14 @@
 - [ ] **(사람)** 자메이카 MGD 웹맵의 지질 면(조건 없음)·트리니다드 Latinum(교육용 한정) — 조건을 묻는다
 - 막힌 것: 과테말라·온두라스·벨리즈·쿠바(서비스 없음·DNS·시간 초과), 엘살바도르 SNET(522 — 다시 볼 것), 코스타리카(UCR 여백 붙은 스캔·DGM 빈 응답)
 
-- [ ] 남미 광물·지구물리(wetherilli 265) — 브라질 광물 산출·콜롬비아 금속광상도/지구물리·아르헨티나 광상은 섰다. 남은 것: 페루 INGEMMET 의
-      `SERV_OCURRENCIA_MINERAL`·`SERV_METALOGENETICO`(MapServer, 4326)·`SERV_AEROMAGNETIICO`(ImageServer) — 페루 문은 타일 칸 기계(`ingemmet/<판>/z/x/y`)라
-      서비스를 하나 더 얹는 손이 든다. 브라질 opendata 의 광업 권역(ANM)·항공 지구물리 조사 범위, SEGEMAR 자력 이상(나라 전체 면 47 개뿐이라 뺐다)
+- [ ] 남미 광물·지구물리(wetherilli 265·277) — 브라질 광물 산출·콜롬비아 금속광상도/지구물리·아르헨티나 광상·페루 광물·지구물리는 섰다. 남은 것:
+      브라질 opendata 의 광업 권역(ANM)·항공 지구물리 조사 범위, SEGEMAR 자력 이상(나라 전체 면 47 개뿐이라 뺐다), 페루 광업 권리(`SERV_CATASTRO_MINERO`)·
+      지화학 지도첩(`SERV_ATLAS_GEOQUIMICO`)·산업 광물(`SERV_ROCAS_MINERALES_INDUSTRIALES`)
+
+- [ ] 아시아 광물(wetherilli 280) — 인도네시아·필리핀·태국·사우디·몽골 희토류는 섰다. 남은 것: 말레이시아 MyGEMS 는 `rest/services` 목록이 허브 쪽으로
+      넘어가 광물 서비스를 찾지 못했다, 인도 GSI 는 Bhukosh 가 나라 밖에서 닿지 않는다. 몽골 `Atlas/AtlasPoints` 의 광상 레이어(6–9)는 우물 자료를
+      돌려준다 — 고쳐지면 금속·비금속·연료·전략 광상. 태국 지구물리 탐사 지점·사우디 지구물리 사업 범위는 범위뿐이라 뺐다.
+      다섯 곳 모두 이용 조건이 적혀 있지 않다 — 정적 판에 싣기 전에 사람이 읽는다
 
 - [ ] 오세아니아 광물·지구물리(wetherilli 269) — 퀸즐랜드·빅토리아·남호주·뉴질랜드 중력은 섰다. 남은 것: 뉴질랜드 광물 산지 GERM(`gns:GERM_ERML_VIEW`)은
       가까이 봐도 빈 그림이다(스타일이 없거나 축척 제한) — GNS 에 물을지. 빅토리아 중력 측점(`gravity`)·자력 선형(`lineaments_tmi`), 남호주 지구물리(SARIG 영상)
@@ -155,6 +160,14 @@ wetherilli 249 — 네팔 DMG GeoServer 는 열렸지만 행정 경계·도폭�
 ## 온 지구 (P06·P07)
 
 (2026-09-30 운영 `/srv/GSM/db/earth/` 에 옛 해안선·화석 산지·맨틀을 두었다. 화석 산지는 가끔 `fetch_pbdb` 로 새로 받는다)
+
+- [ ] **(사람)** GEOROC 암석 지화학 시료(wetherilli 293 으로 받은 일) — 조건은 **CC BY-SA 4.0**(GEOROC Compilation 미리 엮은 파일, 일에 적힌 CC BY 가
+      아니다). 파일은 모두 GRO.data(`data.goettingen-research-online.de`, "Rock Types" doi:10.25625/2JETOA, 356 MB zip 90 개)에 있는데 **이 서버에서는
+      TLS 연결이 끊긴다**(2026-10-05, 여러 번·CA 묶음으로도 SSLEOF). GEOROC 2.0 API 는 접근 열쇠가 든다. 다른 망에서 zip 을 받아 NAS
+      `sources/earth/georoc/` 에 두면 지열류 꼴의 점 sqlite 로 굽는다
+
+- [ ] **(사람)** 충돌구의 자세한 표 — Kenkmann 2021(MAPS, 75 항목·연대·지름)은 **CC BY-NC 4.0**, Osinski 외 2022(Impact Earth)는 **CC BY-NC-ND 4.0** 이다.
+      지금은 Wikidata(CC0, 지름 3 분의 1·연대 열 곳)뿐이다. 비상업 조건을 받아들이면 Kenkmann 표로 바꿔 충돌구도 그때의 지구에 옮길 수 있다 (wetherilli 283)
 
 - [ ] **(사람)** 전 지구 변형률 GSRM v2.1(Kreemer 외 2014, `geodesy.unr.edu/GSRM/` — 0.1° 격자 87 MB·셀 평균 3.7 MB, 압축 `.Z`)은
       README 가 "인용해 달라" 고만 하고 **이용 조건을 적지 않는다**. 저자(UNR)에게 묻거나 조건이 적힌 판을 찾으면 지각 두께 꼴의 격자로 둔다 (wetherilli 273)

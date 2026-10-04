@@ -59,7 +59,7 @@ from PIL import Image
 
 from django.core.management.base import BaseCommand, CommandError
 
-from viewer import elevation, geomap, gsj, ingemmet, kigam, kopri, npolar, tilecache, tilegrid, trek, usage, views
+from viewer import elevation, geomap, gsj, ingemmet, kigam, kopri, metatile, npolar, tilecache, tilegrid, trek, usage, views
 from viewer.models import Layer
 
 DEFAULT_LAYERS = ["L_50K_Geology_Map"]
@@ -124,7 +124,9 @@ class Command(BaseCommand):
                         have += 1
         todo = list(blocks)
         batch = todo[:o["max"]]
-        wms = f"(WMS 는 큰 그림 {512 * meta}px)" if any(isinstance(p, WmsPlan) for p in plans.values()) else ""
+        wms = f"(WMS 는 큰 그림 {512 * meta}px)" if any(type(p) is WmsPlan for p in plans.values()) else ""
+        if any(isinstance(p, MetaPlan) for p in plans.values()):
+            wms += f"(메타타일 상류는 화면과 같은 {512 * metatile.meta_size(512)}px)"
         self.stdout.write(
             f"타일 {have + missing:,}장 — 이미 있는 것 {have:,}, 받을 것 {missing:,}. "
             f"{len(todo):,}번에 나눠 묻는다{wms}. 이번에 {len(batch):,}번, "
@@ -253,6 +255,29 @@ class WmsPlan:
         for (dx, dy), data in pieces.items():
             tilecache.put(self.key(z, x0 + dx, y0 + dy), data)
         return len(pieces)
+
+
+class MetaPlan(WmsPlan):
+    """메타타일로 받는 레이어(`views.METATILE`, wetherilli 284) — 화면이 받는 것과 **같은 2 × 2 블록**으로 받는다. 블록 하나가 상류에 한 번이고
+    1 초 간격은 그대로다. 잘라 낸 칸은 브라우저의 열쇠(`map_cache_key`)와 메타타일 조각의 열쇠(`metatile.piece_key`) 둘에 담는다 — 화면은
+    앞의 것을 먼저 찾고, 메타타일 길은 뒤의 것을 찾는다. `--meta` 는 이 레이어에 쓰지 않는다(블록이 화면과 어긋나면 조각이 쓸모없다)"""
+
+    def block(self, meta):
+        return metatile.meta_size(512)
+
+    def seconds(self, rate, meta):
+        return max(1 / rate, 12.0)                    # 메타타일 상류는 한 장이 5–20 초다(wetherilli 244·282)
+
+    def fetch_block(self, z, bx, by, meta):
+        got = super().fetch_block(z, bx, by, meta)
+        m = self.block(meta)
+        for dx in range(m):
+            for dy in range(m):
+                x, y = bx * m + dx, by * m + dy
+                data = tilecache.get(self.key(z, x, y))
+                if data is not None:
+                    tilecache.put(metatile.piece_key(self.name, 512, z, x, y), data)
+        return got
 
 
 class IngemmetPlan:
@@ -448,6 +473,8 @@ def _projected_plan(name, upstream):
     # 브라우저가 묻지 않는 타일이다(인도네시아·오스트리아·폴란드·캘리포니아, wetherilli 252)
     if extra.get("maxZoom"):
         last = min(last, extra["maxZoom"] - 1) if last else extra["maxZoom"] - 1
+    if grid is None and metatile.limit(views.METATILE, name) is not False:
+        return MetaPlan(name, upstream, grid, (extra.get("minZoom"), last))
     return WmsPlan(name, upstream, grid, (extra.get("minZoom"), last))
 
 

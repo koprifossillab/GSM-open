@@ -16,6 +16,8 @@ from . import usage
 log = logging.getLogger(__name__)
 
 PREFIX = "swisstopo:"
+#: 메타타일로 받는다 (wetherilli 287) — 1:50만 512 px 2.1–4.5 초, 1 024 px 2.3 초. 큰 장 하나가 칸 넷보다 싸다. `metatile.limit` 의 표
+METATILE = {"swisstopo:": None}
 LAYERS = {"swisstopo:geologische_karte": "ch.swisstopo.geologie-geologische_karte",
           "swisstopo:geocover": "ch.swisstopo.geologie-geocover"}
 ATTRIBUTION = '<a href="https://www.swisstopo.admin.ch/" target="_blank" rel="noopener">© swisstopo</a>'

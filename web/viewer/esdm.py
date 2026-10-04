@@ -8,6 +8,9 @@
   지층명은 영어, 시대·설명은 인도네시아어다. 시대는 값 28 가지(2026-10-04 에 모았다)를 ICS 로 옮긴다(`AGES`)
 - **범례는 보는 범위의 것**(wetherilli 243) — 전체는 1 403 칸이라 사우디(`sgs.py`)처럼 REST 통계 질의로 범위 안의 단위와 면 수를 세고,
   색은 칠하기 규칙(`simobj` 로 가른 1 402 칸)에서 찾는다. REST 의 열 이름은 WMS 와 다르다(`simobj`·`namobj`·`umurobj`, 개수는 `objectid_1`)
+- **광물 잠재력**(wetherilli 280) — 같은 서버 `BGD_TU` 폴더의 금속(3 214)·비금속(6 738) 광물 잠재력 점. **WMS 를 켜지 않았다**(400) —
+  REST `export`·`identify` 로 WMS 꼴을 옮긴다(`arcwms.rest_export_params`). 원본 4326 이지만 3857 로 그린다(1.6 초, 2026-10-05).
+  copyright 는 PSDMBP(광물·석탄·지열 자원센터)
 - 조건: copyright "Pusat Survei Geologi" 뿐, 이용 조건 문서를 찾지 못했다 — **밖에 열기 전에 사람이 읽는다**. CORS 는 Origin 을 되비춘다
 """
 import json
@@ -65,7 +68,55 @@ def _get(url: str, params: dict):
 
 
 DOOR = arcwms.Door(url=_url, layers=LAYERS, queryable=("esdm:geology",), info_format="text/xml", get=_get, error=EsdmError)
-knows, get_map, get_feature_info = DOOR.knows, DOOR.get_map, DOOR.get_feature_info
+#: 광물 잠재력(wetherilli 280) → REST 서비스. 레이어는 둘 다 `0`
+RESOURCES = {"esdm:metal": "BGD_TU/Potensi_Sumber_Daya_dan_Cadangan_Mineral_Logam",
+             "esdm:nonmetal": "BGD_TU/Potensi_Mineral_Bukan_Logam_dan_Batuan"}
+
+
+def _resource(names) -> str:
+    first = str(names or "").split(",")[0].strip()
+    return first if first in RESOURCES else ""
+
+
+def _resource_url(name: str) -> str:
+    return f"{settings.ESDM_URL.rstrip('/')}/rest/services/{RESOURCES[name]}/MapServer"
+
+
+def knows(name: str) -> bool:
+    return DOOR.knows(name) or name in RESOURCES
+
+
+def get_map(params: dict):
+    name = _resource(params.get("layers"))
+    if not name:
+        return DOOR.get_map(params)
+    try:
+        query = arcwms.rest_export_params(params, "0")
+    except ValueError as exc:
+        raise EsdmError(str(exc)) from exc
+    r = _get(f"{_resource_url(name)}/export", query)
+    ctype = r.headers.get("content-type", "")
+    if r.status_code != 200 or not ctype.startswith("image/"):
+        raise EsdmError(f"그림이 아닌 것이 왔다 (status={r.status_code}, type={ctype})")
+    return r.content, ctype
+
+
+def get_feature_info(params: dict) -> dict:
+    name = _resource(params.get("query_layers") or params.get("layers"))
+    if not name:
+        return DOOR.get_feature_info(params)
+    try:
+        query = arcwms.rest_identify_params(params, "0")
+    except ValueError as exc:
+        raise EsdmError(str(exc)) from exc
+    r = _get(f"{_resource_url(name)}/identify", query)
+    try:
+        data = r.json()
+    except ValueError as exc:
+        raise EsdmError("속성이 JSON 이 아니다") from exc
+    if r.status_code != 200 or data.get("error"):
+        raise EsdmError(f"속성을 읽지 못했다 (status={r.status_code})")
+    return {"features": arcwms.identify_features(data, name)}
 
 
 def get_legend(layer: str):
@@ -141,6 +192,12 @@ def age(value: str, lang: str = "ko") -> str:
 
 def friendly(props: dict, lang: str = "ko") -> dict:
     """열 이름을 한국어로. 지층명(영어)·설명(인도네시아어)은 그대로, 시대만 옮긴다"""
+    if "namobj" in props:                       # 광물 잠재력 (wetherilli 280) — 금속(`…lgm`)과 비금속(`…bl`)의 열이 조금 다르다
+        v = lambda *keys: next((str(props[k]).strip() for k in keys if str(props.get(k) or "").strip()), "")   # noqa: E731
+        rows = (("이름", v("namobj")), ("광종", v("jnskom", "jnskombl")), ("광종 갈래", v("kellgm", "kelkombl")),
+                ("기호", v("lbunsur", "lbunsurbl")), ("조사 단계", v("statdiklgm", "statdikbl")), ("곳", v("lokasilgm", "lokasibl")),
+                ("비고", v("remark")))
+        return {k: x for k, x in rows if x}
     rows = (("기호", props.get("NotasiFormasi", "")), ("이름", props.get("NamaFormasi", "")),
             ("설명", props.get("Keterangan", "")), ("지질시대", age(props.get("UmurFormasi", ""), lang)))
     return {k: str(v).strip() for k, v in rows if str(v or "").strip()}

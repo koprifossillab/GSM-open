@@ -21,6 +21,8 @@ from . import arcpoints, tilecache, usage
 log = logging.getLogger(__name__)
 
 PREFIX = "iige:"
+#: 메타타일로 받는다 (wetherilli 287) — 512 px 5.6–7.0 초, 1 024 px 5.4 초. 큰 장 하나가 칸 넷보다 싸다. `metatile.limit` 의 표
+METATILE = {"iige:": None}
 ATTRIBUTION = ('<a href="https://geoportal.geoenergia.gob.ec/" target="_blank" rel="noopener">IIGE</a> '
                "(Instituto de Investigación Geológico y Energético, Ecuador — 비상업)")
 #: 카탈로그의 레이어 → 상류의 WMS 레이어. 하나뿐이다

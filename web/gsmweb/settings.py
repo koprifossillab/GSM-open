@@ -284,6 +284,8 @@ MARS_ZHURONG_FILE = BASE_DIR.parent / "data" / "mars_zhurong.json"
 PALEOMAP_FILE = BASE_DIR.parent / "data" / "paleomap2016.json"
 #: 지각 두께 CRUST 2.0 — 1° 격자 (`viewer/crust.py`, wetherilli 101, `manage.py build_crust <zip>`). CC BY 4.0 이라 저장소에 둔다
 CRUST_FILE = BASE_DIR.parent / "data" / "crust2_thickness.json"
+#: 지구 충돌구(Wikidata, CC0)·거대 화성암 지대(Johansson 2018, CC BY 4.0) (wetherilli 283) — `manage.py build_impacts` 가 굽는다
+IMPACTS_FILE = BASE_DIR.parent / "data" / "earth_impacts.json"
 #: 판 경계·세계 지질구 Hasterok 외 2022 (wetherilli 272) — `manage.py build_tectonics` 가 굽는다. CC BY 4.0
 TECTONICS_FILE = BASE_DIR.parent / "data" / "earth_tectonics.json"
 #: 세계 암상 GLiM 0.5° 격자 (wetherilli 267) — `manage.py build_glim` 이 굽는다. CC BY 3.0
@@ -309,6 +311,8 @@ MERCURY_DIR = env("GSM_MERCURY_DIR") or str(_data_dir() / "mercury")
 #: 온 지구의 큰 자료 — 옛 해안선(`paleocoastlines_v7.json`, wetherilli 097, `manage.py build_paleocoastlines <zip>`) 따위.
 #: 우리 디스크의 파일이다. 없으면 그 레이어가 비고 나머지는 돈다. 운영은 /srv/GSM/db/earth (P07 §5)
 EARTH_DIR = env("GSM_EARTH_DIR") or str(_data_dir() / "earth")
+#: 세계 활성단층 GEM Global Active Faults (wetherilli 279) — `manage.py build_faults` 가 굽는다. CC BY-SA 4.0, 2.9 MB 라 저장소 밖
+FAULTS_FILE = env("GSM_FAULTS_FILE") or str(Path(EARTH_DIR) / "earth_faults.json")
 #: 바람 — 구워 둔 u·v 텍스처 (`viewer/wind.py`, koprifossillab P02). 지금의 바람(GFS)은 호스트 cron 이 `fetch_gfs_wind` 로,
 #: 지난 바람(ERA5)은 사람이 `build_era5_wind` 로 굽는다. 우리 디스크의 파일이다. 없으면 바람 레이어 자리에 안내가 뜬다
 WIND_DIR = env("GSM_WIND_DIR") or str(_data_dir() / "wind")

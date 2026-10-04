@@ -484,6 +484,7 @@ EN = {
         "This piece does not survive to the present — 'today' is where its plate would be",
     # 옛 해안선 (wetherilli 097)
     "그때의 지구": "The Earth then",
+    "구조·판": "Tectonics", "자원": "Resources", "지구물리": "Geophysics", "화산·지진": "Volcanoes and earthquakes", "화석·고생태": "Fossils and palaeoecology", "지리": "Geography",
     "옛 해안선": "Palaeocoastlines",
     "옛 해안선은 이 연대에 없다 (0–535 Ma, 가까운 시점 10 Myr 안)":
         "No palaeocoastline for this age (0–535 Ma, nearest within 10 Myr)",
@@ -538,6 +539,19 @@ EN = {
     "지각 (CRUST 2.0)": "Crust (CRUST 2.0)",
     "지각 두께": "Crustal thickness",
     "약 {km} km — CRUST 2.0, 2° 칸의 모형이다": "About {km} km — CRUST 2.0, a model on 2° cells",
+    # 충돌구·거대 화성암 지대 (wetherilli 283)
+    "충돌구·거대 화성암 지대": "Impact craters & large igneous provinces", "충돌구": "Impact craters",
+    "거대 화성암 지대 (LIP)": "Large igneous provinces (LIP)", "충돌구 — 원의 크기는 지름": "Impact crater — circle size shows diameter",
+    "이름 없는 화성암 지대": "Unnamed igneous province", "판 회전으로 옮긴다": "Moved with plate rotation",
+    "바다 밑이라 옮기지 않는다": "On the sea floor — not moved", "여기에는 없다": "Nothing here",
+    "색은 생긴 때. 대륙 위의 것은 판 회전으로 그때의 자리에 — 계산이지 관측이 아니다":
+        "Colour shows emplacement age. Continental ones move with plate rotation — computed, not observed",
+    "신생대 (66 Ma 안쪽)": "Cenozoic (under 66 Ma)", "데본기·실루리아기": "Devonian–Silurian", "오르도비스기·캄브리아기": "Ordovician–Cambrian",
+    "원생대": "Proterozoic",
+    # 세계 활성단층 GEM (wetherilli 279)
+    "활성단층 (GEM)": "Active faults (GEM)", "역단층·섭입": "Reverse / subduction", "주향이동·변환": "Strike-slip / transform",
+    "사교 (주향이동+경사이동)": "Oblique (strike-slip + dip-slip)", "확장 해령": "Spreading ridge", "습곡·갈래 모름": "Fold / unknown",
+    "이름 없는 단층": "Unnamed fault", "여기에는 활성단층이 없다": "No active fault here",
     # 세계 광상 USGS (wetherilli 276)
     "세계 광상 (USGS)": "Mineral deposits (USGS)", "이름 없는 곳": "Unnamed site",
     "구리": "Copper", "금·은·백금족": "Gold, silver and PGE", "납·아연": "Lead and zinc", "철·합금 금속": "Iron and ferro-alloy metals",
@@ -1851,6 +1865,11 @@ EN = {
 # 모았다. 영문 열(`symnum`·`GRAY_INDEX` …)은 그대로 둔다.
 
 PROP_EN = {
+    # 충돌구·LIP (wetherilli 283)
+    "생긴 때 (Ma)": "Age (Ma)", "그때의 지구": "Past positions", "지름 (km)": "Diameter (km)",
+    # 세계 활성단층 (wetherilli 279)
+    "미끄럼 (원문)": "Slip type (source)", "레이크 (°)": "Rake (°)", "미끄럼 속도 (mm/yr)": "Slip rate (mm/yr)",
+    "지진 발생 깊이 (km)": "Seismogenic depth (km)", "원 목록": "Source catalogue",
     # 세계 광상 (wetherilli 276)
     "딸린 광종": "Secondary commodities", "생산 규모": "Production size", "광상 유형": "Deposit type",
     "광석 광물": "Ore minerals", "총 광량 (Mt)": "Tonnage (Mt)", "품위": "Grade",
@@ -2396,8 +2415,10 @@ PROP_EN = {
     # 독일 BGR·스페인 IGME (wetherilli 147)
     "대": "Era",
     "성인": "Genesis",
+    "광종 (태국어)": "Commodity (Thai)", "군": "District", "탐사 단계": "Exploration status", "광종 갈래": "Commodity group", "조사 단계": "Survey stage",
     "딸린 광종": "Other commodities", "채굴 기간": "Years mined", "총 광량 (Mt)": "Total tonnage (Mt)", "광석 광물": "Ore minerals",
     "광화 시기": "Age of mineralisation", "광상 유형": "Deposit type", "생산 끝": "Production ended",
+    "시대 기호": "Age code", "자원량": "Resources",
     "영국 격자": "British National Grid",
     # 남미 광물 자원 (wetherilli 265)
     "중요도": "Importance", "광산": "Mine status", "모암": "Host rock", "광체 형태": "Ore body form", "광화 지역": "Mineral province",
@@ -3076,8 +3097,11 @@ def props_en(props: dict) -> dict:
 # 레이어 이름을 열쇠로 여기 둔다. 없으면 한국어 제목이 뜬다.
 
 GROUP_EN = {
+    "인도네시아 광물 자원 (ESDM)": "Indonesia mineral resources (ESDM)", "필리핀 광물 자원 (MGB)": "Philippines mineral resources (MGB)",
+    "태국 광물 (DMR)": "Thailand minerals (DMR)", "사우디 광물 (SGS)": "Saudi Arabia minerals (SGS)", "몽골 광물 (MRIS)": "Mongolia minerals (MRIS)",
     "핀란드 지구물리 (GTK)": "Finland geophysics (GTK)", "북유럽 광상 (FODD)": "Fennoscandian ore deposits (FODD)",
     "스웨덴 광물·지구물리 (SGU)": "Sweden minerals and geophysics (SGU)",
+    "페루 광물 자원 (INGEMMET)": "Peru mineral resources (INGEMMET)", "페루 지구물리 (INGEMMET)": "Peru geophysics (INGEMMET)",
     "영국 지구물리 (BGS)": "UK geophysics (BGS)", "영국 광물 자원 (BGS)": "UK mineral resources (BGS)",
     "그린란드 지구물리·지질구 (GEUS)": "Greenland geophysics and provinces (GEUS)",
     "브라질 광물 자원 (SGB)": "Brazil mineral resources (SGB)", "콜롬비아 금속광상·지구물리 (SGC)": "Colombia metallogeny and geophysics (SGC)",
@@ -3218,14 +3242,25 @@ GROUP_EN = {
     "멕시코 지질도 (SGM 1:25만)": "Mexico geology (SGM 1:250k)",
     "호주 지표 지질도 (GA 1:250만·1:100만)": "Australia surface geology (GA 1:2.5M · 1:1M)",
     "멕시코 지질도 (SGM 1:5만, 광업 지구)": "Mexico geology (SGM 1:50k, mining districts)",
-    "멕시코 지질 연대·화석 (SGM)": "Mexico geochronology and fossils (SGM)", "멕시코 광상 (SGM 1:25만)": "Mexico mineral deposits (SGM 1:250k)", "멕시코 지화학 (SGM)": "Mexico geochemistry (SGM)",
+    "멕시코 지질 연대·화석 (SGM)": "Mexico geochronology and fossils (SGM)", "멕시코 광상 (SGM 1:25만)": "Mexico mineral deposits (SGM 1:250k)", "멕시코 지화학 (SGM)": "Mexico geochemistry (SGM)", "멕시코 지구물리 (SGM)": "Mexico geophysics (SGM)",
 }
 
 LAYER_EN = {
+    # 아시아 광물 (wetherilli 280)
+    "esdm:metal": "Metallic mineral potential", "esdm:nonmetal": "Non-metallic mineral and rock potential",
+    "mgb:metallic": "Metallic mineral resources", "mgb:nonmetallic": "Non-metallic mineral resources",
+    "dmr:min_occ": "Mineral occurrences", "dmr:critical": "Critical mineral occurrences",
+    "sgs:mods": "Mineral occurrences (MODS)", "sgs:belts": "Mineralization belts (gold, nickel, zinc, VMS)",
+    "mris:ree": "Rare earth deposits, mineralized points and occurrences",
     # 북유럽 광물·지구물리 (wetherilli 270)
     "gtk:aeromagneettinen_anomaliakartta": "Aeromagnetic anomaly", "gtk:aeroradiometrinen_yhdistelmakartta": "Aeroradiometric ternary (K·Th·U)",
     "gtk:fennoscandia_mineral_deposit": "Ore deposits (Norway, Sweden, Finland, NW Russia)",
     "sgu:minerals": "Mineral and rock occurrences", "sgu:magnetic": "Magnetic anomaly",
+    # 페루 광물·지구물리 (wetherilli 277)
+    "ingemmet:deposits": "Mineral deposits (Yacimientos mineros)", "ingemmet:projects": "Mining projects and operations",
+    "ingemmet:occ_metal": "Metallic mineral occurrences (10–18° S)", "ingemmet:occ_nonmetal": "Non-metallic mineral occurrences (10–18° S)",
+    "ingemmet:belts": "Metallogenic belts (Franjas metalogenéticas)", "ingemmet:bouguer": "Bouguer gravity anomaly",
+    "ingemmet:aeromag": "Aeromagnetics",
     # 영국 GeoIndex (wetherilli 258)
     "bgsgi:magnetic": "Magnetic anomalies (colour shaded)", "bgsgi:gravity": "Gravity anomalies (colour shaded)",
     "bgsgi:mines": "Mines and quarries (BritPits)", "bgsgi:occurrences": "Mineral occurrences (MINGOL)",
@@ -3519,6 +3554,7 @@ LAYER_EN = {
     "sgm:edades:0": "Geochronology samples", "sgm:paleo:0": "Fossil localities", "sgm:yac:0": "Mines and deposits (1:250k)",
     "sgm:yac:3": "Mineralized regions", "sgm:yac:2": "Mining districts",
     # 멕시코 지화학·광상 나머지 (wetherilli 233)
+    "sgm:datos:7": "Magnetic field 1:250k (colour classes)",
     "sgm:geoq:0": "Stream-sediment geochemistry samples",
     "sgm:anom250:0": "Silver (Ag) anomalies (1:250k)", "sgm:anom250:1": "Cobalt (Co) anomalies (1:250k)", "sgm:anom250:2": "Copper (Cu) anomalies (1:250k)", "sgm:anom250:3": "Manganese (Mn) anomalies (1:250k)", "sgm:anom250:4": "Lead (Pb) anomalies (1:250k)", "sgm:anom250:5": "Zinc (Zn) anomalies (1:250k)",
     "sgm:anom50:0": "Silver (Ag) anomalies (1:50k)", "sgm:anom50:1": "Cobalt (Co) anomalies (1:50k)", "sgm:anom50:2": "Copper (Cu) anomalies (1:50k)", "sgm:anom50:3": "Manganese (Mn) anomalies (1:50k)", "sgm:anom50:4": "Lead (Pb) anomalies (1:50k)", "sgm:anom50:5": "Zinc (Zn) anomalies (1:50k)",

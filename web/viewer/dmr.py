@@ -60,10 +60,25 @@ def _get(url: str, params: dict):
 
 
 DOOR = arcwms.Door(url=_url, layers=LAYERS, queryable=("dmr:rock_units",), get=_get, error=DmrError)
-knows, get_map = DOOR.knows, DOOR.get_map
+#: 광물(wetherilli 280) → `MINERAL` 폴더의 서비스. 광물 산지 5 597·핵심 광물 249. WMS 이름은 `0`, 원본은 32647 이지만 3857 로 그린다
+RESOURCES = {"dmr:min_occ": "MIN_OCC", "dmr:critical": "CRITICAL_MINERAL"}
+DOORS = {name: arcwms.Door(url=lambda s=service: f"{_base()}/services/MINERAL/{s}/MapServer/WMSServer",
+                           layers={name: "0"}, queryable=(name,), get=_get, error=DmrError)
+         for name, service in RESOURCES.items()}
+
+
+def knows(name: str) -> bool:
+    return DOOR.knows(name) or name in RESOURCES
+
+
+def get_map(params: dict):
+    first = str(params.get("layers") or "").split(",")[0].strip()
+    return DOORS[first].get_map(params) if first in DOORS else DOOR.get_map(params)
 
 
 def get_legend(layer: str):
+    if layer in DOORS:
+        return DOORS[layer].get_legend(layer)
     raise DmrError("그림 범례 대신 목록 범례(`legend_rows`)를 쓴다")
 
 
@@ -113,6 +128,9 @@ def legend_rows(layer: str) -> list:
 
 def get_feature_info(params: dict) -> dict:
     """속성에 단위 이름(`_name`)을 범례에서 찾아 붙인다 — 상류는 기호만 준다. 범례를 못 받아도 속성은 낸다"""
+    first = str(params.get("query_layers") or params.get("layers") or "").split(",")[0].strip()
+    if first in DOORS:
+        return DOORS[first].get_feature_info(params)
     data = DOOR.get_feature_info(params)
     try:
         names = {s: n for s, n, _ in _legend()}
@@ -127,8 +145,24 @@ def get_feature_info(params: dict) -> dict:
     return data
 
 
+#: 광물 산지·핵심 광물의 열 — 산지는 geojson 의 열 이름이 태국어 별칭으로 온다(`ชื่อทางการค้า(ภาษาอังกฤษ)`), 핵심 광물은 필드 이름(`COMNAME_E`)
+_MINERAL_COLS = (("광종", ("COMNAME_E", "ชื่อทางการค้า(ภาษาอังกฤษ)")), ("광종 (태국어)", ("COMNAME_T", "ชื่อทางการค้า(ภาษาไทย)")),
+                 ("기호", ("COM_SYMBOL", "สัญลักษณ์แร่")), ("곳", ("PROVINCE_E", "PROVINCE_T")), ("군", ("AMPHOE_E", "AMPHOE_T")))
+
+
+def mineral_friendly(props: dict) -> dict:
+    out = {}
+    for label, keys in _MINERAL_COLS:
+        value = next((str(props.get(k)).strip() for k in keys if str(props.get(k) or "").strip() not in ("", "Null")), "")
+        if value:
+            out[label] = value
+    return out
+
+
 def friendly(props: dict, lang: str = "ko") -> dict:
     """열 이름을 한국어로. 이름은 태국어 그대로, 시대는 기호에서 풀어 옮긴다"""
+    if any(k in props for k in ("COMNAME_E", "COM_SYMBOL", "สัญลักษณ์แร่", "ชื่อทางการค้า(ภาษาอังกฤษ)")):
+        return mineral_friendly(props)               # 광물 산지·핵심 광물 (wetherilli 280)
     symbol = str(props.get(SYMBOL) or "").strip()
     age = age_of(symbol)
     rows = (("기호", symbol), ("이름", props.get("_name", "")),

@@ -280,7 +280,9 @@ WMS·z/x/y·우리가 굽는 것) 계획을 따로 둔다 (029).
   (IHFC 2024, CC BY 4.0, `heatflow.py`, `<EARTH_DIR>/heatflow.sqlite` — `manage.py build_heatflow <zip>`, 점 레이어, wetherilli 267)·**판 경계·세계 지질구**(Hasterok 2022, CC BY 4.0, `tectonics.py`, `data/earth_tectonics.json` —
   `manage.py build_tectonics <폴더>`, 레이어 `tbound`·`tprov` — 판 회전의 `plates` 와 섞지 않는다, wetherilli 272)·**지각 응력**(World Stress Map 2025, CC BY 4.0, `stress.py`, `<EARTH_DIR>/stress.sqlite` — `manage.py build_stress <csv>`,
   품질 E 는 뺀다, wetherilli 273)·**세계 광상**(USGS MRDS·세계 광상 평가, 공공 도메인, `minerals.py`, `<EARTH_DIR>/minerals.sqlite` —
-  `manage.py build_minerals <폴더>`, 광종 칸 여섯, 골재·석재는 뺀다, wetherilli 276)와 **지명 찾기·산맥·바다 이름·강·호수·빙하**
+  `manage.py build_minerals <폴더>`, 광종 칸 여섯, 골재·석재는 뺀다, wetherilli 276)·**세계 활성단층**(GEM Global Active Faults, **CC BY-SA 4.0** — 구운 것도 같은 조건, `faults.py`,
+  `<EARTH_DIR>/earth_faults.json` — `manage.py build_faults <geojson>`, wetherilli 279)·**충돌구·거대 화성암 지대**(Wikidata CC0·Johansson 2018 CC BY 4.0,
+  `impacts.py`, `data/earth_impacts.json` — `manage.py build_impacts`. LIP 레이어는 `always` — 대륙 위의 것은 PALEOMAP 판으로 옮긴다, wetherilli 283)와 **지명 찾기·산맥·바다 이름·강·호수·빙하**
   (Natural Earth 10 m, `naturalearth.py`, `data/earth_places.json`·`earth_water.json`·`earth_ice.json` — `manage.py build_natural_earth`,
   wetherilli 102). 이름표는 타일이 아니라 화면이 쓴다(`labels: true` 레이어). `ka: true` 는 0 보다 오래고 1 Ma 안쪽일 때만 —
   **최근 빙기의 빙상 가장자리**(NADI-1·DATED-1, `icemargins.py`, `data/ice_margins.json` — `manage.py build_ice_margins`, wetherilli 104).
@@ -461,6 +463,7 @@ web/viewer/       뷰어 앱 하나뿐이다. 앱을 더 가르지 않는다
   gsi.py          아일랜드 지질조사소(GSI)로 나가는 문 (섬 전체 1:100만·공화국 1:10만 ArcGIS WMS)
   sgc.py          콜롬비아 지질조사소(SGC)로 나가는 문 (남미 1:500만 CGMW 2019·콜롬비아 1:50만 2023 ArcGIS WMS, 3857 로. 금속광상도·지구물리 이상 2022 도 — wetherilli 265). 이름은 `sgc:<판>:<번호>`
   ingemmet.py     페루 지질광업야금연구소(INGEMMET)로 나가는 문 (GEOCATMIN 1:5만·1:10만 통합판 — 그림은 REST 타일 캐시 z/x/y 중계, 누른 자리는 REST query, 범례는 보는 범위의 통계 질의. 단층·습곡은 SERV_GEOLOGIA_FALLAS 의 export 를 타일 칸으로, 1:5만 지질 단위만은 암상 레이어 export — 줌 9 부터, wetherilli 234)
+                  광물 산지·광상·사업·금속 광화대·부게 이상·항공 자력도 — 다른 서비스의 export(자력은 ImageServer exportImage)를 타일 칸으로, 누른 자리는 REST query (wetherilli 277)
   ispra.py        이탈리아 지질조사소(ISPRA)로 나가는 문 (1:100만·1:10만 ArcGIS WMS 를 3857 로, 속성은 GeoJSON. 1:100만은 WMS·REST 번호가 거꾸로)
   lneg.py         포르투갈 국립 에너지·지질연구소(LNEG)로 나가는 문 (1:50만 ArcGIS WMS 를 3857 로, 속성은 ESRI XML)
   swisstopo.py    스위스 연방 지형청(swisstopo)으로 나가는 문 (1:50만·GeoCover geo.admin.ch WMS 를 3857 로, 속성은 geo.admin.ch REST identify)
@@ -471,12 +474,17 @@ web/viewer/       뷰어 앱 하나뿐이다. 앱을 더 가르지 않는다
   gns.py          GNS Science(뉴질랜드)로 나가는 문 (QMAP 1:25만 합본·1:100만 GeoServer WMS, 3857 로. 같은 서버의 남극 남빅토리아랜드 1:25만은 3031 로. 속성은 열을 골라 묻는다)
                   중력 이상은 GNS 전체 서비스(`/gns/wms`, `GNS_ALL_WMS_URL`)에서 (wetherilli 269)
   mris.py         몽골 국가지질조사소 MonGeoCat 으로 나가는 문 (국가지질도첩 지질도·1:50만 단층 ArcGIS WMS, 3857 로. 문서에 없는 주소, WMS·REST 번호가 거꾸로, 시대는 러시아식 층서 지수에서 푼다)
+                  희토류(Atlas 12_REE — WMS 가 없어 REST export·identify, wetherilli 280)
   gsiindia.py     인도 지질조사소(GSI) 1:200만으로 나가는 문 (그림은 BGS 의 OneGeology WMS, 누른 자리는 GSI 의 ArcGIS Online 피처 서비스 — Bhukosh 가 나라 밖에서 닿지 않아 둘을 엮는다)
   sgs.py          사우디 지질조사소(SGS) 국가 지질 자료로 나가는 문 (1:25만 합본 ArcGIS WMS, 원본 3857. 범례는 1 337 칸이라 보는 범위의 것 — REST 통계 질의)
+                  광물 산지 MODS 5 751·광화대(다른 서비스의 WMS, wetherilli 280)
   esdm.py         인도네시아 지질청(ESDM)으로 나가는 문 (1:10만 편집 2018 ArcGIS WMS, 3857 로. 줌 10 너머는 상류가 그리지 않아 화면이 늘린다. 속성은 ESRI XML, 범례는 보는 범위의 REST 통계 — wetherilli 243)
+                  금속·비금속 광물 잠재력(BGD_TU 폴더, WMS 가 없어 REST export·identify — `arcwms.rest_*`, wetherilli 280)
   jmg.py          말레이시아 광물지구과학국(JMG MyGEMS)으로 나가는 문 (주별 암상·연대 ArcGIS REST — WMS 가 꺼져 있어 export·identify 로 옮긴다, 주 열다섯을 한 장에)
   mgb.py          필리핀 광산지질국(MGB)으로 나가는 문 (지역 지질도 ArcGIS WMS, 공개 폴더만. 속성은 ESRI XML)
+                  금속·비금속 광물 자원(같은 공개 폴더의 다른 서비스, 문을 하나씩, wetherilli 280)
   dmr.py          태국 광물자원국(DMR)으로 나가는 문 (암석 단위 1:25만 ArcGIS WMS. 속성이 기호뿐이라 REST 범례에서 이름을 찾아 붙이고, 시대는 기호에서 푼다)
+                  광물 산지·핵심 광물(MINERAL 폴더 WMS, 산지의 열은 태국어 별칭, wetherilli 280)
   sgm.py          멕시코 지질조사소(SGM)로 나가는 문 (1:25만·1:5만 ArcGIS REST — WMS 가 400 이라 WMS 변수를 export·identify 로 옮긴다, 범례는 보는 범위)
                   같은 서버의 지질 연대 측정·고생물 산지·광상 1:25만도(`sgm:<서비스>:<번호>`, `SERVICES`, wetherilli 219), 지화학·원소 이상·광산 1:5만도
                   (원소 이상의 범례는 REST 범례의 기호 그림 — 함량 구간, wetherilli 233)
@@ -524,7 +532,7 @@ web/viewer/       뷰어 앱 하나뿐이다. 앱을 더 가르지 않는다
   zhurong.py      주룽 로버 경로 파일(data/mars_zhurong.json) -> 착륙지·경로. Trek 에 없는 것을 덧붙인다. 문이 아니다
   elevation.py    표고로 나가는 문 — AWS 표고 타일·국토지리원 표고 타일·PGC(ArcticDEM·REMA). 시료 고도, 3D 의 일본 지형
   arcpoints.py    ArcGIS 점을 받아 담는 틀. grportal·npolar 가 함께 쓴다. 칠하기 규칙 → 색 표(`renderer_colors`, ingemmet·iige). requests 없음
-  arcwms.py       ArcGIS WMS 를 중계하는 문들의 틀 — 문이 제 `_get` 을 넘기고 이것은 변수를 고치고 응답(geojson·ESRI XML)·REST 범례를 읽는다(esdm·mgb·dmr). requests 없음
+  arcwms.py       ArcGIS WMS 를 중계하는 문들의 틀 — 문이 제 `_get` 을 넘기고 이것은 변수를 고치고 응답(geojson·ESRI XML)·REST 범례를 읽는다(esdm·mgb·dmr). requests 없음. WMS 를 켜지 않은 서비스는 WMS 꼴 변수를 REST export·identify 로 옮긴다(`rest_export_params`·`rest_identify_params`)
   geomap.py       남극 GeoMAP 파일을 sqlite3·struct·Pillow 로 그린다. 3031 타일 격자
   janmayen.py     얀마옌 지질도 파일(NPI) -> 위경도 GeoJSON
   geo3al.py       중국 USGS geo3al 셰이프파일(람베르트) -> 위경도 GeoJSON. 연구실 내부용
@@ -547,6 +555,8 @@ web/viewer/       뷰어 앱 하나뿐이다. 앱을 더 가르지 않는다
   ocean.py        해류 u·v 표층 -> PNG 텍스처(R=u·G=v·B=바다), 목록. 유속 파일의 밀린 경도를 바로잡는다. 굽기는 호스트에서만(numpy). 문이 아니다
   wind.py         바람 u·v 격자 -> PNG 텍스처(R=u·G=v), 구름량 -> 회색 PNG, 그리고 목록. 굽기는 호스트에서만(numpy). 문이 아니다
   crust.py        지각 두께 CRUST 2.0 (data/crust2_thickness.json) -> 경위도 타일·누른 자리의 두께. 문이 아니다
+  impacts.py      지구 충돌구(Wikidata CC0)·거대 화성암 지대(Johansson 2018) (data/earth_impacts.json) -> 경위도 타일. LIP 는 PALEOMAP 판으로 그때의 자리에. 문이 아니다
+  faults.py       세계 활성단층 GEM Global Active Faults (<EARTH_DIR>/earth_faults.json, CC BY-SA 4.0) -> 경위도 선 타일·누른 자리의 단층. 문이 아니다
   minerals.py     USGS MRDS·세계 광상 표 여섯 CSV -> sqlite(R*Tree) -> 광종 칸 여섯의 경위도 점 타일·누른 자리. 문이 아니다
   stress.py       World Stress Map 2025 CSV -> sqlite(R*Tree) -> 경위도 S_Hmax 막대 타일(체제의 색, 품질의 길이)·누른 자리. 문이 아니다
   tectonics.py    판 경계·세계 지질구 Hasterok 2022 (data/earth_tectonics.json) -> 경위도 선·면 타일·누른 자리의 지질구. 판 회전(paleo)과 다른 모형. 문이 아니다
@@ -582,7 +592,7 @@ devlog/           왜 그렇게 했는지 — 색인은 devlog/README.md
 이 일흔다섯 말고는 어디서도 `requests` 를 쓰지 않는다. `gfs.py`·`era5.py`·`gmgsi.py`·`ecco.py` 는 **호스트에서만** 부른다 — 바람·해류를 받아
 굽는 일(numpy·ecCodes·numcodecs, `requirements-wind.txt`)이 `/srv/GSM/scripts/run.sh` 의 전용 venv 에서 돌고(koprifossillab 005), 컨테이너는 구운 PNG 를 내주기만 한다(koprifossillab P02). `linked.py` 만은 주소를 우리가 정하지 않는다 — 개인 레이어를 남의 API 에
 이을 때 브라우저가 곧장 못 받으면 거친다(wetherilli P09·122). 사설망은 `GSM_LINKED_ALLOW` 에 적은 호스트만, 밖에 열면 닫는다. 뷰가 직접 부르지 않는다. 상류가 바뀌거나 주소가
-닫힐 때 고칠 자리를 하나로 묶어두려는 것이다. `geomap.py`·`janmayen.py`·`geo3al.py`·`peninsula.py`·`moonmap.py`·`caribmap.py`·`ibcso.py`·`admap.py`·`kigam50k.py`·`kigamdata.py`·`zhurong.py`·`marscraters.py`·`marsmap.py`·`mercurymap.py`·`spamap.py`·`paleo.py`·`paleocoast.py`·`fossils.py`·`volcanoes.py`·`quakes.py`·`paleoeco.py`·`crust.py`·`minerals.py`·`stress.py`·`tectonics.py`·`seafloor.py`·`glim.py`·`heatflow.py`·`naturalearth.py`·`icemargins.py`·`mantle.py`·`earthpoints.py`·`pointvalues.py` 는
+닫힐 때 고칠 자리를 하나로 묶어두려는 것이다. `geomap.py`·`janmayen.py`·`geo3al.py`·`peninsula.py`·`moonmap.py`·`caribmap.py`·`ibcso.py`·`admap.py`·`kigam50k.py`·`kigamdata.py`·`zhurong.py`·`marscraters.py`·`marsmap.py`·`mercurymap.py`·`spamap.py`·`paleo.py`·`paleocoast.py`·`fossils.py`·`volcanoes.py`·`quakes.py`·`paleoeco.py`·`crust.py`·`impacts.py`·`faults.py`·`minerals.py`·`stress.py`·`tectonics.py`·`seafloor.py`·`glim.py`·`heatflow.py`·`naturalearth.py`·`icemargins.py`·`mantle.py`·`earthpoints.py`·`pointvalues.py` 는
 상류가 아니라 우리 디스크의 파일을 읽으므로 문이 아니다. `warp.py` 도 문이 아니다 — 원본은 부르는 쪽이 넘긴다. 문은 서로를 타지 않는다 —
 주소 검색은 KIGAM 을 거치지 않고, KIGAM 인증키도 쓰지 않는다.
 

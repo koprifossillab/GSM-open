@@ -1,12 +1,13 @@
 {
- "_주석": "사우디 지질조사소(SGS) 국가 지질 자료(NGD)의 1:25만 합본 씨앗이다 — 사우디아라비아 탭. 2026-10-04 에 ngdgis.sgs.gov.sa 의 WMS Capabilities 에서 골랐다. 나라 전체가 아니라 서부와 둘레의 도폭이다. 한글 제목과 레이어군은 사람이 붙였다 (wetherilli 227).",
+ "_주석": "사우디 지질조사소(SGS) 국가 지질 자료(NGD)의 1:25만 합본 씨앗이다 — 사우디아라비아 탭. 2026-10-04 에 ngdgis.sgs.gov.sa 의 WMS Capabilities 에서 골랐다. 나라 전체가 아니라 서부와 둘레의 도폭이다. 한글 제목과 레이어군은 사람이 붙였다 (wetherilli 227). 광물 산지 MODS·광화대는 같은 서버의 다른 서비스다 (wetherilli 280).",
  "_뽑은날": "2026-10-04",
  "_출처": "https://ngdgis.sgs.gov.sa/ngdgis/services/Geology/Geology_250K/MapServer/WMSServer?SERVICE=WMS&REQUEST=GetCapabilities",
  "_지역": "saudi",
  "_상류": "sgs",
  "_레이어군차례": 1,
  "레이어군순서": [
-  "사우디 지질도 1:25만 (SGS)"
+  "사우디 지질도 1:25만 (SGS)",
+  "사우디 광물 (SGS)"
  ],
  "레이어": [
   {
@@ -18,6 +19,30 @@
     34.5,
     16.3,
     48.0,
+    32.2
+   ]
+  },
+  {
+   "name": "sgs:mods",
+   "title": "광물 산지 (MODS)",
+   "group": "사우디 광물 (SGS)",
+   "abstract": "Mineral Occurrence Documentation System — 5 751 곳",
+   "bbox": [
+    34.5,
+    16.3,
+    55.7,
+    32.2
+   ]
+  },
+  {
+   "name": "sgs:belts",
+   "title": "광화대 (금·니켈·아연·VMS)",
+   "group": "사우디 광물 (SGS)",
+   "abstract": "Mineralization Belts — 면 16",
+   "bbox": [
+    34.5,
+    16.3,
+    55.7,
     32.2
    ]
   }

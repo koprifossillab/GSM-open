@@ -1,12 +1,13 @@
 {
- "_주석": "필리핀 광산지질국(MGB) 씨앗이다 — 필리핀 탭(동남아 묶음에도 든다). 2026-10-04 에 controlmap.mgb.gov.ph 의 공개 폴더 WMS 에서 골랐다. 한글 제목과 레이어군은 사람이 붙였다 (wetherilli 228).",
+ "_주석": "필리핀 광산지질국(MGB) 씨앗이다 — 필리핀 탭(동남아 묶음에도 든다). 2026-10-04 에 controlmap.mgb.gov.ph 의 공개 폴더 WMS 에서 골랐다. 한글 제목과 레이어군은 사람이 붙였다 (wetherilli 228). 광물 자원은 같은 공개 폴더의 다른 서비스다 (wetherilli 280).",
  "_뽑은날": "2026-10-04",
  "_출처": "https://controlmap.mgb.gov.ph/arcgis/services/GeospatialDataInventory_Public/GDI_Regional_Geology_Public/MapServer/WMSServer?SERVICE=WMS&REQUEST=GetCapabilities",
  "_지역": "philippines",
  "_상류": "mgb",
  "_레이어군차례": 1,
  "레이어군순서": [
-  "필리핀 지질도 (MGB)"
+  "필리핀 지질도 (MGB)",
+  "필리핀 광물 자원 (MGB)"
  ],
  "레이어": [
   {
@@ -14,6 +15,30 @@
    "title": "지역 지질도",
    "group": "필리핀 지질도 (MGB)",
    "abstract": "Regional Geology (GeospatialDataInventory_Public) — 축척은 적혀 있지 않다(1:100만급)",
+   "bbox": [
+    116.9,
+    4.6,
+    126.6,
+    21.1
+   ]
+  },
+  {
+   "name": "mgb:metallic",
+   "title": "금속 광물 자원",
+   "group": "필리핀 광물 자원 (MGB)",
+   "abstract": "GDI Metallic Mineral Resources — 655 곳",
+   "bbox": [
+    116.9,
+    4.6,
+    126.6,
+    21.1
+   ]
+  },
+  {
+   "name": "mgb:nonmetallic",
+   "title": "비금속 광물 자원",
+   "group": "필리핀 광물 자원 (MGB)",
+   "abstract": "GDI Non Metallic Mineral Resources — 52 곳",
    "bbox": [
     116.9,
     4.6,

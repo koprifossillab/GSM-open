@@ -17,11 +17,13 @@ import re
 import requests
 from django.conf import settings
 
-from . import i18n, usage
+from . import arcwms, i18n, usage
 
 log = logging.getLogger(__name__)
 
 PREFIX = "mris:"
+#: 메타타일로 받는다 (wetherilli 287) — 512 px 4.3–6.9 초, 1 024 px 7.0 초. 큰 장 하나가 칸 넷보다 싸다. `metatile.limit` 의 표
+METATILE = {"mris:": None}
 ATTRIBUTION = ('<a href="https://webgis.mris.mn/" target="_blank" rel="noopener">MonGeoCat</a> — '
                "National Geological Survey of Mongolia")
 #: 우리 이름 → (서비스, WMS 번호, REST 번호). 국경(WMS 0)은 부르지 않는다
@@ -29,7 +31,7 @@ LAYERS = {
     "mris:geology:1": ("1_Geology", "1", "0"),
     "mris:faults:0": ("2_Faults", "0", "0"),
 }
-QUERYABLE = ("mris:geology:1",)
+QUERYABLE = ("mris:geology:1", "mris:ree")
 LEGEND_LAYERS = ("mris:geology:1",)
 TIMEOUT = 45
 
@@ -39,7 +41,22 @@ class MrisError(RuntimeError):
 
 
 def knows(name: str) -> bool:
-    return str(name or "") in LAYERS
+    return str(name or "") in LAYERS or str(name or "") in RESOURCES
+
+
+#: 희토류(wetherilli 280) → (Atlas 서비스, REST 번호들). `12_REE` 는 WMS 를 켜지 않아 REST `export`·`identify` 로 옮긴다 —
+#: 광상 6·광화 지점 280·산지 85. 같은 폴더의 `AtlasPoints` 는 광상 레이어(6–9)가 모두 우물 자료를 돌려줘 쓰지 않는다(2026-10-05)
+RESOURCES = {"mris:ree": ("12_REE", "2,3,4")}
+
+
+def _resource(names) -> str:
+    first = str(names or "").split(",")[0].strip()
+    return first if first in RESOURCES else ""
+
+
+def _resource_get(name: str, path: str, query: dict):
+    service, _ = RESOURCES[name]
+    return _get(f"{_rest_url(service)}/{path}", query)
 
 
 def _service(names: str) -> tuple:
@@ -92,6 +109,16 @@ def _wms(params: dict, request: str) -> tuple:
 
 
 def get_map(params: dict):
+    name = _resource(params.get("layers"))
+    if name:
+        try:
+            r = _resource_get(name, "export", arcwms.rest_export_params(params, RESOURCES[name][1]))
+        except ValueError as exc:
+            raise MrisError(str(exc)) from exc
+        ctype = r.headers.get("content-type", "")
+        if r.status_code != 200 or not ctype.startswith("image/"):
+            raise MrisError(f"그림이 아닌 것이 왔다 (status={r.status_code}, type={ctype})")
+        return r.content, ctype
     service, params = _wms(params, "GetMap")
     r = _get(_wms_url(service), params)
     ctype = r.headers.get("content-type", "")
@@ -105,6 +132,16 @@ def get_legend(layer: str):
 
 
 def get_feature_info(params: dict) -> dict:
+    name = _resource(params.get("query_layers") or params.get("layers"))
+    if name:
+        try:
+            r = _resource_get(name, "identify", arcwms.rest_identify_params(params, RESOURCES[name][1]))
+            data = r.json()
+        except ValueError as exc:
+            raise MrisError(str(exc)) from exc
+        if r.status_code != 200 or data.get("error"):
+            raise MrisError(f"속성을 읽지 못했다 (status={r.status_code})")
+        return {"features": arcwms.identify_features(data, name)}
     service, params = _wms(params, "GetFeatureInfo")
     params["info_format"] = "application/geojson"
     if "i" in params and "x" not in params:
@@ -211,8 +248,17 @@ def _value(props: dict, key: str) -> str:
     return "" if value.lower() in ("null", "none") else value
 
 
+def ree_friendly(props: dict) -> dict:
+    """희토류 산지 (wetherilli 280) — 영어 이름·성인이 있으면 그것, 없으면 몽골어"""
+    v = lambda *keys: next((_value(props, k) for k in keys if _value(props, k)), "")   # noqa: E731
+    rows = (("이름", v("Name", "Ord_ilreli")), ("성인", v("Ore_genesis", "garal_uuse")), ("도폭", v("SHEET_REF")))
+    return {k: x for k, x in rows if x}
+
+
 def friendly(props: dict, lang: str = "ko") -> dict:
     """열 이름을 한국어로. 값은 영어 열을 쓰고(몽골어는 "원 이름"), 지질시대만 기호에서 풀어 옮긴다"""
+    if "Ore_genesis" in props or "garal_uuse" in props or "Ord_ilreli" in props:
+        return ree_friendly(props)
     rows = (("기호", _value(props, "Label")), ("이름", _value(props, "Formation_Complex_EN")),
             ("원 이름", _value(props, "Formation_Complex_MN")), ("설명", _value(props, "RockDescription_EN")),
             ("지구조 구역", _value(props, "TecZone_EN")), ("지구조 대구역", _value(props, "MegaZone_EN")))

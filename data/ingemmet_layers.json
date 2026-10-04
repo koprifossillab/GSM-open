@@ -1,5 +1,5 @@
 {
- "_주석": "INGEMMET(페루 지질광업야금연구소) 지질도 씨앗이다 — 페루 탭(남미 묶음에도 든다). GEOCATMIN 의 통합판 둘을 REST 타일 캐시로 그린다 — 1:5만(줌 13 까지)·1:10만(줌 16 까지). 레이어명은 ingemmet:<판> 이고 서비스 이름은 문(web/viewer/ingemmet.py)이 안다. 한글 제목과 레이어군은 사람이 붙였다 (wetherilli 195). 단층·습곡은 SERV_GEOLOGIA_FALLAS 를 export 로 따로 받는다 (wetherilli 222). 1:5만 지질 단위만(단층·습곡 없이)은 암상 레이어를 export 로 받는다 (wetherilli 234).",
+ "_주석": "INGEMMET(페루 지질광업야금연구소) 지질도 씨앗이다 — 페루 탭(남미 묶음에도 든다). GEOCATMIN 의 통합판 둘을 REST 타일 캐시로 그린다 — 1:5만(줌 13 까지)·1:10만(줌 16 까지). 레이어명은 ingemmet:<판> 이고 서비스 이름은 문(web/viewer/ingemmet.py)이 안다. 한글 제목과 레이어군은 사람이 붙였다 (wetherilli 195). 단층·습곡은 SERV_GEOLOGIA_FALLAS 를 export 로 따로 받는다 (wetherilli 222). 1:5만 지질 단위만(단층·습곡 없이)은 암상 레이어를 export 로 받는다 (wetherilli 234). 광물 산지·광상·사업·금속 광화대와 부게 이상·항공 자력은 GEOCATMIN 의 다른 서비스를 export 로 타일 칸만큼 받는다 (wetherilli 277).",
  "_뽑은날": "2026-10-04",
  "_출처": "https://geocatmin.ingemmet.gob.pe/arcgis/rest/services/SERV_GEOLOGIA_50K_INTEGRADA/MapServer · …/SERV_GEOLOGIA_100K_INTEGRADA/MapServer",
  "_지역": "peru",
@@ -7,7 +7,9 @@
  "_레이어군차례": 0,
  "레이어군순서": [
   "페루 지질도 (INGEMMET)",
-  "페루 단층·습곡 (INGEMMET)"
+  "페루 단층·습곡 (INGEMMET)",
+  "페루 광물 자원 (INGEMMET)",
+  "페루 지구물리 (INGEMMET)"
  ],
  "레이어": [
   {
@@ -103,6 +105,90 @@
     -81.84,
     -18.58,
     -68.0,
+    0.0
+   ]
+  },
+  {
+   "name": "ingemmet:deposits",
+   "title": "광상 (Yacimientos mineros)",
+   "group": "페루 광물 자원 (INGEMMET)",
+   "abstract": "SERV_METALOGENETICO 1 — 광상 1 672 곳. 줌 7 부터",
+   "bbox": [
+    -81.4,
+    -18.4,
+    -68.6,
+    0.0
+   ]
+  },
+  {
+   "name": "ingemmet:projects",
+   "title": "광산 사업·가동 광산",
+   "group": "페루 광물 자원 (INGEMMET)",
+   "abstract": "SERV_METALOGENETICO 0 — Proyectos y Operaciones 532 곳. 줌 7 부터",
+   "bbox": [
+    -81.4,
+    -18.4,
+    -68.6,
+    0.0
+   ]
+  },
+  {
+   "name": "ingemmet:occ_metal",
+   "title": "금속 광물 산지 (남위 10–18°)",
+   "group": "페루 광물 자원 (INGEMMET)",
+   "abstract": "SERV_OCURRENCIA_MINERAL 0 — 1 859 곳, 연구 띠만. 줌 7 부터",
+   "bbox": [
+    -78.2,
+    -18.2,
+    -69.0,
+    -10.0
+   ]
+  },
+  {
+   "name": "ingemmet:occ_nonmetal",
+   "title": "비금속 광물 산지 (남위 10–18°)",
+   "group": "페루 광물 자원 (INGEMMET)",
+   "abstract": "SERV_OCURRENCIA_MINERAL 1 — 686 곳, 연구 띠만. 줌 7 부터",
+   "bbox": [
+    -78.2,
+    -18.2,
+    -69.0,
+    -10.0
+   ]
+  },
+  {
+   "name": "ingemmet:belts",
+   "title": "금속 광화대 (Franjas metalogenéticas)",
+   "group": "페루 광물 자원 (INGEMMET)",
+   "abstract": "SERV_METALOGENETICO 4 — 면 66",
+   "bbox": [
+    -81.4,
+    -18.4,
+    -68.6,
+    0.0
+   ]
+  },
+  {
+   "name": "ingemmet:bouguer",
+   "title": "부게 중력 이상",
+   "group": "페루 지구물리 (INGEMMET)",
+   "abstract": "SERV_GEOFISICA 5 — Anomalía de Bouguer (래스터)",
+   "bbox": [
+    -81.4,
+    -18.3,
+    -68.6,
+    -3.4
+   ]
+  },
+  {
+   "name": "ingemmet:aeromag",
+   "title": "항공 자력",
+   "group": "페루 지구물리 (INGEMMET)",
+   "abstract": "SERV_AEROMAGNETIICO (ImageServer) — 조사한 곳만",
+   "bbox": [
+    -81.4,
+    -18.4,
+    -68.6,
     0.0
    ]
   }

@@ -32,7 +32,7 @@ from gsmweb.version import VERSION
 from . import (coords, crs, geo3al, geomap, geus, grportal, gsj, gsmma, i18n, ibcso, janmayen, kigam, kopri, npolar,
                patchnotes, elevation, moonmap, peninsula, phyloserver, pointsets, tilecache, tiles, trek, vworld, warp,
                marscraters, marsmap, mercurymap, zhurong)
-from . import admap, arcpoints, caribmap, crust, minerals, stress, tectonics, seafloor, glim, heatflow, fossils, gvp, icemargins, kigam50k, macrostrat, mantle, naturalearth, neotoma, paleo, paleoeco, paleocoast, pbdb, quakes, spamap, ocean, usgs, volcanoes, wind
+from . import admap, arcpoints, caribmap, crust, impacts, faults, minerals, stress, tectonics, seafloor, glim, heatflow, fossils, gvp, icemargins, kigam50k, macrostrat, mantle, metatile, naturalearth, neotoma, paleo, paleoeco, paleocoast, pbdb, quakes, spamap, ocean, usgs, volcanoes, wind
 from . import ags, austates, bas, basemaps, bcgs, bgr, bgs, brgm, calgs, cgs, dinamige, dmr, dov, egdi, emodnet, esdm, ga, geosphere, georep, gns, gsi, gsiindia, gtk, igme, iige, ineter, ingemmet, ispra, jmg, linked, lneg, mgb, mrdata, mris, natt, ngu, nrcan, nsgs, ogs, pig, segemar, sgb, sgc, sgm, sgs, sgu, sigeom, skgs, spw, stri, swisstopo, tno, usage, usgscarib, vmme, ygs
 from . import earthpoints, pointvalues, profileband, static_tables, tilegrid
 from .i18n import msg
@@ -1486,6 +1486,11 @@ def earth_view(request):
                                    # 제4기 고생태 산지 (wetherilli 139) — 구운 것이 있을 때만. 자료형 칸 다섯이 레이어가 된다
                                    "neotoma": paleoeco.legend(lang) if paleoeco.available() else [],
                                    "crust": crust.legend() if crust.grid() else [],
+                                   # 충돌구·거대 화성암 지대 (wetherilli 283) — 파일이 있을 때만 레이어가 선다
+                                   "impacts": ({"impacts": impacts.legend("impacts", lang), "lips": impacts.legend("lips", lang)}
+                                               if impacts.available() else {}),
+                                   # 세계 활성단층 GEM (wetherilli 279) — 구운 것이 있을 때만 레이어가 선다
+                                   "faults": faults.legend(lang) if faults.available() else [],
                                    # 세계 광상 USGS (wetherilli 276) — 구운 것이 있을 때만. 광종 칸 여섯이 레이어가 된다
                                    "minerals": minerals.legend(lang) if minerals.available() else [],
                                    # 지각 응력 World Stress Map 2025 (wetherilli 273) — 구운 것이 있을 때만 레이어가 선다
@@ -2166,6 +2171,88 @@ def earth_minerals_at(request):
 
 
 @require_GET
+def earth_faults_tile(request, z, x, y):
+    """`earth/faults/tiles/<z>/<x>/<y>.png` — GEM 세계 활성단층, 경위도 격자 (`faults.render_tile`, wetherilli 279)"""
+    z, x, y = int(z), int(x), int(y)
+    if not faults.valid_tile(z, x, y):
+        return JsonResponse({"error": i18n.t(msg("그런 타일은 없다"), i18n.lang_of(request))}, status=404)
+    if not faults.available():
+        return _tile(tiles.blank_tile(), store=False)
+    version = faults_version()
+    key = tilecache.key_text("faults", f"{version}/{z}/{x}/{y}")
+    hit = tilecache.get(key)
+    if hit is not None:
+        return _immutable(request, _tile(hit, cached=True), version)
+    png = faults.render_tile(z, x, y)
+    tilecache.put(key, png)
+    response = _tile(png)
+    response["X-GSM-Cache"] = "miss"
+    return _immutable(request, response, version)
+
+
+@require_GET
+def earth_faults_at(request):
+    """`?lon=&lat=&z=` — 누른 자리 둘레(그 줌의 8 화소)의 가장 가까운 활성단층"""
+    lang = i18n.lang_of(request)
+    lat, lon = _float(request.GET.get("lat")), _float(request.GET.get("lon"))
+    z = _float(request.GET.get("z"))
+    if lat is None or lon is None:
+        return JsonResponse({"error": i18n.t(msg("lat·lon 이 없다"), lang)}, status=400)
+    r = min(2.0, max(0.002, 180.0 / 2 ** max(0, min(18, z if z is not None else 3)) / 256 * 8))
+    got = faults.near(lon, lat, r, lang)
+    return JsonResponse({"fault": got, "text": "" if got else i18n.t(msg("여기에는 활성단층이 없다"), lang), "credit": faults.CITE})
+
+
+@require_GET
+def earth_impacts_tile(request, layer, ma, z, x, y):
+    """`earth/impacts/<impacts|lips>/<Ma>/<z>/<x>/<y>.png` — 충돌구(오늘만)·거대 화성암 지대(그 연대의 자리로) (wetherilli 283)"""
+    ma, z, x, y = int(ma), int(z), int(x), int(y)
+    if layer not in ("impacts", "lips") or not impacts.valid_tile(z, x, y) or ma > 1100 or (layer == "impacts" and ma):
+        return JsonResponse({"error": i18n.t(msg("그런 타일은 없다"), i18n.lang_of(request))}, status=404)
+    if not impacts.available():
+        return _tile(tiles.blank_tile(), store=False)
+    version = impacts_version()
+    key = tilecache.key_text("impacts", f"{version}/{layer}/{ma}/{z}/{x}/{y}")
+    hit = tilecache.get(key)
+    if hit is not None:
+        return _immutable(request, _tile(hit, cached=True), version)
+    png = impacts.render_tile(layer, float(ma), z, x, y)
+    tilecache.put(key, png)
+    response = _tile(png)
+    response["X-GSM-Cache"] = "miss"
+    return _immutable(request, response, version)
+
+
+@require_GET
+def earth_impacts_at(request):
+    """`?lon=&lat=&z=&layer=impacts|lips` — 누른 자리의 충돌구(그 줌의 8 화소 또는 충돌구 둘레 안)·거대 화성암 지대(오늘의 자리)"""
+    lang = i18n.lang_of(request)
+    lat, lon = _float(request.GET.get("lat")), _float(request.GET.get("lon"))
+    z = _float(request.GET.get("z"))
+    if lat is None or lon is None:
+        return JsonResponse({"error": i18n.t(msg("lat·lon 이 없다"), lang)}, status=400)
+    rows, name = [], ""
+    if request.GET.get("layer") == "lips":
+        lip = impacts.lip_at(lon, lat)
+        if lip:
+            name = lip["name"] or i18n.t(msg("이름 없는 화성암 지대"), lang)
+            rows = [("생긴 때 (Ma)", f"{lip['ma']:g}"), ("지질시대", i18n.t(impacts.period_of(lip["ma"])[2], lang)),
+                    ("그때의 지구", i18n.t(msg("판 회전으로 옮긴다"), lang) if lip["pid"] is not None else i18n.t(msg("바다 밑이라 옮기지 않는다"), lang))]
+        credit = impacts.CITE_LIPS
+    else:
+        r = min(2.0, max(0.002, 180.0 / 2 ** max(0, min(18, z if z is not None else 3)) / 256 * 8))
+        hit = impacts.impact_near(lon, lat, r)
+        if hit:
+            name = hit["name"] or hit["id"]
+            rows = [("지름 (km)", f"{hit['km']:g}" if hit["km"] else ""), ("생긴 때 (Ma)", f"{hit['ma']:g}" if hit["ma"] else ""),
+                    ("나라", hit["country"]), ("Wikidata", hit["id"])]
+        credit = impacts.CITE_IMPACTS
+    rows = [[i18n.PROP_EN.get(k, k) if lang == "en" else k, v] for k, v in rows if v]
+    text = "" if name else i18n.t(msg("여기에는 없다"), lang)
+    return JsonResponse({"name": name, "rows": rows, "text": text, "credit": credit})
+
+
+@require_GET
 def earth_crust_at(request):
     """`?lon=&lat=` — 누른 자리의 지각 두께. 모형이지 관측이 아니다."""
     lang = i18n.lang_of(request)
@@ -2648,14 +2735,20 @@ def _layer_extra(layer, lang: str = "ko") -> dict:
                 extra.update({"legend": "list", "legendUrl": "list/legend/"})
             elif mod is jmg:
                 extra["noLegend"] = True
+            elif mod is esdm and layer.name in esdm.RESOURCES:
+                # 인도네시아 광물 잠재력(wetherilli 280) — REST export·identify. 광종이 수십 가지라 범례는 두지 않고 누르면 뜬다
+                extra["noLegend"] = True
             elif mod is esdm:
                 # 인도네시아 — 보는 범위의 범례(`esdm/legend/`, wetherilli 243). 전체 범례는 1 403 칸이다
                 extra.update(legend="extent", legendUrl="esdm/legend/")
-            if mod is esdm:
+            if mod is esdm and layer.name not in esdm.RESOURCES:
                 extra["maxZoom"] = esdm.LAST_ZOOM
             return extra
     if layer.upstream == "sgs" and sgs.knows(layer.name):
-        # 사우디 SGS(wetherilli 227) — ArcGIS WMS(원본 3857). 범례는 1 337 칸이라 보는 범위의 것(`sgs/legend/`)
+        # 사우디 SGS(wetherilli 227) — ArcGIS WMS(원본 3857). 범례는 1 337 칸이라 보는 범위의 것(`sgs/legend/`).
+        # 광물 산지 MODS·광화대(wetherilli 280)는 다른 서비스의 WMS 이고 범례도 그 그림이다
+        if layer.name in sgs.RESOURCES:
+            return {"attribution": sgs.ATTRIBUTION, "projection": "EPSG:3857"}
         return {"attribution": sgs.ATTRIBUTION, "projection": "EPSG:3857", "legend": "extent", "legendUrl": "sgs/legend/"}
     if layer.upstream == "gsiindia" and gsiindia.knows(layer.name):
         # 인도 GSI(wetherilli 226) — 그림은 BGS WMS 를 3857 로, 속성은 GSI 피처 서비스(문이 바꾼다). BGS 범례는 번호뿐이라 두지 않는다
@@ -2849,6 +2942,12 @@ def _layer_extra(layer, lang: str = "ko") -> dict:
         return {"attribution": caribmap.ATTRIBUTION, "maxZoom": caribmap.MAX_ZOOM,
                 "tiles": _versioned_url(f"sim3534/{caribmap.sheet_of(layer.name)}/{{z}}/{{x}}/{{y}}.png", sim3534_version()),
                 "legend": "extent", "legendUrl": "sim3534/legend/", **({} if unit else {"queryable": False})}
+    if layer.upstream == "ingemmet" and layer.name in ingemmet.RESOURCES:
+        # 페루 광물·지구물리(wetherilli 277) — 단층·습곡처럼 다른 서비스의 export 를 타일 칸으로. 산지·광상·광화대는 위경도로 누른다
+        first = ingemmet.first_zoom(layer.name)
+        return {"attribution": ingemmet.ATTRIBUTION, "tiles": f"ingemmet/{ingemmet.sheet_of(layer.name)}/{{z}}/{{x}}/{{y}}.png",
+                "maxZoom": ingemmet.STRUCTURES_MAX, "noLegend": True, **({"minZoom": first} if first else {}),
+                **({} if ingemmet.knows_resource(layer.name) else {"queryable": False})}
     if layer.upstream == "ingemmet" and layer.name in ingemmet.UNITS:
         # 페루 1:5만 지질 단위만(wetherilli 234) — 암상 레이어만 export 로. 느려 줌 9 부터. 누른 자리·범례는 1:5만 통합판의 것
         return {"attribution": ingemmet.ATTRIBUTION, "tiles": f"ingemmet/{ingemmet.sheet_of(layer.name)}/{{z}}/{{x}}/{{y}}.png",
@@ -3116,6 +3215,13 @@ class _Door:
         return msg("인증키가 없다")
 
 
+#: 메타타일로 받는 레이어 — 문마다의 표를 모은다(이름 또는 `:` 로 끝나는 앞머리 → 가장 깊은 격자 줌, None 은 모든 줌) (wetherilli 282·284)
+METATILE = {**sgm.METATILE, **sgc.METATILE, **egdi.METATILE,
+            # 느린 상류를 재어 더한 것 (wetherilli 287)
+            **austates.METATILE, **iige.METATILE, **ispra.METATILE, **mris.METATILE, **pig.METATILE, **sgs.METATILE,
+            **dinamige.METATILE, **lneg.METATILE, **tno.METATILE, **swisstopo.METATILE, **segemar.METATILE, **gsi.METATILE}
+
+
 def map_cache_key(params: dict) -> str:
     """타일의 캐시 열쇠. 받은 그림을 문이 고쳐 내는 레이어(알래스카의 물 면, wetherilli 224)는 고침의 판이 든다 — 미리 데우기도 이것을 쓴다"""
     key = tilecache.key_for("map", params)
@@ -3157,7 +3263,16 @@ def wms(request):
         return _tile(tiles.notice_tile(width, height, tiles.NO_KEY), store=False)
 
     try:
-        content, ctype = door.get_map(params)
+        # 느린 상류는 큰 장을 받아 잘라 담는다(메타타일, wetherilli 282) — 격자에 맞지 않는 칸이면 하던 대로 한 칸
+        first = (params.get("layers") or "").split(",")[0].strip()
+        last = metatile.limit(METATILE, first)
+        piece = (metatile.serve(first, params, lambda bbox, w, h: door.get_map(dict(params, bbox=bbox, width=w, height=h)),
+                                max_zoom=last, errors=UPSTREAM_ERRORS)
+                 if last is not False else None)
+        if piece is not None:
+            content, ctype = piece, "image/png"
+        else:
+            content, ctype = door.get_map(params)
     except UPSTREAM_ERRORS as exc:
         # 늙어서 다시 물었는데 상류가 못 준다 — 빈 자리보다 옛것이 낫다
         old = tilecache.get(cache_key, stale=True)
@@ -3812,6 +3927,8 @@ def ingemmet_info(request):
     lang = i18n.lang_of(request)
     name = ingemmet.base_of(request.GET.get("layer", ""))       # 지질 단위만의 판은 통합판에 묻는다 (wetherilli 234)
     lat, lon = _float(request.GET.get("lat")), _float(request.GET.get("lon"))
+    if ingemmet.knows_resource(name) and lat is not None and lon is not None:
+        return _ingemmet_resource_info(request, name, lat, lon, lang)
     if not ingemmet.knows(name) or lat is None or lon is None:
         return JsonResponse({"error": i18n.t(msg("layer·lat·lon 이 없다"), lang), "features": []}, status=400)
     # 1e-5° 는 1 m 남짓이다. 같은 자리를 다시 누르면 상류를 타지 않는다
@@ -3836,6 +3953,31 @@ def ingemmet_info(request):
         props = i18n.props_en(props)
     return JsonResponse({"features": [{"id": props.get("기호", ""), "props": props}]})
 
+
+
+def _ingemmet_resource_info(request, name, lat, lon, lang):
+    """페루 광물 산지·광상·광화대(wetherilli 277) — 점은 누른 둘레(`r`°, 화면이 8 픽셀만큼 보낸다)의 것, 면은 그 점을 품은 것"""
+    radius = round(min(0.5, max(1e-4, _float(request.GET.get("r")) or 0.01)), 4)
+    key = tilecache.key_text("ingemmet-resource", f"{name}/{lat:.5f},{lon:.5f}/{radius}")
+    raw = _cached_json(key)
+    if raw is None:
+        try:
+            raw = {"rows": ingemmet.resource_attributes(name, lat, lon, radius)}
+        except ingemmet.IngemmetError as exc:
+            raw = _cached_json(key, stale=True)
+            if raw is None:
+                log.warning("페루 광물 속성을 읽지 못했다: %s", exc)
+                error = str(exc) if lang == "ko" else i18n.t(msg("상류에서 받지 못했다"), lang)
+                return JsonResponse({"error": error, "features": []}, status=502)
+        else:
+            tilecache.put(key, json.dumps(raw, ensure_ascii=False).encode("utf-8"), ".json")
+    out = []
+    for row in raw.get("rows") or []:
+        props = ingemmet.resource_friendly(name, row, lang)
+        if lang == "en":
+            props = i18n.props_en(props)
+        out.append({"id": props.get("이름", props.get("Name", "")), "props": props})
+    return JsonResponse({"features": out})
 
 @require_GET
 @browser_cached
@@ -4263,6 +4405,8 @@ def tile_versions(page: str) -> dict:
         return {"paleo": paleo_version(), "coast": paleocoast_version(), "fossils": fossils_version(),
                 "volcanoes": volcanoes_version(), "pleistocene": volcanoes_version("pleistocene"), "quakes": quakes_version(), "neotoma": neotoma_version(),
                 "crust": crust_version(), "ne": ne_version(), "icemargins": icemargins_version(),
+                "impacts": impacts_version(),
+                "faults": faults_version(),
                 "minerals": minerals_version(),
                 "stress": stress_version(),
                 "tectonics": tectonics_version(),
@@ -4329,6 +4473,14 @@ def tectonics_version() -> str:
 
 def minerals_version() -> str:
     return _stamp(minerals.RENDERER, minerals.built(), _file_stamp(minerals.path()))
+
+
+def faults_version() -> str:
+    return _stamp(faults.RENDERER, _content_stamp(settings.FAULTS_FILE))
+
+
+def impacts_version() -> str:
+    return _stamp(impacts.RENDERER, _content_stamp(settings.IMPACTS_FILE), paleo.RENDERER)
 
 
 def crust_version() -> str:

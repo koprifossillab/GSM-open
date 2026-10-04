@@ -1011,11 +1011,13 @@
     });
   }
 
-  /** 페루 지질도의 속성 주소 (wetherilli 195) — 그림이 타일 캐시라 일본처럼 누른 자리의 위경도로 묻는다(`ingemmet/info/`). */
-  function ingemmetInfoUrl(source, coordinate) {
+  /** 페루 지질도의 속성 주소 (wetherilli 195) — 그림이 타일 캐시라 일본처럼 누른 자리의 위경도로 묻는다(`ingemmet/info/`).
+   *  `r` 은 8 픽셀만큼의 도 — 광물 산지·광상 같은 점 레이어가 누른 둘레를 묻는다 (wetherilli 277) */
+  function ingemmetInfoUrl(source, coordinate, view) {
     var ll = toLL(coordinate);
+    var r = view ? view.getResolution() * 8 / 111320 : 0.01;
     return BASE + "ingemmet/info/?" + new URLSearchParams({
-      layer: source.get("gsmName"), lat: ll[1].toFixed(6), lon: ll[0].toFixed(6),
+      layer: source.get("gsmName"), lat: ll[1].toFixed(6), lon: ll[0].toFixed(6), r: r.toFixed(5),
     }).toString();
   }
 

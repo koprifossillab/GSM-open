@@ -20,6 +20,8 @@ from . import usage
 log = logging.getLogger(__name__)
 
 PREFIX = "dinamige:"
+#: 메타타일로 받는다 (wetherilli 287) — 512 px 4.3–5.1 초, 1 024 px 3.4 초. 큰 장 하나가 칸 넷보다 싸다. `metatile.limit` 의 표
+METATILE = {"dinamige:": None}
 LAYERS = ("0", "1", "2")
 ATTRIBUTION = ('Carta Geológica del Uruguay 1:500.000 — <a href="https://www.gub.uy/ministerio-industria-energia-mineria/" '
                'target="_blank" rel="noopener">DINAMIGE (MIEM)</a>')

@@ -15,11 +15,13 @@ import logging
 import requests
 from django.conf import settings
 
-from . import i18n, tilecache, usage
+from . import arcwms, i18n, tilecache, usage
 
 log = logging.getLogger(__name__)
 
 PREFIX = "sgs:"
+#: 메타타일로 받는다 (wetherilli 287) — 512 px 2.6–12.0 초, 1 024 px 4.4 초. 큰 장 하나가 칸 넷보다 싸다. `metatile.limit` 의 표
+METATILE = {"sgs:": None}
 ATTRIBUTION = ('<a href="https://ngd.sgs.gov.sa/" target="_blank" rel="noopener">Saudi Geological Survey</a> '
                "(National Geological Database, 1:250,000)")
 LAYERS = {"sgs:geology": "Geology_250K_Standard"}
@@ -36,7 +38,25 @@ class SgsError(RuntimeError):
 
 
 def knows(name: str) -> bool:
-    return str(name or "") in LAYERS
+    return str(name or "") in LAYERS or str(name or "") in RESOURCES
+
+
+#: 광물(wetherilli 280) → (서비스, WMS 이름). 광물 산지 MODS 5 751 곳(광종·중요도·탐사 단계 …)과 금·니켈·아연·VMS 광화대(면 16)
+RESOURCES = {
+    "sgs:mods": ("Geosciences/MODS", "Mineral_Occurrences"),
+    "sgs:belts": ("Geology/Mineralization_Belts", "Gold_Mineral_Belt,Nickel_Mineral_Belt,Zinc_Mineral_Belt,VMS_Mineral_Belt"),
+}
+
+
+def _resource_door(name: str) -> arcwms.Door:
+    service, wms = RESOURCES[name]
+    return arcwms.Door(url=lambda: f"{settings.SGS_URL.rstrip('/')}/services/{service}/MapServer/WMSServer",
+                       layers={name: wms}, queryable=(name,), get=_get, error=SgsError)
+
+
+def _resource(names) -> str:
+    first = str(names or "").split(",")[0].strip()
+    return first if first in RESOURCES else ""
 
 
 def _names(names: str) -> str:
@@ -82,6 +102,8 @@ def _wms(params: dict, request: str) -> dict:
 
 
 def get_map(params: dict):
+    if _resource(params.get("layers")):
+        return _resource_door(_resource(params.get("layers"))).get_map(params)
     r = _get(_wms_url(), _wms(params, "GetMap"))
     ctype = r.headers.get("content-type", "")
     if r.status_code != 200 or not ctype.startswith("image/"):
@@ -90,10 +112,15 @@ def get_map(params: dict):
 
 
 def get_legend(layer: str):
+    if layer in RESOURCES:
+        return _resource_door(layer).get_legend(layer)
     raise SgsError("그림 범례는 1 337 칸이라 두지 않는다 — 보는 범위의 범례를 쓴다")
 
 
 def get_feature_info(params: dict) -> dict:
+    name = _resource(params.get("query_layers") or params.get("layers"))
+    if name:
+        return _resource_door(name).get_feature_info(params)
     params = _wms(params, "GetFeatureInfo")
     params["info_format"] = "application/geojson"
     # 도폭을 이어 붙인 합본이라 경계에서 같은 단위가 겹쳐 셋씩 온다(2026-10-04, 알히수 도폭) — 맨 위 하나만 받는다
@@ -174,8 +201,20 @@ def _value(props: dict, key: str) -> str:
     return "" if value.lower() in ("null", "none", "undefined") else value
 
 
+#: 광물 산지 MODS 의 열 — geojson 은 별칭(`English Name`)으로 온다 (wetherilli 280)
+MODS_COLS = (("이름", "English Name"), ("광종", "Major Commodity"), ("딸린 광종", "Minor Commodities"),
+             ("중요도", "Occurrence Importance"), ("광산", "Occurrence Status"), ("탐사 단계", "Exploration Status"),
+             ("광상 유형", "Gitology"), ("모암", "Host Rocks"), ("변질", "Alteration"), ("지구조 구역", "Structural Province"),
+             ("번호", "MODS"))
+
+
 def friendly(props: dict, lang: str = "ko") -> dict:
     """열 이름을 한국어로. 이름·암석·지구조는 영어 그대로, 시대(기 — ICS)만 옮긴다"""
+    if "MODS" in props:                                       # 광물 산지 (wetherilli 280)
+        return {label: v for label, key in MODS_COLS if (v := _value(props, key) or _value(props, key.replace(" ", "_")))}
+    if "Lay_Val" in props or "TYPE" in props and "LAYER" in props:   # 광화대
+        rows = (("이름", _value(props, "LAYER")), ("갈래", _value(props, "TYPE")))
+        return {k: v for k, v in rows if v}
     period = _value(props, "Period")
     terrane = " · ".join(x for x in dict.fromkeys((_value(props, "Terrane"), _value(props, "Sub_Terane"))) if x)
     rows = (("기호", _value(props, "Unit_SYM")), ("이름", _value(props, "Unit_Name")),

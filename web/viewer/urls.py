@@ -84,6 +84,13 @@ urlpatterns = [
     re_path(r"^earth/crust/tiles/(?P<z>\d{1,2})/(?P<x>\d{1,4})/(?P<y>\d{1,4})\.png$", views.earth_crust_tile,
             name="earth-crust-tile"),
     path("earth/crust/at/", views.earth_crust_at, name="earth-crust-at"),
+    # 충돌구·거대 화성암 지대 (impacts.py, wetherilli 283)
+    re_path(r"^earth/impacts/(?P<layer>impacts|lips)/(?P<ma>\d{1,4})/(?P<z>\d{1,2})/(?P<x>\d{1,4})/(?P<y>\d{1,4})\.png$",
+            views.earth_impacts_tile, name="earth-impacts-tile"),
+    path("earth/impacts/at/", views.earth_impacts_at, name="earth-impacts-at"),
+    # 세계 활성단층 GEM (faults.py, wetherilli 279)
+    re_path(r"^earth/faults/tiles/(?P<z>\d{1,2})/(?P<x>\d{1,4})/(?P<y>\d{1,4})\.png$", views.earth_faults_tile, name="earth-faults-tile"),
+    path("earth/faults/at/", views.earth_faults_at, name="earth-faults-at"),
     # 세계 광상 USGS — 광종 칸마다 (minerals.py, wetherilli 276)
     re_path(r"^earth/minerals/tiles/(?P<band>min_[a-z]+)/(?P<z>\d{1,2})/(?P<x>\d{1,4})/(?P<y>\d{1,4})\.png$",
             views.earth_minerals_tile, name="earth-minerals-tile"),
@@ -173,7 +180,7 @@ urlpatterns = [
     # 브라질 — 보는 범위의 범례 (sgb.py, wetherilli 191)
     path("sgb/legend/", views.sgb_legend, name="sgb-legend"),
     # 페루 — REST 타일 캐시 중계·누른 자리·보는 범위의 범례 (ingemmet.py, wetherilli 195), 단층·습곡은 export 를 타일 칸으로 (222)
-    re_path(r"^ingemmet/(?P<sheet>50k|50k_units|100k|faults_1m|faults_100k|folds_100k|faults_50k|folds_50k)/(?P<z>\d{1,2})/(?P<x>\d{1,6})/(?P<y>\d{1,6})\.png$",
+    re_path(r"^ingemmet/(?P<sheet>50k|50k_units|100k|faults_1m|faults_100k|folds_100k|faults_50k|folds_50k|occ_metal|occ_nonmetal|deposits|projects|belts|bouguer|aeromag)/(?P<z>\d{1,2})/(?P<x>\d{1,6})/(?P<y>\d{1,6})\.png$",
             views.ingemmet_tile, name="ingemmet-tile"),
     path("ingemmet/info/", views.ingemmet_info, name="ingemmet-info"),
     # 대앤틸리스 — 우리가 구운 USGS SIM 3534 (caribmap.py, wetherilli 254)

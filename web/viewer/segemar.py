@@ -24,6 +24,8 @@ from . import usage
 log = logging.getLogger(__name__)
 
 PREFIX = "segemar:"
+#: 메타타일로 받는다 (wetherilli 287) — 1:250만 512 px 2.2–6.4 초, 1 024 px 1.3 초. 큰 장 하나가 칸 넷보다 싸다. `metatile.limit` 의 표
+METATILE = {"segemar:": None}
 WORKSPACE = "sigam:"
 ATTRIBUTION = ('<a href="https://sigam.segemar.gov.ar/" target="_blank" rel="noopener">SEGEMAR</a> '
                '(Servicio Geológico Minero Argentino) · SIGAM — CC Argentina, atribución')

@@ -206,6 +206,9 @@ GSQ = _NS(get_map=gsq_get_map, get_feature_info=gsq_get_feature_info, get_legend
 
 GSV_ATTRIBUTION = ('<a href="https://earthresources.vic.gov.au/geology-exploration" target="_blank" rel="noopener">'
                    '© State of Victoria</a> (Geological Survey of Victoria, CC BY 4.0)')
+#: 메타타일로 받는다 (wetherilli 287) — 남호주 512 px 12.9–13.6 초, 1 024 px 24.7 초. 큰 장 하나가 칸 넷보다 싸다. `metatile.limit` 의 표
+METATILE = {"gssa:": None}
+
 GSSA_ATTRIBUTION = ('<a href="https://www.energymining.sa.gov.au/industry/geological-survey" target="_blank" rel="noopener">'
                     '© Government of South Australia</a> (Geological Survey of South Australia, SARIG, CC BY 4.0)')
 #: 레이어 → (상류 레이어, 처음 그리는 줌, 단위 면인가)

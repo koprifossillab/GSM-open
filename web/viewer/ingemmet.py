@@ -17,6 +17,11 @@
 - **1:5만 지질 단위만**(wetherilli 234) — 통합판 캐시에는 단층·습곡이 구워져 끌 수 없어, 같은 서비스의 암상 레이어(7)만 `export` 로
   타일 칸만큼 받는 판을 따로 둔다(`UNITS`). 한 칸이 줌 7 에 5 초·줌 9 에 2.6 초·줌 11 에 1.7 초라(222 에서 쟀다) 줌 9 부터 그린다.
   누른 자리·범례는 1:5만 통합판의 것을 그대로 쓴다(`base_of`)
+- **광물·지구물리**(wetherilli 277) — GEOCATMIN 의 다른 서비스 넷을 단층·습곡처럼 `export` 로 타일 칸만큼 받는다(`RESOURCES`).
+  광물 산지(`SERV_OCURRENCIA_MINERAL`, 금속 1 859·비금속 686, 4326 서비스 — 남위 10–18° 의 연구 띠만 덮는다)·광상과 사업
+  (`SERV_METALOGENETICO` 의 1·0 — 한 표를 둘로 거른 것)·금속 광화대(같은 서비스 4, 면 66)·부게 이상(`SERV_GEOFISICA` 5, 래스터)과
+  항공 자력(`SERV_AEROMAGNETIICO`, ImageServer — 흰 바탕이라 `noData=255,255,255` 로 비운다). 한 칸이 2–3 초다(2026-10-05).
+  누른 자리는 REST `query` 다 — 점은 누른 둘레(`r`°)의 네모로, 면은 그 점으로. 페이지 나눔을 받지 않아 `resultRecordCount` 를 붙이지 않는다
 - 지질시대는 에스파냐어다(`Cretácico`). ICS 영문 이름으로 옮긴 뒤 한국어판이면 `i18n.age_ko` 로 한 번 더 옮긴다
 - 조건: Capabilities 의 AccessConstraints 는 `referencial`. GEOCATMIN 이용 허락은 INGEMMET 를 출처로 밝히면 쓰기·옮기기를 허락하고,
   메타데이터에 **CC BY-NC-SA 4.0** 이 붙어 있다 — 비상업. 정적 판에는 싣지 않는다
@@ -56,6 +61,21 @@ STRUCTURES_SERVICE = "SERV_GEOLOGIA_FALLAS"
 UNITS = {
     "ingemmet:50k_units": {"base": "ingemmet:50k", "show": 7, "min": 9},
 }
+#: 광물·지구물리(wetherilli 277) → 서비스, 레이어 번호(ImageServer 는 None), 처음 그리는 줌, 누를 때의 꼴(점·면·None), 받을 열
+RESOURCES = {
+    "ingemmet:occ_metal": {"service": "SERV_OCURRENCIA_MINERAL", "show": 0, "min": 7, "query": "point",
+                           "fields": "NOMBRE,ELEMENTO,TIPO_DEPOS,EDAD,FORMACION,FRANJA,LINK"},
+    "ingemmet:occ_nonmetal": {"service": "SERV_OCURRENCIA_MINERAL", "show": 1, "min": 7, "query": "point",
+                              "fields": "NOMBRE,ELEMENTO,TIPO_DEPOS,EDAD,FORMACION,FRANJA,LINK"},
+    "ingemmet:deposits": {"service": "SERV_METALOGENETICO", "show": 1, "min": 7, "query": "point",
+                          "fields": "UNIDAD,ELE_PRINC,ESTADO,COD_TIPO,ST_YACIM,FRANJAMET,RECURSO,ALTITUD,LOCALIDAD,HOJA"},
+    "ingemmet:projects": {"service": "SERV_METALOGENETICO", "show": 0, "min": 7, "query": "point",
+                          "fields": "UNIDAD,ELE_PRINC,ESTADO,COD_TIPO,ST_YACIM,FRANJAMET,RECURSO,ALTITUD,LOCALIDAD,HOJA"},
+    "ingemmet:belts": {"service": "SERV_METALOGENETICO", "show": 4, "min": None, "query": "polygon",
+                       "fields": "FRANJA,ETIQUETA,TIPO"},
+    "ingemmet:bouguer": {"service": "SERV_GEOFISICA", "show": 5, "min": None, "query": None},
+    "ingemmet:aeromag": {"service": "SERV_AEROMAGNETIICO", "show": None, "min": None, "query": None},
+}
 #: 단층·습곡을 그리는 마지막 줌 — 캐시가 아니라 그때그때 그리므로 상류가 정한 끝이 없다
 STRUCTURES_MAX = 18
 #: 범례 칸을 몇 개까지 싣나
@@ -74,7 +94,12 @@ def knows(name: str) -> bool:
 
 
 def knows_tiles(name: str) -> bool:
-    return name in LAYERS or name in STRUCTURES or name in UNITS
+    return name in LAYERS or name in STRUCTURES or name in UNITS or name in RESOURCES
+
+
+def knows_resource(name: str) -> bool:
+    """광물·지구물리 가운데 누를 수 있는 것 (wetherilli 277)"""
+    return bool(RESOURCES.get(name, {}).get("query"))
 
 
 def base_of(name: str) -> str:
@@ -84,7 +109,7 @@ def base_of(name: str) -> str:
 
 def first_zoom(name: str):
     """화면이 처음 그리는 줌 — 단층·습곡과 지질 단위만의 판. 통합판은 None"""
-    return (STRUCTURES.get(name) or UNITS.get(name) or {}).get("min")
+    return (STRUCTURES.get(name) or UNITS.get(name) or RESOURCES.get(name) or {}).get("min")
 
 
 def max_zoom(name: str) -> int:
@@ -128,6 +153,8 @@ def get_tile(name: str, z: int, x: int, y: int):
         return structure_tile(name, z, x, y)
     if name in UNITS:
         return units_tile(name, z, x, y)
+    if name in RESOURCES:
+        return resource_tile(name, z, x, y)
     r = _get(f"{_base(name)}/tile/{z}/{y}/{x}")
     if r.status_code == 404:
         return None
@@ -157,6 +184,70 @@ def _export_tile(base: str, show: int, z: int, x: int, y: int) -> bytes:
 def structure_tile(name: str, z: int, x: int, y: int) -> bytes:
     """단층·습곡 한 칸 — `SERV_GEOLOGIA_FALLAS` 의 `export` 를 타일 칸만큼. 선이 없는 칸은 투명한 그림이 온다."""
     return _export_tile(f"{settings.INGEMMET_URL.rstrip('/')}/{STRUCTURES_SERVICE}/MapServer", STRUCTURES[name]["show"], z, x, y)
+
+
+def _service(name: str) -> str:
+    spec = RESOURCES[name]
+    kind = "MapServer" if spec["show"] is not None else "ImageServer"
+    return f"{settings.INGEMMET_URL.rstrip('/')}/{spec['service']}/{kind}"
+
+
+def resource_tile(name: str, z: int, x: int, y: int) -> bytes:
+    """광물·지구물리 한 칸 (wetherilli 277) — MapServer 는 `export`, 항공 자력(ImageServer)은 흰 바탕을 비운 `exportImage`."""
+    spec = RESOURCES[name]
+    if spec["show"] is not None:
+        return _export_tile(_service(name), spec["show"], z, x, y)
+    r = _get(f"{_service(name)}/exportImage", {"bbox": ",".join(f"{v:.3f}" for v in tile_bbox(z, x, y)), "bboxSR": 3857,
+                                               "imageSR": 3857, "size": "256,256", "format": "png32", "noData": "255,255,255",
+                                               "noDataInterpretation": "esriNoDataMatchAll", "f": "image"})
+    ctype = r.headers.get("content-type", "")
+    if r.status_code != 200 or not ctype.startswith("image/"):
+        raise IngemmetError(f"그림이 아닌 것이 왔다 (status={r.status_code}, type={ctype})")
+    return r.content
+
+
+def resource_attributes(name: str, lat: float, lon: float, radius: float) -> list:
+    """누른 자리의 광물 산지·광상(둘레 `radius`° 네모, 가까운 것부터 셋) 또는 광화대(그 점을 품은 면) — 열 이름 그대로."""
+    spec = RESOURCES[name]
+    if spec["query"] == "point":
+        r = max(1e-4, min(0.5, radius))
+        geometry = {"geometry": f"{lon - r},{lat - r},{lon + r},{lat + r}", "geometryType": "esriGeometryEnvelope"}
+    else:
+        geometry = {"geometry": f"{lon},{lat}", "geometryType": "esriGeometryPoint"}
+    res = _get(f"{_service(name)}/{spec['show']}/query", dict(geometry, inSR="4326", outSR="4326",
+               spatialRel="esriSpatialRelIntersects", outFields=spec["fields"], returnGeometry="true" if spec["query"] == "point" else "false",
+               f="json"))
+    if res.status_code != 200:
+        raise IngemmetError(f"질의를 읽지 못했다 (status={res.status_code})")
+    try:
+        data = res.json()
+    except ValueError as exc:
+        raise IngemmetError("질의가 JSON 이 아니다") from exc
+    if data.get("error"):
+        raise IngemmetError(f"질의 오류: {data['error'].get('message', '')}")
+    feats = data.get("features") or []
+
+    def away(f):
+        g = f.get("geometry") or {}
+        return (g.get("x", lon) - lon) ** 2 + (g.get("y", lat) - lat) ** 2
+    return [f.get("attributes") or {} for f in sorted(feats, key=away)[:3]]
+
+
+def resource_friendly(name: str, props: dict, lang: str = "ko") -> dict:
+    """광물·지구물리의 열 → 한국어 이름. 값은 에스파냐어 그대로다 (wetherilli 277)"""
+    v = lambda k: _clean(props.get(k))          # noqa: E731
+    if name == "ingemmet:belts":
+        rows = (("이름", v("FRANJA")), ("기호", v("ETIQUETA")), ("갈래", v("TIPO")))
+    elif name.startswith("ingemmet:occ_"):
+        link = v("LINK")
+        rows = (("이름", v("NOMBRE")), ("광종", v("ELEMENTO")), ("광상 형태", v("TIPO_DEPOS")), ("지층", v("FORMACION")),
+                ("시대 기호", v("EDAD")), ("광화 지역", v("FRANJA")),
+                ("상세", {"text": "", "links": [{"url": link, "label": "열기"}]} if link.startswith(("http://", "https://")) else ""))
+    else:
+        rows = (("이름", v("UNIDAD")), ("광종", v("ELE_PRINC")), ("개발 단계", v("ESTADO")), ("갈래", v("COD_TIPO")),
+                ("광상 형태", v("ST_YACIM")), ("광화 지역", v("FRANJAMET")), ("자원량", v("RECURSO")),
+                ("표고 (m)", v("ALTITUD")), ("곳", v("LOCALIDAD")), ("도폭", v("HOJA")))
+    return {k: x for k, x in rows if x}
 
 
 def units_tile(name: str, z: int, x: int, y: int) -> bytes:

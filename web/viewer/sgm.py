@@ -25,7 +25,7 @@ import logging
 import requests
 from django.conf import settings
 
-from . import arcpoints, i18n, tilecache, usage
+from . import arcpoints, i18n, metatile, tilecache, usage
 
 log = logging.getLogger(__name__)
 
@@ -35,7 +35,9 @@ ATTRIBUTION = ('<a href="https://www.sgm.gob.mx/GeoInfoMexGobMx/" target="_blank
 #: 이름 가운데 마디 → REST 서비스(`SGM_URL` 의 `services/` 뒤). 마디가 없는 `sgm:8` 은 지질도(`SGM_URL`) 그대로
 SERVICES = {"edades": "SGM/SunEdadesGeocronologicas", "paleo": "SGM/Paleontologia", "yac": "SGM/SUNYacimientosMinerales250",
             "yac50": "SGM/SUNYacimientosMinerales", "geoq": "SGM/SUNGeoquimica",
-            "anom250": "SGM/SUNAnomalias250", "anom50": "SGM/SUNAnomalias50"}
+            "anom250": "SGM/SUNAnomalias250", "anom50": "SGM/SUNAnomalias50",
+            # 지자기(wetherilli 282) — 요청마다 10 초 넘게 걸려 244 에서 미뤘다. 메타타일(`metatile.py`)로 받는다
+            "datos": "DatosAbiertos/DatosAbiertos"}
 #: 이상 지점 레이어의 원소 — REST 번호 차례(은·코발트·구리·망간·납·아연)
 ANOMALY_ELEMENTS = ("Ag", "Co", "Cu", "Mn", "Pb", "Zn")
 #: 레이어 → (REST 번호, 처음 그리는 화면 줌, 누르기가 되나)
@@ -55,9 +57,14 @@ LAYERS = {
     "sgm:geoq:0": (0, 9, True),     # 하천 퇴적물 지화학 21 만 5 천 점 — 넓게 보면 땅이 점으로 덮인다
     **{f"sgm:anom250:{n}": (n, 8, True) for n in range(6)},     # 상류 minScale 200만
     **{f"sgm:anom50:{n}": (n, 10, True) for n in range(6)},     # 상류 minScale 75만
+    # 지자기 1:25만 — 칠하기 칸뿐이라(nT 가 없다) 누르지 않는다. 줌 6 밑은 칸 하나가 25–54 초라 8 부터 (wetherilli 244·282)
+    "sgm:datos:7": (7, 8, False),
 }
+#: 메타타일로 받는 레이어(wetherilli 282) — 요청 하나가 줌과 상관없이 10 초 넘게 드는 것. 화면의 주소는 그대로다.
+#: 이름 → 메타타일로 받는 가장 깊은 격자 줌(None 은 모든 줌) — `metatile.limit` 의 표 (wetherilli 284)
+METATILE = {"sgm:datos:7": None}
 #: 칠하기 구간(classBreaks)을 범례로 내는 레이어 — 보는 범위와 무관하다
-BREAKS = tuple(n for n in LAYERS if n.startswith(("sgm:anom250:", "sgm:anom50:")))
+BREAKS = tuple(n for n in LAYERS if n.startswith(("sgm:anom250:", "sgm:anom50:", "sgm:datos:")))
 #: 범례에 실을 열 — 기호, 암상, 지층, 시대
 LABEL = ("CLAVE_SGM", "LITOLOGIA", "FORMACION", "PERIODO")
 #: 보는 범위의 범례 — 레이어 → (칠하기 열, 묶을 열, 범례를 뜨는 가장 넓은 범위(°))
@@ -109,7 +116,9 @@ def _get(path: str, params: dict, name: str = ""):
     if left:
         raise SgmError(f"차단 조짐이 있어 {int(left)}초 동안 상류에 묻지 않는다")
     try:
-        r = requests.get(f"{_base(name)}/{path}", params=params, timeout=max(settings.UPSTREAM_TIMEOUT, 45),
+        # 메타타일(1024 px)은 한 장이 20 초 남짓이다 — 넉넉히 기다린다 (wetherilli 282)
+        wait = 90 if metatile.limit(METATILE, name) is not False else 45
+        r = requests.get(f"{_base(name)}/{path}", params=params, timeout=max(settings.UPSTREAM_TIMEOUT, wait),
                          verify=settings.CA_BUNDLE or True, headers={"User-Agent": "GSM/0.1"})
     except requests.RequestException as exc:
         usage.record("sgm", ok=False)

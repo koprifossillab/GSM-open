@@ -1,12 +1,13 @@
 {
- "_주석": "몽골 국가지질조사소(NGS) MonGeoCat 씨앗이다 — 몽골 탭(동아시아 묶음에도 든다). 2026-10-04 에 gismap.mris.mn ArcGIS 의 Atlas 폴더에서 골랐다. 문서에 없는 주소다(MonGeoCat 화면의 JS 묶음). 이름은 mris:<판>:<WMS 번호> — WMS 번호와 REST 번호가 거꾸로다. 한글 제목과 레이어군은 사람이 붙였다 (wetherilli 221).",
+ "_주석": "몽골 국가지질조사소(NGS) MonGeoCat 씨앗이다 — 몽골 탭(동아시아 묶음에도 든다). 2026-10-04 에 gismap.mris.mn ArcGIS 의 Atlas 폴더에서 골랐다. 문서에 없는 주소다(MonGeoCat 화면의 JS 묶음). 이름은 mris:<판>:<WMS 번호> — WMS 번호와 REST 번호가 거꾸로다. 한글 제목과 레이어군은 사람이 붙였다 (wetherilli 221). 희토류는 Atlas 12_REE — WMS 가 없어 REST 로 (wetherilli 280).",
  "_뽑은날": "2026-10-04",
  "_출처": "https://gismap.mris.mn/arcgis/rest/services/Atlas",
  "_지역": "mongolia",
  "_상류": "mris",
  "_레이어군차례": 1,
  "레이어군순서": [
-  "몽골 지질도 (MonGeoCat)"
+  "몽골 지질도 (MonGeoCat)",
+  "몽골 광물 (MRIS)"
  ],
  "레이어": [
   {
@@ -30,6 +31,18 @@
     87.7,
     41.5,
     120.0,
+    52.2
+   ]
+  },
+  {
+   "name": "mris:ree",
+   "title": "희토류 광상·광화 지점·산지",
+   "group": "몽골 광물 (MRIS)",
+   "abstract": "Atlas 12_REE — 광상 6·광화 지점 280·산지 85",
+   "bbox": [
+    87.7,
+    41.5,
+    119.9,
     52.2
    ]
   }

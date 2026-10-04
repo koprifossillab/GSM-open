@@ -319,6 +319,15 @@
 | wetherilli 274 | 2026-10-05 | [화성·수성을 달과 맞추기 — 화성의 고운 지형](20261005_wetherilli_274_mars_parity.md) |
 | wetherilli 275 | 2026-10-05 | [한국 탭 다시 보기 — 빠진 것은 지열류 하나](20261005_wetherilli_275_korea_more.md) |
 | wetherilli 276 | 2026-10-05 | [온 지구 — 세계 광상 (USGS MRDS·세계 광상 표)](20261005_wetherilli_276_earth_minerals.md) |
+| wetherilli 277 | 2026-10-05 | [페루 — INGEMMET 의 광물 산지·광상·광화대, 부게 이상·항공 자력](20261005_wetherilli_277_peru_resources.md) |
+| wetherilli 278 | 2026-10-05 | [온 지구 화면의 레이어 패널 — 주제로 묶는다](20261005_wetherilli_278_earth_panel.md) |
+| wetherilli 279 | 2026-10-05 | [온 지구 — 세계 활성단층 (GEM Global Active Faults)](20261005_wetherilli_279_earth_faults.md) |
+| wetherilli 280 | 2026-10-05 | [아시아 — 인도네시아·필리핀·태국·사우디·몽골의 광물](20261005_wetherilli_280_asia_resources.md) |
+| wetherilli 281 | 2026-10-05 | [상류 조건표](20261005_wetherilli_281_upstream_terms.md) |
+| wetherilli 282 | 2026-10-05 | [메타타일 — 큰 장을 한 번 받아 칸으로 잘라 담는다, 멕시코 지자기에 먼저](20261005_wetherilli_282_metatile.md) |
+| wetherilli 283 | 2026-10-05 | [온 지구 — 충돌구와 거대 화성암 지대](20261005_wetherilli_283_earth_impacts.md) |
+| wetherilli 284 | 2026-10-05 | [메타타일 넓히기 — SGC 넓은 줌, EGDI(실패하면 칸 하나로), prewarm 의 메타타일 블록](20261005_wetherilli_284_metatile_more.md) |
+| wetherilli 287 | 2026-10-05 | [느린 상류 찾기와 메타타일 적용](20261005_wetherilli_287_metatile_slow.md) |
 | koprifossillab P01 | 2026-09-30 | [백업 — WegenersDream 의 틀로, 바뀌는 빠르기에 따라 넷으로 (계획)](20260930_koprifossillab_P01_backup_plan.md) |
 | koprifossillab 001 | 2026-09-30 | [매주 월요일 새벽: 운영 자료 백업과 KPDC 목록 갱신](20260930_koprifossillab_001_weekly_backup.md) |
 | koprifossillab 002 | 2026-09-30 | [`/healthz/` — 판·DB·백업 상태를 한 장으로](20260930_koprifossillab_002_healthz.md) |
