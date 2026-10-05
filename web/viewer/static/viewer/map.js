@@ -6337,11 +6337,7 @@
         count.title = T("마지막으로 받은 때 {when}", { when: new Date(rec.fetched).toLocaleString() });
       }
       var zoom = iconButton("⊙", T("이 자료로 범위를 맞춘다"), false, function () {
-        var source = personalLayers[rec.id] && personalLayers[rec.id].getSource();
-        var extent = source && source.getExtent();
-        if (extent && isFinite(extent[0])) {
-          map.getView().fit(extent, { padding: [40, 40, 60, 40], maxZoom: 14, duration: 300 });
-        }
+        fitToSource(personalLayers[rec.id] && personalLayers[rec.id].getSource());
       });
       var label = document.createElement("span");
       label.className = "ps-text";
@@ -6428,6 +6424,21 @@
     return bits.join(" · ");
   }
 
+  /** 점묶음·개인 레이어의 범위로 맞춘다. **점이 아직 오지 않았으면 오는 대로** — 소스는 화면에 그려질 때 비로소 받는다.
+   *  그 전에 누르면 범위가 비어 아무 일도 없었다(3978 탭에서 느린 CI 가 그 틈에 눌렀다, wetherilli 352). 10 초를 넘기면 그만둔다 */
+  function fitToSource(source) {
+    if (!source) return;
+    var go = function () {
+      var extent = source.getExtent();
+      if (!extent || !isFinite(extent[0])) return false;
+      map.getView().fit(extent, { padding: [40, 40, 60, 40], maxZoom: 14, duration: 300 });
+      return true;
+    };
+    if (go()) return;
+    var key = source.on("change", function () { if (go()) ol.Observable.unByKey(key); });
+    setTimeout(function () { ol.Observable.unByKey(key); }, 10000);
+  }
+
   function loadPointSet(ps) {
     if (pointLayers[ps.id]) {
       pointLayers[ps.id].setVisible(ps.visible);
@@ -6494,11 +6505,7 @@
       count.textContent = countText(ps);
 
       var zoom = iconButton("⊙", T("이 자료로 범위를 맞춘다"), false, function () {
-        var source = pointLayers[ps.id] && pointLayers[ps.id].getSource();
-        var extent = source && source.getExtent();
-        if (extent && isFinite(extent[0])) {
-          map.getView().fit(extent, { padding: [40, 40, 60, 40], maxZoom: 14, duration: 300 });
-        }
+        fitToSource(pointLayers[ps.id] && pointLayers[ps.id].getSource());
       });
 
       // 표고 타일에서 점마다 고도를 읽어 채운다(P03). 원본의 `고도` 열은 건드리지 않고

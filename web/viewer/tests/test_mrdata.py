@@ -92,7 +92,9 @@ class Views(TestCase):
         self.assertEqual(Layer.objects.get(name="mrdata:sgmc2:sgmc2").group.region, "usa")
         self.assertEqual((self.layers["mrdata:sgmc2:sgmc2"]["legend"], self.layers["mrdata:sgmc2:sgmc2"]["legendUrl"]),
                          ("extent", "mrdata/legend/"))                      # 보는 범위의 일반화 암상 (wetherilli 334)
-        self.assertTrue(self.layers["mrdata:sim3340:units"]["noLegend"])
+        for name in mrdata.UNIT_LEGENDS:                                    # 알래스카·하와이·푸에르토리코 — 그림에서 센다 (wetherilli 353)
+            self.assertEqual((self.layers[name]["legend"], self.layers[name]["legendUrl"]), ("extent", "mrdata/legend/"))
+        self.assertTrue(self.layers["mrdata:hi:faults"]["noLegend"])
         self.assertFalse(self.layers["mrdata:sgmc2:sgmc2structure"]["queryable"])
 
     def test_SGMC_범례는_보는_범위의_갈래(self):
@@ -243,3 +245,79 @@ class UsgsMore(SimpleTestCase):
             mrdata.get_map({"layers": "mrdata:aeromag:namag"})
         self.assertTrue(get.call_args.args[0].endswith("/services/aeromag"))
         self.assertEqual(mrdata.MIN_ZOOM["mrdata:usmin:points"], 9)
+
+
+#: GetStyles 의 SLD — 2026-10-05 에 하와이(`hi`)·알래스카(`sim3340`)에서 받은 꼴을 줄였다
+SLD = """<StyledLayerDescriptor version="1.0.0" xmlns="http://www.opengis.net/sld"><NamedLayer><Name>units</Name><UserStyle><FeatureTypeStyle>
+<Rule><Name>Qk3</Name><ogc:Filter><ogc:PropertyIsEqualTo><ogc:PropertyName>strat_code</ogc:PropertyName><ogc:Literal>3</ogc:Literal></ogc:PropertyIsEqualTo></ogc:Filter>
+<PolygonSymbolizer><Fill><CssParameter name="fill">#DFE97F</CssParameter></Fill></PolygonSymbolizer></Rule>
+<Rule><Name>Ql</Name><PolygonSymbolizer><Fill><CssParameter name="fill">#edd2e4</CssParameter></Fill></PolygonSymbolizer></Rule>
+<Rule><Name>Ql2</Name><PolygonSymbolizer><Fill><CssParameter name="fill">#edd2e4</CssParameter></Fill></PolygonSymbolizer></Rule>
+<Rule><Name></Name><PolygonSymbolizer><Fill><CssParameter name="fill">#ccffff</CssParameter></Fill></PolygonSymbolizer></Rule>
+<Rule><Name>fault</Name><LineSymbolizer><Stroke><CssParameter name="stroke">#000000</CssParameter></Stroke></LineSymbolizer></Rule>
+</FeatureTypeStyle></UserStyle></NamedLayer></StyledLayerDescriptor>"""
+
+
+def picture(spans):
+    """[(색, 칸 수)] 를 512×512 그림으로 — 나머지는 투명"""
+    from PIL import Image
+    img = Image.new("RGBA", (mrdata.UNIT_SAMPLE_PX, mrdata.UNIT_SAMPLE_PX), (0, 0, 0, 0))
+    px, i = img.load(), 0
+    for color, n in spans:
+        for _ in range(n):
+            px[i % mrdata.UNIT_SAMPLE_PX, i // mrdata.UNIT_SAMPLE_PX] = color + (255,)
+            i += 1
+    out = io.BytesIO()
+    img.save(out, "PNG")
+    return mock.Mock(status_code=200, content=out.getvalue(), headers={"content-type": "image/png"}, elapsed=None)
+
+
+class UnitLegends(TestCase):
+    """알래스카·하와이·푸에르토리코의 보는 범위 범례 — SLD 의 규칙 색을 그림의 색과 맞댄다 (wetherilli 353)"""
+
+    def test_SLD_는_면의_규칙만(self):
+        self.assertEqual(mrdata.parse_sld(SLD), [("Qk3", "#dfe97f"), ("Ql", "#edd2e4"), ("Ql2", "#edd2e4"), ("", "#ccffff")])
+
+    def test_그림의_색을_넓은_것부터_세고_같은_색은_묶는다(self):
+        rules = mrdata.parse_sld(SLD)
+        spans = [((237, 210, 228), 3000), ((223, 233, 127), 1000), ((204, 255, 255), 9000),   # Ql·Ql2, Qk3, 물
+                 ((222, 233, 127), 50),                                                    # 가장자리의 섞인 색 — 규칙에 없다
+                 ((1, 2, 3), 20)]
+        with mock.patch.object(mrdata, "_get", return_value=picture(spans)) as get:
+            rows = mrdata.unit_legend("mrdata:hi:units", (-156.2, 18.9, -154.8, 20.3), rules)
+        self.assertEqual([(label, color) for label, color, _ in rows], [("Ql, Ql2", "#edd2e4"), ("Qk3", "#dfe97f")])
+        params = get.call_args[0][1]
+        self.assertEqual((params["request"], params["srs"], params["layers"]), ("GetMap", "EPSG:3857", "units"))
+
+    def test_아주_작은_몫은_버린다(self):
+        rules = mrdata.parse_sld(SLD)
+        with mock.patch.object(mrdata, "_get", return_value=picture([((223, 233, 127), 10), ((237, 210, 228), 50000)])):
+            rows = mrdata.unit_legend("mrdata:pr:geol", (-67.3, 17.9, -65.6, 18.6), rules)
+        self.assertEqual([label for label, _, _ in rows], ["Ql, Ql2"])
+
+    def test_화면의_범례_길은_SLD_를_한_번만_받는다(self):
+        patch = override_settings(TILE_CACHE_DIR=tempfile.mkdtemp(prefix="gsm-mrdata-unit-"))
+        patch.enable()
+        self.addCleanup(patch.disable)
+        sld = mock.Mock(status_code=200, text=SLD, elapsed=None)
+        pic = picture([((223, 233, 127), 5000)])
+        url = reverse("viewer:mrdata-legend")
+        with mock.patch.object(mrdata, "_get", side_effect=[sld, pic, pic]) as get:
+            a = self.client.get(url, {"layer": "mrdata:sim3340:units", "bbox": "-136.5,57.5,-133,59.5"}).json()
+            b = self.client.get(url, {"layer": "mrdata:sim3340:units", "bbox": "-150,60,-145,62"}).json()
+            again = self.client.get(url, {"layer": "mrdata:sim3340:units", "bbox": "-150,60,-145,62"}).json()
+        self.assertEqual(get.call_count, 3)                                   # SLD 하나, 범위마다 그림 하나 — 같은 범위는 캐시
+        self.assertEqual(a["rows"], [{"symbol": "", "lithology": "Qk3", "swatch": "", "color": "#dfe97f", "age": ""}])
+        self.assertEqual(b, again)
+
+    def test_너무_넓으면_422(self):
+        r = self.client.get(reverse("viewer:mrdata-legend"), {"layer": "mrdata:sim3340:units", "bbox": "-180,50,-120,72"})
+        self.assertEqual(r.status_code, 422)
+
+    def test_상류가_못_주면_502(self):
+        patch = override_settings(TILE_CACHE_DIR=tempfile.mkdtemp(prefix="gsm-mrdata-unit-"))
+        patch.enable()
+        self.addCleanup(patch.disable)
+        with mock.patch.object(mrdata, "_get", return_value=mock.Mock(status_code=500, text="", elapsed=None)):
+            r = self.client.get(reverse("viewer:mrdata-legend"), {"layer": "mrdata:pr:geol", "bbox": "-67.3,17.9,-65.6,18.6"})
+        self.assertEqual(r.status_code, 502)

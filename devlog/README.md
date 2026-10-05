@@ -390,6 +390,13 @@
 | wetherilli 346 | 2026-10-05 | [대만 민감구역 받기 — 끊기면 다시 묻고, 멈추면 이어 받는다](20261005_wetherilli_346_taiwan_sensitive_retry.md) |
 | wetherilli 347 | 2026-10-05 | [메타타일·응답 시간 첫 운영 보기 — 아직 볼 것이 없었다](20261005_wetherilli_347_metatile_ops_first_look.md) |
 | wetherilli 348 | 2026-10-05 | [README "라이선스와 자료의 출처" 맞추기](20261005_wetherilli_348_readme_sources.md) |
+| wetherilli 349 | 2026-10-05 | [시험이 덮지 않는 곳 — coverage 로 재고 위험한 차례로 메우기](20261005_wetherilli_349_coverage_gaps.md) |
+| wetherilli 350 | 2026-10-05 | [VWorld — Capabilities 와 다시 견주어 지질·지하수·재해 여섯을 더한다](20261005_wetherilli_350_vworld_more.md) |
+| wetherilli 351 | 2026-10-05 | [판을 다시 띄워도 남는 기록 — DB 옆 logs/ 에 하루 한 장](20261005_wetherilli_351_persistent_logs.md) |
+| wetherilli 352 | 2026-10-05 | [범위 맞추기 시험이 흔들린 것 — 시험이 아니라 화면이었다](20261005_wetherilli_352_pointset_fit_flaky.md) |
+| wetherilli 353 | 2026-10-05 | [알래스카·하와이·푸에르토리코 지질 단위 범례 — SLD 의 색을 보는 범위의 그림에서 센다](20261005_wetherilli_353_us_unit_legends.md) |
+| wetherilli 354 | 2026-10-05 | [시험이 개발 캐시를 더럽히지 않게](20261005_wetherilli_354_tests_no_dev_cache.md) |
+| wetherilli 355 | 2026-10-05 | [지질 단위 범례 둘째 — 뉴질랜드 QMAP, 태즈메이니아·오스트리아는 칠하지 않아 범례가 필요 없다](20261005_wetherilli_355_unit_legends_2.md) |
 | koprifossillab P01 | 2026-09-30 | [백업 — WegenersDream 의 틀로, 바뀌는 빠르기에 따라 넷으로 (계획)](20260930_koprifossillab_P01_backup_plan.md) |
 | koprifossillab 001 | 2026-09-30 | [매주 월요일 새벽: 운영 자료 백업과 KPDC 목록 갱신](20260930_koprifossillab_001_weekly_backup.md) |
 | koprifossillab 002 | 2026-09-30 | [`/healthz/` — 판·DB·백업 상태를 한 장으로](20260930_koprifossillab_002_healthz.md) |

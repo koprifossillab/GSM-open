@@ -94,7 +94,8 @@ class Catalog(TestCase):
         rows = {l["name"]: (g, l) for g in views._catalog("ko") for l in g["layers"]}
         group, layer = rows["gns:qmap"]
         self.assertEqual((group["region"], layer["projection"], layer["minZoom"]), ("new_zealand", "EPSG:3857", 7))
-        self.assertTrue(layer["noLegend"])
+        self.assertEqual((layer["legend"], layer["legendUrl"]), ("extent", "gns/legend/"))   # 보는 범위의 칸 (wetherilli 355)
+        self.assertNotIn("noLegend", layer)
         group, layer = rows["gns:ATA_SVL_GNS_250K_geological_units"]
         self.assertEqual((group["region"], layer["projection"]), ("antarctica", "EPSG:3031"))
         self.assertEqual(set(gns.LAYERS), {n for n in rows if n.startswith("gns:")})
@@ -110,3 +111,46 @@ class Catalog(TestCase):
         from viewer.management.commands import prewarm
         self.assertIsNotNone(prewarm.plan_for("gns:NZL_GNS_1M_geological_units", "gns"))
         self.assertIn("gns", views.MAP3D_WMS)
+
+
+#: QMAP 합본의 GetLegendGraphic JSON(`hideEmptyRules`·`countMatched`) — 2026-10-05 웰링턴에서 받은 꼴을 줄였다
+QMAP_LEGEND = {"Legend": [
+    {"layerName": "NZL_GNS_250K_geological_units_scale500k", "rules": [
+        {"name": "Q.alvgvl", "title": "Q.alvgvl (45)", "symbolizers": [{"Polygon": {"fill": "#F2F24D"}}]},
+        {"name": "Tr.szm", "title": "Tr.szm (20)", "symbolizers": [{"Polygon": {"fill": "#CCF5F5"}}]},
+        {"name": "water", "title": "water (60)", "symbolizers": [{"Polygon": {"fill": "#F7FFFF"}}]},
+        {"name": "Q1.alvgvl", "title": "Q1.alvgvl (30)", "symbolizers": [{"Polygon": {"fill": "#FFFFE6"}}]}]},
+    {"layerName": "NZL_GNS_250K_faults_plotrank", "rules": [
+        {"name": "accurate", "title": "accurate (12)", "symbolizers": [{"Line": {"stroke": "#000000"}}]}]}]}
+
+
+class ExtentLegend(TestCase):
+    """QMAP 합본의 보는 범위 범례 (wetherilli 355)"""
+
+    def answer(self, status=200, body=None):
+        return mock.Mock(status_code=status, json=lambda: body if body is not None else QMAP_LEGEND,
+                         headers={"content-type": "application/json"}, elapsed=None)
+
+    def test_면의_규칙만_많은_것부터(self):
+        with mock.patch.object(gns, "_get", return_value=self.answer()) as get:
+            rows = gns.extent_legend("gns:qmap", (174.6, -41.4, 175.1, -41.1))
+        self.assertEqual([(r["lithology"], r["color"], r["count"]) for r in rows],
+                         [("Q.alvgvl", "#f2f24d", 45), ("Q1.alvgvl", "#ffffe6", 30), ("Tr.szm", "#ccf5f5", 20)])   # 물·단층선은 뺀다
+        params = get.call_args[0][0]
+        self.assertEqual(params["legend_options"], "countMatched:true;hideEmptyRules:true")
+        self.assertEqual((params["srs"], params["bbox"]), ("EPSG:4326", "174.6,-41.4,175.1,-41.1"))
+
+    def test_화면의_길(self):
+        from django.test import override_settings
+        import tempfile
+        with override_settings(TILE_CACHE_DIR=tempfile.mkdtemp(prefix="gsm-gns-")):
+            with mock.patch.object(gns, "_get", return_value=self.answer()) as get:
+                a = self.client.get("/GSM/gns/legend/", {"layer": "gns:qmap", "bbox": "174.6,-41.4,175.1,-41.1"})
+                b = self.client.get("/GSM/gns/legend/", {"layer": "gns:qmap", "bbox": "174.6,-41.4,175.1,-41.1"})
+            self.assertEqual(get.call_count, 1)                             # 같은 범위는 캐시
+            self.assertEqual(a.json()["rows"][0]["lithology"], "Q.alvgvl")
+            self.assertEqual(a.json(), b.json())
+            self.assertEqual(self.client.get("/GSM/gns/legend/", {"layer": "gns:qmap", "bbox": "166,-47,178,-34"}).status_code, 422)
+            self.assertEqual(self.client.get("/GSM/gns/legend/", {"layer": "gns:NZL_GNS_1M_faults", "bbox": "174,-41,175,-40"}).status_code, 400)
+            with mock.patch.object(gns, "_get", return_value=self.answer(status=500)):
+                self.assertEqual(self.client.get("/GSM/gns/legend/", {"layer": "gns:qmap", "bbox": "170,-44,171,-43"}).status_code, 502)

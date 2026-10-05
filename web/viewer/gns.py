@@ -47,6 +47,11 @@ LAYERS = {
 }
 #: 범례 그림을 두지 않는 레이어 — 합본은 칸이 수천이라 그림이 쓸모없이 크다. 누르면 단위가 뜬다
 NO_LEGEND = ("gns:qmap",)
+#: 그림 대신 보는 범위의 칸을 JSON 으로 받는 레이어 (wetherilli 355) — GeoServer 가 그 범위를 그려 보고 빈 규칙을 뺀다(`hideEmptyRules`)
+EXTENT_LEGENDS = ("gns:qmap",)
+#: 이보다 넓으면 범례를 세지 않는다(°) — 범례도 그 범위를 그려 보는 일이라 합본을 넓게 그리는 만큼 느리다(나라 전체 34 초)
+LEGEND_SPAN = 6.0
+MAX_LEGEND = 80
 
 #: ICS 의 바닥 나이(Ma)와 이름 — 젊은 것부터. 제4기·신진기·고진기는 세(Epoch)까지, 그보다 오래면 기(Period)까지
 _ICS = (
@@ -125,6 +130,40 @@ def get_legend(layer: str):
     if r.status_code != 200 or not r.headers.get("content-type", "").startswith("image/"):
         raise GnsError(f"범례가 아닌 것이 왔다 (status={r.status_code})")
     return r.content, r.headers.get("content-type")
+
+
+def extent_legend(name: str, bbox: tuple, width: int = 1024, height: int = 768) -> list:
+    """보는 범위 `(서, 남, 동, 북)`(위경도)에 칠해진 단위 `[{"lithology", "color", "count", …}]`, 면이 많은 것부터 (wetherilli 355).
+
+    합본은 축척마다 단위 레이어를 바꿔 그리는 묶음이라(1:50만 너머·안쪽) 범위와 그림 크기(`srcwidth`·`srcheight`)를 함께 줘 화면과 같은 판의
+    규칙을 받는다. 경계선·단층 규칙(선)은 뺀다. 규칙 이름은 QMAP 의 단위 부호(`Q2.alvgvl`)다 — 단위 이름은 누르면 팝업에 뜬다"""
+    if name not in EXTENT_LEGENDS:
+        raise GnsError("범례가 없는 레이어다")
+    west, south, east, north = bbox
+    r = _get({"service": "WMS", "version": "1.1.1", "request": "GetLegendGraphic", "format": "application/json",
+              "layer": _names(name), "legend_options": "countMatched:true;hideEmptyRules:true",
+              "bbox": f"{west},{south},{east},{north}", "srs": "EPSG:4326",
+              "srcwidth": str(width), "srcheight": str(height)}, _url(name))
+    if r.status_code != 200:
+        raise GnsError(f"범례를 읽지 못했다 (status={r.status_code})")
+    try:
+        layers = r.json().get("Legend") or []
+    except (ValueError, AttributeError) as exc:
+        raise GnsError("범례가 JSON 이 아니다") from exc
+    rows = {}
+    for layer in layers:
+        for rule in layer.get("rules") or []:
+            fill = next((s["Polygon"].get("fill") for s in rule.get("symbolizers") or [] if "Polygon" in s), None)
+            title = str(rule.get("title") or "").strip()
+            label, count = title, 0
+            if title.endswith(")") and "(" in title and title.rsplit("(", 1)[1].rstrip(") ").isdigit():
+                label, count = title.rsplit("(", 1)[0].strip(), int(title.rsplit("(", 1)[1].rstrip(") "))
+            label = label or str(rule.get("name") or "").strip()
+            if not fill or not label or label.lower() == "water":        # 물 면은 지질이 아니다
+                continue
+            row = rows.setdefault(label, {"symbol": "", "lithology": label, "color": fill.lower(), "swatch": "", "age": "", "count": 0})
+            row["count"] += count
+    return sorted(rows.values(), key=lambda row: -row["count"])
 
 
 def get_feature_info(params: dict) -> dict:

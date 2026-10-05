@@ -752,6 +752,9 @@ TEMPLATES = [{
     ]},
 }]
 
+#: 시험이 개발 캐시·자료 자리를 더럽히지 않게 빈 임시 자리로 돌린다 (wetherilli 354)
+TEST_RUNNER = "gsmweb.testrunner.GSMTestRunner"
+
 DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.sqlite3",
@@ -793,6 +796,15 @@ LOGGING = {
     "version": 1,
     "disable_existing_loggers": False,
     "formatters": {"plain": {"format": "%(asctime)s %(levelname)s %(name)s %(message)s"}},
-    "handlers": {"console": {"class": "logging.StreamHandler", "formatter": "plain"}},
+    # 키처럼 보이는 질의 값은 화면에도 남기지 않는다 (wetherilli 351)
+    "filters": {"redact": {"()": "gsmweb.logfiles.RedactFilter"}},
+    "handlers": {"console": {"class": "logging.StreamHandler", "formatter": "plain", "filters": ["redact"]}},
     "root": {"handlers": ["console"], "level": env("GSM_LOG_LEVEL", "INFO")},
 }
+# 판을 다시 띄워도 남는 기록 (wetherilli 351) — 컨테이너는 `<DB 옆>/logs` 를 준다(entrypoint-web.sh). 개발·시험은 비워 둔다
+LOG_DIR = env("GSM_LOG_DIR", "")
+if LOG_DIR:
+    LOGGING["handlers"]["daily"] = {
+        "()": "gsmweb.logfiles.DailyFile", "formatter": "plain", "directory": LOG_DIR, "prefix": "app",
+        "keep_days": int(env("GSM_LOG_KEEP_DAYS", "30")), "max_bytes": int(float(env("GSM_LOG_MAX_MB", "50")) * 1024 * 1024)}
+    LOGGING["root"]["handlers"].append("daily")

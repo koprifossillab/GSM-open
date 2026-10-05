@@ -453,6 +453,8 @@ MIN_ZOOM = {
     "lt_c_gimshydro": 10, "lt_c_uj401": 10, "lt_c_um221": 10,                                             # 수문지질·용도지역
     "lt_l_frstclimb": 9,                                                                                  # 등산로
     "lt_c_wkmmbsn": 8, "lt_c_wkmsbsn": 8, "lt_c_wkmstrm": 8,                                              # 대·중권역·하천
+    # Capabilities 와 다시 견주어 더한 것 (wetherilli 350) — 대전에서 격자 줌을 올려 가며 처음 그려지는 줌 + 1
+    "lt_c_gimslinea": 11, "lt_c_gimsstiff": 12, "lt_l_gimsdirec": 12,
 }
 
 
@@ -694,6 +696,12 @@ LAYER_FRIENDLY = {
     "lt_c_uo301": {"uname": "지정 구분"},
     # 산림입지도의 `name` 은 산림토양형이다
     "lt_c_fsdifrsts": {"name": "산림토양", "toyanghyun": "토양형 기호"},
+    # 지질구조선 밀도(면)의 `info` 는 밀도 구간이다 — 선(`lt_l_gimslinea`)의 수문지질단위와 다르다. 단위는 VWorld 가 밝히지 않았다 (wetherilli 350)
+    "lt_c_gimslinea": {"info": "밀도 구간", "legend": None},
+    "lt_c_gimsstiff": {"legend": None},
+    "lt_l_gimsdirec": {"legend": None},
+    # 해안선의 `label` 은 섬 이름(또는 "해안선")이다
+    "lt_l_toisdepcntah": {"label": "이름"},
 }
 
 

@@ -47,8 +47,8 @@ DAY=$(date +%Y%m%d)
 MODE=${1:-all}
 
 # 백업에 넣지 않는 것 — 비밀과 이 스크립트가 적는 결과(backup_status.json), 지금의 바람(wind/gfs — 여섯 시간마다 바뀌고
-# 다음 판이 이긴다. 넣으면 ② 가 매주 새로 뜬다, koprifossillab P02), 최근 지진(earth/quakes_recent.json — 매시 새로 받는다, wetherilli 292·297)
-SECRETS='^\./(kigam_key|vworld_key|secret_key|geus_whoami|allowed_hosts|backup_status\.json|hourly_status\.json|wind/gfs/.*|wind/gmgsi/.*|earth/quakes_recent\.json)$'
+# 다음 판이 이긴다. 넣으면 ② 가 매주 새로 뜬다, koprifossillab P02), 최근 지진(earth/quakes_recent.json — 매시 새로 받는다, wetherilli 292·297), 컨테이너의 기록(logs/ — 날마다 늘고 30 일이면 지운다, wetherilli 351)
+SECRETS='^\./(kigam_key|vworld_key|secret_key|geus_whoami|allowed_hosts|backup_status\.json|hourly_status\.json|wind/gfs/.*|wind/gmgsi/.*|earth/quakes_recent\.json|logs/.*)$'
 # ① 에 드는 것. ② 의 목록에서 뺀다. pbdb.sqlite 는 CSV 로 다시 굽는다. 스위치 파일을 ② 에 두면 켜고 끌 때마다
 # 1.4 GB 를 새로 뜬다
 WEEKLY='^\./(GSM\.db.*|dev_direct_wms|public|kopri/.*|kigam50k/.*|earth/pbdb_collections\.csv|earth/pbdb\.sqlite)$'

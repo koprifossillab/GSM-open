@@ -453,39 +453,63 @@ class PointsetsAcrossProjections(PhoneBase):
         call_command("seed_catalog", stdout=open(os.devnull, "w"))
 
     def test_범위를_맞추면_그_점이다(self):
+        for region, place, proj in self.TABS:
+            self.fit_and_check(region, place, proj)
+
+    def test_점이_오기_전에_눌러도_그_점이다(self):
+        """점(GeoJSON)이 오기 전에 누르면 범위가 비어 아무 일도 없었다 — 느린 CI 의 3978 탭에서 가끔 처음 자리에 남았다(wetherilli 352).
+        점을 붙잡아 두었다가 누른 뒤에 내준다"""
+        self.fit_and_check("canada", "ottawa", "EPSG:3978", hold=True)
+
+    def fit_and_check(self, region, place, proj, hold=False):
         import json
         from viewer.models import Point, PointSet
         base = self.live_server_url + "/GSM/"
-        for region, place, proj in self.TABS:
-            # 점묶음은 탭마다 하나만 — 여럿이면 화면이 덩이를 한꺼번에 묻고, 시험 서버의 메모리 sqlite 가 스레드끼리 부딪힌다
-            PointSet.objects.all().delete()
-            lon, lat = self.PLACES[place]
-            ps = PointSet.objects.create(name=place, color="#e4572e")
-            Point.objects.create(pointset=ps, label=place, lat=lat, lon=lon)
-            ctx = self.browser.new_context(**PHONE)
-            self.addCleanup(ctx.close)
-            ctx.add_init_script(f"localStorage.setItem('gsm.region', '{region}');"
-                                f"localStorage.setItem('gsm.regions', JSON.stringify(['{region}']));")
-            page = ctx.new_page()
-            errors = []
-            page.on("pageerror", lambda e: errors.append(str(e)))
+        held = []
+        # 점묶음은 탭마다 하나만 — 여럿이면 화면이 덩이를 한꺼번에 묻고, 시험 서버의 메모리 sqlite 가 스레드끼리 부딪힌다
+        PointSet.objects.all().delete()
+        lon, lat = self.PLACES[place]
+        ps = PointSet.objects.create(name=place, color="#e4572e")
+        Point.objects.create(pointset=ps, label=place, lat=lat, lon=lon)
+        ctx = self.browser.new_context(**PHONE)
+        self.addCleanup(ctx.close)
+        ctx.add_init_script(f"localStorage.setItem('gsm.region', '{region}');"
+                            f"localStorage.setItem('gsm.regions', JSON.stringify(['{region}']));")
+        page = ctx.new_page()
+        errors = []
+        page.on("pageerror", lambda e: errors.append(str(e)))
 
-            def route(r):
-                rest = r.request.url[len(base):] if r.request.url.startswith(base) else None
-                if rest is not None and (r.request.resource_type == "document" or rest.startswith(("static/", "pointsets/", "patchnotes/"))):
-                    return r.continue_()
-                return r.abort()
-            page.route("**/*", route)
-            page.goto(base + "map/", wait_until="load")
-            page.wait_for_timeout(1500)
-            clicked = page.evaluate("""(place) => {
-                const li = [...document.querySelectorAll('#pointset-list li')].find(l => l.textContent.includes(place));
-                const b = li && [...li.querySelectorAll('button')].find(x => x.textContent.includes('⊙'));
-                if (!b) return false; b.click(); return true; }""", place)
-            self.assertTrue(clicked, region)
-            page.wait_for_timeout(1200)
-            view = json.loads(page.evaluate(f"() => localStorage.getItem('gsm.view.{region}')") or "null")
-            self.assertEqual(view["proj"], proj)
-            self.assertAlmostEqual(view["lon"], lon, delta=0.01, msg=region)
-            self.assertAlmostEqual(view["lat"], lat, delta=0.01, msg=region)
-            self.assertEqual(errors, [], region)
+        def route(r):
+            rest = r.request.url[len(base):] if r.request.url.startswith(base) else None
+            if hold and rest is not None and rest.startswith("pointsets/") and rest.endswith("/geojson/"):
+                return held.append(r)          # 누른 뒤에 내준다
+            if rest is not None and (r.request.resource_type == "document" or rest.startswith(("static/", "pointsets/", "patchnotes/"))):
+                return r.continue_()
+            return r.abort()
+        page.route("**/*", route)
+        page.goto(base + "map/", wait_until="load")
+        page.wait_for_timeout(1500)
+        if hold:
+            self.assertTrue(held, "점을 붙잡지 못했다 — 화면이 점을 묻지 않았다")
+        clicked = page.evaluate("""(place) => {
+            const li = [...document.querySelectorAll('#pointset-list li')].find(l => l.textContent.includes(place));
+            const b = li && [...li.querySelectorAll('button')].find(x => x.textContent.includes('⊙'));
+            if (!b) return false; b.click(); return true; }""", place)
+        self.assertTrue(clicked, region)
+        if hold:
+            page.wait_for_timeout(500)
+            for r in held:
+                r.continue_()
+        # 맞추기는 300 ms 애니메이션이고 자리는 그것이 끝날 때(`moveend`) 저장된다 — 고정으로 기다리지 않고 그 자리가 오기를 기다린다.
+        # 끝내 오지 않으면 아래의 같은 검사가 깨진다
+        try:
+            page.wait_for_function("""([key, lon, lat]) => { const v = JSON.parse(localStorage.getItem(key) || 'null');
+                return v && Math.abs(v.lon - lon) < 0.01 && Math.abs(v.lat - lat) < 0.01; }""",
+                                   arg=[f"gsm.view.{region}", lon, lat], timeout=6000)
+        except Exception:
+            pass
+        view = json.loads(page.evaluate(f"() => localStorage.getItem('gsm.view.{region}')") or "null")
+        self.assertEqual(view["proj"], proj)
+        self.assertAlmostEqual(view["lon"], lon, delta=0.01, msg=region)
+        self.assertAlmostEqual(view["lat"], lat, delta=0.01, msg=region)
+        self.assertEqual(errors, [], region)

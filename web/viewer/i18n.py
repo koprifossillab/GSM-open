@@ -2567,6 +2567,7 @@ PROP_EN = {
     # 독일 BGR·스페인 IGME (wetherilli 147)
     "대": "Era",
     "성인": "Genesis",
+    "밀도 구간": "Density class",
     # 민감구역·지구물리 격자의 값 (wetherilli 336)
     "구역 번호": "Area code", "향·진·구": "Township", "공고일": "Announced", "공고 문호": "Notice no.",
     "완전 부게 중력 이상 (µm/s²)": "Complete Bouguer anomaly (µm/s²)", "총자력 이상 (nT)": "Total magnetic intensity (nT)",
@@ -3469,6 +3470,9 @@ GROUP_EN = {
 }
 
 LAYER_EN = {
+    # VWorld — Capabilities 와 다시 견주어 더한 것 (wetherilli 350)
+    "lt_c_gimslinea": "Lineament density", "lt_c_gimsstiff": "Groundwater quality diagrams", "lt_l_gimsdirec": "Groundwater flow direction",
+    "lt_l_toisdepcntah": "Coastline", "lt_c_wgisrecomp": "Reclaimed land (completed)", "lt_c_uq125": "Disaster prevention districts",
     # 영국 수리지질·G-BASE·CMIC 하천 퇴적물 (wetherilli 324)
     "bgsgi:hydrogeology": "Hydrogeology (1:625k)", "bgsgi:gbase_streamsed": "G-BASE stream sediment sample sites",
     "bgsgi:gq:CaO": "Calcium (CaO)",
@@ -4515,6 +4519,12 @@ ABSTRACT_EN = {
     "lt_c_uf901": "VWorld. Core and buffer zones",
     "lt_c_uo301": "VWorld. Places that need a permit to disturb, such as natural-monument fossil sites. Drawn from zoom 10",
     "lt_c_up201": "VWorld. Flood and collapse hazard districts",
+    "lt_c_gimslinea": "VWorld. Lineament density class per district — from zoom 11",
+    "lt_c_gimsstiff": "VWorld. Stiff diagrams of groundwater quality at wells — from zoom 12",
+    "lt_l_gimsdirec": "VWorld. Arrows of groundwater flow direction — from zoom 12",
+    "lt_l_toisdepcntah": "VWorld. KHOA coastline",
+    "lt_c_wgisrecomp": "VWorld. Completed reclamation of public waters — for soft ground and liquefaction",
+    "lt_c_uq125": "VWorld. Disaster prevention districts of urban plans",
     "lt_c_up401": "VWorld. Small areas, visible up close",
     "lt_c_wkmbbsn": "VWorld. Ministry of Environment basin divisions. Only the boundaries are drawn",
     "lt_c_wkmmbsn": "VWorld. Only the boundaries are drawn",

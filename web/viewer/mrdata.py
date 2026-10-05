@@ -10,6 +10,9 @@
 - 범례 — SGMC 는 단위가 주마다 수천이고 GetLegendGraphic·GetStyles 가 501 이다(MapCache 앞단). 그런데 **색은 단위가 아니라 일반화한 암상
   (`generalize`, 스물셋 남짓)으로만 칠한다**(wetherilli 334 — 열넷 자리에서 같은 갈래는 늘 같은 색). 그래서 보는 범위의 갈래를 WFS 로 세고(기하 없이
   `propertyName=generalize`) 색은 한 번 떠 둔 표(`SGMC_COLORS`)에서 찾는다. 팝업의 단위 쪽 링크는 그대로
+- **알래스카·하와이·푸에르토리코의 범례**(wetherilli 353) — 이쪽 MapServer 는 GetLegendGraphic 을 주지만 단위 이백여 칸이 세로 3 400–4 300 px 한 장이다.
+  WFS 가 없어(알래스카) 보는 범위를 세지도 못한다. 그래서 칠하기 규칙(`GetStyles` 의 SLD — 규칙 이름과 채움색)을 한 번 받아 두고, 보는 범위의
+  그림 한 장(512 px)에 칠해진 색을 세어 규칙과 맞댄다(`unit_legend`). 알래스카는 단위 기호, 하와이는 기호, 푸에르토리코는 암상 이름이 칸의 이름이다
 - **알래스카의 "Water" 면은 문이 지운다**(wetherilli 224) — SIM 3340 은 도폭마다 바다를 네모난 물 면(`#ccffff`)으로 칠해 두어 알류샨
   남쪽에 북위 51.5° 를 따라 하늘색 띠가 선다. 물은 지질이 아니고 그 색을 쓰는 단위가 물뿐이라(빙하는 투명) 받은 그림의 그 색을 투명으로
   바꾼다. 고침의 판(`REDRAWN`)이 캐시 열쇠에 든다 — 띠가 든 옛 타일을 내지 않게
@@ -98,6 +101,15 @@ SGMC_COLORS = {
 #: SGMC 범례를 세는 가장 넓은 범위(°)와 한 번에 세는 면의 수 — 6° 네모가 2 초 남짓(면 3 000)
 SGMC_SPAN = 8.0
 SGMC_SAMPLE = 3000
+#: 보는 범위의 그림으로 범례를 세는 단위 면 — 알래스카·하와이·푸에르토리코 (wetherilli 353)
+UNIT_LEGENDS = ("mrdata:sim3340:units", "mrdata:hi:units", "mrdata:pr:geol")
+UNIT_SAMPLE_PX = 512
+#: 이보다 작은 몫의 색은 버린다 — 가장자리의 섞인 색
+UNIT_MIN_SHARE = 0.0005
+#: 범례에 세울 칸의 수 — 넘는 것은 "외 n" 으로
+UNIT_MAX_LEGEND = 60
+#: 이보다 넓으면 그림 한 장에 단위가 뭉개져 범례를 세지 않는다(°) — 알래스카 전체가 든다
+UNIT_SPAN = 45.0
 
 #: SGMC WFS 에서 받을 열 — 기하는 받지 않는다
 SGMC_FIELDS = ("state", "orig_label", "unit_link", "generalize", "src_url", "url")
@@ -235,6 +247,69 @@ def sgmc_legend(bbox) -> list:
 
 def sgmc_legend_row(name: str) -> dict:
     return {"symbol": "", "lithology": name, "swatch": "", "color": SGMC_COLORS.get(name, "#cccccc"), "age": ""}
+
+
+def parse_sld(text: str) -> list:
+    """MapServer `GetStyles` 의 SLD → [(규칙 이름, "#rrggbb")]. 면을 칠하는 규칙만, 적힌 차례대로"""
+    out = []
+    for rule in re.findall(r"<Rule>(.*?)</Rule>", text, re.S):
+        name = re.search(r"<Name>([^<]*)</Name>", rule)
+        fill = re.search(r'<PolygonSymbolizer>.*?<CssParameter name="fill">\s*(#[0-9A-Fa-f]{6})\s*<', rule, re.S)
+        if name and fill:
+            out.append((_unescape(name.group(1).strip()), fill.group(1).lower()))
+    return out
+
+
+def unit_styles(name: str) -> list:
+    """단위 면 레이어의 칠하기 규칙 — 서비스의 SLD 를 한 번 받는다(부르는 쪽이 캐시에 담는다)"""
+    service, layer = LAYERS[name]
+    r = _get(f"{_base()}/{service}", {"service": "WMS", "version": "1.1.1", "request": "GetStyles", "layers": layer})
+    if r.status_code != 200 or "<Rule>" not in r.text:
+        raise MrdataError(f"칠하기 규칙을 받지 못했다 (status={r.status_code})")
+    return parse_sld(r.text)
+
+
+def unit_legend(name: str, bbox, rules: list) -> list:
+    """보는 범위에 칠해진 단위 — [(이름, 색, 몫)], 넓은 것부터 (wetherilli 353).
+
+    알래스카에는 WFS 가 없고 하와이·푸에르토리코의 WMS 도 단위를 세어 주지 않는다. 그래서 **보는 범위의 그림 한 장**을 받아 칸마다 색을 세고
+    SLD 의 규칙 색과 맞댄다. 같은 색을 쓰는 규칙은 한 칸으로 묶는다(상류의 범례 그림도 그렇게 묶는다). 가장자리의 섞인 색이 우연히 다른 규칙과
+    같을 수 있어 `UNIT_MIN_SHARE` 밑은 버린다. 넓게 보면 작은 단위는 그림에서 사라져 범례에서도 빠진다"""
+    import io
+
+    from PIL import Image
+
+    service, layer = LAYERS[name]
+    west, south, east, north = bbox
+    merc = lambda lon, lat: (math.radians(lon) * 6378137.0,                       # noqa: E731
+                             math.log(math.tan(math.pi / 4 + math.radians(max(-85.0, min(85.0, lat))) / 2)) * 6378137.0)
+    (x0, y0), (x1, y1) = merc(west, south), merc(east, north)
+    r = _get(f"{_base()}/{service}", {"service": "WMS", "version": "1.1.1", "request": "GetMap", "layers": layer, "styles": "",
+                                      "srs": "EPSG:3857", "bbox": f"{x0:.1f},{y0:.1f},{x1:.1f},{y1:.1f}",
+                                      "width": str(UNIT_SAMPLE_PX), "height": str(UNIT_SAMPLE_PX),
+                                      "format": "image/png", "transparent": "true"})
+    if r.status_code != 200 or not r.headers.get("content-type", "").startswith("image/"):
+        raise MrdataError(f"범례를 셀 그림을 받지 못했다 (status={r.status_code})")
+    img = Image.open(io.BytesIO(r.content)).convert("RGBA")
+    counts = {}
+    for n, (red, green, blue, alpha) in img.getcolors(UNIT_SAMPLE_PX * UNIT_SAMPLE_PX) or []:
+        if alpha >= 250:
+            hexed = f"#{red:02x}{green:02x}{blue:02x}"
+            counts[hexed] = counts.get(hexed, 0) + n
+    total = sum(counts.values()) or 1
+    names = {}
+    for rule, color in rules:
+        names.setdefault(color, [])
+        if rule not in names[color]:
+            names[color].append(rule)
+    water = f"#{WATER[0]:02x}{WATER[1]:02x}{WATER[2]:02x}"     # 알래스카의 물 면 — 타일에서도 지운다(`REDRAWN`)
+    rows = [(", ".join(x for x in names[c] if x), c, n / total) for c, n in counts.items()
+            if c in names and c != water and any(names[c]) and n / total >= UNIT_MIN_SHARE]
+    return sorted(rows, key=lambda row: -row[2])
+
+
+def unit_legend_row(label: str, color: str) -> dict:
+    return {"symbol": "", "lithology": label, "swatch": "", "color": color, "age": ""}
 
 
 def parse_gml(text: str, kind: str) -> list:
