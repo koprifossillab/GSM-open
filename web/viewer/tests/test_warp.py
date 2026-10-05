@@ -161,3 +161,16 @@ class PolarMore(TestCase):
         self.assertIn('value="ibcso:tid"', html)
         from viewer import views as _views
         self.assertTrue({"ngu", "gtk"} <= set(_views.MAP3D_WMS))
+
+
+class PgcMercator(TestCase):
+    """PGC 경사·등고선도 3857 로 — ImageServer 가 `imageSR` 로 다시 그린다 (wetherilli 338)"""
+    def test_3857_을_받는다(self):
+        from unittest import mock
+        from viewer import elevation
+        ok = mock.Mock(status_code=200, headers={"content-type": "image/png"}, content=b"png", url="u", elapsed=None)
+        with mock.patch.object(elevation.requests, "get", return_value=ok) as get, mock.patch.object(elevation.usage, "paused", return_value=0):
+            elevation.get_map({"layers": "pgc:greenland_slope", "crs": "EPSG:3857", "bbox": "0,0,1,1", "width": "256", "height": "256"})
+        self.assertEqual((get.call_args[1]["params"]["bboxSR"], get.call_args[1]["params"]["imageSR"]), (3857, 3857))
+        with self.assertRaises(elevation.ElevationError):
+            elevation.get_map({"layers": "pgc:greenland_slope", "crs": "EPSG:4326", "bbox": "0,0,1,1", "width": "256", "height": "256"})

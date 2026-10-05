@@ -47,9 +47,10 @@ class Door(SimpleTestCase):
         self.assertEqual(json.loads(sent["renderingRule"])["rasterFunction"], "Contour Smoothed 25")
 
     def test_다른_투영은_묻지_않는다(self):
+        """제 투영과 3857(3D, wetherilli 338) 말고는 묻지 않는다"""
         with mock.patch.object(elevation.requests, "get") as get:
             with self.assertRaises(elevation.ElevationError):
-                elevation.get_map(wms(crs="EPSG:3857"))
+                elevation.get_map(wms(crs="EPSG:4326"))
         get.assert_not_called()
 
     def test_누른_픽셀의_자리에서_값을_읽는다(self):

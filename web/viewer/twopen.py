@@ -20,6 +20,7 @@ from pathlib import Path
 from django.conf import settings
 
 from . import tectonics
+from .i18n import msg
 
 PREFIX = "gsmma:open:"
 SOURCE_URL = "https://www.geologycloud.tw/data/zh-tw"
@@ -188,3 +189,70 @@ def body(name: str, lang: str = "ko") -> bytes:
 
 def size_note(raw_bytes: int, sent_bytes: int) -> str:
     return f"{raw_bytes / 1e6:.1f} MB → {sent_bytes / 1e6:.1f} MB ({math.floor(100 * sent_bytes / max(raw_bytes, 1))}%)"
+
+
+# ── 지질 민감구역 — 누른 자리가 어느 구역인가 (wetherilli 336) ─────────────
+#
+# 그림은 GSMMA 의 WMS 그대로이고, 누르기만 여기서 한다. `fetch_taiwan_open --sensitive` 가 구역 면을 `sensitive.sqlite` 에 담는다 —
+# 면 조각(다각형)마다 한 줄, 범위는 R*Tree. 속성은 지질운이 주지 않아(`Gid` 뿐) 공고 목록에서 붙인 번호·이름·공고일·문호다
+
+SENSITIVE_FILE = "sensitive.sqlite"
+#: 갈래 기호 → 팝업의 갈래 이름(옮긴다)
+SENSITIVE_KINDS = {"F": msg("활성단층 민감구역"), "G": msg("지하수 함양 민감구역"), "H": msg("지질 유산 민감구역"), "L": msg("산사태·지활 민감구역")}
+
+
+def _parts(geometry: dict) -> list:
+    kind = (geometry or {}).get("type")
+    coords = (geometry or {}).get("coordinates") or []
+    return [coords] if kind == "Polygon" else list(coords) if kind == "MultiPolygon" else []
+
+
+def write_sensitive(areas, path: Path) -> int:
+    """`gsmma.fetch_sensitive` 가 낸 구역들 → sqlite. 조각 수를 돌려준다. `.part` 에 쓰고 바꿔 단다"""
+    import sqlite3
+    tmp = path.with_suffix(".part")
+    tmp.unlink(missing_ok=True)
+    db = sqlite3.connect(tmp)
+    db.executescript("""
+        CREATE TABLE area (id INTEGER PRIMARY KEY, kind TEXT, code TEXT, name TEXT, town TEXT, date TEXT, doc TEXT, rings TEXT);
+        CREATE VIRTUAL TABLE area_box USING rtree(id, w, e, s, n);""")
+    n = 0
+    for a in areas:
+        for rings in _parts(a.get("geometry")):
+            rings = [[[round(p[0], 6), round(p[1], 6)] for p in ring] for ring in rings if ring]
+            if not rings:
+                continue
+            xs = [p[0] for p in rings[0]]
+            ys = [p[1] for p in rings[0]]
+            n += 1
+            db.execute("INSERT INTO area VALUES (?,?,?,?,?,?,?,?)",
+                       (n, a["kind"], a.get("code", ""), a.get("name", ""), a.get("town", ""), a.get("date", ""), a.get("doc", ""),
+                        json.dumps(rings, separators=(",", ":"))))
+            db.execute("INSERT INTO area_box VALUES (?,?,?,?,?)", (n, min(xs), max(xs), min(ys), max(ys)))
+    db.commit()
+    db.close()
+    tmp.replace(path)
+    return n
+
+
+def sensitive_at(kind: str, lon: float, lat: float) -> list:
+    """누른 자리를 품은 `kind` 갈래 구역 — 팝업 열(`gsmma.FRIENDLY` 의 `Sens*`). 파일이 없으면 빈 것"""
+    import sqlite3
+    from . import gsmma
+    path = folder() / SENSITIVE_FILE
+    if not path.exists():
+        return []
+    db = sqlite3.connect(f"file:{path}?mode=ro", uri=True)
+    try:
+        rows = db.execute("""SELECT a.code, a.name, a.town, a.date, a.doc, a.rings FROM area_box b JOIN area a ON a.id = b.id
+                             WHERE b.w <= ? AND b.e >= ? AND b.s <= ? AND b.n >= ? AND a.kind = ?""", (lon, lon, lat, lat, kind)).fetchall()
+    finally:
+        db.close()
+    out, seen = [], set()
+    for code, name, town, date, doc, rings in rows:
+        if (code, town) in seen or not gsmma.contains({"type": "Polygon", "coordinates": json.loads(rings)}, lon, lat):
+            continue
+        seen.add((code, town))
+        props = {"SensKind": str(SENSITIVE_KINDS[kind]), "SensName": name, "SensCode": code, "SensTown": town, "SensDate": date, "SensDoc": doc}
+        out.append({k: v for k, v in props.items() if v})
+    return out

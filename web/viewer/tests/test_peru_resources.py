@@ -76,7 +76,7 @@ class Views(TestCase):
     def test_카탈로그(self):
         self.assertEqual(self.layers["ingemmet:deposits"]["tiles"], "ingemmet/deposits/{z}/{x}/{y}.png")
         self.assertEqual(self.layers["ingemmet:deposits"]["minZoom"], 7)
-        self.assertFalse(self.layers["ingemmet:bouguer"]["queryable"])
+        self.assertTrue(self.layers["ingemmet:bouguer"]["queryable"])     # 화소 값으로 누른다 (wetherilli 336)
         self.assertTrue(self.layers["ingemmet:belts"]["noLegend"])
 
     def test_누른_자리(self):

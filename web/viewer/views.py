@@ -412,6 +412,8 @@ MAP3D_WMS = ("kigam", "geus", "geusarc", "vworld", "ccop", "gsjows", "gsmma",
              "sgu",
              # 노르웨이 NGU·핀란드 GTK(wetherilli 335) — 2D 는 3575·3413 이지만 3857 도 그려 준다(2026-10-05 에 둘 다 재었다)
              "ngu", "gtk",
+             # PGC ArcticDEM·REMA 경사·등고선(wetherilli 338) — ImageServer 가 3857 로도 다시 그려 준다
+             "pgc",
              # 아이슬란드 NÍ(wetherilli 216) — 2D 는 3413 이지만 GeoServer 라 3857 도 그린다
              "natt",
              # 뉴질랜드·남빅토리아랜드 GNS(wetherilli 218) — GeoServer 라 3857 도 그린다
@@ -3145,9 +3147,10 @@ def _layer_extra_base(layer, lang: str = "ko") -> dict:
                 **({} if sgm.queryable(layer.name) else {"queryable": False}),
                 **({"minZoom": first} if first else {})}
     if layer.upstream == "mrdata" and mrdata.knows(layer.name):
-        # 미국 USGS(wetherilli 205) — MapServer WMS 를 3857 로. 범례는 없다(단위가 주마다 수천, GetLegendGraphic 501) — 팝업의 단위
-        # 설명 링크가 갈음한다. 구조선·단층은 누르지 않는다
-        return {"attribution": mrdata.ATTRIBUTION, "projection": "EPSG:3857", "noLegend": True,
+        # 미국 USGS(wetherilli 205) — MapServer WMS 를 3857 로. 본토 SGMC 는 보는 범위의 일반화 암상 범례(`mrdata/legend/`, wetherilli 334),
+        # 나머지는 범례가 없다. 구조선·단층은 누르지 않는다
+        return {"attribution": mrdata.ATTRIBUTION, "projection": "EPSG:3857",
+                **({"legend": "extent", "legendUrl": "mrdata/legend/"} if layer.name == "mrdata:sgmc2:sgmc2" else {"noLegend": True}),
                 **({} if layer.name in mrdata.QUERYABLE else {"queryable": False}),
                 # 하와이·푸에르토리코(wetherilli 238)는 미국 탭(3978)에서 제 범위 밖 타일을 묻지 않는다
                 **({"clip": True} if layer.name in mrdata.ISLANDS else {}),
@@ -4422,6 +4425,31 @@ def sigeom_legend(request):
         tilecache.put(key, json.dumps(held, ensure_ascii=False).encode("utf-8"), ".json")
     shown = held["rows"][:sigeom.MAX_LEGEND]
     return JsonResponse({"rows": shown, "more": max(0, len(held["rows"]) - len(shown))})
+
+
+def mrdata_legend(request):
+    """`?layer=mrdata:sgmc2:sgmc2&bbox=서,남,동,북` — 미국 SGMC 의 보는 범위 범례 (wetherilli 334). 색은 단위가 아니라 일반화 암상으로만 칠해
+    갈래를 WFS 로 세고 색은 문의 표(`mrdata.SGMC_COLORS`)에서 찾는다. 꼴은 인도네시아(`esdm_legend`)와 같다"""
+    lang = i18n.lang_of(request)
+    name = request.GET.get("layer", "")
+    if name != "mrdata:sgmc2:sgmc2":
+        return JsonResponse({"error": i18n.t(msg("범례가 없는 레이어다"), lang), "rows": []}, status=400)
+    parts = [_float(v) for v in (request.GET.get("bbox") or "").split(",")]
+    if len(parts) != 4 or None in parts:
+        return JsonResponse({"error": i18n.t(msg("bbox 가 없다"), lang), "rows": []}, status=400)
+    bbox = [round(v, 2) for v in parts]
+    if bbox[2] - bbox[0] > mrdata.SGMC_SPAN or bbox[3] - bbox[1] > mrdata.SGMC_SPAN:
+        return JsonResponse({"error": i18n.t(msg("범위가 넓다 — 더 들어오면 범례가 뜬다"), lang), "rows": []}, status=422)
+    key = tilecache.key_text("mrdata-legend", f"{name}/{bbox}")
+    held = _cached_json(key)
+    if held is None:
+        try:
+            held = {"rows": [n for n, _ in mrdata.sgmc_legend(tuple(bbox))]}
+        except UPSTREAM_ERRORS as exc:
+            log.info("SGMC 범례를 받지 못했다: %s", exc)
+            return JsonResponse({"error": i18n.t(msg("범례를 받지 못했다"), lang), "rows": []}, status=502)
+        tilecache.put(key, json.dumps(held, ensure_ascii=False).encode("utf-8"), ".json")
+    return JsonResponse({"rows": [mrdata.sgmc_legend_row(n) for n in held["rows"]], "more": 0})
 
 
 @require_GET

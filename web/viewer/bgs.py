@@ -131,7 +131,7 @@ import xml.etree.ElementTree as _ET
 from types import SimpleNamespace as _NS
 
 GSNI_PREFIX = "gsni:"
-GSNI_ATTRIBUTION = ('Contains <a href="https://www.economy-ni.gov.uk/topics/geological-survey-northern-ireland" target="_blank"'
+GSNI_ATTRIBUTION = ('Contains <a href="https://www.bgs.ac.uk/geology-projects/gsni/" target="_blank"'
                     ' rel="noopener">Geological Survey of Northern Ireland</a> materials © Crown Copyright (OGL)')
 _ESRI = "{http://www.esri.com/wms}"
 

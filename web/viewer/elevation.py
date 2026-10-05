@@ -578,7 +578,8 @@ def _pgc_request(params: dict, key: str = "layers") -> tuple:
     if not spec:
         raise ElevationError("PGC 레이어가 아니다")
     code = (params.get("crs") or params.get("srs") or "").upper()
-    if code != spec["srs"]:
+    # 3857 도 받는다 — 3D 가 묻는다. ImageServer 가 `imageSR` 로 다시 그려 준다 (wetherilli 338)
+    if code not in (spec["srs"], "EPSG:3857"):
         raise ElevationError(f"받지 않는 투영이다: {code}")
     try:
         box = [float(v) for v in (params.get("bbox") or "").split(",")]

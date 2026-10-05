@@ -48,7 +48,7 @@
         return { center: [v.lon, v.lat], zoom: Math.max(8, v.zoom) - 1 };
       }
     } catch (e) { /* 사생활 모드 */ }
-    return { center: [128.465, 38.119], zoom: 12 };
+    return { center: [128.465, 38.119], zoom: 12, fallback: true };
   }
 
   var start = startView();
@@ -63,8 +63,62 @@
                   oceania: ["australia", "new_zealand", "new_caledonia", "french_polynesia"], southeast_asia: ["thailand", "malaysia", "indonesia", "philippines"],
                   central_america: ["nicaragua", "panama", "dominican_republic", "caribbean"] };
   var ALLOWED = BUNDLES[REGION] || [REGION];
+  // 다른 지역에서 빌려 오는 레이어 — 2D 의 `REGIONS.*.borrow` 그대로다(상류 이름, 또는 `:` 로 끝나는 레이어 이름의 앞머리).
+  // 2D 는 프랑스가 영국에 둔 EGDI 1:100만을, 파라과이가 콜롬비아의 남미 1:500만을 빌려 보이는데 3D 는 제 지역 것만 남겨 비었다 (wetherilli 340).
+  // `test_mapview` 가 2D 의 표와 같은지 본다
+  var BORROW = {
+    greenland: {"arctic_ocean": ["earth"]},
+    jan_mayen: {"arctic_ocean": ["earth"]},
+    svalbard: {"arctic_ocean": ["emodnet", "earth"]},
+    fennoscandia: {"arctic_ocean": ["earth"]},
+    iceland: {"arctic_ocean": ["emodnet", "earth"]},
+    china: {"japan": ["earth"]},
+    taiwan: {"japan": ["earth"]},
+    mongolia: {"japan": ["earth"]},
+    saudi: {"india": ["earth"]},
+    malaysia: {"indonesia": ["earth"]},
+    philippines: {"indonesia": ["earth"]},
+    thailand: {"indonesia": ["earth"]},
+    uk: {"germany": ["bgr:igme5000:"], "arctic_ocean": ["emodnet"]},
+    france: {"uk": ["egdi", "emodnet", "earth"], "germany": ["bgr:igme5000:"], "arctic_ocean": ["emodnet"]},
+    germany: {"uk": ["egdi", "emodnet", "earth"], "arctic_ocean": ["emodnet"]},
+    spain: {"uk": ["egdi", "emodnet", "earth"], "germany": ["bgr:igme5000:"], "arctic_ocean": ["emodnet"]},
+    ireland: {"uk": ["egdi", "emodnet", "earth"], "germany": ["bgr:igme5000:"], "arctic_ocean": ["emodnet"]},
+    italy: {"uk": ["egdi", "emodnet", "earth"], "germany": ["bgr:igme5000:"], "arctic_ocean": ["emodnet"]},
+    portugal: {"uk": ["egdi", "emodnet", "earth"], "germany": ["bgr:igme5000:"], "arctic_ocean": ["emodnet"]},
+    switzerland: {"uk": ["egdi", "earth"], "germany": ["bgr:igme5000:"]},
+    austria: {"uk": ["egdi", "earth"], "germany": ["bgr:igme5000:"]},
+    poland: {"uk": ["egdi", "emodnet", "earth"], "germany": ["bgr:igme5000:"], "arctic_ocean": ["emodnet"]},
+    netherlands: {"uk": ["egdi", "emodnet", "earth"], "germany": ["bgr:igme5000:"], "arctic_ocean": ["emodnet"]},
+    belgium: {"uk": ["egdi", "emodnet", "earth"], "germany": ["bgr:igme5000:"], "arctic_ocean": ["emodnet"]},
+    colombia: {"brazil": ["earth"]},
+    brazil: {"colombia": ["sgc:sa:"]},
+    peru: {"brazil": ["earth"], "colombia": ["sgc:sa:"]},
+    argentina: {"brazil": ["earth"], "colombia": ["sgc:sa:"]},
+    uruguay: {"brazil": ["earth"], "colombia": ["sgc:sa:"]},
+    ecuador: {"brazil": ["earth"], "colombia": ["sgc:sa:"]},
+    canada: {"usa": ["earth"]},
+    paraguay: {"brazil": ["earth"], "colombia": ["sgc:sa:", "usgscarib:sa:"]},
+    new_zealand: {"australia": ["earth"]},
+    new_caledonia: {"australia": ["earth"]},
+    europe: {"arctic_ocean": ["emodnet"]},
+    mexico: {"usa": ["earth"]},
+    nicaragua: {"caribbean": ["earth"]},
+    dominican_republic: {"caribbean": ["earth"]},
+    panama: {"caribbean": ["earth"]},
+    central_america: {"usa": ["mrdata:pr:"]}
+  };
+  function borrowed(region, opt) {
+    var from = (BORROW[REGION] || {})[region];
+    var name = opt.value, upstream = opt.getAttribute("data-upstream");
+    return !!from && from.some(function (f) { return f === upstream || (f.slice(-1) === ":" && name.indexOf(f) === 0); });
+  }
   [].slice.call(select.querySelectorAll("optgroup")).forEach(function (g) {
-    if (ALLOWED.indexOf(g.getAttribute("data-region")) < 0) g.remove();
+    var region = g.getAttribute("data-region");
+    if (ALLOWED.indexOf(region) >= 0) return;
+    [].slice.call(g.querySelectorAll("option")).forEach(function (o) { if (!borrowed(region, o)) o.remove(); });
+    if (!g.querySelector("option")) { g.remove(); return; }
+    select.appendChild(g);              // 빌려 온 레이어군은 제 지역 것 뒤에 — 2D 처럼. 앞에 서면 처음 레이어가 빌린 것이 된다
   });
   if (!select.options.length) {
     // 3D 로 얹을 지질 레이어가 없는 지역(극지 투영으로만 받는 것) — 지형만 본다
@@ -77,6 +131,17 @@
   // 2D 가 넘긴 레이어가 목록에 있으면 그것, 없으면 이 지역의 첫 레이어
   select.value = asked && select.querySelector('option[value="' + asked.replace(/"/g, "") + '"]')
     ? asked : select.options[0].value;
+  // 주소에도 저장소에도 자리가 없으면(3D 주소를 곧장 연 것) 한국이 아닌 지역은 설악산 대신 첫 레이어의 범위 가운데로 (wetherilli 340)
+  if (start.fallback && REGION !== "korea") {
+    var opt0 = select.options[select.selectedIndex];
+    var box = opt0 && (opt0.getAttribute("data-bbox") || "").split(",").map(Number);
+    if (box && box.length === 4 && box.every(isFinite)) {
+      var south = Math.max(-80, box[1]), north = Math.min(80, box[3]);
+      var span = Math.max(box[2] - box[0], (north - south) * 1.5, 0.5);
+      start = { center: [(box[0] + box[2]) / 2, (south + north) / 2],
+                zoom: Math.max(3, Math.min(10, Math.log(360 / span) / Math.LN2)) };
+    }
+  }
 
   /** "지질 레이어" 의 소스. 대개 `wms/` 의 3857 타일이고, 남극 GeoMAP 은 우리가 굽는 3031 타일을
    *  서버가 3857 로 다시 편 것(`warp/geomap/`, 040)이다. GeoMAP 은 남위 60° 남쪽만 덮고, 대륙을

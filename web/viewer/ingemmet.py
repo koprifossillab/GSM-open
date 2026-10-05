@@ -73,7 +73,8 @@ RESOURCES = {
                           "fields": "UNIDAD,ELE_PRINC,ESTADO,COD_TIPO,ST_YACIM,FRANJAMET,RECURSO,ALTITUD,LOCALIDAD,HOJA"},
     "ingemmet:belts": {"service": "SERV_METALOGENETICO", "show": 4, "min": None, "query": "polygon",
                        "fields": "FRANJA,ETIQUETA,TIPO"},
-    "ingemmet:bouguer": {"service": "SERV_GEOFISICA", "show": 5, "min": None, "query": None},
+    # 부게 이상은 래스터의 화소 값(mGal)을 `identify` 로 누른다(wetherilli 336). 항공 자력은 RGB(U8) ImageServer 라 값이 없다
+    "ingemmet:bouguer": {"service": "SERV_GEOFISICA", "show": 5, "min": None, "query": "pixel"},
     "ingemmet:aeromag": {"service": "SERV_AEROMAGNETIICO", "show": None, "min": None, "query": None},
     # 산업 광물·암석(wetherilli 303) — 산지 점과 리튬. 광업 권리(같은 서비스의 2)는 지질과 멀어 싣지 않는다
     "ingemmet:rmi": {"service": "SERV_ROCAS_MINERALES_INDUSTRIALES", "show": 0, "min": 7, "query": "point",
@@ -219,6 +220,23 @@ def resource_tile(name: str, z: int, x: int, y: int) -> bytes:
 def resource_attributes(name: str, lat: float, lon: float, radius: float) -> list:
     """누른 자리의 광물 산지·광상(둘레 `radius`° 네모, 가까운 것부터 셋) 또는 광화대(그 점을 품은 면) — 열 이름 그대로."""
     spec = RESOURCES[name]
+    if spec["query"] == "pixel":
+        res = _get(f"{_service(name)}/identify", {"geometry": f"{lon},{lat}", "geometryType": "esriGeometryPoint", "sr": "4326",
+                                                  "layers": f"all:{spec['show']}", "tolerance": "1",
+                                                  "mapExtent": f"{lon - 0.01},{lat - 0.01},{lon + 0.01},{lat + 0.01}",
+                                                  "imageDisplay": "256,256,96", "returnGeometry": "false", "f": "json"})
+        try:
+            results = res.json().get("results") or [] if res.status_code == 200 else []
+        except ValueError:
+            results = []
+        out = []
+        for hit in results:
+            value = (hit.get("attributes") or {}).get("Stretch.Pixel Value")
+            try:
+                out.append({"_pixel": f"{float(value):.1f}"})
+            except (TypeError, ValueError):
+                pass
+        return out[:1]
     if spec["query"] == "point":
         r = max(1e-4, min(0.5, radius))
         geometry = {"geometry": f"{lon - r},{lat - r},{lon + r},{lat + r}", "geometryType": "esriGeometryEnvelope"}
@@ -246,6 +264,8 @@ def resource_attributes(name: str, lat: float, lon: float, radius: float) -> lis
 def resource_friendly(name: str, props: dict, lang: str = "ko") -> dict:
     """광물·지구물리의 열 → 한국어 이름. 값은 에스파냐어 그대로다 (wetherilli 277)"""
     v = lambda k: _clean(props.get(k))          # noqa: E731
+    if "_pixel" in props:                       # 부게 이상의 화소 값 (wetherilli 336)
+        return {"부게 이상 (mGal)": props["_pixel"]}
     if name == "ingemmet:belts":
         rows = (("이름", v("FRANJA")), ("기호", v("ETIQUETA")), ("갈래", v("TIPO")))
     elif name.startswith("ingemmet:gq_"):              # 지화학 이상점 (wetherilli 303)

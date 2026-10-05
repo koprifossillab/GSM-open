@@ -503,7 +503,8 @@ web/viewer/       뷰어 앱 하나뿐이다. 앱을 더 가르지 않는다
                   (원소 이상의 범례는 REST 범례의 기호 그림 — 함량 구간, wetherilli 233)
   mrdata.py       USGS mrdata 로 나가는 문 (미국 본토 SGMC·알래스카 SIM 3340·하와이·푸에르토리코(wetherilli 238)·광물 자원 MRDS·광산 기호 USMIN·
                   지질 연대·자력·중력(wetherilli 247) MapServer WMS. 본토의 속성은 WFS 1.0, 알래스카는 WMS text/plain.
-                  알래스카의 물 면은 받은 그림에서 지운다 — 고침의 판이 캐시 열쇠에 든다 `views.map_cache_key`, wetherilli 224)
+                  알래스카의 물 면은 받은 그림에서 지운다 — 고침의 판이 캐시 열쇠에 든다 `views.map_cache_key`, wetherilli 224.
+                  본토 SGMC 의 범례는 보는 범위의 일반화 암상 — 색은 단위가 아니라 `generalize` 로만 칠해 떠 둔 표 `SGMC_COLORS`, wetherilli 334)
   iige.py         에콰도르 지질·에너지 연구소(IIGE)로 나가는 문 (일반 지질도 ArcGIS WMS 를 3857 로, 범례는 보는 범위의 REST 통계 질의)
   nrcan.py        캐나다 천연자원부(NRCan·GSC)로 나가는 문 (캐나다 지질도 1:500만 Wheeler ArcGIS WMS 를 3978 로, 속성은 GeoJSON.
                   같은 서버의 편찬 지질도 CGMC·핵심 광물 시설·광상 유망도도 — `SERVICES`, wetherilli 250.
@@ -609,6 +610,7 @@ web/viewer/       뷰어 앱 하나뿐이다. 앱을 더 가르지 않는다
   views.py        화면 하나 + 프록시 둘 + 업로드
 deploy/           Docker·nginx·배포 스크립트. cron 이 부르는 것은 deploy/scripts/ — 컨테이너가 뜰 때 /srv/GSM/scripts/ 에 깔고
                   호스트 cron 은 그 사본을 전용 venv 로 돌린다(run.sh). 저장소를 부르지 않는다 (koprifossillab 005)
+                  사람이 부르는 점검 둘 — 정적 판 연기 시험(`static_smoke.py`, wetherilli 315)·출처 링크 점검(`check_links.py`, wetherilli 339)
 data/             카탈로그 씨앗
 web/.tilecache/   받아둔 타일. 커밋하지 않는다 (운영은 /data/GSM/tiles, 컨테이너 안에서는 /srv/GSM/tiles)
 devlog/           왜 그렇게 했는지 — 색인은 devlog/README.md

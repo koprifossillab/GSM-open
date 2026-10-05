@@ -143,6 +143,10 @@ SOURCE_URL = env("GSM_SOURCE_URL", "https://github.com/koprifossillab/GSM-open")
 #: 대만 — 경제부 지질조사·광업관리중심(GSMMA). 그림은 MapGuide WMS(4326 만), 속성은 지질운 API (wetherilli 136)
 GSMMA_WMS_URL = env("GSM_GSMMA_WMS_URL", "https://geomap.gsmma.gov.tw/mapguide/mapagent/mapagent.fcgi")
 GSMMA_API_URL = env("GSM_GSMMA_API_URL", "https://www.geologycloud.tw/api/v1/zh-tw")
+#: 지질 민감구역 — 지질운 지도의 자료 주소(구역마다 GeoJSON 한 덩이)와 기관의 공고 목록 CSV(열린자료 플랫폼 27744) (wetherilli 336)
+GSMMA_SENSITIVE_URL = env("GSM_GSMMA_SENSITIVE_URL", "https://www.geologycloud.tw/data/zh-tw")
+GSMMA_SENSITIVE_PAGE = env("GSM_GSMMA_SENSITIVE_PAGE", "https://www.geologycloud.tw/map/javascripts/theme/geologicalsensitiveareas.min.js")
+GSMMA_SENSITIVE_LIST = env("GSM_GSMMA_SENSITIVE_LIST", "https://www.gsmma.gov.tw/uploads/1719480931378tHI9XTJa.csv")
 #: EMODnet Geology — 유럽 바다의 해저 퇴적물·해저 지질 GeoServer WMS (`viewer/emodnet.py`, wetherilli 135). 열쇠가 없다
 EMODNET_WMS_URL = env("GSM_EMODNET_WMS_URL", "https://drive.emodnet-geology.eu/geoserver/ows")
 #: 조건이 열린 배경 — NASA GIBS(Blue Marble)·GEBCO 해저 지형. 서버가 받아 캐시에 담는다 (`viewer/basemaps.py`, wetherilli 184). 열쇠가 없다

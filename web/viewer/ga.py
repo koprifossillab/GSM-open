@@ -63,6 +63,14 @@ OTHER = {
     "ga:hydrogeology": (HYDROGEOLOGY, "Hydrogeology", True, False),
     **{f"ga:resource:{name}": (RESOURCES, name, True, False) for name in RESOURCE_LAYERS},
 }
+#: 지구물리 격자의 값 — 그리는 것은 칠한 그림(HSI·삼색)이라 누르면 RGB 뿐이고, 같은 GeoServer 에 **값 격자**가 따로 있다. 누른 자리를 그것에
+#: 묻는다(`GRAY_INDEX`) — 레이어 → [(값 격자, 팝업 이름, 소수 자리)] (wetherilli 336). 중력은 µm/s²(10 µm/s² = 1 mGal) — GA 의 단위다
+GRID_VALUES = {
+    "ga:gravity": [("geophys:2019_A4_CBA", "완전 부게 중력 이상 (µm/s²)", 1)],
+    "ga:tmi": [("geophys:magmap_v7_2019_TMI", "총자력 이상 (nT)", 1)],
+    "ga:radiometric": [("geophys:radmap_v4_2019_filtered_pctk", "칼륨 (%)", 2), ("geophys:radmap_v4_2019_filtered_ppmth", "토륨 (ppm)", 1),
+                       ("geophys:radmap_v4_2019_filtered_ppmu", "우라늄 (ppm)", 2)],
+}
 #: 범례가 1:100만 판으로 넘어가는 범위(°) — 1:150만은 화면 줌 8–9 남짓, 화면 너비로 6–8° 다. 그보다 넓으면 1:250만 판의 단위를 센다
 FINE_SPAN = 6.0
 #: 범례를 뜨는 가장 넓은 범위(°) — 대륙 전체(경도 40°)가 든다. 칸이 많으면 `MAX_LEGEND` 에서 끊는다
@@ -80,7 +88,7 @@ def knows(name: str) -> bool:
 
 
 def queryable(name: str) -> bool:
-    return LAYERS[name][4] if name in LAYERS else name in OTHER and OTHER[name][2]
+    return LAYERS[name][4] if name in LAYERS else name in GRID_VALUES or (name in OTHER and OTHER[name][2])
 
 
 def legend_layers() -> list:
@@ -152,6 +160,8 @@ def get_feature_info(params: dict) -> dict:
     name = _one(params)
     if not queryable(name):
         return {"features": []}
+    if name in GRID_VALUES:
+        return {"features": _grid_values(name, params)}
     params = _wms(params, "GetFeatureInfo")
     params["info_format"] = "application/geo+json"
     r = _get(_url(name), params)
@@ -161,6 +171,27 @@ def get_feature_info(params: dict) -> dict:
         return {"features": r.json().get("features") or []}
     except ValueError as exc:
         raise GaError("속성이 JSON 이 아니다") from exc
+
+
+def _grid_values(name: str, params: dict) -> list:
+    """값 격자에 한 번에 묻는다(`query_layers` 여럿) — 바다·자료 밖은 값이 없거나 상류의 빈 값(아주 큰 음수)이라 뺀다"""
+    grids = GRID_VALUES[name]
+    names = ",".join(g for g, _, _ in grids)
+    q = dict(params, service="WMS", request="GetFeatureInfo", layers=names, query_layers=names, styles="",
+             info_format="application/json", feature_count=len(grids))
+    r = _get(_url(name), q)
+    if r.status_code != 200:
+        raise GaError(f"값을 읽지 못했다 (status={r.status_code})")
+    try:
+        found = r.json().get("features") or []
+    except ValueError as exc:
+        raise GaError("값이 JSON 이 아니다") from exc
+    props = {}
+    for (grid, label, digits), feature in zip(grids, found):
+        value = (feature.get("properties") or {}).get("GRAY_INDEX")
+        if isinstance(value, (int, float)) and abs(value) < 1e6:
+            props[label] = f"{value:.{digits}f}"
+    return [{"id": f"ga.grid.{name}", "properties": dict(props, _grid=name)}] if props else []
 
 
 def _v(props: dict, key: str) -> str:
@@ -180,6 +211,8 @@ def history(value: str, lang: str = "ko") -> str:
 def other_friendly(props: dict, lang: str = "ko"):
     """지질구·핵심 광물(wetherilli 241). 아니면 None"""
     v = lambda k: _v(props, k)          # noqa: E731
+    if "_grid" in props:                                                       # 지구물리 격자의 값 (wetherilli 336)
+        return {k: x for k, x in props.items() if not k.startswith("_")}
     if "provinceName" in props:
         older, younger = v("olderNameAge"), v("youngerNamedAge")
         age = " - ".join(x for x in (older, younger if younger != older else "") if x) or v("geologicHistory")

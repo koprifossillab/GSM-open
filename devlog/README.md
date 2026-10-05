@@ -377,6 +377,11 @@
 | wetherilli 333 | 2026-10-05 | [영어판 — 레이어 설명 341 개](20261005_wetherilli_333_layer_desc_en.md) |
 | wetherilli 335 | 2026-10-05 | [3D 에 남극 IBCSO 자료 출처·ADMAP, 북유럽 NGU·GTK](20261005_wetherilli_335_3d_more.md) |
 | wetherilli 337 | 2026-10-05 | [범례 없는 단위 면 — 퀘벡 지질, 브라질 구조선 (멕시코는 둘 것이 없었다)](20261005_wetherilli_337_legends_qc_br_mx.md) |
+| wetherilli 334 | 2026-10-05 | [미국 — SGMC 의 범례](20261005_wetherilli_334_sgmc_legend.md) |
+| wetherilli 336 | 2026-10-05 | [누르기·범례가 둘 다 없던 레이어 — 대만 민감구역·호주 GA 지구물리·페루 부게 이상](20261005_wetherilli_336_legends_missing.md) |
+| wetherilli 338 | 2026-10-05 | [3D 에 PGC 경사·등고선 — 극지연구소 KPDC 는 잴 수 없었다](20261005_wetherilli_338_3d_polar.md) |
+| wetherilli 339 | 2026-10-05 | [깨진 출처 링크](20261005_wetherilli_339_source_links.md) |
+| wetherilli 340 | 2026-10-05 | [3D 를 지역마다 열어 보다 — 빌려 온 레이어가 빠져 있었다](20261005_wetherilli_340_3d_regions.md) |
 | koprifossillab P01 | 2026-09-30 | [백업 — WegenersDream 의 틀로, 바뀌는 빠르기에 따라 넷으로 (계획)](20260930_koprifossillab_P01_backup_plan.md) |
 | koprifossillab 001 | 2026-09-30 | [매주 월요일 새벽: 운영 자료 백업과 KPDC 목록 갱신](20260930_koprifossillab_001_weekly_backup.md) |
 | koprifossillab 002 | 2026-09-30 | [`/healthz/` — 판·DB·백업 상태를 한 장으로](20260930_koprifossillab_002_healthz.md) |

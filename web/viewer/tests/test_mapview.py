@@ -8,7 +8,7 @@ import re
 from pathlib import Path
 
 from django.conf import settings
-from django.test import TestCase, override_settings
+from django.test import SimpleTestCase, TestCase, override_settings
 from django.urls import reverse
 
 from viewer import views
@@ -94,17 +94,19 @@ class Map3dView(TestCase):
     def test_3857_타일_레이어만_고른다(self):
         group = LayerGroup.objects.create(name="시험")
         Layer.objects.create(name="L_250K_Geology_Map", title="25만", group=group, upstream="kigam")
-        # 일본 GSJ 는 3857 z/x/y 라 그대로 얹는다(wetherilli 187). 극지 투영으로만 받는 PGC 와 모양(벡터)은 뺀다.
-        # 노르웨이 NGU 는 3857 도 그려 얹는다(wetherilli 335)
+        # 일본 GSJ 는 3857 z/x/y 라 그대로 얹는다(wetherilli 187). 극지 투영으로만 받는 극지연구소 KPDC 지도 서버와 모양(벡터)은 뺀다.
+        # 노르웨이 NGU(wetherilli 335)·PGC(338)는 3857 도 그려 얹는다
         Layer.objects.create(name="gsj:geology", title="일본", group=group, upstream="gsj")
         Layer.objects.create(name="ngu:Berggrunn_nasjonal_bergartsenheter", title="노르웨이", group=group, upstream="ngu")
         Layer.objects.create(name="pgc:greenland_slope", title="경사", group=group, upstream="pgc")
+        Layer.objects.create(name="kopri:lakes", title="호수", group=group, upstream="kopri")
         Layer.objects.create(name="lt_l_gimsfault", title="단층", group=group, upstream="vworld", kind="vector")
         html = self.client.get(reverse("viewer:map3d")).content.decode()
         self.assertIn('value="L_250K_Geology_Map"', html)
         self.assertIn('value="gsj:geology"', html)
         self.assertIn('value="ngu:Berggrunn_nasjonal_bergartsenheter"', html)
-        self.assertNotIn('value="pgc:greenland_slope"', html)
+        self.assertIn('value="pgc:greenland_slope"', html)
+        self.assertNotIn('value="kopri:lakes"', html)
         self.assertNotIn('value="lt_l_gimsfault"', html)
 
 
@@ -275,3 +277,20 @@ class ShareLinkTests(TestCase):
                 html = self.client.get(f"/GSM/{name}/").content.decode()
                 self.assertIn('id="tool-share"', html)
                 self.assertLess(html.index("viewer/share.js"), html.index(f"viewer/{script}"))
+
+
+class Borrow3d(SimpleTestCase):
+    """3D 가 빌려 오는 표(`map3d.js` 의 `BORROW`)는 2D 의 `REGIONS.*.borrow` 와 같다 (wetherilli 340)"""
+    def test_2D_와_같다(self):
+        here = Path(views.__file__).parent / "static/viewer"
+        js2 = (here / "map.js").read_text(encoding="utf-8")
+        js3 = (here / "map3d.js").read_text(encoding="utf-8")
+        two = {}
+        for m in re.finditer(r"^    ([a-z_]+): \{ title:(.*?)(?=^    [a-z_]+: \{ title:|^  \};)", js2, re.S | re.M):
+            b = re.search(r"borrow:\s*(\{[^}]*\})", m.group(2))
+            if b:
+                # 열쇠는 `{`·`,` 뒤의 낱말뿐이다 — 값의 `"sgc:sa:"` 같은 앞머리를 건드리지 않는다
+                two[m.group(1)] = json.loads(re.sub(r"([{,]\s*)([a-z_]+):", r'\1"\2":', b.group(1).replace("'", '"')))
+        block = re.search(r"var BORROW = (\{.*?\n  \});", js3, re.S).group(1)
+        three = json.loads(re.sub(r"^(\s+)([a-z_]+):", r'\1"\2":', block, flags=re.M))
+        self.assertEqual(three, two)

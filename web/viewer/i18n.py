@@ -76,6 +76,9 @@ def client_table(lang: str) -> dict:
 # ── 화면·메시지 ──────────────────────────────────────────────────────
 
 EN = {
+    # 대만 지질 민감구역의 갈래 (wetherilli 336)
+    "활성단층 민감구역": "Active fault sensitive area", "지하수 함양 민감구역": "Groundwater recharge sensitive area",
+    "지질 유산 민감구역": "Geoheritage sensitive area", "산사태·지활 민감구역": "Landslide sensitive area",
     # 레이어 찾기 (wetherilli 332)
     "레이어 찾기 — 모든 지역에서": "Find a layer — across all regions",
     "{n} 개 — 다른 지역의 것은 그 탭으로 옮겨 켠다": "{n} found — picking one from another region switches to that tab",
@@ -2559,6 +2562,10 @@ PROP_EN = {
     # 독일 BGR·스페인 IGME (wetherilli 147)
     "대": "Era",
     "성인": "Genesis",
+    # 민감구역·지구물리 격자의 값 (wetherilli 336)
+    "구역 번호": "Area code", "향·진·구": "Township", "공고일": "Announced", "공고 문호": "Notice no.",
+    "완전 부게 중력 이상 (µm/s²)": "Complete Bouguer anomaly (µm/s²)", "총자력 이상 (nT)": "Total magnetic intensity (nT)",
+    "칼륨 (%)": "Potassium (%)", "토륨 (ppm)": "Thorium (ppm)", "우라늄 (ppm)": "Uranium (ppm)",
     "함량 (%)": "Content (%)", "함량 (mg/kg)": "Content (mg/kg)", "대수층": "Aquifer", "흐름": "Flow", "요약": "Summary", "분석 원소": "Analytes", "사업": "Project",
     "핵심 광물": "Critical minerals", "과거 생산": "Past producer", "자원량 공개": "Public resource", "광업 지구": "Mining district", "권역": "Region",
     "이상": "Anomaly", "함량": "Concentration", "광상": "Deposit", "리튬 (ppm)": "Lithium (ppm)", "채굴": "Mined",

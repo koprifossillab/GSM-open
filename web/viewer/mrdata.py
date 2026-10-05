@@ -7,7 +7,9 @@
   `typeName=Lithology`)에 아주 작은 경위도 네모로 묻는다. `PROPERTYNAME` 을 붙이면 기하가 빠져 1 KB 남짓이다(안 붙이면 66 KB).
   WFS 1.1 은 축 순서를 맞추지 않으면 빈 답이라 1.0 을 쓴다. 이름·시대 열은 없고 단위 설명 쪽 주소(`url`)가 온다
 - **알래스카는 WMS GetFeatureInfo 가 된다.** GML 은 기하가 붙어 226 KB 라 `text/plain`(400 B)으로 받아 읽는다. 알래스카에는 WFS 가 없다
-- 범례는 없다 — SGMC 는 단위가 주마다 수천이고 GetLegendGraphic 이 501 이다. 팝업의 단위 쪽 링크가 범례를 갈음한다
+- 범례 — SGMC 는 단위가 주마다 수천이고 GetLegendGraphic·GetStyles 가 501 이다(MapCache 앞단). 그런데 **색은 단위가 아니라 일반화한 암상
+  (`generalize`, 스물셋 남짓)으로만 칠한다**(wetherilli 334 — 열넷 자리에서 같은 갈래는 늘 같은 색). 그래서 보는 범위의 갈래를 WFS 로 세고(기하 없이
+  `propertyName=generalize`) 색은 한 번 떠 둔 표(`SGMC_COLORS`)에서 찾는다. 팝업의 단위 쪽 링크는 그대로
 - **알래스카의 "Water" 면은 문이 지운다**(wetherilli 224) — SIM 3340 은 도폭마다 바다를 네모난 물 면(`#ccffff`)으로 칠해 두어 알류샨
   남쪽에 북위 51.5° 를 따라 하늘색 띠가 선다. 물은 지질이 아니고 그 색을 쓰는 단위가 물뿐이라(빙하는 투명) 받은 그림의 그 색을 투명으로
   바꾼다. 고침의 판(`REDRAWN`)이 캐시 열쇠에 든다 — 띠가 든 옛 타일을 내지 않게
@@ -65,6 +67,38 @@ REDRAWN = {"mrdata:sim3340:units": "1"}
 WATER = (204, 255, 255)
 #: 가장자리의 섞인 색까지 지울 너비 — 2026-10-04 에 알류샨 그림에서 191,239,239 까지 보였다
 WATER_TOLERANCE = 16
+#: SGMC 의 일반화 암상(`generalize`) → 그림의 색. 2026-10-05 에 열 지역(콜로라도·애팔래치아·미네소타·캐스케이드·플로리다·애디론댁·애리조나·
+#: 미시간·네바다·와이오밍)에서 면 1 500 의 안쪽 점을 골라 WMS 그림의 색을 떠 가장 잦은 것을 적었다(wetherilli 334). 백립암(granulite)·텍토나이트처럼
+#: 드문 갈래는 한두 점에서 떴다. 표에 없는 갈래는 회색으로 범례에 선다
+SGMC_COLORS = {
+    "Igneous and Metamorphic, undifferentiated": "#c73872",
+    "Igneous and Sedimentary, undifferentiated": "#724c00",
+    "Igneous, intrusive": "#ffbfbf",
+    "Igneous, undifferentiated": "#a90000",
+    "Igneous, volcanic": "#ff0000",
+    "Metamorphic and Sedimentary, undifferentiated": "#a8a800",
+    "Metamorphic, amphibolite": "#267200",
+    "Metamorphic, carbonate": "#00a985",
+    "Metamorphic, gneiss": "#81cd4c",
+    "Metamorphic, granulite": "#55ff00",
+    "Metamorphic, intrusive": "#a92885",
+    "Metamorphic, schist": "#b2b2b2",
+    "Metamorphic, sedimentary clastic": "#ebce9a",
+    "Metamorphic, undifferentiated": "#91c340",
+    "Metamorphic, volcanic": "#d7d79e",
+    "Sedimentary, carbonate": "#004daa",
+    "Sedimentary, clastic": "#b39b4c",
+    "Sedimentary, iron formation, undifferentiated": "#000000",
+    "Sedimentary, undifferentiated": "#e79900",
+    "Tectonite, undifferentiated": "#c600ff",
+    "Unconsolidated and Sedimentary, undifferentiated": "#ffd37f",
+    "Unconsolidated, undifferentiated": "#ffffbf",
+    "Water": "#97dbf3",
+}
+#: SGMC 범례를 세는 가장 넓은 범위(°)와 한 번에 세는 면의 수 — 6° 네모가 2 초 남짓(면 3 000)
+SGMC_SPAN = 8.0
+SGMC_SAMPLE = 3000
+
 #: SGMC WFS 에서 받을 열 — 기하는 받지 않는다
 SGMC_FIELDS = ("state", "orig_label", "unit_link", "generalize", "src_url", "url")
 #: 누른 자리 둘레의 반지름(픽셀) — 다른 WMS 의 GetFeatureInfo 둘레와 비슷하게
@@ -181,6 +215,26 @@ def get_feature_info(params: dict) -> dict:
     if r.status_code != 200:
         raise MrdataError(f"속성을 읽지 못했다 (status={r.status_code})")
     return {"features": parse_plain(r.text)}
+
+
+def sgmc_legend(bbox) -> list:
+    """보는 범위의 일반화 암상 — [(갈래, 면의 수)], 많은 것부터. WFS 에 기하 없이 `generalize` 만 묻는다 (wetherilli 334)"""
+    west, south, east, north = bbox
+    r = _get(f"{_base()}/wfs/sgmc2", {"service": "WFS", "version": "1.0.0", "request": "GetFeature", "typeName": "Lithology",
+                                      "maxFeatures": str(SGMC_SAMPLE), "bbox": f"{west},{south},{east},{north}",
+                                      "propertyName": "generalize"})
+    if r.status_code != 200:
+        raise MrdataError(f"범례를 세지 못했다 (status={r.status_code})")
+    counts = {}
+    for value in re.findall(r"<ms:generalize>([^<]*)</ms:generalize>", r.text):
+        value = _unescape(value.strip())
+        if value:
+            counts[value] = counts.get(value, 0) + 1
+    return sorted(counts.items(), key=lambda kv: -kv[1])
+
+
+def sgmc_legend_row(name: str) -> dict:
+    return {"symbol": "", "lithology": name, "swatch": "", "color": SGMC_COLORS.get(name, "#cccccc"), "age": ""}
 
 
 def parse_gml(text: str, kind: str) -> list:

@@ -2,6 +2,7 @@
 
     manage.py fetch_taiwan_open                    # 갈래 일곱 모두 (몇 분)
     manage.py fetch_taiwan_open --api RockFall     # 하나만
+    manage.py fetch_taiwan_open --sensitive        # 지질 민감구역 면만 (290 번 남짓, 13 분쯤, 83 MB, wetherilli 336)
     manage.py fetch_taiwan_open --holes            # 받아 둔 파일의 구멍(holes)만 더 잘게 나눠 다시 받아 보탠다 (wetherilli 328)
 
 탄층·토석류(퇴적·선상·유동구)·낙석·GPS 상시 관측소·암체 강도 등급 — 지질운에 WMS 그림이 없는 것이다. 문(`gsmma.fetch_open`)이 섬 전체
@@ -27,10 +28,13 @@ class Command(BaseCommand):
     def add_arguments(self, parser):
         parser.add_argument("--api", default="", help="이 갈래만 (쉼표로 여럿)")
         parser.add_argument("--gap", type=float, default=2.0, help="상류에 묻는 사이 초 (기본 2)")
+        parser.add_argument("--sensitive", action="store_true", help="지질 민감구역 면만 받아 sensitive.sqlite 에 (누르기용)")
         parser.add_argument("--holes", action="store_true", help="받아 둔 파일의 구멍만 다시 받아 보탠다")
         parser.add_argument("--splits", type=int, default=HOLE_SPLITS, help=f"구멍을 몇 번 더 넷으로 나누나 (기본 {HOLE_SPLITS})")
 
     def handle(self, *args, **o):
+        if o["sensitive"]:
+            return self.sensitive(o["gap"])
         apis = [a.strip() for a in o["api"].split(",") if a.strip()] or list(gsmma.OPEN_APIS)
         unknown = [a for a in apis if a not in gsmma.OPEN_APIS]
         if unknown:
@@ -58,6 +62,15 @@ class Command(BaseCommand):
                 self.stdout.write(self.style.WARNING(f"  받지 못한 네모 {len(holes)} — 파일의 holes 에 적었다: {holes}"))
         twopen.forget()
 
+    def sensitive(self, gap):
+        folder = Path(settings.TAIWAN_OPEN_DIR)
+        folder.mkdir(parents=True, exist_ok=True)
+        started = time.time()
+        try:
+            n = twopen.write_sensitive(gsmma.fetch_sensitive(gap=gap, log=self.stdout.write), folder / twopen.SENSITIVE_FILE)
+        except gsmma.GsmmaError as exc:
+            raise CommandError(str(exc)) from exc
+        self.stdout.write(self.style.SUCCESS(f"민감구역 — 면 조각 {n:,} 개 ({time.time() - started:.0f} 초)"))
     def _holes(self, folder: Path, apis: list, o: dict):
         """구멍(0.08° 네모)마다 `splits` 번 더 나눠 묻는다. 새로 받은 것만 보태고, 남은 작은 구멍을 다시 적는다.
         구멍에는 상류를 멈추게 하는 자료가 든 듯하다 — 1 km 네모로도 끊기는 자리가 남는다(wetherilli 328)"""

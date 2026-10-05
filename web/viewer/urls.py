@@ -207,6 +207,7 @@ urlpatterns = [
     path("sgs/legend/", views.sgs_legend, name="sgs-legend"),
     path("sigeom/legend/", views.sigeom_legend, name="sigeom-legend"),
     path("esdm/legend/", views.esdm_legend, name="esdm-legend"),
+    path("mrdata/legend/", views.mrdata_legend, name="mrdata-legend"),
     # 동남아 — ArcGIS REST 범례를 목록으로, 문 여럿이 함께 (jmg.py·dmr.py, wetherilli 228)
     path("list/legend/", views.list_legend, name="list-legend"),
     # 남아공 — REST 범례를 목록으로 (cgs.py, wetherilli 209)

@@ -120,7 +120,7 @@ class Other(TestCase):
 
     def test_카탈로그(self):
         self.assertEqual(Layer.objects.get(name="ga:tmi").group.region, "australia")
-        self.assertIs(self.layers["ga:tmi"]["queryable"], False)
+        self.assertTrue(self.layers["ga:tmi"]["queryable"])             # 값 격자로 누른다 (wetherilli 336)
         self.assertTrue(self.layers["ga:tmi"]["noLegend"])
         self.assertNotIn("noLegend", self.layers["ga:crustal"])
 

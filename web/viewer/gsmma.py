@@ -63,11 +63,12 @@ LAYERS = {
     "gsmma:rock_slide": {"wms": ["Geomap_Envi_RockSlide_2013"]},
     "gsmma:debris_slide": {"wms": ["Geomap_Envi_DebrisSlide_2013"]},
     "gsmma:liquefaction": {"wms": ["Geomap_Envi_Soil_liquefatcion_2021"]},
-    # 지질 민감구역 — "조사·연구·분석·계획에만, 법령 업무에는 쓰지 않는다"(기관의 단서)
-    "gsmma:sensitive_fault": {"wms": ["Sensitive_area_fault"]},
-    "gsmma:sensitive_landslide": {"wms": ["Sensitive_area_landslide"]},
-    "gsmma:sensitive_groundwater": {"wms": ["Sensitive_area_groundwater"]},
-    "gsmma:sensitive_landscape": {"wms": ["Sensitive_area_landscape"]},
+    # 지질 민감구역 — "조사·연구·분석·계획에만, 법령 업무에는 쓰지 않는다"(기관의 단서).
+    # 누르면 어느 구역인가 — 지질운의 구역 GeoJSON 을 모아 둔 것(`fetch_taiwan_open --sensitive`, `twopen.sensitive_at`)에서 찾는다 (wetherilli 336)
+    "gsmma:sensitive_fault": {"wms": ["Sensitive_area_fault"], "info": "sensitive", "kind": "F"},
+    "gsmma:sensitive_landslide": {"wms": ["Sensitive_area_landslide"], "info": "sensitive", "kind": "L"},
+    "gsmma:sensitive_groundwater": {"wms": ["Sensitive_area_groundwater"], "info": "sensitive", "kind": "G"},
+    "gsmma:sensitive_landscape": {"wms": ["Sensitive_area_landscape"], "info": "sensitive", "kind": "H"},
     # 점 — 지질운이 점을 속성째 준다
     "gsmma:hot_springs": {"wms": ["Spring_2014"], "info": "HotSpring", "point": True},
     "gsmma:boreholes": {"wms": ["Engineering_drilling"], "info": "Drill", "point": True},
@@ -226,7 +227,9 @@ FRIENDLY = {"Name": "지층명", "Abbrev": "기호", "Time": "지질시대", "No
             # 순향사면(DipSlope)
             "MAP_NAME": "도폭", "SLOPE_DIR": "사면 방향", "COUN_NAME": "시·현",
             # 활성단층(ActiveFault) — 이름 열이 지층과 같은 `Name` 이라 `FaultName` 으로 바꿔 담는다(wetherilli 263)
-            "FaultName": "단층 이름", "FAULT_TYPE": "단층 분류", "observe": "확인 여부"}
+            "FaultName": "단층 이름", "FAULT_TYPE": "단층 분류", "observe": "확인 여부",
+            # 지질 민감구역(wetherilli 336) — 모아 둔 것에서 우리가 짓는 열
+            "SensKind": "갈래", "SensName": "구역", "SensCode": "구역 번호", "SensTown": "향·진·구", "SensDate": "공고일", "SensDoc": "공고 문호"}
 
 
 def pixel_degrees(params: dict) -> float:
@@ -253,6 +256,11 @@ def get_feature_info(params: dict) -> dict:
     if not api:
         return {"features": []}
     lon, lat = clicked_lonlat(params)
+    if api == "sensitive":
+        # 상류에 묻지 않는다 — 모아 둔 구역 면에서 찾는다
+        from . import twopen
+        return {"features": [{"id": f"gsmma.sensitive.{n}", "properties": props}
+                             for n, props in enumerate(twopen.sensitive_at(LAYERS[layer]["kind"], lon, lat))]}
     point = LAYERS[layer].get("point")
     # 면은 누른 자리 둘레 약 20 m, 점은 화면의 8 픽셀(점 기호가 그만하다)
     half = max(pixel_degrees(params) * 8, 0.0001) if point else 0.0001
@@ -308,6 +316,8 @@ def friendly(props: dict, lang: str = "ko") -> dict:
     for key, value in props.items():
         if key == "Time":
             value = i18n.age_zh(value, lang)
+        elif key == "SensKind":                 # 우리가 지은 갈래 이름 (wetherilli 336)
+            value = i18n.t(value, lang)
         out[FRIENDLY.get(key, key)] = value
     return out
 
@@ -511,3 +521,108 @@ def fetch_open(api: str, bbox=OPEN_BBOX, *, timeout=60, gap=2.0, log=None, depth
                 seen.add(key)
                 out.append(f)
     return out
+
+
+# ── 지질 민감구역 — 구역마다 한 덩이씩 모아 둔다 (wetherilli 336) ─────────────
+#
+# 지질운 지도(`/map/GeologicalSensitiveAreas`)가 쓰는 자료 주소(`/data/zh-tw/GeologicalSensitiveAreas`)는 **범위로 묻지 못하고 구역 이름으로만**
+# 준다 — 활성단층·지하수 함양·지질 유산은 `category`+`name`(구역 이름), 산사태·지활은 시·현+향·진(`GeologicalSensitiveAreasLTown` 이
+# 향·진 목록을 준다). 속성은 `Gid` 하나뿐이라 구역 번호·공고일·문호는 기관의 공고 목록 CSV 에서 붙인다. 구역 이름 목록은 지질운 지도의
+# 스크립트에 박혀 있다(CSV 보다 새 공고가 더 있다). 사람이 부르는 `fetch_taiwan_open --sensitive` 가 한 번 받는다 — 290 번 남짓(13 분), 사이 2 초
+
+#: 갈래 기호 → 지질운의 `category`
+SENSITIVE_CATEGORY = {"F": "活動斷層", "G": "地下水補注", "H": "地質遺跡", "L": "山崩與地滑"}
+#: 지질운 지도가 산사태 구역을 고르는 시·현 (스크립트를 못 읽을 때)
+SENSITIVE_COUNTIES = ("臺北市", "南投縣", "臺中市", "嘉義縣市", "臺南市", "高雄市", "新北市", "基隆市", "屏東縣", "臺東縣", "桃園市",
+                      "新竹縣市", "苗栗縣", "彰化縣", "雲林縣", "宜蘭縣", "花蓮縣")
+
+
+def _sensitive_get(url: str, params: dict, gap: float, sleep):
+    r = _get(url, params, "지질운 민감구역")
+    sleep(gap)
+    if usage.looks_blocked(r.status_code, r.content[:1000]):
+        raise GsmmaError(f"차단 조짐 (status={r.status_code})")
+    return r
+
+
+def sensitive_notices(text: str) -> dict:
+    """공고 목록 CSV → 구역 번호 → {"name", "date", "doc"}. 한 번호가 두 번 공고되면(南投縣 -01·-02) 이어 적는다"""
+    import csv
+    import io
+    out = {}
+    for row in csv.DictReader(io.StringIO(text.lstrip("\ufeff"))):
+        code = (row.get("地質敏感區編號") or "").strip()
+        if not code:
+            continue
+        name = (row.get("地質敏感區名稱") or "").strip().split("-")[0]
+        cur = out.setdefault(code, {"name": name, "date": [], "doc": []})
+        for key, col in (("date", "公告日期"), ("doc", "文號")):
+            value = (row.get(col) or "").strip()
+            if value and value not in cur[key]:
+                cur[key].append(value)
+    return {k: {"name": v["name"], "date": " · ".join(v["date"]), "doc": " · ".join(v["doc"])} for k, v in out.items()}
+
+
+def sensitive_code(props: dict) -> str:
+    """산사태 면의 `Gid`(`1070-L0001`) 또는 `gid`(`18092-L0002_2` — 南投縣은 두 번 공고됐다) → 구역 번호 `L0002`"""
+    gid = str(props.get("Gid") or props.get("gid") or "")
+    return gid.rpartition("-")[2].split("_")[0] if "-" in gid else ""
+
+
+def sensitive_names(script: str) -> list:
+    """지질운 지도 스크립트 → [(번호, 이름)] — `E("F0001","車籠埔斷層",p)` 꼴"""
+    import re
+    return re.findall(r'E\("([FGH]\d{4})","([^"]+)",\w\)', script)
+
+
+def fetch_sensitive(*, gap=2.0, log=None, sleep=None):
+    """민감구역을 모두 — [{"kind", "code", "name", "town", "date", "doc", "geometry"}] 를 하나씩 낸다(제너레이터)"""
+    import json
+    import re
+    import time
+    sleep = sleep or time.sleep
+    say = log or (lambda m: None)
+    r = _sensitive_get(settings.GSMMA_SENSITIVE_LIST, {}, gap, sleep)
+    notices = sensitive_notices(r.content.decode("utf-8-sig", "replace")) if r.status_code == 200 else {}
+    say(f"공고 목록 {len(notices)} 구역")
+    r = _sensitive_get(settings.GSMMA_SENSITIVE_PAGE, {}, gap, sleep)
+    script = r.text if r.status_code == 200 else ""
+    named = sensitive_names(script) or [(c, n["name"]) for c, n in notices.items() if c[0] in "FGH"]
+    match = re.search(r'\[("[^"\]]+市"[^\]]*)\]\.forEach', script)
+    counties = json.loads(f"[{match.group(1)}]") if match else list(SENSITIVE_COUNTIES)
+    data = settings.GSMMA_SENSITIVE_URL
+    by_county = {v["name"]: k for k, v in notices.items() if k.startswith("L")}
+
+    def areas(params):
+        r = _sensitive_get(f"{data}/GeologicalSensitiveAreas", params, gap, sleep)
+        if r.status_code != 200:
+            say(f"  {params} — status {r.status_code}, 건너뛴다")
+            return []
+        try:
+            return r.json().get("features") or []
+        except ValueError:
+            say(f"  {params} — JSON 이 아니다, 건너뛴다")
+            return []
+
+    for code, name in named:
+        kind = code[0]
+        meta = notices.get(code, {})
+        found = areas({"category": SENSITIVE_CATEGORY[kind], "name": name})
+        say(f"  {code} {name} — 면 {len(found)}")
+        for f in found:
+            yield {"kind": kind, "code": code, "name": name, "town": "", "date": meta.get("date", ""), "doc": meta.get("doc", ""),
+                   "geometry": f.get("geometry")}
+    for county in counties:
+        r = _sensitive_get(f"{data}/GeologicalSensitiveAreasLTown", {"name": county}, gap, sleep)
+        try:
+            towns = r.json().get("data") or [] if r.status_code == 200 else []
+        except ValueError:
+            towns = []
+        for town in towns:
+            found = areas({"category": SENSITIVE_CATEGORY["L"], "name": county, "town": town})
+            say(f"  L {county} {town} — 면 {len(found)}")
+            for f in found:
+                code = sensitive_code(f.get("properties") or {}) or by_county.get(county, "")
+                meta = notices.get(code, {})
+                yield {"kind": "L", "code": code, "name": meta.get("name") or county, "town": town,
+                       "date": meta.get("date", ""), "doc": meta.get("doc", ""), "geometry": f.get("geometry")}

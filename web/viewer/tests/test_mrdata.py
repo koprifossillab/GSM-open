@@ -90,8 +90,27 @@ class Views(TestCase):
 
     def test_씨앗과_지역(self):
         self.assertEqual(Layer.objects.get(name="mrdata:sgmc2:sgmc2").group.region, "usa")
-        self.assertTrue(self.layers["mrdata:sgmc2:sgmc2"]["noLegend"])
+        self.assertEqual((self.layers["mrdata:sgmc2:sgmc2"]["legend"], self.layers["mrdata:sgmc2:sgmc2"]["legendUrl"]),
+                         ("extent", "mrdata/legend/"))                      # 보는 범위의 일반화 암상 (wetherilli 334)
+        self.assertTrue(self.layers["mrdata:sim3340:units"]["noLegend"])
         self.assertFalse(self.layers["mrdata:sgmc2:sgmc2structure"]["queryable"])
+
+    def test_SGMC_범례는_보는_범위의_갈래(self):
+        gml = ("<wfs:FeatureCollection><gml:featureMember><ms:Lithology><ms:generalize>Sedimentary, clastic</ms:generalize></ms:Lithology>"
+               "</gml:featureMember><gml:featureMember><ms:Lithology><ms:generalize>Sedimentary, clastic</ms:generalize></ms:Lithology>"
+               "</gml:featureMember><gml:featureMember><ms:Lithology><ms:generalize>Igneous, volcanic</ms:generalize></ms:Lithology>"
+               "</gml:featureMember><gml:featureMember><ms:Lithology><ms:generalize>Something new</ms:generalize></ms:Lithology>"
+               "</gml:featureMember></wfs:FeatureCollection>")
+        with mock.patch.object(mrdata.requests, "get", return_value=mock.Mock(status_code=200, text=gml, content=gml.encode(), elapsed=None)) as get:
+            got = self.client.get(reverse("viewer:mrdata-legend"), {"layer": "mrdata:sgmc2:sgmc2", "bbox": "-106,39,-104,41"}).json()
+            again = self.client.get(reverse("viewer:mrdata-legend"), {"layer": "mrdata:sgmc2:sgmc2", "bbox": "-106,39,-104,41"}).json()
+        self.assertEqual(get.call_count, 1)                                        # 범위마다 한 번
+        self.assertEqual(get.call_args.kwargs["params"]["propertyName"], "generalize")
+        self.assertEqual([r["lithology"] for r in got["rows"]], ["Sedimentary, clastic", "Igneous, volcanic", "Something new"])
+        self.assertEqual([r["color"] for r in got["rows"]], ["#b39b4c", "#ff0000", "#cccccc"])   # 모르는 갈래는 회색
+        self.assertEqual(got, again)
+        wide = self.client.get(reverse("viewer:mrdata-legend"), {"layer": "mrdata:sgmc2:sgmc2", "bbox": "-120,30,-100,45"})
+        self.assertEqual(wide.status_code, 422)
 
     def test_타일은_서비스의_WMS_로(self):
         with mock.patch.object(mrdata.requests, "get", return_value=answer()) as get:

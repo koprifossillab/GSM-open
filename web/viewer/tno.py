@@ -20,7 +20,7 @@ log = logging.getLogger(__name__)
 PREFIX = "tno:"
 #: 메타타일로 받는다 (wetherilli 287) — 512 px 2.2–7.2 초, 1 024 px 3.0 초. 큰 장 하나가 칸 넷보다 싸다. `metatile.limit` 의 표
 METATILE = {"tno:": None}
-ATTRIBUTION = ('<a href="https://www.tno.nl/nl/over-tno/organisatie/geologische-dienst-nederland/" target="_blank" rel="noopener">'
+ATTRIBUTION = ('<a href="https://www.geologischedienst.nl/" target="_blank" rel="noopener">'
                "TNO – Geologische Dienst Nederland</a> (CC0)")
 FIELDS = "CODE,OMSCHRIJVI,LITHOSTRAT,OUDERDOM,NAAM1,VERWIJZING"
 

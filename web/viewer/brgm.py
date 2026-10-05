@@ -162,7 +162,7 @@ from . import i18n
 
 CGMW_PREFIX = "cgmw:"
 CGMW_ATTRIBUTION = ('Geological Map of Africa 1:10M (Thiéblemont ed., 2016, '
-                    '<a href="https://doi.org/10.14682/2016GEOAFR" target="_blank" rel="noopener">doi:10.14682/2016GEOAFR</a>) — © CGMW/BRGM')
+                    '<a href="https://www.ccgm.org/en/" target="_blank" rel="noopener">CCGM</a>, doi:10.14682/2016GEOAFR) — © CGMW/BRGM')
 #: 레이어 → Capabilities 의 LegendURL (2026-10-04). 단층은 지질 단위의 범례 그림에 든다
 CGMW_LEGENDS = {
     "AFR_CGMW_BRGM_10M_GeologicUnits": "cgmwafrica_fgeol_legend.png",
