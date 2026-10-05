@@ -1,5 +1,5 @@
 {
- "_주석": "Geoscience Australia 지표 지질도 씨앗이다 — 호주 탭. 1:250만·1:100만 판을 한 레이어가 함께 부르고 상류가 축척에 맞는 판을 그린다. 레이어명은 ga:<갈래> (web/viewer/ga.py). 한글 제목과 레이어군은 사람이 붙였다 (wetherilli 212). 지질구·핵심 광물·지구물리 격자는 같은 기관의 다른 서비스다 — 문의 OTHER (wetherilli 241).",
+ "_주석": "Geoscience Australia 지표 지질도 씨앗이다 — 호주 탭. 1:250만·1:100만 판을 한 레이어가 함께 부르고 상류가 축척에 맞는 판을 그린다. 레이어명은 ga:<갈래> (web/viewer/ga.py). 한글 제목과 레이어군은 사람이 붙였다 (wetherilli 212). 지질구·핵심 광물·지구물리 격자는 같은 기관의 다른 서비스다 — 문의 OTHER (wetherilli 241). 확인 자원(광종 29)·수리지질도(wetherilli 325).",
  "_뽑은날": "2026-10-04",
  "_출처": "https://services.ga.gov.au/gis/services/GA_Surface_Geology/MapServer/WMSServer?request=GetCapabilities&service=WMS",
  "_지역": "australia",
@@ -9,7 +9,9 @@
   "호주 지표 지질도 (GA 1:250만·1:100만)",
   "호주 지질구 (GA)",
   "호주 핵심 광물 (GA 2025)",
-  "호주 지구물리 (GA)"
+  "호주 지구물리 (GA)",
+  "호주 확인 자원 (GA 2025)",
+  "호주 지하수 (GA)"
  ],
  "레이어": [
   {
@@ -137,6 +139,366 @@
    "title": "방사능 3색 (K·Th·U, 2019)",
    "group": "호주 지구물리 (GA)",
    "abstract": "Radiometric ternary image 2019 (Radiometric Map of Australia, 4th ed.)",
+   "bbox": [
+    108.0,
+    -48.0,
+    160.0,
+    -8.0
+   ]
+  },
+  {
+   "name": "ga:resource:Antimony",
+   "title": "안티몬",
+   "group": "호주 확인 자원 (GA 2025)",
+   "abstract": "Australia's Identified Mineral Resources 2025 — Antimony",
+   "bbox": [
+    108.0,
+    -48.0,
+    160.0,
+    -8.0
+   ]
+  },
+  {
+   "name": "ga:resource:Bauxite",
+   "title": "보크사이트",
+   "group": "호주 확인 자원 (GA 2025)",
+   "abstract": "Australia's Identified Mineral Resources 2025 — Bauxite",
+   "bbox": [
+    108.0,
+    -48.0,
+    160.0,
+    -8.0
+   ]
+  },
+  {
+   "name": "ga:resource:BlackCoal",
+   "title": "역청탄(흑탄)",
+   "group": "호주 확인 자원 (GA 2025)",
+   "abstract": "Australia's Identified Mineral Resources 2025 — Black coal",
+   "bbox": [
+    108.0,
+    -48.0,
+    160.0,
+    -8.0
+   ]
+  },
+  {
+   "name": "ga:resource:BrownCoal",
+   "title": "갈탄",
+   "group": "호주 확인 자원 (GA 2025)",
+   "abstract": "Australia's Identified Mineral Resources 2025 — Brown coal",
+   "bbox": [
+    108.0,
+    -48.0,
+    160.0,
+    -8.0
+   ]
+  },
+  {
+   "name": "ga:resource:Cobalt",
+   "title": "코발트",
+   "group": "호주 확인 자원 (GA 2025)",
+   "abstract": "Australia's Identified Mineral Resources 2025 — Cobalt",
+   "bbox": [
+    108.0,
+    -48.0,
+    160.0,
+    -8.0
+   ]
+  },
+  {
+   "name": "ga:resource:Copper",
+   "title": "구리",
+   "group": "호주 확인 자원 (GA 2025)",
+   "abstract": "Australia's Identified Mineral Resources 2025 — Copper",
+   "bbox": [
+    108.0,
+    -48.0,
+    160.0,
+    -8.0
+   ]
+  },
+  {
+   "name": "ga:resource:Diamond",
+   "title": "다이아몬드",
+   "group": "호주 확인 자원 (GA 2025)",
+   "abstract": "Australia's Identified Mineral Resources 2025 — Diamond",
+   "bbox": [
+    108.0,
+    -48.0,
+    160.0,
+    -8.0
+   ]
+  },
+  {
+   "name": "ga:resource:Fluorine",
+   "title": "형석(플루오린)",
+   "group": "호주 확인 자원 (GA 2025)",
+   "abstract": "Australia's Identified Mineral Resources 2025 — Fluorine",
+   "bbox": [
+    108.0,
+    -48.0,
+    160.0,
+    -8.0
+   ]
+  },
+  {
+   "name": "ga:resource:Gold",
+   "title": "금",
+   "group": "호주 확인 자원 (GA 2025)",
+   "abstract": "Australia's Identified Mineral Resources 2025 — Gold",
+   "bbox": [
+    108.0,
+    -48.0,
+    160.0,
+    -8.0
+   ]
+  },
+  {
+   "name": "ga:resource:Graphite",
+   "title": "흑연",
+   "group": "호주 확인 자원 (GA 2025)",
+   "abstract": "Australia's Identified Mineral Resources 2025 — Graphite",
+   "bbox": [
+    108.0,
+    -48.0,
+    160.0,
+    -8.0
+   ]
+  },
+  {
+   "name": "ga:resource:HighPurityAluminaOre",
+   "title": "고순도 알루미나 원료",
+   "group": "호주 확인 자원 (GA 2025)",
+   "abstract": "Australia's Identified Mineral Resources 2025 — High-purity alumina ore",
+   "bbox": [
+    108.0,
+    -48.0,
+    160.0,
+    -8.0
+   ]
+  },
+  {
+   "name": "ga:resource:IronOre",
+   "title": "철광석",
+   "group": "호주 확인 자원 (GA 2025)",
+   "abstract": "Australia's Identified Mineral Resources 2025 — Iron ore",
+   "bbox": [
+    108.0,
+    -48.0,
+    160.0,
+    -8.0
+   ]
+  },
+  {
+   "name": "ga:resource:LeadAndZinc",
+   "title": "납·아연",
+   "group": "호주 확인 자원 (GA 2025)",
+   "abstract": "Australia's Identified Mineral Resources 2025 — Lead and zinc",
+   "bbox": [
+    108.0,
+    -48.0,
+    160.0,
+    -8.0
+   ]
+  },
+  {
+   "name": "ga:resource:LithiumTantalumAndNiobium",
+   "title": "리튬·탄탈럼·나이오븀",
+   "group": "호주 확인 자원 (GA 2025)",
+   "abstract": "Australia's Identified Mineral Resources 2025 — Lithium, tantalum and niobium",
+   "bbox": [
+    108.0,
+    -48.0,
+    160.0,
+    -8.0
+   ]
+  },
+  {
+   "name": "ga:resource:Magnesite",
+   "title": "마그네사이트",
+   "group": "호주 확인 자원 (GA 2025)",
+   "abstract": "Australia's Identified Mineral Resources 2025 — Magnesite",
+   "bbox": [
+    108.0,
+    -48.0,
+    160.0,
+    -8.0
+   ]
+  },
+  {
+   "name": "ga:resource:ManganeseOre",
+   "title": "망가니즈광",
+   "group": "호주 확인 자원 (GA 2025)",
+   "abstract": "Australia's Identified Mineral Resources 2025 — Manganese ore",
+   "bbox": [
+    108.0,
+    -48.0,
+    160.0,
+    -8.0
+   ]
+  },
+  {
+   "name": "ga:resource:MineralSands",
+   "title": "광물 모래(중사)",
+   "group": "호주 확인 자원 (GA 2025)",
+   "abstract": "Australia's Identified Mineral Resources 2025 — Mineral sands",
+   "bbox": [
+    108.0,
+    -48.0,
+    160.0,
+    -8.0
+   ]
+  },
+  {
+   "name": "ga:resource:Molybdenum",
+   "title": "몰리브데넘",
+   "group": "호주 확인 자원 (GA 2025)",
+   "abstract": "Australia's Identified Mineral Resources 2025 — Molybdenum",
+   "bbox": [
+    108.0,
+    -48.0,
+    160.0,
+    -8.0
+   ]
+  },
+  {
+   "name": "ga:resource:Nickel",
+   "title": "니켈",
+   "group": "호주 확인 자원 (GA 2025)",
+   "abstract": "Australia's Identified Mineral Resources 2025 — Nickel",
+   "bbox": [
+    108.0,
+    -48.0,
+    160.0,
+    -8.0
+   ]
+  },
+  {
+   "name": "ga:resource:Phosphate",
+   "title": "인광석",
+   "group": "호주 확인 자원 (GA 2025)",
+   "abstract": "Australia's Identified Mineral Resources 2025 — Phosphate",
+   "bbox": [
+    108.0,
+    -48.0,
+    160.0,
+    -8.0
+   ]
+  },
+  {
+   "name": "ga:resource:PlatinumGroupElements",
+   "title": "백금족 원소",
+   "group": "호주 확인 자원 (GA 2025)",
+   "abstract": "Australia's Identified Mineral Resources 2025 — Platinum-group elements",
+   "bbox": [
+    108.0,
+    -48.0,
+    160.0,
+    -8.0
+   ]
+  },
+  {
+   "name": "ga:resource:Potash",
+   "title": "칼리(포타시)",
+   "group": "호주 확인 자원 (GA 2025)",
+   "abstract": "Australia's Identified Mineral Resources 2025 — Potash",
+   "bbox": [
+    108.0,
+    -48.0,
+    160.0,
+    -8.0
+   ]
+  },
+  {
+   "name": "ga:resource:RareEarthElements",
+   "title": "희토류 원소",
+   "group": "호주 확인 자원 (GA 2025)",
+   "abstract": "Australia's Identified Mineral Resources 2025 — Rare-earth elements",
+   "bbox": [
+    108.0,
+    -48.0,
+    160.0,
+    -8.0
+   ]
+  },
+  {
+   "name": "ga:resource:Scandium",
+   "title": "스칸듐",
+   "group": "호주 확인 자원 (GA 2025)",
+   "abstract": "Australia's Identified Mineral Resources 2025 — Scandium",
+   "bbox": [
+    108.0,
+    -48.0,
+    160.0,
+    -8.0
+   ]
+  },
+  {
+   "name": "ga:resource:Silver",
+   "title": "은",
+   "group": "호주 확인 자원 (GA 2025)",
+   "abstract": "Australia's Identified Mineral Resources 2025 — Silver",
+   "bbox": [
+    108.0,
+    -48.0,
+    160.0,
+    -8.0
+   ]
+  },
+  {
+   "name": "ga:resource:Tin",
+   "title": "주석",
+   "group": "호주 확인 자원 (GA 2025)",
+   "abstract": "Australia's Identified Mineral Resources 2025 — Tin",
+   "bbox": [
+    108.0,
+    -48.0,
+    160.0,
+    -8.0
+   ]
+  },
+  {
+   "name": "ga:resource:Tungsten",
+   "title": "텅스텐",
+   "group": "호주 확인 자원 (GA 2025)",
+   "abstract": "Australia's Identified Mineral Resources 2025 — Tungsten",
+   "bbox": [
+    108.0,
+    -48.0,
+    160.0,
+    -8.0
+   ]
+  },
+  {
+   "name": "ga:resource:Uranium",
+   "title": "우라늄",
+   "group": "호주 확인 자원 (GA 2025)",
+   "abstract": "Australia's Identified Mineral Resources 2025 — Uranium",
+   "bbox": [
+    108.0,
+    -48.0,
+    160.0,
+    -8.0
+   ]
+  },
+  {
+   "name": "ga:resource:Vanadium",
+   "title": "바나듐",
+   "group": "호주 확인 자원 (GA 2025)",
+   "abstract": "Australia's Identified Mineral Resources 2025 — Vanadium",
+   "bbox": [
+    108.0,
+    -48.0,
+    160.0,
+    -8.0
+   ]
+  },
+  {
+   "name": "ga:hydrogeology",
+   "title": "수리지질도 (1:500만)",
+   "group": "호주 지하수 (GA)",
+   "abstract": "Hydrogeology of Australia — aquifer type and productivity",
    "bbox": [
     108.0,
     -48.0,

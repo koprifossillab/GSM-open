@@ -1,4 +1,4 @@
-"""미국 주 지질조사소로 나가는 문 셋 — 네바다 NBMG·워싱턴 DNR·오리건 DOGAMI (wetherilli 291).
+"""미국 주 지질조사소로 나가는 문 넷 — 네바다 NBMG·워싱턴 DNR·오리건 DOGAMI (wetherilli 291)·알래스카 DGGS 광물 (wetherilli 322).
 
 호주의 주 판(`austates.py`, wetherilli 225)처럼 한 파일에 문 셋을 둔다 — 셋 다 ArcGIS REST `export`·`identify` 를 같은 꼴로 부르고,
 캘리포니아(`calgs.py`, 231)처럼 미국 탭의 3978 로 곧장 그린다. 화면이 보내는 WMS 변수는 `arcwms.rest_*` 가 옮긴다(3D 는 3857).
@@ -8,6 +8,7 @@
 | `nbmg` | `gisweb.unr.edu/nbmg/rest/services/Geology/NV_500k_Geology` | 네바다 1:50만(Stewart & Carlson 1978, USGIN) |
 | `wadnr` | `gis.dnr.wa.gov/site1/rest/services/Public_Geology/500k_Surface_Geology`·`100K_Surface_Geology_WA_GeMS` | 워싱턴 1:50만·1:10만 GeMS |
 | `dogami` | `gis.dogami.oregon.gov/arcgis/rest/services/Public/OGDC6` | 오리건 지질 자료 편찬(OGDC) 6 판 |
+| `dggs` | `maps.dggs.alaska.gov/arcgis/rest/services/Mineral_Occurrences_2020_MIL1`·`minerals/mineral_districts` | 알래스카 중요 광산·산지 335 곳(DDS 18)·광업 지구 |
 
 - **주 밖 타일은 묻지 않는다** — 카탈로그 행의 `clip`(하와이·푸에르토리코와 같다, wetherilli 238)이 레이어의 범위 밖 칸을 거른다
 - 한 장의 시간(2026-10-05, 주 전체 400²): 네바다 1.2 초·워싱턴 1:50만 1.8 초·1:10만 8.2 초·오리건 10.8 초 — 뒤의 둘은 처음 줌을 둔다
@@ -15,6 +16,8 @@
   워싱턴 1:50만은 면에 기호(`Map_Unit`)뿐이라 단위 설명 표(`Description Of Map Units`, 표 5)를, 네바다는 면의 값을 모아(`returnDistinctValues`)
 - 조건: 네바다 "© 2019 The University of Nevada, Reno. All Rights Reserved", 워싱턴은 출판물(Digital Data Series) 인용, 오리건은 비었다 —
   **밖에 열기 전에 사람이 읽는다**. 정적 판에 싣지 않는다
+- 알래스카 DGGS(wetherilli 322) — 지질도는 SIM 3340(`mrdata`)이 덮어 광물만 둔다. 광산·산지는 DDS 18(Alaska Minerals Database)의 공개 층 —
+  `distribution_policy` 가 모두 `public`. 조건은 메타데이터의 Use_Constraints "출처를 밝힌다(고쳤으면 고쳤다고)" 뿐이다
 - 유타 UGS(`webmaps.geology.utah.gov`)·애리조나 AZGS(`services.azgs.az.gov`)는 이 서버에서 연결이 시간 초과다(2026-10-05) — TODOs.
   알래스카는 USGS SIM 3340(`mrdata`)이 이미 덮는다
 """
@@ -37,6 +40,8 @@ UPSTREAMS = {
               "Surface geology (Digital Data Series)", "WADNR_URL"),
     "dogami": ('<a href="https://www.oregon.gov/dogami/" target="_blank" rel="noopener">Oregon DOGAMI</a> — '
                "Oregon Geologic Data Compilation (OGDC-6)", "DOGAMI_URL"),
+    "dggs": ('<a href="https://dggs.alaska.gov/pubs/id/30873" target="_blank" rel="noopener">Alaska DGGS</a> — '
+             "Alaska Minerals Database (DDS 18)", "DGGS_URL"),
 }
 #: 우리 이름 → 상류, 서비스(앞 주소 뒤), 보일 레이어, 누를 레이어, 처음 줌, 단위 표(레이어·표 번호, 기호·이름·시대·설명·암석의 열 — 없으면 None)
 LAYERS = {
@@ -46,8 +51,13 @@ LAYERS = {
                       units=("5", "Map_Unit", "Name", "Age", "Description", "GeoMaterial")),
     "wadnr:100k": _NS(upstream="wadnr", service="Public_Geology/100K_Surface_Geology_WA_GeMS", show="11,7,6", query="11", min=8, units=None),
     "dogami:ogdc": _NS(upstream="dogami", service="Public/OGDC6", show="3,0,1", query="3", min=7, units=None),
+    "dggs:minerals": _NS(upstream="dggs", service="Mineral_Occurrences_2020_MIL1", show="12", query="12", min=None, units=None),
+    "dggs:districts": _NS(upstream="dggs", service="minerals/mineral_districts", show="0", query="0", min=None, units=None),
 }
-LEGEND_LAYERS = tuple(LAYERS)
+#: 점 레이어 — 누를 때 둘레를 넓게 잡는다
+POINT_LAYERS = ("dggs:minerals",)
+#: 목록 범례를 내는 레이어 — 광업 지구는 한 색이라 범례 칸 이름이 비어 두지 않는다
+LEGEND_LAYERS = tuple(n for n in LAYERS if n != "dggs:districts")
 LEGEND_MAX_AGE = 30 * 86400
 
 
@@ -117,7 +127,8 @@ def _get_map(upstream: str, params: dict):
 def _get_feature_info(upstream: str, params: dict) -> dict:
     name = _one(params, upstream)
     try:
-        query = arcwms.rest_identify_params(params, LAYERS[name].query, tolerance=1)
+        # 점 레이어는 기호 둘레까지 잡게 4 픽셀, 면은 1 픽셀 (wetherilli 322)
+        query = arcwms.rest_identify_params(params, LAYERS[name].query, tolerance=4 if name in POINT_LAYERS else 1)
     except ValueError as exc:
         raise UsStatesError(str(exc)) from exc
     features = arcwms.identify_features(_json(_get(name, "identify", query)), name, limit=1)
@@ -180,13 +191,21 @@ def legend_rows(name: str) -> list:
 def _v(props: dict, *keys) -> str:
     for key in keys:
         value = str(props.get(key) if props.get(key) is not None else "").strip()
-        if value and value.lower() not in ("null", "no data", "unknown", "<null>"):
+        if value and value.lower() not in ("null", "no data", "unknown", "<null>", "none reported"):
             return value
     return ""
 
 
 def friendly(props: dict, lang: str = "ko") -> dict:
-    """세 주의 열 → 한국어 이름. 값(영어)은 그대로, 시대만 옮긴다 — identify 는 별칭(`Unit Symbol`)으로 준다"""
+    """주의 열 → 한국어 이름. 값(영어)은 그대로, 시대만 옮긴다 — identify 는 별칭(`Unit Symbol`)으로 준다"""
+    if "property" in props or "commodities_major" in props:     # 알래스카 광산·산지 (wetherilli 322)
+        rows = (("이름", _v(props, "property")), ("광종", _v(props, "commodities_major")), ("핵심 광물", _v(props, "critical_minerals_ardf")),
+                ("광종 갈래", _v(props, "commodity_group_map")), ("광상 유형", _v(props, "deposit_type_map")),
+                ("개발 단계", _v(props, "property_status")), ("과거 생산", _v(props, "past_producer")), ("자원량 공개", _v(props, "resource_public")))
+        return {k: x for k, x in rows if x}
+    if "sq_miles" in props or ("region" in props and "name" in props):  # 알래스카 광업 지구
+        rows = (("광업 지구", _v(props, "name")), ("권역", " ".join(_v(props, "region").split())))
+        return {k: x for k, x in rows if x}
     if "MAP_UNIT_L" in props or "AGE_NAME" in props:             # 오리건 OGDC
         age = i18n.age_tidy(_v(props, "AGE_NAME").replace("/", " - "))
         rows = (("기호", _v(props, "MAP_UNIT_L")), ("이름", _v(props, "MAP_UNIT_N")), ("지층", _v(props, "FORMATION")),
@@ -211,5 +230,5 @@ def _door(upstream: str) -> _NS:
                get_legend=_get_legend, friendly=friendly)
 
 
-NBMG, WADNR, DOGAMI = _door("nbmg"), _door("wadnr"), _door("dogami")
-DOORS = {"nbmg": NBMG, "wadnr": WADNR, "dogami": DOGAMI}
+NBMG, WADNR, DOGAMI, DGGS = _door("nbmg"), _door("wadnr"), _door("dogami"), _door("dggs")
+DOORS = {"nbmg": NBMG, "wadnr": WADNR, "dogami": DOGAMI, "dggs": DGGS}

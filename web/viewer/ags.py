@@ -6,13 +6,18 @@
 - **누른 자리만 이 문이 묻는다** — 같은 자료의 피처 서비스(`Bedrock_Geology_of_Alberta_POLY_DIG_2013_0018/FeatureServer/0`)에 누른 점
   하나로 `query`(`inSR` 은 화면의 투영)
 - 조건: Open Government Licence – Alberta. "AER/AGS 를 출처로 밝힌다" — 타일 서비스의 저작권 칸이 그렇게 적는다
+- **광물 산지**(wetherilli 321) — AGS 가 ArcGIS Online 에 모아 둔 `Mineral_Occurrences` 피처 서비스(5 454 점) — 금속 광물(DIG 2019-0026)·산업 광물
+  (DIG 2019-0027)·지하수·지층수의 리튬(DIG 2019-0029)·규사·광물 코어·비에너지 광물 생산자가 한 레이어에 갈래 열(`feature_layer_source`)로 든다.
+  그림이 없는 피처 서비스라 파나마(`stri.py`)처럼 **한 덩이로 받아 화면이 그린다** — 2 000 점씩 세 번, 캐시에 30 일. 색은 상류의 칠하기 규칙 그대로
 """
+import json
 import logging
 
 import requests
 from django.conf import settings
 
-from . import i18n, usage
+from . import i18n, tilecache, usage
+from .i18n import msg
 
 log = logging.getLogger(__name__)
 
@@ -108,3 +113,100 @@ def probe_tile(url: str):
         raise AgsError(f"앨버타 타일에 닿지 못했다: {exc}") from exc
     usage.record("ags", ok=r.status_code == 200, blocked=usage.looks_blocked(r.status_code, r.content[:1000]), elapsed=r.elapsed)
     return r.status_code, r.headers.get("content-type", ""), r.content
+
+
+# ── 광물 산지 — 한 덩이 (wetherilli 321) ─────────────────────────────────
+
+POINTS = "ags:minocc"
+OCC_ATTRIBUTION = ('<a href="https://geology-ags-aer.opendata.arcgis.com/" target="_blank" rel="noopener">'
+                   "Alberta Energy Regulator / Alberta Geological Survey</a> (Mineral Occurrences, OGL–Alberta)")
+OCC_SOURCE_URL = "https://geology-ags-aer.opendata.arcgis.com/"
+OCC_FIELDS = ("site_name", "commodity", "other_commodity", "dev_stage", "site_type", "geo_unit", "geo_age", "location",
+              "feature_layer_source")
+OCC_HELD = 30 * 86400
+PAGE = 2000
+#: 갈래 — (부호, 갈래 열에 든 자료 이름의 조각, 이름, 색). 색은 상류의 칠하기 규칙 그대로
+CLASSES = (
+    ("metal", "Metallic Mineral Occurrences", msg("금속 광물"), "#a7c636"),
+    ("industrial", "Industrial Mineral Occurrences", msg("산업 광물"), "#149ece"),
+    ("lithium", "Lithium Content", msg("리튬 (지하수·지층수)"), "#ed5151"),
+    ("silica", "Silica Sand", msg("규사"), "#fc921f"),
+    ("producer", "Non-Energy Mineral Producers", msg("비에너지 광물 생산자"), "#ffde3e"),
+    ("core", "Mineral Core Locations", msg("광물 코어"), "#9e559c"),
+)
+OCC_LABELS = {"name": "이름", "commodity": "광종", "other": "다른 광종", "stage": "개발 단계", "site": "갈래", "unit": "지층", "age": "지질시대",
+              "location": "곳"}
+
+
+def knows_points(name: str) -> bool:
+    return name == POINTS
+
+
+def _occ_page(offset: int) -> list:
+    left = usage.paused()
+    if left:
+        raise AgsError(f"차단 조짐이 있어 {int(left)}초 동안 상류에 묻지 않는다")
+    try:
+        r = requests.get(settings.AGS_OCCURRENCES_URL.rstrip("/") + "/query", params={
+            "where": "1=1", "outFields": ",".join(OCC_FIELDS), "outSR": "4326", "f": "geojson", "orderByFields": "OBJECTID ASC",
+            "resultOffset": offset, "resultRecordCount": PAGE, "geometryPrecision": "5"},
+            timeout=max(settings.UPSTREAM_TIMEOUT, 45), verify=settings.CA_BUNDLE or True, headers={"User-Agent": "GSM/0.1"})
+    except requests.RequestException as exc:
+        usage.record("ags", ok=False)
+        raise AgsError(f"앨버타 광물 산지에 닿지 못했다: {exc}") from exc
+    log.info("AGS %s -> %s", r.url, r.status_code)
+    usage.record("ags", ok=r.status_code == 200, blocked=usage.looks_blocked(r.status_code, r.content[:1000]), elapsed=r.elapsed)
+    if r.status_code != 200:
+        raise AgsError(f"받지 못했다 (status={r.status_code})")
+    try:
+        data = r.json()
+    except ValueError as exc:
+        raise AgsError("JSON 이 아니다") from exc
+    if isinstance(data, dict) and data.get("error"):
+        raise AgsError(f"상류 오류: {data['error'].get('message', '')}")
+    return data.get("features") or []
+
+
+def occurrences() -> list:
+    """점 전부 — 2 000 점씩. 받은 것은 30 일 담아 둔다"""
+    key = tilecache.key_text("ags", "occurrences")
+    held = tilecache.get(key, ".json", max_age=OCC_HELD)
+    if held is not None:
+        return json.loads(held)
+    out, offset = [], 0
+    while True:
+        page = _occ_page(offset)
+        out += page
+        if len(page) < PAGE or offset > 50000:
+            break
+        offset += PAGE
+    tilecache.put(key, json.dumps(out, separators=(",", ":")).encode("utf-8"), ".json")
+    return out
+
+
+def _class_of(source: str) -> str:
+    return next((code for code, part, _, _ in CLASSES if part in source), "")
+
+
+def points_body(name: str, lang: str = "ko") -> bytes:
+    """브라우저에 보내는 한 덩이 — 꼴은 지역 탭의 점 레이어(`earthpoints`)와 같다(`style: class`)"""
+    if not knows_points(name):
+        raise AgsError(f"모르는 레이어다: {name}")
+    items, counts = [], {}
+    for f in occurrences():
+        p = f.get("properties") or {}
+        code = _class_of(str(p.get("feature_layer_source") or ""))
+        if not code or not f.get("geometry"):
+            continue
+        v = lambda k: str(p.get(k) or "").strip()          # noqa: E731
+        age = v("geo_age")
+        props = {"code": code, "name": v("site_name"), "commodity": v("commodity"), "other": v("other_commodity"),
+                 "stage": v("dev_stage"), "site": v("site_type"), "unit": v("geo_unit"),
+                 "age": (i18n.age_ko(age) if lang == "ko" else age) if age else "", "location": v("location")}
+        items.append({"type": "Feature", "geometry": f["geometry"], "properties": {k: x for k, x in props.items() if x}})
+        counts[code] = counts.get(code, 0) + 1
+    legend = [{"code": code, "label": i18n.t(label, lang), "color": color, "shape": "dot", "count": counts[code]}
+              for code, _, label, color in CLASSES if counts.get(code)]
+    out = {"type": "FeatureCollection", "style": "class", "labels": OCC_LABELS, "legend": legend, "features": items}
+    return json.dumps(out, ensure_ascii=False, separators=(",", ":")).encode("utf-8")
+

@@ -1,0 +1,37 @@
+{
+ "_주석": "알래스카 지질·지구물리조사소(DGGS) 광물 씨앗이다 — 미국 탭. 지질도는 SIM 3340(mrdata)이 덮는다. ArcGIS REST 를 문(web/viewer/usstates.py)이 3978 export 로 옮긴다 (wetherilli 322).",
+ "_뽑은날": "2026-10-05",
+ "_출처": "https://maps.dggs.alaska.gov/arcgis/rest/services/Mineral_Occurrences_2020_MIL1/MapServer",
+ "_지역": "usa",
+ "_상류": "dggs",
+ "_레이어군차례": 0,
+ "레이어군순서": [
+  "알래스카 광물 (DGGS)"
+ ],
+ "레이어": [
+  {
+   "name": "dggs:minerals",
+   "title": "중요 광산·산지 (DDS 18)",
+   "group": "알래스카 광물 (DGGS)",
+   "abstract": "Alaska Minerals Database — 335 곳, 개발 단계로 칠한다",
+   "bbox": [
+    -179.2,
+    51.2,
+    -129.9,
+    71.5
+   ]
+  },
+  {
+   "name": "dggs:districts",
+   "title": "광업 지구",
+   "group": "알래스카 광물 (DGGS)",
+   "abstract": "Mineral districts",
+   "bbox": [
+    -179.2,
+    51.2,
+    -129.9,
+    71.5
+   ]
+  }
+ ]
+}

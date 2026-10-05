@@ -137,3 +137,22 @@ class Other(TestCase):
             self.client.get(reverse("viewer:wms"), {"layers": "ga:mines", "version": "1.3.0", "request": "GetMap", **MERC})
         self.assertIn("AustralianCriticalMineralsOperatingMinesAndDeposits", get.call_args.args[0])
         self.assertEqual(get.call_args.kwargs["params"]["layers"], "OperatingMines,DevelopingMines,CareMaintenanceMines")
+
+
+class Resources(SimpleTestCase):
+    """확인 자원(광종 29)·수리지질도 (wetherilli 325) — 같은 OTHER 길"""
+
+    def test_광종마다_레이어(self):
+        names = [n for n in ga.OTHER if n.startswith("ga:resource:")]
+        self.assertEqual(len(names), 29)
+        self.assertEqual(ga.OTHER["ga:resource:Copper"][1], "Copper")
+        self.assertTrue(all(ga.queryable(n) for n in names) and ga.queryable("ga:hydrogeology"))
+        self.assertTrue(ga._url("ga:resource:Gold").endswith("/AustraliasIdentifiedMineralResources/MapServer/WMSServer"))
+
+    def test_팝업(self):
+        got = ga.friendly({"Entity_ID": "Olympic Dam", "Commodity": "Copper", "CurrentStatus": "Producing mine", "MineralDepositType": "Null",
+                           "Units": "Mt", "Size": ">50", "State": "SA"})
+        self.assertEqual(got, {"이름": "Olympic Dam", "광종": "Copper", "운영": "Producing mine", "자원량 칸": ">50 Mt", "주": "SA"})
+        hydro = ga.friendly({"AQUIF_TY": "Porous, extensive aquifers of low to moderate productivity", "TYPE": "POROUS",
+                             "DISTBN": "EXTENSIVE", "PRODTY": "LOW-MOD"})
+        self.assertEqual(hydro["생산성"], "LOW-MOD")

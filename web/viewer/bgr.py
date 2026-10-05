@@ -27,11 +27,16 @@ ATTRIBUTION = ('Datenquelle: GÜK250 · GK1000 (WMS), <a href="https://www.bgr.b
 ATTRIBUTIONS = {"kor250": 'Datenquelle: KOR250, <a href="https://www.bgr.bund.de/" target="_blank" rel="noopener">© BGR</a>',
                 "bsk1000": 'Datenquelle: BSK1000, <a href="https://www.bgr.bund.de/" target="_blank" rel="noopener">© BGR</a>',
                 "igme5000": ('Datenquelle: IGME5000, <a href="https://www.bgr.bund.de/" target="_blank" rel="noopener">'
-                             '© BGR</a> Hannover, 2007')}
+                             '© BGR</a> Hannover, 2007'),
+                "gk2000": 'Datenquelle: GK2000, <a href="https://www.bgr.bund.de/" target="_blank" rel="noopener">© BGR</a>'}
 #: 판마다 그리는 화면 줌(3857, 처음·끝)
-ZOOMS = {"gk1000": (9, 10), "guek250": (10, 14), "igme5000": (None, 11), "kor250": (None, None), "bsk1000": (None, None)}
+#: GK2000(1:200만, wetherilli 327)은 축척 끝이 없어 넓은 줌부터 — GK1000 이 그리기 시작하는 줌 9 언저리까지
+ZOOMS = {"gk1000": (9, 10), "guek250": (10, 14), "igme5000": (None, 11), "kor250": (None, None), "bsk1000": (None, None),
+         "gk2000": (None, 10)}
 #: 누를 것이 없는 레이어 — 단층(선의 갈래 하나뿐)·연대 기호(글자)
-NOT_QUERYABLE = ("igme5000:46+47+48", "igme5000:51+53+55+57")
+NOT_QUERYABLE = ("igme5000:46+47+48", "igme5000:51+53+55+57",
+                 # GK2000 의 구조선·빙하 가장자리(wetherilli 327) — 선이라 누를 것이 없다
+                 "gk2000:2", "gk2000:4")
 
 
 #: `geologie` 가 아닌 WMS 폴더의 판 (wetherilli 296) — 원료: 지표 부근 원료 1:25만(KOR250)·지하자원 1:100만(BSK1000).
@@ -176,6 +181,11 @@ def igme5000_friendly(props: dict, lang: str = "ko") -> dict:
 def friendly(props: dict, lang: str = "ko") -> dict:
     if "name older rock age" in props or "boundary or structure line" in props:
         return igme5000_friendly(props, lang)
+    if set(props) - {"OBJECTID"} == {"Geologie"}:
+        # GK2000(wetherilli 327) — 층서 단위 하나뿐이고 독일어 시대(`Obertrias`)다. 옮기지 못하면 원문
+        text = str(props.get("Geologie") or "").strip()
+        en = i18n.age_local(text)
+        return {"지질시대": (i18n.age_ko(en) if lang == "ko" else en) if en else text} if text else {}
     out = {}
     for key, label in FRIENDLY:
         value = str(props.get(key) or "").strip()

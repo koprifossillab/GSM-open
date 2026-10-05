@@ -215,6 +215,8 @@ MRDATA_URL = env("GSM_MRDATA_URL", "https://mrdata.usgs.gov/services")
 GSQ_REST_URL = env("GSM_GSQ_REST_URL", "https://spatial-gis.information.qld.gov.au/arcgis/rest/services/GeoscientificInformation")
 GSV_WMS_URL = env("GSM_GSV_WMS_URL", "https://opendata.maps.vic.gov.au/geoserver/wms")
 GSSA_WMS_URL = env("GSM_GSSA_WMS_URL", "https://sarigdata.pir.sa.gov.au/geoserver/ows")
+#: 남호주 지구물리 영상 — SARIG 의 다른 GeoServer (wetherilli 329)
+GSSA_IMAGERY_URL = env("GSM_GSSA_IMAGERY_URL", "https://services.sarig.sa.gov.au/raster/GeophysicalStateImages/wms")
 #: 태즈메이니아 지질(theLIST, Mineral Resources Tasmania)·뉴사우스웨일스 광물 산지·광산(GSNSW GeoServer) (wetherilli 318)
 TAS_REST_URL = env("GSM_TAS_REST_URL", "https://services.thelist.tas.gov.au/arcgis/rest/services/Public/GeologicalAndSoils/MapServer")
 GSNSW_WMS_URL = env("GSM_GSNSW_WMS_URL", "https://gs.geoscience.nsw.gov.au/geoserver/ows")
@@ -231,6 +233,9 @@ SKGS_WMS_URL = env("GSM_SKGS_WMS_URL", "https://gis.saskatchewan.ca/arcgis/servi
 NSGS_URL = env("GSM_NSGS_URL", "https://fletcher.novascotia.ca/arcgis/rest/services/geoscience/bedrockgeologyprovscale_new/MapServer")
 AGS_FEATURE_URL = env("GSM_AGS_FEATURE_URL", "https://services2.arcgis.com/jQV6VMr2Loovu7GU/arcgis/rest/services/"
                       "Bedrock_Geology_of_Alberta_POLY_DIG_2013_0018/FeatureServer/0")
+#: 앨버타 광물 산지 — 금속·산업 광물·리튬·규사·광물 코어·생산자를 모은 피처 서비스 (`viewer/ags.py`, wetherilli 321)
+AGS_OCCURRENCES_URL = env("GSM_AGS_OCCURRENCES_URL", "https://services2.arcgis.com/jQV6VMr2Loovu7GU/arcgis/rest/services/"
+                          "Mineral_Occurrences/FeatureServer/0")
 #: 브리티시컬럼비아 BC Digital Geology — openmaps GeoServer WMS (`viewer/bcgs.py`, wetherilli 231). 열쇠가 없다
 BCGS_WMS_URL = env("GSM_BCGS_WMS_URL", "https://openmaps.gov.bc.ca/geo/pub/WHSE_MINERAL_TENURE.GEOL_BEDROCK_UNIT_POLY_SVW/ows")
 #: 캘리포니아 지질도 1:75만 — CGS ArcGIS 의 앞 주소 (`viewer/calgs.py`, wetherilli 231). 열쇠가 없다
@@ -239,6 +244,8 @@ CALGS_URL = env("GSM_CALGS_URL", "https://gis.conservation.ca.gov/server")
 NBMG_URL = env("GSM_NBMG_URL", "https://gisweb.unr.edu/nbmg/rest/services")
 WADNR_URL = env("GSM_WADNR_URL", "https://gis.dnr.wa.gov/site1/rest/services")
 DOGAMI_URL = env("GSM_DOGAMI_URL", "https://gis.dogami.oregon.gov/arcgis/rest/services")
+#: 알래스카 DGGS 광물(wetherilli 322) — 같은 문(`usstates.py`)
+DGGS_URL = env("GSM_DGGS_URL", "https://maps.dggs.alaska.gov/arcgis/rest/services")
 #: 유럽 — 오스트리아 GeoSphere·폴란드 PIG·네덜란드 TNO·플랑드르 DOV·왈로니아 SPW (wetherilli 237). 열쇠가 없다
 GEOSPHERE_URL = env("GSM_GEOSPHERE_URL", "https://gis.geosphere.at/maps")
 PIG_URL = env("GSM_PIG_URL", "https://cbdgmapa.pgi.gov.pl/arcgis")
@@ -586,6 +593,7 @@ CALGS_CATALOG_SEED = REPO_DIR / "data" / "calgs_layers.json"
 NBMG_CATALOG_SEED = REPO_DIR / "data" / "nbmg_layers.json"
 WADNR_CATALOG_SEED = REPO_DIR / "data" / "wadnr_layers.json"
 DOGAMI_CATALOG_SEED = REPO_DIR / "data" / "dogami_layers.json"
+DGGS_CATALOG_SEED = REPO_DIR / "data" / "dggs_layers.json"
 #: 오스트리아·폴란드·네덜란드·벨기에 (wetherilli 237)
 GEOSPHERE_CATALOG_SEED = REPO_DIR / "data" / "geosphere_layers.json"
 PIG_CATALOG_SEED = REPO_DIR / "data" / "pig_layers.json"

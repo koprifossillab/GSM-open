@@ -1,5 +1,5 @@
 {
- "_주석": "남호주 지질조사소(GSSA, SARIG) 지질도 씨앗이다 — 호주 탭. GeoServer WMS 의 GeoSciML 포트레이얼(web/viewer/austates.py). 1:250만보다 넓으면 빈 그림이라 줌 9 부터. 한글 제목과 레이어군은 사람이 붙였다 (wetherilli 225). 구조선은 wetherilli 232 에서 더했다. 광물 산지도 같은 GeoServer 다 (wetherilli 269).",
+ "_주석": "남호주 지질조사소(GSSA, SARIG) 지질도 씨앗이다 — 호주 탭. GeoServer WMS 의 GeoSciML 포트레이얼(web/viewer/austates.py). 1:250만보다 넓으면 빈 그림이라 줌 9 부터. 한글 제목과 레이어군은 사람이 붙였다 (wetherilli 225). 구조선은 wetherilli 232 에서 더했다. 광물 산지도 같은 GeoServer 다 (wetherilli 269). 지구물리 영상(자력·중력·방사능)은 SARIG 의 다른 GeoServer 다 (wetherilli 329).",
  "_뽑은날": "2026-10-04",
  "_출처": "https://sarigdata.pir.sa.gov.au/geoserver/ows?service=WMS&request=GetCapabilities",
  "_지역": "australia",
@@ -7,7 +7,8 @@
  "_레이어군차례": 12,
  "레이어군순서": [
   "남호주 지질도 (GSSA)",
-  "남호주 광물 산지 (GSSA)"
+  "남호주 광물 산지 (GSSA)",
+  "남호주 지구물리 (SARIG)"
  ],
  "레이어": [
   {
@@ -44,6 +45,78 @@
     -38.1,
     141.1,
     -25.9
+   ]
+  },
+  {
+   "name": "gssa:tmi_rtp",
+   "title": "총자력 (극 환원)",
+   "group": "남호주 지구물리 (SARIG)",
+   "abstract": "State TMI — reduced to pole (tmi_vrtp)",
+   "bbox": [
+    128.5,
+    -38.1,
+    141.5,
+    -25.5
+   ]
+  },
+  {
+   "name": "gssa:tmi_rtp_1vd",
+   "title": "총자력 1차 수직 미분",
+   "group": "남호주 지구물리 (SARIG)",
+   "abstract": "TMI RTP first vertical derivative",
+   "bbox": [
+    128.5,
+    -38.1,
+    141.5,
+    -25.5
+   ]
+  },
+  {
+   "name": "gssa:tmi_tilt",
+   "title": "총자력 기울기",
+   "group": "남호주 지구물리 (SARIG)",
+   "abstract": "TMI RTP tilt derivative",
+   "bbox": [
+    128.5,
+    -38.1,
+    141.5,
+    -25.5
+   ]
+  },
+  {
+   "name": "gssa:grav",
+   "title": "부게 중력",
+   "group": "남호주 지구물리 (SARIG)",
+   "abstract": "State Bouguer gravity",
+   "bbox": [
+    128.5,
+    -38.1,
+    141.5,
+    -25.5
+   ]
+  },
+  {
+   "name": "gssa:grav_1vd",
+   "title": "중력 1차 수직 미분",
+   "group": "남호주 지구물리 (SARIG)",
+   "abstract": "Bouguer gravity first vertical derivative",
+   "bbox": [
+    128.5,
+    -38.1,
+    141.5,
+    -25.5
+   ]
+  },
+  {
+   "name": "gssa:rad_rgb",
+   "title": "방사능 삼색 (K·Th·U)",
+   "group": "남호주 지구물리 (SARIG)",
+   "abstract": "Radiometric ternary image — K red, Th green, U blue",
+   "bbox": [
+    128.5,
+    -38.1,
+    141.5,
+    -25.5
    ]
   }
  ]

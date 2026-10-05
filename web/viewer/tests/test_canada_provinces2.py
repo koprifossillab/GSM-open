@@ -1,5 +1,6 @@
 """캐나다 주 판 둘째 — 사스카치원·노바스코샤·앨버타 (wetherilli 235). 상류를 부르지 않는다 — 꼴은 2026-10-04 에 받은 그대로다."""
 import io
+import json
 import tempfile
 from unittest import mock
 
@@ -95,3 +96,32 @@ class Views(TestCase):
         for name in ("ags:bedrock", "skgs:2", "nsgs:11"):
             self.assertIn(f'"{name}"', base)
         self.assertIn("ags: { source: gsiTileSource, info: pointInfoUrl }", js)
+
+
+class AlbertaMinerals(TestCase):
+    """앨버타 광물 산지 (wetherilli 321) — 피처 서비스를 한 덩이로, 갈래마다 색"""
+    def setUp(self):
+        import tempfile
+        from django.test import override_settings
+        patch = override_settings(TILE_CACHE_DIR=tempfile.mkdtemp(prefix="gsm-ags-occ-"))
+        patch.enable()
+        self.addCleanup(patch.disable)
+
+    def test_덩이(self):
+        from unittest import mock
+        from viewer import ags
+        page = {"features": [
+            {"type": "Feature", "geometry": {"type": "Point", "coordinates": [-113.5, 53.5]},
+             "properties": {"site_name": "Clearwater", "commodity": "Lithium", "geo_age": "Lower Cretaceous",
+                            "feature_layer_source": '<a href="x">Lithium Content in Groundwater and Formation Water (DIG 2019-0029)</a>'}},
+            {"type": "Feature", "geometry": {"type": "Point", "coordinates": [-114.0, 55.0]},
+             "properties": {"site_name": "Unknown kind", "feature_layer_source": "something else"}}]}
+        ok = mock.Mock(status_code=200, url="u", content=b"{}", json=lambda: page, elapsed=None)
+        with mock.patch.object(ags.requests, "get", return_value=ok) as get, mock.patch.object(ags.usage, "paused", return_value=0):
+            body = json.loads(ags.points_body("ags:minocc", "ko"))
+            again = json.loads(ags.points_body("ags:minocc", "en"))
+        self.assertEqual(get.call_count, 1)                                         # 한 쪽(2 000 밑)이면 한 번, 그 뒤는 캐시
+        self.assertEqual([f["properties"]["code"] for f in body["features"]], ["lithium"])
+        self.assertEqual(body["legend"][0]["label"], "리튬 (지하수·지층수)")
+        self.assertEqual(again["legend"][0]["label"], "Lithium (groundwater and formation water)")
+        self.assertEqual(body["style"], "class")

@@ -11,6 +11,8 @@
 - 범례는 보는 범위의 것 — 범례 그림은 198×4096 이다. 페루(`ingemmet.py`)처럼 REST 통계 질의와 칠하기 규칙(`PLOTSYMBOL` 따위)으로 뜬다.
   REST 의 열 이름은 소문자다(`plotsymbol`·`geolhist`) — 큰 글자로 물으면 400
 - CORS 는 Origin 을 되비춘다. 조건: **CC BY 4.0**(© Commonwealth of Australia (Geoscience Australia) 2016) — 정적 판에 실을 수 있다
+- **확인 자원·수리지질도**(wetherilli 325) — ecat 에서 찾은 `AustraliasIdentifiedMineralResources`(광종 29, 2025 판)와 `Hydrogeology_of_Australia`
+  (1987 1:500만의 수치판). 둘 다 CC BY 4.0, 같은 `OTHER` 길. 지하수는 분지별 조사(쿠퍼·갈릴리·보웬…)가 수십 개라 온 나라 한 장만 골랐다
 - **다른 서비스**(wetherilli 241) — 서비스 목록(`/gis/rest/services`)이 403 이라 GA 자료 목록(ecat)·검색으로 이름을 찾았다. 셋을 같은 문으로
   부른다(`OTHER`): 지질구(`Australian_Geological_Provinces` — 지각 요소·지질구 전부), 핵심 광물(`AustralianCriticalMineralsOperatingMinesAndDeposits`
   — 광산 셋·광상), 지구물리 격자(`/gis/geophysical-grids/ows` GeoServer — 자력 TMI·완전 부게 중력·방사능 3색). 셋 다 CC BY 4.0.
@@ -41,6 +43,15 @@ OTHER_ATTRIBUTION = '<a href="https://www.ga.gov.au/" target="_blank" rel="noope
 PROVINCES = "services/Australian_Geological_Provinces/MapServer/WMSServer"
 CRITICAL = "services/AustralianCriticalMineralsOperatingMinesAndDeposits/MapServer/WMSServer"
 GRIDS = "geophysical-grids/ows"
+#: 확인 자원(Australia's Identified Mineral Resources 2025, wetherilli 325) — 광종 29 가 WMS 레이어 하나씩. 범례가 광종마다 상태(광상·생산 광산)×
+#: 크기 칸이라(모두 257 칸) 광종마다 레이어 하나로 둔다 — 범례 그림이 그 광종의 몇 칸뿐이다
+RESOURCES = "services/AustraliasIdentifiedMineralResources/MapServer/WMSServer"
+RESOURCE_LAYERS = ("Antimony", "Bauxite", "BlackCoal", "BrownCoal", "Cobalt", "Copper", "Diamond", "Fluorine", "Gold", "Graphite",
+                   "HighPurityAluminaOre", "IronOre", "LeadAndZinc", "LithiumTantalumAndNiobium", "Magnesite", "ManganeseOre", "MineralSands",
+                   "Molybdenum", "Nickel", "Phosphate", "PlatinumGroupElements", "Potash", "RareEarthElements", "Scandium", "Silver", "Tin",
+                   "Tungsten", "Uranium", "Vanadium")
+#: 호주 수리지질도(Hydrogeology of Australia, 1:500만 1987 의 수치판) — 대수층의 갈래(공극·균열·국지)와 생산성 (wetherilli 325)
+HYDROGEOLOGY = "services/Hydrogeology_of_Australia/MapServer/WmsServer"
 OTHER = {
     "ga:crustal": (PROVINCES, "CrustalElements", True, False),
     "ga:provinces": (PROVINCES, "AllProvinces", True, False),
@@ -49,6 +60,8 @@ OTHER = {
     "ga:tmi": (GRIDS, "geophys:tmi_hsi_v2_white", False, True),
     "ga:gravity": (GRIDS, "geophys:2019_A4_CBA_wide_linear_color_Hillshade_HSI_GeoTIFF", False, True),
     "ga:radiometric": (GRIDS, "geophys:radmap_v4_2019_filtered_ternary_image", False, True),
+    "ga:hydrogeology": (HYDROGEOLOGY, "Hydrogeology", True, False),
+    **{f"ga:resource:{name}": (RESOURCES, name, True, False) for name in RESOURCE_LAYERS},
 }
 #: 범례가 1:100만 판으로 넘어가는 범위(°) — 1:150만은 화면 줌 8–9 남짓, 화면 너비로 6–8° 다. 그보다 넓으면 1:250만 판의 단위를 센다
 FINE_SPAN = 6.0
@@ -173,6 +186,12 @@ def other_friendly(props: dict, lang: str = "ko"):
         rows = (("이름", v("provinceName")), ("갈래", " · ".join(x for x in (v("type"), v("subtype"), v("rank")) if x)),
                 ("상위 단위", v("parentName")), ("지질시대", i18n.age_ko(age) if lang == "ko" and age else age),
                 ("설명", v("description")), ("주", v("state")), ("참고 문헌", v("source")))
+    elif "Entity_ID" in props and "CurrentStatus" in props:              # 확인 자원 (wetherilli 325)
+        size = " ".join(x for x in (v("Size"), v("Units")) if x)
+        rows = (("이름", v("Entity_ID")), ("광종", v("Commodity")), ("운영", v("CurrentStatus")), ("광상 유형", v("MineralDepositType")),
+                ("자원량 칸", size), ("주", v("State")), ("출처", v("Source")))
+    elif "AQUIF_TY" in props:                                                  # 수리지질도 (wetherilli 325)
+        rows = (("대수층", v("AQUIF_TY")), ("갈래", v("TYPE")), ("분포", v("DISTBN")), ("생산성", v("PRODTY")))
     elif "Commodities" in props or "ProjectName" in props:
         rows = (("이름", v("ProjectName")), ("광종", v("Commodities")), ("운영", v("Status")), ("주", v("STATE")))
     else:

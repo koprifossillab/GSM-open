@@ -10,18 +10,12 @@
 
 - [ ] **앨버타 금속·산업 광물 산지**(wetherilli 288) — ArcGIS Online 피처 서비스(`Metallic_Mineral_Occurrences`·`Industrial_Mineral_Occurrences`)뿐이라
       그림 길이 없다. 파나마(`stri`)·카리브(`usgscarib`)처럼 한 덩이로 받아 캐시에 담고 화면이 그린다. 캐나다 탭, OGL–Alberta
-- [ ] **알래스카 DGGS 광물 산지**(`maps.dggs.alaska.gov/arcgis/rest/services/Mineral_Occurrences_2020_MIL1`, wetherilli 291) — 미국 탭. 지질도는
-      SIM 3340(`mrdata`)과 겹쳐 두지 않았다. 조건을 읽고 올린다
 - [ ] **퀘벡 광물 산지(gîte)**(wetherilli 288) — SIGÉOM WMS 에는 가동 광산·사업뿐이다. SIGÉOM 의 다른 서비스(ArcGIS·WFS)에서 광물 산지를 찾는다
-- [ ] **노르웨이 NGU 광물·지구물리**(wetherilli 270) — 서비스 주소를 못 찾았다(`geo.ngu.no/mapserver/*` 이름 짐작은 404·빈 map). NGU 의
-      지도 화면(Kart)이 부르는 주소를 읽어 찾는다. 광상은 FODD 가 덮는다. 스웨덴 중력은 측정 범위뿐이라 뺐다
-- [ ] **영국 BGS 지화학(G-BASE)·지하수** — GeoIndex 와 같은 서버에 있다(wetherilli 258). 같은 꼴로 영국 탭에
 - [ ] **호주 GA 의 확인 자원**(`AustraliasIdentifiedMineralResources`, 광종 스물아홉 레이어)·지하수(wetherilli 241) — 목록이 403 이라 ecat 에서
       이름을 찾는다. 남은 주는 wetherilli 318 이 했다 — 태즈메이니아 지질(theLIST)·뉴사우스웨일스 광물 산지·광산이 섰다.
       뉴사우스웨일스 이음매 없는 지질도는 503, 노던테리토리는 지질도 서비스를 찾지 못했다.
       **(사람)** 태즈메이니아 theLIST 약관이 레이어 저작권 글로 미루는데 그 글이 비었다 — 정적 판에 싣기 전에 MRT 에 묻는다(#153)
-- [ ] **남호주 지구물리**(wetherilli 306) — SARIG 영상의 열린 WMS 를 찾지 못했다. GA 의 온 나라 격자가 덮는다. 쓰려면 원본 격자를 받아 굽는다
-      (ADMAP 꼴)
+- [ ] 남호주 지구물리의 값 누르기(wetherilli 329) — 영상 WMS(자력·중력·방사능 여섯)는 섰지만 누르면 RGB 뿐이다. 값을 보이려면 원본 격자를 받아 굽는다 — 방사능 합본(43 MB)이 가장 싸고, 중력은 4.7 GB(ADMAP 꼴)
 - [ ] **대만 지질운 열린자료의 빈 칸 셋**(wetherilli 305) — 상류가 0.08° 네모로 나눠도 120 초를 넘겨 끊는 자리(파일의 `holes`): 토석류 유동
       121.91–121.98°E·24.94–25.03°N, 낙석 120.73–120.81°E·22.50–22.59°N, 120.97–121.05°E·23.91–24.00°N. 판마다
       `fetch_taiwan_open --api DebrisFlowTrack,RockFall` 로 다시 받아 본다. "암석 강도"(A–H)·"암체 강도 등급"(I–VII)의 뜻을 찾으면 범례에

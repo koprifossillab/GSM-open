@@ -3,6 +3,7 @@ import io
 import tempfile
 from unittest import mock
 
+from django.conf import settings
 from django.core.management import call_command
 from django.test import SimpleTestCase, TestCase, override_settings
 from django.urls import reverse
@@ -137,3 +138,28 @@ class Views(TestCase):
         sent = get.call_args.kwargs["params"]
         self.assertEqual((sent["query_layers"], sent["info_format"]), ("Litologiset_yksiköt_200k25132", "application/geo+json"))
         self.assertEqual(data["features"][0]["props"]["암석"], "Silicate-siltstone")
+
+
+class NguResources(SimpleTestCase):
+    """NGU 광물·지구물리 (wetherilli 326) — 같은 mapserver 의 다른 서비스"""
+
+    def test_서비스와_투영(self):
+        from viewer import ngu
+        self.assertTrue(ngu._url("ngu:metals").endswith("/mapserver/MetallerWMS2"))
+        self.assertTrue(ngu._url("ngu:magnetic").endswith("/mapserver/GeofysikkWMS4"))
+        self.assertEqual(ngu._url("ngu:Berggrunn_nasjonal_bergartsenheter"), settings.NGU_WMS_URL)
+        self.assertEqual(ngu.upstream_name("ngu:industrial"), "Punkt_Industrimineraler")
+        self.assertEqual((ngu.projection("ngu:metals"), ngu.projection("ngu:gravity")), ("EPSG:3857", "EPSG:3575"))
+        self.assertFalse(ngu.queryable("ngu:magnetic"))
+
+    def test_격자는_누르지_않고_산지는_이름이(self):
+        from unittest import mock
+        from viewer import ngu
+        with mock.patch.object(ngu.requests, "get") as get:
+            self.assertEqual(ngu.get_feature_info({"layers": "ngu:magnetic", "query_layers": "ngu:magnetic"}), {"features": []})
+        get.assert_not_called()
+        text = ("GetFeatureInfo results:\n\nLayer 'Punkt_Industrimineraler'\n  Feature 7308: \n    raastoffbetydning = 'internasjonalBetydning'\n"
+                "    mineralregistreringtype = 'forekomst'\n    name = 'Halsa (Åheim)'\n    webcom_etext = 'Olivine minerals'\n    websub_etext = 'Olivine'\n")
+        props = ngu.parse_plain(text)[0]["properties"]
+        self.assertEqual(ngu.friendly(props), {"이름": "Halsa (Åheim)", "광종": "Olivine", "광종 갈래": "Olivine minerals",
+                                              "자원 중요도": "internasjonalBetydning", "등록 갈래": "forekomst"})

@@ -266,3 +266,20 @@ class TasmaniaNsw(TestCase):
         mine = {"name": "South Mine Thompsons Shaft", "status": "None", "observationMethod": "50K", "positionalAccuracy": "50"}
         self.assertEqual(austates.gs_friendly(mine), {"이름": "South Mine Thompsons Shaft", "조사 방법": "50K", "위치 정확도": "50"})
         self.assertFalse(austates.is_unit("gsnsw", "gsnsw:minocc"))
+
+
+class SaImagery(TestCase):
+    """남호주 지구물리 영상 — SARIG 의 다른 GeoServer (wetherilli 329)"""
+    def test_주소와_누르기(self):
+        sent = []
+
+        def fake(url, params=None, **kw):
+            sent.append((url, params))
+            return mock.Mock(status_code=200, headers={"content-type": "image/png"}, content=b"png", url=url, elapsed=None)
+        with mock.patch.object(austates.requests, "get", side_effect=fake), mock.patch.object(austates.usage, "paused", return_value=0):
+            austates.GSSA.get_map({"layers": "gssa:tmi_rtp", "crs": "EPSG:3857", "bbox": "0,0,1,1", "width": 256, "height": 256})
+            austates.GSSA.get_map({"layers": "gssa:units", "crs": "EPSG:3857", "bbox": "0,0,1,1", "width": 256, "height": 256})
+        self.assertIn("GeophysicalStateImages", sent[0][0])
+        self.assertEqual(sent[0][1]["layers"], "tmi_vrtp")
+        self.assertNotIn("GeophysicalStateImages", sent[1][0])
+        self.assertFalse(austates.queryable("gssa", "gssa:grav"))

@@ -1,5 +1,5 @@
 {
- "_주석": "BGS GeoIndex 씨앗이다 — 영국 탭(유럽 묶음에도 든다). 자력·중력 이상(1:62만 5천 색 음영)과 광산·채석장(BritPits)·광물 산지(MINGOL). 문은 web/viewer/bgs.py 의 GEOINDEX(상류 bgsgi). OGL. 한글 제목과 레이어군은 사람이 붙였다 (wetherilli 258).",
+ "_주석": "BGS GeoIndex 씨앗이다 — 영국 탭(유럽 묶음에도 든다). 자력·중력 이상(1:62만 5천 색 음영)과 광산·채석장(BritPits)·광물 산지(MINGOL). 문은 web/viewer/bgs.py 의 GEOINDEX(상류 bgsgi). OGL. 한글 제목과 레이어군은 사람이 붙였다 (wetherilli 258). 수리지질·G-BASE 시료 지점(GeoIndex WMS)과 하천 퇴적물 31 원소(CMIC REST)도 (wetherilli 324).",
  "_뽑은날": "2026-10-05",
  "_출처": "https://map.bgs.ac.uk/arcgis/rest/services/GeoIndex_Onshore",
  "_지역": "uk",
@@ -7,7 +7,9 @@
  "_레이어군차례": 3,
  "레이어군순서": [
   "영국 지구물리 (BGS)",
-  "영국 광물 자원 (BGS)"
+  "영국 광물 자원 (BGS)",
+  "영국 수리지질·G-BASE (BGS)",
+  "영국 하천 퇴적물 지화학 (BGS CMIC)"
  ],
  "레이어": [
   {
@@ -51,6 +53,402 @@
    "title": "광물 산지 (MINGOL)",
    "group": "영국 광물 자원 (BGS)",
    "abstract": "Mineral occurrences",
+   "bbox": [
+    -8.7,
+    49.8,
+    2.0,
+    60.9
+   ]
+  },
+  {
+   "name": "bgsgi:hydrogeology",
+   "title": "수리지질 (1:62만 5천)",
+   "group": "영국 수리지질·G-BASE (BGS)",
+   "abstract": "Hydrogeology 625k — 대수층 생산성",
+   "bbox": [
+    -8.7,
+    49.8,
+    2.0,
+    60.9
+   ]
+  },
+  {
+   "name": "bgsgi:gbase_streamsed",
+   "title": "G-BASE 하천 퇴적물 시료 지점",
+   "group": "영국 수리지질·G-BASE (BGS)",
+   "abstract": "Stream sediment samples — 줌 12 부터",
+   "bbox": [
+    -8.7,
+    49.8,
+    2.0,
+    60.9
+   ]
+  },
+  {
+   "name": "bgsgi:gq:CaO",
+   "title": "칼슘 (CaO)",
+   "group": "영국 하천 퇴적물 지화학 (BGS CMIC)",
+   "abstract": "Stream sediment geochemistry — Calcium (CMIC)",
+   "bbox": [
+    -8.7,
+    49.8,
+    2.0,
+    60.9
+   ]
+  },
+  {
+   "name": "bgsgi:gq:Fe2O3",
+   "title": "철 (Fe₂O₃)",
+   "group": "영국 하천 퇴적물 지화학 (BGS CMIC)",
+   "abstract": "Stream sediment geochemistry — Iron (CMIC)",
+   "bbox": [
+    -8.7,
+    49.8,
+    2.0,
+    60.9
+   ]
+  },
+  {
+   "name": "bgsgi:gq:K2O",
+   "title": "칼륨 (K₂O)",
+   "group": "영국 하천 퇴적물 지화학 (BGS CMIC)",
+   "abstract": "Stream sediment geochemistry — Potassium (CMIC)",
+   "bbox": [
+    -8.7,
+    49.8,
+    2.0,
+    60.9
+   ]
+  },
+  {
+   "name": "bgsgi:gq:MgO",
+   "title": "마그네슘 (MgO)",
+   "group": "영국 하천 퇴적물 지화학 (BGS CMIC)",
+   "abstract": "Stream sediment geochemistry — Magnesium (CMIC)",
+   "bbox": [
+    -8.7,
+    49.8,
+    2.0,
+    60.9
+   ]
+  },
+  {
+   "name": "bgsgi:gq:MnO",
+   "title": "망가니즈 (MnO)",
+   "group": "영국 하천 퇴적물 지화학 (BGS CMIC)",
+   "abstract": "Stream sediment geochemistry — Manganese (CMIC)",
+   "bbox": [
+    -8.7,
+    49.8,
+    2.0,
+    60.9
+   ]
+  },
+  {
+   "name": "bgsgi:gq:TiO2",
+   "title": "타이타늄 (TiO₂)",
+   "group": "영국 하천 퇴적물 지화학 (BGS CMIC)",
+   "abstract": "Stream sediment geochemistry — Titanium (CMIC)",
+   "bbox": [
+    -8.7,
+    49.8,
+    2.0,
+    60.9
+   ]
+  },
+  {
+   "name": "bgsgi:gq:Sb",
+   "title": "안티모니 (Sb)",
+   "group": "영국 하천 퇴적물 지화학 (BGS CMIC)",
+   "abstract": "Stream sediment geochemistry — Antimony (CMIC)",
+   "bbox": [
+    -8.7,
+    49.8,
+    2.0,
+    60.9
+   ]
+  },
+  {
+   "name": "bgsgi:gq:As",
+   "title": "비소 (As)",
+   "group": "영국 하천 퇴적물 지화학 (BGS CMIC)",
+   "abstract": "Stream sediment geochemistry — Arsenic (CMIC)",
+   "bbox": [
+    -8.7,
+    49.8,
+    2.0,
+    60.9
+   ]
+  },
+  {
+   "name": "bgsgi:gq:Ba",
+   "title": "바륨 (Ba)",
+   "group": "영국 하천 퇴적물 지화학 (BGS CMIC)",
+   "abstract": "Stream sediment geochemistry — Barium (CMIC)",
+   "bbox": [
+    -8.7,
+    49.8,
+    2.0,
+    60.9
+   ]
+  },
+  {
+   "name": "bgsgi:gq:Be",
+   "title": "베릴륨 (Be)",
+   "group": "영국 하천 퇴적물 지화학 (BGS CMIC)",
+   "abstract": "Stream sediment geochemistry — Beryllium (CMIC)",
+   "bbox": [
+    -8.7,
+    49.8,
+    2.0,
+    60.9
+   ]
+  },
+  {
+   "name": "bgsgi:gq:Bi",
+   "title": "비스무트 (Bi)",
+   "group": "영국 하천 퇴적물 지화학 (BGS CMIC)",
+   "abstract": "Stream sediment geochemistry — Bismuth (CMIC)",
+   "bbox": [
+    -8.7,
+    49.8,
+    2.0,
+    60.9
+   ]
+  },
+  {
+   "name": "bgsgi:gq:Cd",
+   "title": "카드뮴 (Cd)",
+   "group": "영국 하천 퇴적물 지화학 (BGS CMIC)",
+   "abstract": "Stream sediment geochemistry — Cadmium (CMIC)",
+   "bbox": [
+    -8.7,
+    49.8,
+    2.0,
+    60.9
+   ]
+  },
+  {
+   "name": "bgsgi:gq:Ce",
+   "title": "세륨 (Ce)",
+   "group": "영국 하천 퇴적물 지화학 (BGS CMIC)",
+   "abstract": "Stream sediment geochemistry — Cerium (CMIC)",
+   "bbox": [
+    -8.7,
+    49.8,
+    2.0,
+    60.9
+   ]
+  },
+  {
+   "name": "bgsgi:gq:Cr",
+   "title": "크로뮴 (Cr)",
+   "group": "영국 하천 퇴적물 지화학 (BGS CMIC)",
+   "abstract": "Stream sediment geochemistry — Chromium (CMIC)",
+   "bbox": [
+    -8.7,
+    49.8,
+    2.0,
+    60.9
+   ]
+  },
+  {
+   "name": "bgsgi:gq:Co",
+   "title": "코발트 (Co)",
+   "group": "영국 하천 퇴적물 지화학 (BGS CMIC)",
+   "abstract": "Stream sediment geochemistry — Cobalt (CMIC)",
+   "bbox": [
+    -8.7,
+    49.8,
+    2.0,
+    60.9
+   ]
+  },
+  {
+   "name": "bgsgi:gq:Cu",
+   "title": "구리 (Cu)",
+   "group": "영국 하천 퇴적물 지화학 (BGS CMIC)",
+   "abstract": "Stream sediment geochemistry — Copper (CMIC)",
+   "bbox": [
+    -8.7,
+    49.8,
+    2.0,
+    60.9
+   ]
+  },
+  {
+   "name": "bgsgi:gq:Ga",
+   "title": "갈륨 (Ga)",
+   "group": "영국 하천 퇴적물 지화학 (BGS CMIC)",
+   "abstract": "Stream sediment geochemistry — Gallium (CMIC)",
+   "bbox": [
+    -8.7,
+    49.8,
+    2.0,
+    60.9
+   ]
+  },
+  {
+   "name": "bgsgi:gq:La",
+   "title": "란타넘 (La)",
+   "group": "영국 하천 퇴적물 지화학 (BGS CMIC)",
+   "abstract": "Stream sediment geochemistry — Lanthanum (CMIC)",
+   "bbox": [
+    -8.7,
+    49.8,
+    2.0,
+    60.9
+   ]
+  },
+  {
+   "name": "bgsgi:gq:Pb",
+   "title": "납 (Pb)",
+   "group": "영국 하천 퇴적물 지화학 (BGS CMIC)",
+   "abstract": "Stream sediment geochemistry — Lead (CMIC)",
+   "bbox": [
+    -8.7,
+    49.8,
+    2.0,
+    60.9
+   ]
+  },
+  {
+   "name": "bgsgi:gq:Li",
+   "title": "리튬 (Li)",
+   "group": "영국 하천 퇴적물 지화학 (BGS CMIC)",
+   "abstract": "Stream sediment geochemistry — Lithium (CMIC)",
+   "bbox": [
+    -8.7,
+    49.8,
+    2.0,
+    60.9
+   ]
+  },
+  {
+   "name": "bgsgi:gq:Mo",
+   "title": "몰리브데넘 (Mo)",
+   "group": "영국 하천 퇴적물 지화학 (BGS CMIC)",
+   "abstract": "Stream sediment geochemistry — Molybdenum (CMIC)",
+   "bbox": [
+    -8.7,
+    49.8,
+    2.0,
+    60.9
+   ]
+  },
+  {
+   "name": "bgsgi:gq:Ni",
+   "title": "니켈 (Ni)",
+   "group": "영국 하천 퇴적물 지화학 (BGS CMIC)",
+   "abstract": "Stream sediment geochemistry — Nickel (CMIC)",
+   "bbox": [
+    -8.7,
+    49.8,
+    2.0,
+    60.9
+   ]
+  },
+  {
+   "name": "bgsgi:gq:Rb",
+   "title": "루비듐 (Rb)",
+   "group": "영국 하천 퇴적물 지화학 (BGS CMIC)",
+   "abstract": "Stream sediment geochemistry — Rubidium (CMIC)",
+   "bbox": [
+    -8.7,
+    49.8,
+    2.0,
+    60.9
+   ]
+  },
+  {
+   "name": "bgsgi:gq:Sr",
+   "title": "스트론튬 (Sr)",
+   "group": "영국 하천 퇴적물 지화학 (BGS CMIC)",
+   "abstract": "Stream sediment geochemistry — Strontium (CMIC)",
+   "bbox": [
+    -8.7,
+    49.8,
+    2.0,
+    60.9
+   ]
+  },
+  {
+   "name": "bgsgi:gq:Sn",
+   "title": "주석 (Sn)",
+   "group": "영국 하천 퇴적물 지화학 (BGS CMIC)",
+   "abstract": "Stream sediment geochemistry — Tin (CMIC)",
+   "bbox": [
+    -8.7,
+    49.8,
+    2.0,
+    60.9
+   ]
+  },
+  {
+   "name": "bgsgi:gq:W",
+   "title": "텅스텐 (W)",
+   "group": "영국 하천 퇴적물 지화학 (BGS CMIC)",
+   "abstract": "Stream sediment geochemistry — Tungsten (CMIC)",
+   "bbox": [
+    -8.7,
+    49.8,
+    2.0,
+    60.9
+   ]
+  },
+  {
+   "name": "bgsgi:gq:U",
+   "title": "우라늄 (U)",
+   "group": "영국 하천 퇴적물 지화학 (BGS CMIC)",
+   "abstract": "Stream sediment geochemistry — Uranium (CMIC)",
+   "bbox": [
+    -8.7,
+    49.8,
+    2.0,
+    60.9
+   ]
+  },
+  {
+   "name": "bgsgi:gq:V",
+   "title": "바나듐 (V)",
+   "group": "영국 하천 퇴적물 지화학 (BGS CMIC)",
+   "abstract": "Stream sediment geochemistry — Vanadium (CMIC)",
+   "bbox": [
+    -8.7,
+    49.8,
+    2.0,
+    60.9
+   ]
+  },
+  {
+   "name": "bgsgi:gq:Y",
+   "title": "이트륨 (Y)",
+   "group": "영국 하천 퇴적물 지화학 (BGS CMIC)",
+   "abstract": "Stream sediment geochemistry — Yttrium (CMIC)",
+   "bbox": [
+    -8.7,
+    49.8,
+    2.0,
+    60.9
+   ]
+  },
+  {
+   "name": "bgsgi:gq:Zn",
+   "title": "아연 (Zn)",
+   "group": "영국 하천 퇴적물 지화학 (BGS CMIC)",
+   "abstract": "Stream sediment geochemistry — Zinc (CMIC)",
+   "bbox": [
+    -8.7,
+    49.8,
+    2.0,
+    60.9
+   ]
+  },
+  {
+   "name": "bgsgi:gq:Zr",
+   "title": "지르코늄 (Zr)",
+   "group": "영국 하천 퇴적물 지화학 (BGS CMIC)",
+   "abstract": "Stream sediment geochemistry — Zirconium (CMIC)",
    "bbox": [
     -8.7,
     49.8,

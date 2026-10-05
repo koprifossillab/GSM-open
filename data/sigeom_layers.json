@@ -1,5 +1,5 @@
 {
- "_주석": "퀘벡 SIGÉOM 지질도 씨앗이다 — 캐나다 탭. 앞단 뒤의 GeoServer WMS(1.1.1 만)를 3978 로 받는다. Origin 을 보내면 403 이라 서버 문으로만. 레이어명은 sigeom:<판> (web/viewer/sigeom.py). 한글 제목과 레이어군은 사람이 붙였다 (wetherilli 210). 가동 광산·사업도 같은 WMS 다 (wetherilli 288).",
+ "_주석": "퀘벡 SIGÉOM 지질도 씨앗이다 — 캐나다 탭. 앞단 뒤의 GeoServer WMS(1.1.1 만)를 3978 로 받는다. Origin 을 보내면 403 이라 서버 문으로만. 레이어명은 sigeom:<판> (web/viewer/sigeom.py). 한글 제목과 레이어군은 사람이 붙였다 (wetherilli 210). 가동 광산·사업도 같은 WMS 다 (wetherilli 288). 광물 산지(금속·비금속·석재)는 같은 WMS 의 무리 레이어 아래에 있었다 (wetherilli 323).",
  "_뽑은날": "2026-10-04",
  "_출처": "https://servicesvectoriels.atlas.gouv.qc.ca/IDS_SGM_WMS/service.svc/get?service=WMS&version=1.1.1&request=GetCapabilities",
  "_지역": "canada",
@@ -7,7 +7,8 @@
  "_레이어군차례": 0,
  "레이어군순서": [
   "퀘벡 지질도 (SIGÉOM)",
-  "캐나다 주 광물 산지"
+  "캐나다 주 광물 산지",
+  "퀘벡 광물 산지 (SIGÉOM)"
  ],
  "레이어": [
   {
@@ -51,6 +52,42 @@
    "title": "퀘벡 가동 광산·진행 사업",
    "group": "캐나다 주 광물 산지",
    "abstract": "Mines et projets — 광산과 개발·진행 사업",
+   "bbox": [
+    -79.8,
+    44.9,
+    -57.1,
+    62.6
+   ]
+  },
+  {
+   "name": "sigeom:gites_metal",
+   "title": "금속 광물 산지",
+   "group": "퀘벡 광물 산지 (SIGÉOM)",
+   "abstract": "Indices, gîtes et mines — substances métalliques (tous les éléments)",
+   "bbox": [
+    -79.8,
+    44.9,
+    -57.1,
+    62.6
+   ]
+  },
+  {
+   "name": "sigeom:gites_nonmetal",
+   "title": "비금속 광물 산지",
+   "group": "퀘벡 광물 산지 (SIGÉOM)",
+   "abstract": "Indices, gîtes et mines — substances non métalliques (tous les minéraux)",
+   "bbox": [
+    -79.8,
+    44.9,
+    -57.1,
+    62.6
+   ]
+  },
+  {
+   "name": "sigeom:gites_stone",
+   "title": "석재·골재 산지",
+   "group": "퀘벡 광물 산지 (SIGÉOM)",
+   "abstract": "Pierre architecturale, concassée ou industrielle (toutes les roches)",
    "bbox": [
     -79.8,
     44.9,

@@ -9,6 +9,10 @@
   어긋난다(NPI 021 의 함정)
 - 레이어명에 `ngu:` 를 붙여 카탈로그에 둔다 — 상류로 나갈 때 뗀다
 - 속성은 `text/plain` 이다(JSON 을 주지 않는다). GEUS 와 같은 MapServer 꼴이지만 문은 서로를 타지 않아 읽는 함수를 따로 둔다
+- **광물·지구물리**(wetherilli 326) — 같은 `geo.ngu.no/mapserver/` 의 다른 서비스(`OTHER`). 이름은 NGU 지도 화면(`kart/geofysikk_mobil`)의 묶음
+  스크립트에서 읽었다(Geonorge 목록에는 광물만 있고 지구물리가 없다): 금속(`MetallerWMS2`)·산업 광물(`IndustrimineralerWMS3`)·핵심 광물
+  (`KritiskeMineralerWMS`) — **3575 를 받지 않아 3857** 로, 지구물리(`GeofysikkWMS4` — 자력·중력 이상 편찬, 밀도 Olesen 외 2010)는 3575 로.
+  지구물리 격자는 누르면 값 없는 칸뿐이라 누르지 않는다. 조건은 NLOD 2.0 그대로(Capabilities 의 Fees "none"·"no conditions apply")
 """
 import logging
 import re
@@ -29,18 +33,48 @@ class NguError(RuntimeError):
     pass
 
 
+#: 다른 서비스 — 레이어 → (서비스, 상류 레이어, 투영, 누르기) (wetherilli 326)
+OTHER = {
+    "ngu:metals": ("MetallerWMS2", "Punkt_Metaller", "EPSG:3857", True),
+    "ngu:metal_provinces": ("MetallerWMS2", "Provins", "EPSG:3857", True),
+    "ngu:industrial": ("IndustrimineralerWMS3", "Punkt_Industrimineraler", "EPSG:3857", True),
+    "ngu:industrial_provinces": ("IndustrimineralerWMS3", "Provins", "EPSG:3857", True),
+    # 핵심 금속은 text/plain 속성이 비어 온다(HTML 틀에만 값이 든다) — 범례 그림으로만
+    "ngu:critical_metals": ("KritiskeMineralerWMS", "Metallgrupper_temakart_detalj", "EPSG:3857", False),
+    "ngu:magnetic": ("GeofysikkWMS4", "Magnetic_anomaly_compilation_norway_raster", "EPSG:3575", False),
+    "ngu:gravity": ("GeofysikkWMS4", "Gravity_anomaly_compilation_norway_raster", "EPSG:3575", False),
+    "ngu:density": ("GeofysikkWMS4", "Petrophysics_density_raster", "EPSG:3575", False),
+}
+
+
+def projection(name: str) -> str:
+    return OTHER[name][2] if name in OTHER else "EPSG:3575"
+
+
+def queryable(name: str) -> bool:
+    return OTHER[name][3] if name in OTHER else True
+
+
+def _url(names) -> str:
+    """기반암은 설정의 주소, 다른 서비스는 같은 `mapserver/` 밑의 그 서비스"""
+    first = str(names or "").split(",")[0].strip()
+    if first in OTHER:
+        return settings.NGU_WMS_URL.rsplit("/", 1)[0] + "/" + OTHER[first][0]
+    return settings.NGU_WMS_URL
+
+
 def upstream_name(name: str) -> str:
     """카탈로그의 이름(여럿이면 쉼표) → 상류의 이름."""
-    return ",".join(n.strip()[len(PREFIX):] if n.strip().startswith(PREFIX) else n.strip()
+    return ",".join(OTHER[n.strip()][1] if n.strip() in OTHER else n.strip()[len(PREFIX):] if n.strip().startswith(PREFIX) else n.strip()
                     for n in str(name or "").split(","))
 
 
-def _get(params: dict):
+def _get(params: dict, url: str = ""):
     left = usage.paused()
     if left:
         raise NguError(f"차단 조짐이 있어 {int(left)}초 동안 상류에 묻지 않는다")
     try:
-        r = requests.get(settings.NGU_WMS_URL, params=params, timeout=settings.UPSTREAM_TIMEOUT,
+        r = requests.get(url or settings.NGU_WMS_URL, params=params, timeout=settings.UPSTREAM_TIMEOUT,
                          verify=settings.CA_BUNDLE or True, headers={"User-Agent": "GSM/0.1"})
     except requests.RequestException as exc:
         usage.record("ngu", ok=False)
@@ -63,7 +97,7 @@ def _wms(params: dict, request: str) -> dict:
 
 def get_map(params: dict):
     """`GetMap`. (바이트, content-type). 그림이 아니면 NguError — MapServer 는 오류도 200 으로 준다."""
-    r = _get(_wms(params, "GetMap"))
+    r = _get(_wms(params, "GetMap"), _url(params.get("layers")))
     ctype = r.headers.get("content-type", "")
     if r.status_code != 200 or not ctype.startswith("image/"):
         raise NguError(f"그림이 아닌 것이 왔다 (status={r.status_code}, type={ctype})")
@@ -72,18 +106,22 @@ def get_map(params: dict):
 
 def get_legend(layer: str):
     r = _get({"service": "WMS", "version": "1.1.1", "request": "GetLegendGraphic", "format": "image/png",
-              "layer": upstream_name(layer)})
+              "layer": upstream_name(layer)}, _url(layer))
     if r.status_code != 200 or not r.headers.get("content-type", "").startswith("image/"):
         raise NguError(f"범례가 아닌 것이 왔다 (status={r.status_code})")
     return r.content, r.headers.get("content-type")
 
 
 def get_feature_info(params: dict) -> dict:
+    names = params.get("query_layers") or params.get("layers")
+    if not queryable(str(names or "").split(",")[0].strip()):
+        return {"features": []}
+    url = _url(names)
     params = _wms(params, "GetFeatureInfo")
     params["info_format"] = "text/plain"
     if "i" in params and "x" not in params:
         params["x"], params["y"] = params.pop("i"), params.pop("j", "0")
-    r = _get(params)
+    r = _get(params, url)
     if r.status_code != 200:
         raise NguError(f"속성을 읽지 못했다 (status={r.status_code})")
     return {"features": parse_plain(r.text)}
@@ -133,6 +171,16 @@ FRIENDLY = (
     ("tektoniskhovedinndeling_tekst", "지구조 구분"),
     ("tektoniskenhet_tekst", "지구조 단위"),
     ("berggrunn_datatype_tekst", "자료"),
+    # 광물 산지 (wetherilli 326) — 영문이 함께 온다
+    ("name", "이름"),
+    ("websub_etext", "광종"),
+    ("webcom_etext", "광종 갈래"),
+    ("raastoffbetydning", "자원 중요도"),
+    ("mineralregistreringtype", "등록 갈래"),
+    # 광물 지대(Provins)
+    ("commodity", "광종 갈래"),
+    ("sub_type", "광종"),
+    ("ore_sub_type", "광석"),
 )
 #: 지도를 그리지 않은 자리 — 속성이 아니라 빈칸의 표시다
 _UNMAPPED = {"IKKE KARTLAGT"}

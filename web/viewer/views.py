@@ -425,7 +425,7 @@ MAP3D_WMS = ("kigam", "geus", "geusarc", "vworld", "ccop", "gsjows", "gsmma",
              # 브리티시컬럼비아 BCGS·캘리포니아 CGS(wetherilli 231) — 2D 는 3978 이지만 3D 는 3857 로 묻는다(둘 다 그려 준다)
              "bcgs", "calgs",
              # 네바다·워싱턴·오리건(wetherilli 291) — 캘리포니아처럼 문이 REST export 로, 3D 는 3857
-             "nbmg", "wadnr", "dogami",
+             "nbmg", "wadnr", "dogami", "dggs",
              # 오스트리아·폴란드·네덜란드·벨기에(wetherilli 237) — 3857 로 그린다
              "geosphere", "pig", "tno", "dov", "spw",
              # 니카라과 INETER(wetherilli 242) — GeoServer 라 3857 로 그린다
@@ -2741,6 +2741,10 @@ def _point_fields(layer) -> dict:
         return {"kind": "points", "queryable": False, "style": "unit", "render": "image",
                 "source": usgscarib.SA_SOURCE_URL if sa else usgscarib.SOURCE_URL,
                 "attribution": usgscarib.SA_ATTRIBUTION if sa else usgscarib.ATTRIBUTION, "opacity": 0.75}
+    if layer.upstream == "ags" and ags.knows_points(layer.name):
+        # 앨버타 광물 산지(wetherilli 321) — 피처 서비스 5 454 점을 한 덩이로, 갈래(금속·산업 광물·리튬·규사·생산자·코어)마다 색
+        return {"kind": "points", "queryable": False, "style": "class",
+                "source": ags.OCC_SOURCE_URL, "attribution": ags.OCC_ATTRIBUTION}
     if layer.upstream == "vmme" and vmme.knows(layer.name):
         # 파라과이 VMME(wetherilli 256) — 카리브와 같은 꼴, 면 61 을 한 덩이로
         return {"kind": "points", "queryable": False, "style": "unit", "render": "image",
@@ -2909,8 +2913,10 @@ def _layer_extra_base(layer, lang: str = "ko") -> dict:
         projection = "EPSG:3413" if layer.group.region == "arctic_ocean" else "EPSG:3857"
         return {"attribution": emodnet.ATTRIBUTION, "projection": projection}
     if layer.upstream == "ngu":
-        # 노르웨이 NGU(wetherilli 140) — 3413 을 그려 주지 않아 북극 람베르트(3575)로 받고 화면이 옮겨 그린다
-        return {"attribution": ngu.ATTRIBUTION, "projection": "EPSG:3575"}
+        # 노르웨이 NGU(wetherilli 140) — 3413 을 그려 주지 않아 북극 람베르트(3575)로 받고 화면이 옮겨 그린다.
+        # 광물 서비스는 3575 도 받지 않아 3857 로(wetherilli 326), 지구물리 격자는 누르지 않는다
+        return {"attribution": ngu.ATTRIBUTION, "projection": ngu.projection(layer.name),
+                **({} if ngu.queryable(layer.name) else {"queryable": False})}
     if layer.upstream in ("esdm", "jmg", "mgb", "dmr"):
         # 동남아(wetherilli 228) — 3857 로 그린다. 인도네시아는 상류가 줌 10 너머를 그리지 않아(`maxZoom` — 그 위는 화면이 늘린다)
         # 범례는 1 403 칸이라 보는 범위의 것이다(wetherilli 243).
@@ -2972,8 +2978,9 @@ def _layer_extra_base(layer, lang: str = "ko") -> dict:
         first, last = bgs.GEOINDEX_ZOOMS.get(layer.name, (None, None))
         return {"attribution": bgs.GEOINDEX_ATTRIBUTION, "projection": "EPSG:3857",
                 **({"minZoom": first} if first else {}), **({"lastZoom": last} if last else {}),
-                # 지구물리의 범례 그림은 "RGB 밴드" 세 줄뿐이라 두지 않는다
-                **({} if bgs.GEOINDEX_LAYERS[layer.name][2] else {"queryable": False, "noLegend": True})}
+                # 지구물리의 범례 그림은 "RGB 밴드" 세 줄뿐이라 두지 않는다. CMIC 원소 지도(wetherilli 324)는 REST 범례를 목록으로
+                **({"legend": "list", "legendUrl": "list/legend/"} if layer.name in bgs.LEGEND_LAYERS else {}),
+                **({} if bgs.geoindex_queryable(layer.name) else {"queryable": False, "noLegend": True})}
     if layer.upstream == "bgs":
         # 영국 BGS(wetherilli 143) — 1:5만은 줌 13 부터만 그린다. 그보다 멀면 화면이 묻지 않는다
         return {"attribution": bgs.ATTRIBUTION, "projection": "EPSG:3857", "minZoom": bgs.MIN_ZOOM}
@@ -3051,8 +3058,9 @@ def _layer_extra_base(layer, lang: str = "ko") -> dict:
         # 네바다·워싱턴·오리건(wetherilli 291) — 캘리포니아처럼 문이 REST export 를 3978 로. 주 밖 칸은 묻지 않는다(`clip`).
         # 넓게 보면 느린 판은 처음 줌을 둔다. 범례는 REST 를 목록으로
         first = usstates.first_zoom(layer.name)
+        legend = {"legend": "list", "legendUrl": "list/legend/"} if layer.name in usstates.LEGEND_LAYERS else {"noLegend": True}
         return {"attribution": usstates.UPSTREAMS[layer.upstream][0], "projection": "EPSG:3978", "clip": True,
-                "legend": "list", "legendUrl": "list/legend/", **({"minZoom": first} if first else {})}
+                **legend, **({"minZoom": first} if first else {})}
     if layer.upstream == "calgs" and calgs.knows(layer.name):
         # 캘리포니아(wetherilli 231) — 문이 REST export 를 3978 로 받는다. 줌 12 너머는 상류가 그리지 않아 화면이 늘린다. 범례는 목록
         return {"attribution": calgs.ATTRIBUTION, "projection": "EPSG:3978", "maxZoom": calgs.MAX_ZOOM,
@@ -3407,7 +3415,7 @@ class _Door:
         self.local = self.name == "geomap"
         #: 받은 것을 서버 캐시에 담지 않는다 — 우리가 그리는 것(GeoMAP)과, 자료를 파는 상류(`NO_STORE`, wetherilli 209)
         self.nostore = self.local or self.name in NO_STORE
-        if self.name in ("geus", "geusarc", "npolar", "kopri", "pgc", "ccop", "gsjows", "gsmma", "emodnet", "ngu", "gtk", "bgs", "bgsgi", "brgm", "egdi", "bgr", "igme", "gsi", "gsni", "sgc", "sgb", "ingemmet", "segemar", "dinamige", "iige", "mrdata", "sgm", "cgmw", "aga", "cgs", "gsn", "bumigeb", "irgm", "nrcan", "ogs", "sigeom", "ygs", "skgs", "nsgs", "ags", "ga", "gsq", "gsv", "gssa", "mrt", "gsnsw", "ispra", "lneg", "swisstopo", "sgu", "natt", "gns", "mris", "gsiindia", "sgs", "esdm", "jmg", "mgb", "dmr", "bcgs", "calgs", "nbmg", "wadnr", "dogami", "geosphere", "pig", "tno", "dov", "spw", "ineter", "georep"):    # 열쇠가 없는 공개 서비스다
+        if self.name in ("geus", "geusarc", "npolar", "kopri", "pgc", "ccop", "gsjows", "gsmma", "emodnet", "ngu", "gtk", "bgs", "bgsgi", "brgm", "egdi", "bgr", "igme", "gsi", "gsni", "sgc", "sgb", "ingemmet", "segemar", "dinamige", "iige", "mrdata", "sgm", "cgmw", "aga", "cgs", "gsn", "bumigeb", "irgm", "nrcan", "ogs", "sigeom", "ygs", "skgs", "nsgs", "ags", "ga", "gsq", "gsv", "gssa", "mrt", "gsnsw", "ispra", "lneg", "swisstopo", "sgu", "natt", "gns", "mris", "gsiindia", "sgs", "esdm", "jmg", "mgb", "dmr", "bcgs", "calgs", "nbmg", "wadnr", "dogami", "dggs", "geosphere", "pig", "tno", "dov", "spw", "ineter", "georep"):    # 열쇠가 없는 공개 서비스다
             self.ready = True
         elif self.name == "vworld":
             self.ready = vworld.enabled()
@@ -4294,7 +4302,7 @@ def mris_legend(request):
 
 
 #: 목록 범례를 내는 문 — `legend_rows(이름)` 과 `LEGEND_LAYERS` 를 갖는다 (wetherilli 228)
-LIST_LEGENDS = (jmg, dmr, calgs, georep, bas, usstates, geus)
+LIST_LEGENDS = (jmg, dmr, calgs, georep, bas, usstates, geus, bgs)
 
 
 @require_GET
@@ -5228,6 +5236,8 @@ def point_layer(request):
         return _twopen_layer(name, lang)
     if vmme.knows(name):
         return _vmme_layer(name, lang)
+    if ags.knows_points(name):
+        return _ags_points_layer(name, lang)
     if kopri.knows_file(name):
         return _kopri_layer(name, lang)
     if earthpoints.knows(name):
@@ -5345,6 +5355,19 @@ def _vmme_layer(name, lang):
     except vmme.VmmeError as exc:
         log.warning("파라과이 지질도를 받지 못했다 (%s): %s", name, exc)
         return JsonResponse({"error": i18n.t(msg("파라과이 지질도(VMME)를 받지 못했다"), lang)}, status=502)
+    response = HttpResponse(content, content_type="application/geo+json")
+    if settings.TILE_CACHE_SECONDS > 0:
+        response["Cache-Control"] = f"public, max-age={settings.TILE_CACHE_SECONDS}"
+    return response
+
+
+def _ags_points_layer(name, lang):
+    """앨버타 광물 산지 한 덩이 (wetherilli 321). 꼴은 `_vmme_layer` 와 같다"""
+    try:
+        content = ags.points_body(name, lang)
+    except ags.AgsError as exc:
+        log.warning("앨버타 광물 산지를 받지 못했다 (%s): %s", name, exc)
+        return JsonResponse({"error": i18n.t(msg("앨버타 광물 산지를 받지 못했다"), lang)}, status=502)
     response = HttpResponse(content, content_type="application/geo+json")
     if settings.TILE_CACHE_SECONDS > 0:
         response["Cache-Control"] = f"public, max-age={settings.TILE_CACHE_SECONDS}"

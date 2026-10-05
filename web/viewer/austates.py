@@ -284,7 +284,16 @@ GSSA_LAYERS = {
     "gssa:faults": ("gsmlp:ShearDisplacementStructureView", 10, False),
     # 광물 산지 — EarthResourceML 라이트 (wetherilli 269)
     "gssa:minocc": ("erl:MineralOccurrenceView", 7, True),
+    # 지구물리 영상 — SARIG 의 다른 GeoServer(`GSSA_IMAGERY_URL`, `GeophysicalStateImages`). 누르면 RGB 뿐이라 누르지 않는다 (wetherilli 329)
+    "gssa:tmi_rtp": ("tmi_vrtp", None, False),
+    "gssa:tmi_rtp_1vd": ("tmi_vrtp_1vd", None, False),
+    "gssa:tmi_tilt": ("tmi_vrtp_tilt", None, False),
+    "gssa:grav": ("grav", None, False),
+    "gssa:grav_1vd": ("grav_1vd", None, False),
+    "gssa:rad_rgb": ("rad_rgb", None, False),
 }
+#: 지구물리 영상 레이어 — 주소가 다르다
+GSSA_IMAGERY = ("gssa:tmi_rtp", "gssa:tmi_rtp_1vd", "gssa:tmi_tilt", "gssa:grav", "gssa:grav_1vd", "gssa:rad_rgb")
 #: 뉴사우스웨일스 GSNSW(wetherilli 318) — 광물 산지(EarthResourceML 라이트)·광산. 지질도는 이 GeoServer 에 없다
 GSNSW_ATTRIBUTION = ('<a href="https://www.regional.nsw.gov.au/meg/geoscience" target="_blank" rel="noopener">'
                      '© State of New South Wales</a> (Geological Survey of NSW, CC BY 4.0)')
@@ -325,6 +334,8 @@ def _gs(upstream: str):
 def _gs_get_map(upstream: str, params: dict):
     url, layers, _ = _gs(upstream)
     name = _one(params, layers, "layers")
+    if name in GSSA_IMAGERY:
+        url = settings.GSSA_IMAGERY_URL
     params = dict(params, service="WMS", request="GetMap", layers=layers[name][0], styles="")
     r = _get(upstream, url, params)
     ctype = r.headers.get("content-type", "")

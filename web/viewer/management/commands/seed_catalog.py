@@ -150,6 +150,7 @@ class Command(BaseCommand):
                 (settings.NBMG_CATALOG_SEED, "네바다 (NBMG)", "usa", "nbmg"),
                 (settings.WADNR_CATALOG_SEED, "워싱턴 (DNR)", "usa", "wadnr"),
                 (settings.DOGAMI_CATALOG_SEED, "오리건 (DOGAMI)", "usa", "dogami"),
+                (settings.DGGS_CATALOG_SEED, "알래스카 (DGGS)", "usa", "dggs"),
                 # 유럽 — 오스트리아 GeoSphere·폴란드 PIG·네덜란드 TNO·벨기에(플랑드르 DOV·왈로니아 SPW) (wetherilli 237)
                 (settings.GEOSPHERE_CATALOG_SEED, "오스트리아 (GeoSphere)", "austria", "geosphere"),
                 (settings.PIG_CATALOG_SEED, "폴란드 (PIG-PIB)", "poland", "pig"),

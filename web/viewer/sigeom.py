@@ -30,8 +30,13 @@ LAYERS = {
     "sigeom:generale": ("SGM:Geologie_generale", 5, True),
     "sigeom:regionale": ("SGM:Geologie_regionale", 8, True),
     "sigeom:failles": ("SGM:Failles_regionales", 9, False),     # 격자 줌 7 은 빈 그림, 8 부터 그린다 — 재어 정했다 (wetherilli 310)
-    # 가동 광산·진행 사업(wetherilli 288) — 광물 산지(gîte) 레이어는 WMS 에 없다
+    # 가동 광산·진행 사업(wetherilli 288)
     "sigeom:mines": ("SGM:Mines_projets", 5, True),
+    # 광물 산지(indices, gîtes, mines et carrières, wetherilli 323) — 288 이 "WMS 에 없다" 고 적었지만 같은 WMS 의 무리 레이어
+    # `Indices_gites_mines_carrieres` 아래에 있었다. 갈래마다 "모두" 레이어 하나씩 — 금속(원소)·비금속(광물)·석재(암석)
+    "sigeom:gites_metal": ("SGM:Substances_metalliques", 7, True),
+    "sigeom:gites_nonmetal": ("SGM:Substances_non_metalliques", 7, True),
+    "sigeom:gites_stone": ("SGM:Pierre_architecturale_industrielle", 7, True),
 }
 
 
@@ -132,7 +137,13 @@ def parse_plain(text: str) -> list:
 FRIENDLY = (("NOM_ABRG_ETQT_LITH", "기호"), ("STRATIGRAPHIE", "지층"), ("DESC_ZONE_GEOLG", "암석"), ("AGE", "지질시대"),
             ("REF_EXA", "원도"),
             # 가동 광산·진행 사업(wetherilli 288) — 지질 단위와 열이 겹치지 않는다
-            ("NOM_MINE_PROJE", "이름"), ("SIGN_MINR", "광종"), ("SIGN_STAT_MINE_PROJE", "개발 단계"), ("NOM_SOCIE", "회사"))
+            ("NOM_MINE_PROJE", "이름"), ("SIGN_MINR", "광종"), ("SIGN_STAT_MINE_PROJE", "개발 단계"), ("NOM_SOCIE", "회사"),
+            # 광물 산지(wetherilli 323) — 금속·비금속·석재의 열이 다르다. 상세 링크(`URL_NOM_CORPS_MINR`)는 `friendly` 가 따로 뽑는다
+            ("NOM_CORPS_MINR", "이름"), ("NOM_GISM", "이름"), ("NOM_GISM_CARR", "이름"),
+            ("SUBST_PRINC", "광종"), ("MINER", "광종"), ("PROD_EXTR", "산물"), ("SUBS_GISM_CARR", "암석"),
+            ("ETAT_CORPS_MINR", "상태"), ("ETAT_GISM", "상태"), ("ETAT_GISM_CARR", "상태"),
+            ("AN_DECV", "발견 연도"), ("CODE_TYPE_ROCH_LITH", "모암"), ("USAGE_PROD_EXTR", "쓰임"), ("COMN_DECV", "발견"))
+_HREF = re.compile(r'href="(https://[^"]+)"')
 
 
 def age(value: str, lang: str = "ko") -> str:
@@ -150,4 +161,7 @@ def friendly(props: dict, lang: str = "ko") -> dict:
         value = props.get(key)
         if value not in (None, "", "null") and label not in out:
             out[label] = age(value, lang) if key == "AGE" else value
+    link = _HREF.search(str(props.get("URL_NOM_CORPS_MINR") or ""))     # 금속 광물 산지의 SIGÉOM 상세 (wetherilli 323)
+    if link:
+        out["상세"] = {"text": "", "links": [{"url": link.group(1).replace("&amp;", "&"), "label": "열기"}]}
     return out

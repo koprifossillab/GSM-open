@@ -1,12 +1,13 @@
 {
- "_주석": "앨버타 지질조사소 기반암 지질도 1:100만(Map 600) 씨앗이다 — 캐나다 탭. 타일은 ArcGIS Online 의 3857 z/x/y 를 화면이 곧장 받고, 누른 자리만 문(web/viewer/ags.py)이 피처 서비스에 묻는다. 한글 제목과 레이어군은 사람이 붙였다 (wetherilli 235).",
+ "_주석": "앨버타 지질조사소 기반암 지질도 1:100만(Map 600) 씨앗이다 — 캐나다 탭. 타일은 ArcGIS Online 의 3857 z/x/y 를 화면이 곧장 받고, 누른 자리만 문(web/viewer/ags.py)이 피처 서비스에 묻는다. 한글 제목과 레이어군은 사람이 붙였다 (wetherilli 235). 광물 산지(금속·산업 광물·리튬·규사·생산자·코어)는 피처 서비스를 한 덩이로 받아 화면이 그린다 (wetherilli 321).",
  "_뽑은날": "2026-10-05",
  "_출처": "https://tiles.arcgis.com/tiles/jQV6VMr2Loovu7GU/arcgis/rest/services/Bedrock_Geology_1M_Map_600_No_Labels_NEW/MapServer?f=json",
  "_지역": "canada",
  "_상류": "ags",
  "_레이어군차례": 0,
  "레이어군순서": [
-  "앨버타 지질도 (AGS 1:100만)"
+  "앨버타 지질도 (AGS 1:100만)",
+  "앨버타 광물 산지 (AGS)"
  ],
  "레이어": [
   {
@@ -14,6 +15,18 @@
    "title": "기반암 (앨버타 1:100만, Map 600)",
    "group": "앨버타 지질도 (AGS 1:100만)",
    "abstract": "Bedrock Geology of Alberta (Map 600, 2013)",
+   "bbox": [
+    -120.0,
+    49.0,
+    -110.0,
+    60.0
+   ]
+  },
+  {
+   "name": "ags:minocc",
+   "title": "앨버타 광물 산지",
+   "group": "앨버타 광물 산지 (AGS)",
+   "abstract": "Mineral Occurrences — 금속 광물(DIG 2019-0026)·산업 광물(DIG 2019-0027)·리튬·규사·생산자·광물 코어 5 454 점",
    "bbox": [
     -120.0,
     49.0,

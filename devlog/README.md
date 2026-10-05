@@ -362,6 +362,15 @@
 | wetherilli 318 | 2026-10-05 | [호주의 남은 주 — 태즈메이니아 지질, 뉴사우스웨일스 광물](20261005_wetherilli_318_au_states_more.md) |
 | wetherilli 319 | 2026-10-05 | [TODOs 를 다시 묶었다 — 끝난 줄을 걷고, 결정 없이 할 것과 (사람) 을 가르고](20261005_wetherilli_319_todos_cleanup.md) |
 | wetherilli 320 | 2026-10-05 | [캐나다 — 편찬 지질도 CGMC 를 누르면 암상이](20261005_wetherilli_320_cgmc_names.md) |
+| wetherilli 321 | 2026-10-05 | [앨버타 광물 산지 — 피처 서비스를 한 덩이로](20261005_wetherilli_321_alberta_minerals.md) |
+| wetherilli 322 | 2026-10-05 | [알래스카 — DGGS 중요 광산·산지와 광업 지구](20261005_wetherilli_322_alaska_minerals.md) |
+| wetherilli 323 | 2026-10-05 | [퀘벡 광물 산지(gîte) — 같은 WMS 의 무리 레이어 아래에 있었다](20261005_wetherilli_323_quebec_gites.md) |
+| wetherilli 324 | 2026-10-05 | [영국 — 수리지질·G-BASE 시료 지점·하천 퇴적물 지화학 31 원소](20261005_wetherilli_324_bgs_gbase.md) |
+| wetherilli 325 | 2026-10-05 | [호주 — GA 확인 자원(광종 29)과 수리지질도](20261005_wetherilli_325_ga_resources.md) |
+| wetherilli 326 | 2026-10-05 | [노르웨이 — NGU 광물·지구물리](20261005_wetherilli_326_ngu_resources.md) |
+| wetherilli 327 | 2026-10-05 | [독일 줌 9 앞의 축척 — BGR GK2000](20261005_wetherilli_327_bgr_mid_scale.md) |
+| wetherilli 329 | 2026-10-05 | [남호주 지구물리 — SARIG 의 영상 WMS 가 있었다 (306 을 바로잡는다)](20261005_wetherilli_329_sa_geophysics.md) |
+| wetherilli 330 | 2026-10-05 | [새 일거리 둘째 판 — 무엇을 셌고 왜 그 차례인가](20261005_wetherilli_330_new_work_survey_2.md) |
 | koprifossillab P01 | 2026-09-30 | [백업 — WegenersDream 의 틀로, 바뀌는 빠르기에 따라 넷으로 (계획)](20260930_koprifossillab_P01_backup_plan.md) |
 | koprifossillab 001 | 2026-09-30 | [매주 월요일 새벽: 운영 자료 백업과 KPDC 목록 갱신](20260930_koprifossillab_001_weekly_backup.md) |
 | koprifossillab 002 | 2026-09-30 | [`/healthz/` — 판·DB·백업 상태를 한 장으로](20260930_koprifossillab_002_healthz.md) |
