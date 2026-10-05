@@ -29,11 +29,11 @@ from django.views.decorators.http import require_GET, require_POST
 
 from gsmweb.version import VERSION
 
-from . import (coords, crs, geo3al, geomap, geus, grportal, gsj, gsmma, i18n, ibcso, janmayen, kigam, kopri, npolar,
+from . import (coords, crs, datastatus, geo3al, geomap, geus, grportal, gsj, gsmma, i18n, ibcso, janmayen, kigam, kopri, npolar,
                patchnotes, elevation, moonmap, peninsula, phyloserver, pointsets, tilecache, tiles, trek, vworld, warp,
                marscraters, marsmap, mercurymap, zhurong)
 from . import admap, arcpoints, caribmap, crust, glaciers, impacts, faults, minerals, stress, tectonics, seafloor, glim, heatflow, fossils, gvp, icemargins, kigam50k, macrostrat, mantle, metatile, naturalearth, neotoma, paleo, paleoeco, paleocoast, pbdb, quakes, recentquakes, spamap, ocean, usgs, volcanoes, wind
-from . import ags, austates, bas, basemaps, bcgs, bgr, bgs, brgm, calgs, cgs, dinamige, dmr, dov, egdi, emodnet, esdm, ga, georep, geosphere, gns, gsi, gsiindia, gtk, igme, iige, ineter, ingemmet, ispra, jmg, linked, lneg, mgb, mrdata, mris, natt, ngu, nrcan, nsgs, ogs, pig, segemar, sgb, sgc, sgm, sgs, sgu, sigeom, skgs, spw, stri, swisstopo, tno, usage, usgscarib, usstates, vmme, ygs
+from . import ags, austates, bas, basemaps, bcgs, bgr, bgs, brgm, calgs, cgs, dinamige, dmr, dov, egdi, emodnet, esdm, ga, georep, geosphere, gns, gsi, gsiindia, gtk, igme, iige, ineter, ingemmet, ispra, jmg, linked, lneg, mgb, mrdata, mris, natt, ngu, nrcan, nsgs, ogs, pig, segemar, sgb, sgc, sgm, sgs, sgu, sigeom, skgs, spw, stri, swisstopo, tno, twopen, usage, usgscarib, usstates, vmme, ygs
 from . import earthpoints, pointvalues, profileband, static_tables, tilegrid
 from .i18n import msg
 from .models import Layer, LayerGroup, Point, PointSet, PointSetDeletion, Shape
@@ -235,7 +235,7 @@ def healthz(request):
 
     **`degraded` 를 503 으로 두지 않는다** — 백업이 멈췄다고 뷰어가 죽은 것은 아니다. 알리는 일은 `smoke.sh` 가 한다.
     **레이어가 0 이면 unhealthy 다** — DB 마운트가 어긋나 빈 DB 가 새로 생겨도 "열리는가" 는 통과하기 때문이다.
-    가볍게 둔다 — `count(*)` 셋과 작은 파일 하나. 상류는 타지 않는다.
+    가볍게 둔다 — `count(*)` 셋과 작은 파일 하나, 구운 자료는 `stat` 만. 상류는 타지 않는다.
     """
     info = {"status": "ok", "version": VERSION}
     notes = []
@@ -261,6 +261,13 @@ def healthz(request):
     if hourly_notes and info["status"] == "ok":
         info["status"] = "degraded"
     notes.extend(hourly_notes)
+
+    # 구운 자료 (wetherilli 312) — 있어야 하는데 없는 파일의 수만. 상태는 바꾸지 않는다 — 없는 레이어는 그 자리에 안내가 뜰 뿐 뷰어는 돈다.
+    # 무엇이 없는지는 `manage.py data_status` 와 관리 화면이 말한다
+    try:
+        info["data"] = {"items": len(datastatus.ITEMS), "missing": len(datastatus.missing())}
+    except OSError:
+        info["data"] = None
 
     info["notes"] = notes
     response = JsonResponse(info, status=503 if info["status"] == "unhealthy" else 200,
@@ -291,7 +298,8 @@ def intro_view(request):
 
 @require_GET
 def manage_view(request):
-    """관리 화면 (wetherilli P08·118). 개인 레이어 반입, 이 브라우저의 저장 자료 관리, 상류 응답 시간(읽기만, wetherilli 295).
+    """관리 화면 (wetherilli P08·118). 개인 레이어 반입, 이 브라우저의 저장 자료 관리, 상류 응답 시간(읽기만, wetherilli 295),
+    구운 자료의 나이(읽기만, wetherilli 312).
 
     **서버는 화면만 내준다.** 개인 레이어는 브라우저가 읽어 브라우저(IndexedDB)에 둔다 — 서버로 오지 않는다.
     관리라는 이름이지만 지우고 고치는 것은 그 브라우저의 것뿐이라 계정을 묻지 않는다."""
@@ -305,7 +313,19 @@ def manage_view(request):
         "stamp": "" if settings.DEBUG else asset_stamp(),
         # 상류 응답 시간 (wetherilli 295) — `upstream_stats` 와 같은 값. 읽기만 하고 상류의 이름과 수뿐이다(주소·키는 남기지도 않는다)
         "upstream_rows": usage.summary(7),
+        # 구운 자료 (wetherilli 312) — `data_status` 와 같은 표. 읽기만 하고 경로는 `<DB 옆>` 아래 이름뿐이다
+        "data_rows": _data_rows(lang),
     })
+
+
+def _data_rows(lang):
+    out = []
+    for r in datastatus.rows():
+        out.append({**r, "what": i18n.t(r["what"], lang),
+                    "size_text": datastatus.human_size(r["size"]) if r["size"] is not None
+                    else (i18n.t(msg("{n} 칸", n=r["count"]), lang) if r["count"] is not None else ""),
+                    "date": f"{r['modified']:%Y-%m-%d}" if r["modified"] else ""})
+    return out
 
 
 @require_POST
@@ -2670,7 +2690,8 @@ def _catalog(lang="ko"):
             "bbox": l.bbox,
             "queryable": l.queryable,
             # 대조할 상류가 없는 것(우리가 그리는 GeoMAP)은 "대조 안 함" 표를 달지 않는다
-            "verified": bool(l.verified_at) or l.upstream in ("geomap", "janmayen", "geo3al", "peninsula", "kopri", "usgscarib", "stri", "sim3534", "vmme"),
+            "verified": bool(l.verified_at) or l.upstream in ("geomap", "janmayen", "geo3al", "peninsula", "kopri", "usgscarib", "stri", "sim3534", "vmme")
+                        or twopen.knows(l.name),
             # 설명은 상류가 한국어 제목을 되풀이한 것이라 영어판에서는 숨긴다
             "abstract": "" if en else l.abstract,
             # 어느 상류인지 — 화면이 출처(`attributions`)를 붙인다. vector 면
@@ -2702,6 +2723,11 @@ def _point_fields(layer) -> dict:
         return {"kind": "points", "queryable": False, "style": janmayen.LAYERS[layer.name]["style"],
                 "source": janmayen.SOURCE_URL, "attribution": janmayen.ATTRIBUTION,
                 "opacity": 0.75 if janmayen.LAYERS[layer.name]["style"] == "unit" else 1}
+    if layer.upstream == "gsmma" and twopen.knows(layer.name):
+        # 대만 지질운 열린자료(wetherilli 305) — 받아 둔 파일을 한 덩이로. 낙석·암체 등급은 면이 수천이라 구워 그린다
+        style = twopen.LAYERS[layer.name]["style"]
+        return {"kind": "points", "queryable": False, "style": style, "render": "image",
+                "source": twopen.SOURCE_URL, "attribution": twopen.ATTRIBUTION, "opacity": 0.75 if style == "unit" else 1}
     if layer.upstream == "stri" and stri.knows(layer.name):
         # 파나마 STRI(wetherilli 253) — 카리브와 같은 꼴, 면과 단층을 한 덩이씩
         return {"kind": "points", "queryable": False, "style": "unit" if layer.name == stri.GEOLOGY else "line",
@@ -2803,7 +2829,34 @@ GSI_ATTRIBUTION = ('<a href="https://maps.gsi.go.jp/development/ichiran.html" ta
                    '地理院タイル</a> (国土地理院)')
 
 
+#: 상류가 축척으로 끄는 레이어의 처음 화면 줌 (wetherilli 310) — 운영 대조(`verify_layers`)에서 넓게 보면 빈 그림이던 것을 Capabilities 의
+#: `MaxScaleDenominator` 로 셈했다. 512 px 격자 줌 z 의 축척은 279 541 132 / 2^z(0.28 mm 화소, 지도 단위 그대로)이고 화면 줌은 격자 줌 + 1 이다.
+#: 문의 표에 줌이 있으면 거기도 같은 값을 두었다 — 이 표는 문의 값보다 작아지지 않게 하는 바닥이다
+SCALE_FLOOR = {
+    "bgr:kor250:0+1": 9, "bgr:kor250:2+3+4": 9,                                     # KOR250 1:141만까지(3·4 는 1:71만)
+    "bgr:igme5000:43+44": 6, "bgr:igme5000:46+47+48": 5, "bgr:igme5000:51+53+55+57": 6,  # IGME5000 축척별 레이어의 가장 넓은 끝
+    "brgm:GITES_PT": 9, "brgm:MINES_PT": 9,                                          # BD Gîtes·광산 1:200만까지
+    "ga:faults": 7,                                                                  # 1:250만 단층 1:600만까지
+    "gns:NZL_GNS_1M_faults": 9, "gns:NZL_GNS_250K_faults": 10, "gns:NZL_GNS_250K_folds": 12,   # 1:200만·1:100만·1:25만까지
+    "lneg:500k:1": 10, "lneg:500k:3": 10, "lneg:500k:4": 10,                        # 구조선·대륙붕 1:94만까지
+    "ygs:57": 11,                                                                    # 유콘 MINFILE 1:30만까지
+    "bcgs:minfile": 10,                                                              # BC MINFILE 1:100만까지
+    "ogs:4": 9, "ogs:5": 9, "ogs:6": 9,                                              # 온타리오 암맥·철층·단층 1:141만까지
+    "nsgs:9": 9, "sigeom:failles": 9,                                                # 노바스코샤 단층 1:200만까지, 퀘벡 단층은 재어 정했다
+    "mrdata:sgmc2:sgmc2structure": 9,                                                # MapCache 가 격자 줌 8 밑에서 404
+    "gsmma:sensitive_landslide": 13,                                                 # 대만 산사태 민감구역 — 가까이서만(축척을 알리지 않는다, 재어 정했다)
+}
+
+
 def _layer_extra(layer, lang: str = "ko") -> dict:
+    extra = _layer_extra_base(layer, lang)
+    floor = SCALE_FLOOR.get(layer.name)
+    if floor and (extra.get("minZoom") or 0) < floor:
+        extra = dict(extra, minZoom=floor)
+    return extra
+
+
+def _layer_extra_base(layer, lang: str = "ko") -> dict:
     """상류마다 화면에 더 알려야 하는 것. 남극(GeoMAP)은 타일 주소와 출처,
     NPI 는 타일을 받을 투영과 출처 (devlog 021)."""
     if layer.upstream == "geusarc" and geus.arc_knows(layer.name):
@@ -3350,7 +3403,7 @@ class _Door:
 
 
 #: 메타타일로 받는 레이어 — 문마다의 표를 모은다(이름 또는 `:` 로 끝나는 앞머리 → 가장 깊은 격자 줌, None 은 모든 줌) (wetherilli 282·284)
-METATILE = {**sgm.METATILE, **sgc.METATILE, **egdi.METATILE,
+METATILE = {**sgm.METATILE, **sgc.METATILE, **egdi.METATILE, **geus.METATILE,   # 그린란드 GEUS ArcGIS 는 3413 격자 (wetherilli 307)
             # 느린 상류를 재어 더한 것 (wetherilli 287)
             **austates.METATILE, **iige.METATILE, **ispra.METATILE, **mris.METATILE, **pig.METATILE, **sgs.METATILE,
             **dinamige.METATILE, **lneg.METATILE, **tno.METATILE, **swisstopo.METATILE, **segemar.METATILE, **gsi.METATILE}
@@ -5149,6 +5202,8 @@ def point_layer(request):
         return _usgscarib_layer(name, lang)
     if stri.knows(name):
         return _stri_layer(name, lang)
+    if twopen.knows(name):
+        return _twopen_layer(name, lang)
     if vmme.knows(name):
         return _vmme_layer(name, lang)
     if kopri.knows_file(name):
@@ -5268,6 +5323,21 @@ def _vmme_layer(name, lang):
     except vmme.VmmeError as exc:
         log.warning("파라과이 지질도를 받지 못했다 (%s): %s", name, exc)
         return JsonResponse({"error": i18n.t(msg("파라과이 지질도(VMME)를 받지 못했다"), lang)}, status=502)
+    response = HttpResponse(content, content_type="application/geo+json")
+    if settings.TILE_CACHE_SECONDS > 0:
+        response["Cache-Control"] = f"public, max-age={settings.TILE_CACHE_SECONDS}"
+    return response
+
+
+def _twopen_layer(name, lang):
+    """대만 지질운 열린자료 한 덩이 (wetherilli 305). 받아 둔 파일만 읽는다 — 없으면 503 (`fetch_taiwan_open`)"""
+    try:
+        content = twopen.body(name, lang)
+    except FileNotFoundError:
+        return JsonResponse({"error": i18n.t(msg("대만 지질운 열린자료가 서버에 없다"), lang)}, status=503)
+    except (OSError, ValueError) as exc:
+        log.warning("대만 지질운 열린자료를 읽지 못했다 (%s): %s", name, exc)
+        return JsonResponse({"error": i18n.t(msg("대만 지질운 열린자료를 읽지 못했다"), lang)}, status=500)
     response = HttpResponse(content, content_type="application/geo+json")
     if settings.TILE_CACHE_SECONDS > 0:
         response["Cache-Control"] = f"public, max-age={settings.TILE_CACHE_SECONDS}"

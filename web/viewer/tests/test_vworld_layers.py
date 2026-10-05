@@ -310,6 +310,8 @@ class MinZoom(TestCase):
         g = LayerGroup.objects.create(name="토양", region="korea", order=1)
         Layer.objects.create(name="lt_c_asitsoildep", title="유효토심", group=g, upstream="vworld")
         Layer.objects.create(name="lt_c_wkmstrm", title="하천망", group=g, upstream="vworld")
+        Layer.objects.create(name="lt_c_bldginfo", title="건물", group=g, upstream="vworld")
         rows = {l["name"]: l for grp in views._catalog("ko") for l in grp["layers"]}
         self.assertEqual(rows["lt_c_asitsoildep"]["minZoom"], 12)
-        self.assertNotIn("minZoom", rows["lt_c_wkmstrm"])
+        self.assertEqual(rows["lt_c_wkmstrm"]["minZoom"], 8)               # 줌 7 밑은 빈 칸이다 (wetherilli 308)
+        self.assertNotIn("minZoom", rows["lt_c_bldginfo"])

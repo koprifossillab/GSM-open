@@ -235,6 +235,79 @@ class Table(TestCase):
             hit = [l for l in rows if l["name"] == entry or (entry.endswith(":") and l["name"].startswith(entry))]
             self.assertTrue(hit, entry)
             for l in hit:
-                self.assertEqual(l.get("projection"), "EPSG:3857", l["name"])
+                self.assertIn(l.get("projection"), metatile.GRIDS, l["name"])          # 메타타일이 아는 격자로 부르는 레이어만 (wetherilli 307)
                 self.assertFalse(l.get("tiles") or l.get("kind") == "points", l["name"])
                 self.assertNotIn(l["upstream"], views.NO_STORE, l["name"])
+
+
+class Polar(TestCase):
+    """극지·대만 격자 (wetherilli 307) — 화면의 격자(`tilegrid.Grid`·`TAIWAN_GRID`)와 같은 칸을 알아보고, 큰 장의 bbox 를 그 격자로 짓는다"""
+    def setUp(self):
+        patch = override_settings(TILE_CACHE_DIR=tempfile.mkdtemp(prefix="gsm-meta-polar-"))
+        patch.enable()
+        self.addCleanup(patch.disable)
+
+    def test_극지_격자의_칸(self):
+        from viewer import tilegrid
+        for crs in ("EPSG:3413", "EPSG:3031", "EPSG:3575", "EPSG:3978"):
+            params = tilegrid.Grid(crs).wms_params("x", 5, 9, 14)
+            self.assertEqual(metatile.cell(params), (crs, 5, 9, 14, 512))
+        p = tilegrid.Grid("EPSG:3413").wms_params("x", 5, 9, 14)
+        w, s, e, n = (float(v) for v in metatile._bbox(5, 8, 14, 2, "EPSG:3413").split(","))
+        tw, ts, te, tn = (float(v) for v in p["bbox"].split(","))
+        self.assertAlmostEqual(w, tw - (te - tw))                 # 블록의 서쪽은 한 칸 왼쪽, 북쪽은 그 칸의 북쪽
+        self.assertAlmostEqual(n, tn)
+        self.assertAlmostEqual(e - w, 2 * (te - tw))
+
+    def test_대만_4326_은_위도가_먼저(self):
+        span = 180 / 2 ** 7
+        x, y = 214, 46
+        w, n = -180 + x * span, 90 - y * span
+        params = {"crs": "EPSG:4326", "version": "1.3.0", "bbox": f"{n - span!r},{w!r},{n!r},{w + span!r}", "width": "512", "height": "512"}
+        self.assertEqual(metatile.cell(params), ("EPSG:4326", 7, x, y, 512))
+        s0, w0, n0, e0 = (float(v) for v in metatile._bbox(7, 214, 46, 2, "EPSG:4326", lat_first=True).split(","))
+        self.assertAlmostEqual((w0, n0, e0 - w0, n0 - s0), (w, n, 2 * span, 2 * span))
+
+    def test_열쇠는_투영을_가른다(self):
+        self.assertEqual(metatile.piece_key("a", 512, 1, 2, 3), metatile.piece_key("a", 512, 1, 2, 3, "EPSG:3857"))   # 앞 판의 열쇠 그대로
+        self.assertNotEqual(metatile.piece_key("a", 512, 1, 2, 3), metatile.piece_key("a", 512, 1, 2, 3, "EPSG:3413"))
+
+    def test_그린란드는_3413_큰_장_하나로(self):
+        from viewer import geus, tilegrid
+        sent = []
+
+        def fake(url, params=None, **kw):
+            sent.append(params)
+            return mock.Mock(status_code=200, headers={"content-type": "image/png"}, content=quadrants(512), url=url, elapsed=None)
+        call_command("seed_catalog", stdout=open("/dev/null", "w"))
+        g = tilegrid.Grid("EPSG:3413")
+        with mock.patch.object(geus.requests, "get", side_effect=fake), mock.patch.object(geus.usage, "paused", return_value=0):
+            for x in (8, 9):
+                q = {k.upper(): v for k, v in g.wms_params("geusarc:g100k_ssw", 5, x, 14).items()}
+                got = self.client.get("/GSM/wms/", q)
+                self.assertEqual(got.status_code, 200)
+        self.assertEqual(len(sent), 1)                                                # 이웃 칸은 상류를 타지 않는다
+        self.assertEqual((sent[0]["size"], sent[0]["bboxSR"]), ("1024,1024", "3413"))
+
+    def test_prewarm_도_3413_블록으로(self):
+        """미리 데우기의 메타타일 계획이 극지 격자에서도 화면과 같은 블록을 받고, 화면 길이 찾는 조각 열쇠에 담는다 (wetherilli 309)"""
+        from viewer import geus, tilegrid
+        from viewer.management.commands import prewarm
+        call_command("seed_catalog", stdout=open("/dev/null", "w"))
+        plan = prewarm.plan_for("geusarc:g100k_ssw", "geusarc")
+        self.assertIsInstance(plan, prewarm.MetaPlan)
+        self.assertEqual(plan.grid.crs, "EPSG:3413")
+        sent = []
+
+        def fake(url, params=None, **kw):
+            sent.append((params["size"], params["bboxSR"]))
+            return mock.Mock(status_code=200, headers={"content-type": "image/png"}, content=quadrants(512), url=url, elapsed=None)
+        with mock.patch.object(geus.requests, "get", side_effect=fake), mock.patch.object(geus.usage, "paused", return_value=0):
+            self.assertEqual(plan.fetch_block(5, 4, 7, plan.block(4)), 4)
+        self.assertEqual(sent, [("1024,1024", "3413")])
+        for x, y in ((8, 14), (9, 14), (8, 15), (9, 15)):
+            self.assertIsNotNone(metatile.tilecache.get(metatile.piece_key("geusarc:g100k_ssw", 512, 5, x, y, "EPSG:3413")))
+        # 화면 길이 그 블록의 칸을 셈하면 같은 조각 열쇠다
+        cell = metatile.cell(tilegrid.Grid("EPSG:3413").wms_params("geusarc:g100k_ssw", 5, 9, 15))
+        self.assertEqual(cell, ("EPSG:3413", 5, 9, 15, 512))
+

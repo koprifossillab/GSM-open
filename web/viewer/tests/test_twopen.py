@@ -1,0 +1,115 @@
+"""대만 지질운 열린자료 (wetherilli 305) — 받기(`gsmma.fetch_open`)와 받아 둔 파일을 한 덩이로(`twopen`). 상류를 부르지 않는다."""
+import io
+import json
+import tempfile
+from pathlib import Path
+from unittest import mock
+
+import requests
+from django.core.management import call_command
+from django.test import SimpleTestCase, TestCase, override_settings
+
+from viewer import gsmma, twopen, usage
+
+SQUARE = {"type": "Polygon", "coordinates": [[[121.0, 24.0], [121.001, 24.0], [121.001, 24.001], [121.0, 24.001], [121.0, 24.0]]]}
+
+
+def feature(geometry, **props):
+    return {"type": "Feature", "geometry": geometry, "properties": props}
+
+
+def write(folder, api, features):
+    Path(folder, f"{api}.geojson").write_text(json.dumps({"type": "FeatureCollection", "fetched": "2026-10-05", "features": features},
+                                                         ensure_ascii=False), encoding="utf-8")
+
+
+class FetchOpen(SimpleTestCase):
+    def answer(self, features=None, status=200):
+        r = mock.Mock(status_code=status, content=b"{}", elapsed=None)
+        r.json.return_value = {"features": features or []}
+        return r
+
+    def setUp(self):
+        for name, value in (("record", None), ("paused", 0)):
+            p = mock.patch.object(usage, name, return_value=value)
+            p.start()
+            self.addCleanup(p.stop)
+
+    def test_끊기면_넷으로_나누고_겹친_것은_하나로(self):
+        shared = feature({"type": "Point", "coordinates": [121.0, 24.0]}, CGPS_ID="GS01")
+        calls = []
+
+        def get(url, params, **kw):
+            calls.append(params["bbox"])
+            if len(calls) == 1:
+                raise requests.Timeout("120 초")
+            return self.answer([shared])
+        with mock.patch.object(gsmma.requests, "get", side_effect=get):
+            got = gsmma.fetch_open("CGPS", sleep=lambda s: None)
+        self.assertEqual(len(calls), 5)
+        self.assertEqual(got, [shared])                              # 네 네모가 모두 같은 것을 주어도 하나
+
+    def test_나눠도_끊기면_구멍으로_적고_넘어간다(self):
+        holes = []
+        with mock.patch.object(gsmma.requests, "get", side_effect=requests.Timeout("120 초")), \
+             mock.patch.object(gsmma, "OPEN_SPLITS", 1):
+            got = gsmma.fetch_open("RockFall", sleep=lambda s: None, holes=holes)
+        self.assertEqual((got, len(holes)), ([], 4))
+        with mock.patch.object(gsmma.requests, "get", side_effect=requests.Timeout("120 초")), \
+             mock.patch.object(gsmma, "OPEN_SPLITS", 0), self.assertRaises(gsmma.GsmmaError):
+            gsmma.fetch_open("RockFall", sleep=lambda s: None)       # 구멍을 받을 곳이 없으면 오류
+
+    def test_차단이면_멈춘다(self):
+        with mock.patch.object(gsmma.requests, "get", return_value=self.answer(status=429)), \
+             mock.patch.object(usage, "looks_blocked", return_value=True), self.assertRaises(gsmma.GsmmaError):
+            gsmma.fetch_open("CGPS", sleep=lambda s: None)
+
+
+class Body(TestCase):
+    def setUp(self):
+        self.dir = tempfile.mkdtemp(prefix="gsm-twopen-")
+        patch = override_settings(TAIWAN_OPEN_DIR=self.dir)
+        patch.enable()
+        self.addCleanup(patch.disable)
+        twopen.forget()
+        self.addCleanup(twopen.forget)
+        write(self.dir, "DebrisFlowDeposition", [feature(SQUARE, PROT_TARG="C3住宅聚落多於十棟", IDENTIFIER="許晉耀")])
+        write(self.dir, "DebrisFlowFan", [feature(SQUARE, FAN_AREA=9.32, SITECHECK="N無")])
+        write(self.dir, "DebrisFlowTrack", [])
+        write(self.dir, "RockMassClassification", [feature(SQUARE, **{"強度分級": "III", "ST_C": "沖積層", "LITH_C": None})])
+
+    def test_토석류는_갈래_셋을_한_레이어에(self):
+        data = json.loads(twopen.body("gsmma:open:debris"))
+        self.assertEqual([f["properties"]["code"] for f in data["features"]], ["DebrisFlowDeposition", "DebrisFlowFan"])
+        self.assertEqual([r["code"] for r in data["legend"]], ["DebrisFlowDeposition", "DebrisFlowFan"])   # 없는 갈래는 범례에 없다
+        self.assertEqual(data["features"][1]["properties"]["FAN_AREA"], "9.32")
+        self.assertEqual(data["labels"]["PROT_TARG"], "보호 대상")
+        en = json.loads(twopen.body("gsmma:open:debris", "en"))
+        self.assertEqual(en["labels"]["PROT_TARG"], "Protected targets")
+        self.assertEqual(en["legend"][0]["label"], "Debris-flow deposition zone")
+
+    def test_암체_등급은_값_그대로의_색(self):
+        data = json.loads(twopen.body("gsmma:open:rockmass"))
+        props = data["features"][0]["properties"]
+        self.assertEqual((props["code"], props["color"]), ("III", twopen.ROCKMASS["III"]))
+        self.assertNotIn("LITH_C", props)                              # 빈 값은 싣지 않는다
+        self.assertEqual(data["legend"][0]["label"], "등급 III")
+
+    def test_화면과_주소(self):
+        call_command("seed_catalog", stdout=io.StringIO())
+        r = self.client.get("/GSM/points/", {"layer": "gsmma:open:debris"})
+        self.assertEqual(r.status_code, 200)
+        self.assertEqual(len(r.json()["features"]), 2)
+        self.assertEqual(self.client.get("/GSM/points/", {"layer": "gsmma:open:cgps"}).status_code, 503)   # 받지 않은 것
+        rows = {l["name"]: l for g in self.client.get("/GSM/catalog/").json()["groups"] for l in g["layers"]}
+        self.assertEqual((rows["gsmma:open:rockmass"]["kind"], rows["gsmma:open:rockmass"]["style"]), ("points", "unit"))
+        self.assertTrue(rows["gsmma:open:coal"]["verified"])
+
+    def test_받기_명령은_구멍을_파일에_적는다(self):
+        def fake(api, gap, log, holes):
+            holes.append([121.75, 24.75, 122.06, 25.13])
+            return [feature({"type": "Point", "coordinates": [121.5, 25.0]}, CGPS_ID="GS01")]
+        with mock.patch.object(gsmma, "fetch_open", side_effect=fake):
+            call_command("fetch_taiwan_open", api="CGPS", stdout=io.StringIO())
+        saved = json.loads(Path(self.dir, "CGPS.geojson").read_text(encoding="utf-8"))
+        self.assertEqual((len(saved["features"]), saved["holes"]), (1, [[121.75, 24.75, 122.06, 25.13]]))

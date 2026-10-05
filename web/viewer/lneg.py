@@ -34,7 +34,8 @@ SERVICES = {
 }
 #: 지구물리 영상 — 누르면 그 자리의 화소 값. 이름표와 단위 (wetherilli 296)
 RASTER_LABELS = {"lneg:mag:": "자력 이상 (nT)", "lneg:grav:": "중력 이상 (mGal)", "lneg:rad:": "총 감마선"}
-ZOOMS = {"lneg:500k:1": (9, None), "lneg:500k:3": (9, None)}
+#: 구조선·대륙붕은 1:94만보다 넓으면 상류가 그리지 않는다 — 격자 줌 9(화면 10)부터 (wetherilli 310)
+ZOOMS = {"lneg:500k:1": (10, None), "lneg:500k:3": (10, None), "lneg:500k:4": (10, None)}
 ATTRIBUTION = ('Carta Geológica de Portugal 1:500 000 — <a href="https://geoportal.lneg.pt/" target="_blank" rel="noopener">'
                'LNEG – Laboratório Nacional de Energia e Geologia</a>')
 TIMEOUT = 45

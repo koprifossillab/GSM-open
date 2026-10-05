@@ -344,6 +344,16 @@
 | wetherilli 300 | 2026-10-05 | [시간 한계의 사슬 — 바깥이 안보다 길게, 넘으면 "느리다" 안내 타일](20261005_wetherilli_300_timeout_chain.md) |
 | wetherilli 301 | 2026-10-05 | [그린란드 — 공중 자력 셋, 지질도 1:250만·1:10만 둘 (GEUS ArcGIS)](20261005_wetherilli_301_greenland_geophysics_maps.md) |
 | wetherilli 303 | 2026-10-05 | [페루 — INGEMMET 지화학 지도첩·산업 광물](20261005_wetherilli_303_peru_more.md) |
+| wetherilli 302 | 2026-10-05 | [빅토리아 — 중력 측점, 지구물리 선형 셋 (GSV GeoServer)](20261005_wetherilli_302_victoria_geophysics.md) |
+| wetherilli 304 | 2026-10-05 | [팝업이 가운데 맞춤 없이 서던 것 — 휴대폰 시험이 가끔 깨진 까닭](20261005_wetherilli_304_mobile_popup.md) |
+| wetherilli 305 | 2026-10-05 | [대만 — 지질운 열린자료를 받아 두고 그린다](20261005_wetherilli_305_taiwan_open_data.md) |
+| wetherilli 306 | 2026-10-05 | [남호주 SARIG 지구물리 — 열린 길을 찾지 못했다](20261005_wetherilli_306_sa_geophysics_search.md) |
+| wetherilli 307 | 2026-10-05 | [극지 격자의 메타타일 — 3413·3031·3575·3978·대만 4326](20261005_wetherilli_307_metatile_polar.md) |
+| wetherilli 308 | 2026-10-05 | [대조에서 깨진 레이어 고치기](20261005_wetherilli_308_verify_broken.md) |
+| wetherilli 309 | 2026-10-05 | [미리 데우기의 메타타일 계획을 극지 격자로](20261005_wetherilli_309_prewarm_polar_metatile.md) |
+| wetherilli 310 | 2026-10-05 | [운영 대조의 빈 그림 — 대개 축척 끝이었다](20261005_wetherilli_310_verify_empty.md) |
+| wetherilli 311 | 2026-10-05 | [대조가 건너뛰던 갈래 — 점·모양 덩이, 곧장 부르는 타일, 우리가 자른 타일](20261005_wetherilli_311_verify_more.md) |
+| wetherilli 312 | 2026-10-05 | [구운 자료의 나이 — data_status](20261005_wetherilli_312_data_status.md) |
 | koprifossillab P01 | 2026-09-30 | [백업 — WegenersDream 의 틀로, 바뀌는 빠르기에 따라 넷으로 (계획)](20260930_koprifossillab_P01_backup_plan.md) |
 | koprifossillab 001 | 2026-09-30 | [매주 월요일 새벽: 운영 자료 백업과 KPDC 목록 갱신](20260930_koprifossillab_001_weekly_backup.md) |
 | koprifossillab 002 | 2026-09-30 | [`/healthz/` — 판·DB·백업 상태를 한 장으로](20260930_koprifossillab_002_healthz.md) |

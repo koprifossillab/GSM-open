@@ -29,7 +29,7 @@ ATTRIBUTION = ('<a href="https://sigeom.mines.gouv.qc.ca/" target="_blank" rel="
 LAYERS = {
     "sigeom:generale": ("SGM:Geologie_generale", 5, True),
     "sigeom:regionale": ("SGM:Geologie_regionale", 8, True),
-    "sigeom:failles": ("SGM:Failles_regionales", 8, False),
+    "sigeom:failles": ("SGM:Failles_regionales", 9, False),     # 격자 줌 7 은 빈 그림, 8 부터 그린다 — 재어 정했다 (wetherilli 310)
     # 가동 광산·진행 사업(wetherilli 288) — 광물 산지(gîte) 레이어는 WMS 에 없다
     "sigeom:mines": ("SGM:Mines_projets", 5, True),
 }

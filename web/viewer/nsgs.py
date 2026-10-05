@@ -22,7 +22,7 @@ PREFIX = "nsgs:"
 ATTRIBUTION = ('<a href="https://novascotia.ca/natr/meb/download/dp043.asp" target="_blank" rel="noopener">'
                "Nova Scotia Dept. of Natural Resources and Renewables</a> (Keppie 2000, ME 2000-1)")
 #: 레이어 → (REST 번호, 처음 그리는 화면 줌, 누르기가 되나)
-LAYERS = {"nsgs:11": (11, None, True), "nsgs:9": (9, 8, False)}
+LAYERS = {"nsgs:11": (11, None, True), "nsgs:9": (9, 9, False)}      # 단층은 1:200만보다 넓으면 그리지 않는다 — 격자 줌 8(화면 9)부터 (wetherilli 310)
 
 
 class NsgsError(RuntimeError):

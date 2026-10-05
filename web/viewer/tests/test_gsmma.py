@@ -9,7 +9,7 @@ from django.core.management import call_command
 from django.test import SimpleTestCase, TestCase, override_settings
 from django.urls import reverse
 
-from viewer import gsmma, i18n
+from viewer import gsmma, i18n, twopen
 from viewer.models import Layer, LayerGroup
 
 #: 타이베이 한 점(121.5401, 25.0301)을 지질운 `Stratum` 에 물었을 때의 꼴 — 면은 줄였다
@@ -76,7 +76,7 @@ class Views(TestCase):
 
     def test_씨앗과_영어(self):
         rows = Layer.objects.filter(upstream="gsmma")
-        self.assertEqual({r.name for r in rows}, set(gsmma.LAYERS))
+        self.assertEqual({r.name for r in rows}, set(gsmma.LAYERS) | set(twopen.LAYERS))     # 열린자료는 받아 둔 파일(wetherilli 305)
         self.assertEqual({r.group.region for r in rows}, {"taiwan"})
         for row in rows:
             self.assertIn(row.name, i18n.LAYER_EN)

@@ -448,6 +448,11 @@ MIN_ZOOM = {
     "lt_c_uo301": 10,                                                                                     # 국가유산 구역
     "lt_l_gimslinea": 12,                                                                                 # 지질구조선 (020)
     "lt_p_nsnmssitenm": 14,                                                                               # 국가지명 (020)
+    # 대조가 멀리서 빈 칸을 받아 찾은 것(wetherilli 308) — 서울 북쪽에서 격자 줌을 올려 가며 처음 그려지는 줌 + 1
+    "lt_c_ademd": 11, "lt_c_adri": 10, "lt_c_adsigg": 9,                                                  # 행정 경계(읍면동·리·시군구)
+    "lt_c_gimshydro": 10, "lt_c_uj401": 10, "lt_c_um221": 10,                                             # 수문지질·용도지역
+    "lt_l_frstclimb": 9,                                                                                  # 등산로
+    "lt_c_wkmmbsn": 8, "lt_c_wkmsbsn": 8, "lt_c_wkmstrm": 8,                                              # 대·중권역·하천
 }
 
 

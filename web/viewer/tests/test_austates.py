@@ -212,3 +212,23 @@ class LegendsAndStructures(TestCase):
                          [("Fulham Sand", "#F7E39B", 2), ("Hindmarsh Clay", "#cccccc", 1)])
         wide = self.client.get(reverse("viewer:austates-legend"), {"layer": "gssa:units", "bbox": "138,-35,139,-34"})
         self.assertEqual(wide.status_code, 422)
+
+
+class VictoriaGeophysics(TestCase):
+    """빅토리아 중력 측점·지구물리 선형 (wetherilli 302)"""
+    def test_중력_측점은_열을_골라_묻고_범례가_없다(self):
+        sent = []
+        body = {"features": [{"id": "g.1", "properties": {"surveyid": 199930, "station_no": 1999301593, "elev_ahd": 121.17,
+                                                           "freeair": 30.43, "comp_ba": -104.78}}]}
+
+        def fake(url, params=None, **kw):
+            sent.append(params)
+            return mock.Mock(status_code=200, url=url, content=b"{}", json=lambda: body, elapsed=None)
+        with mock.patch.object(austates.requests, "get", side_effect=fake), mock.patch.object(austates.usage, "paused", return_value=0):
+            got = austates.GSV.get_feature_info({"layers": "gsv:gravity", "crs": "EPSG:3857", "bbox": "0,0,1,1",
+                                                  "width": 256, "height": 256, "i": 1, "j": 1})
+        self.assertIn("comp_ba", sent[0]["propertyName"])
+        self.assertEqual(austates.gs_friendly(got["features"][0]["properties"]),
+                         {"측점": "1999301593", "조사": "199930", "표고 (m)": "121.17", "프리에어 이상 (mGal)": "30.43", "부게 이상 (mGal)": "-104.78"})
+        self.assertFalse(austates.is_unit("gsv", "gsv:gravity"))
+        self.assertFalse(austates.queryable("gsv", "gsv:lin_tmi"))

@@ -1,5 +1,5 @@
 {
- "_주석": "대만 경제부 지질조사·광업관리중심(GSMMA)의 지질도 씨앗이다. MapGuide WMS GetCapabilities(2026-10-02)의 레이어 62 개 가운데 지질도·구조를 골라, 지층·경계·단층처럼 잘게 나뉜 것을 레이어 하나로 엮었다 — 엮는 표는 web/viewer/gsmma.py 의 LAYERS 다. 한글 제목과 레이어군은 사람이 붙였다. 환경지질·지질 민감구역·시추·온천은 둘째 판(wetherilli 141). 조건은 정부 자료 개방 선언(출처 표시) — wetherilli 136. 셋째 판(wetherilli 263) — 5만 유역 지질도(2013)·광상·5만 불연속면 자세, 활성단층의 속성.",
+ "_주석": "대만 경제부 지질조사·광업관리중심(GSMMA)의 지질도 씨앗이다. MapGuide WMS GetCapabilities(2026-10-02)의 레이어 62 개 가운데 지질도·구조를 골라, 지층·경계·단층처럼 잘게 나뉜 것을 레이어 하나로 엮었다 — 엮는 표는 web/viewer/gsmma.py 의 LAYERS 다. 한글 제목과 레이어군은 사람이 붙였다. 환경지질·지질 민감구역·시추·온천은 둘째 판(wetherilli 141). 조건은 정부 자료 개방 선언(출처 표시) — wetherilli 136. 셋째 판(wetherilli 263) — 5만 유역 지질도(2013)·광상·5만 불연속면 자세, 활성단층의 속성. 넷째 판(wetherilli 305) — 지질운 열린자료 가운데 WMS 가 없는 탄층·토석류·낙석·암체 강도 등급·GPS 상시 관측소(`gsmma:open:*`, 받아 둔 파일을 화면이 그린다 — twopen.py).",
  "_뽑은날": "2026-10-02",
  "_출처": "https://geomap.gsmma.gov.tw/mapguide/mapagent/mapagent.fcgi?SERVICE=WMS&REQUEST=GetCapabilities&VERSION=1.3.0",
  "_지역": "taiwan",
@@ -11,7 +11,8 @@
   "대만 환경지질 (GSMMA)",
   "대만 지질 민감구역 (GSMMA)",
   "대만 시추·온천 (GSMMA)",
-  "대만 광상 (GSMMA)"
+  "대만 광상 (GSMMA)",
+  "대만 지구물리 (GSMMA)"
  ],
  "레이어": [
   {
@@ -366,6 +367,66 @@
    "title": "25만 광상 (1974)",
    "group": "대만 광상 (GSMMA)",
    "abstract": "1/250,000 臺灣地質圖-礦床",
+   "bbox": [
+    118.0,
+    21.8,
+    122.2,
+    26.5
+   ]
+  },
+  {
+   "name": "gsmma:open:coal",
+   "title": "5만 탄층",
+   "group": "대만 광상 (GSMMA)",
+   "abstract": "地質雲 開放資料 — 煤層 (CoalSeam)",
+   "bbox": [
+    118.0,
+    21.8,
+    122.2,
+    26.5
+   ]
+  },
+  {
+   "name": "gsmma:open:debris",
+   "title": "토석류 퇴적·선상·유동 구역",
+   "group": "대만 환경지질 (GSMMA)",
+   "abstract": "地質雲 開放資料 — 土石流 堆積區·扇狀區·流動區",
+   "bbox": [
+    118.0,
+    21.8,
+    122.2,
+    26.5
+   ]
+  },
+  {
+   "name": "gsmma:open:rockfall",
+   "title": "낙석",
+   "group": "대만 환경지질 (GSMMA)",
+   "abstract": "地質雲 開放資料 — 落石 (RockFall)",
+   "bbox": [
+    118.0,
+    21.8,
+    122.2,
+    26.5
+   ]
+  },
+  {
+   "name": "gsmma:open:rockmass",
+   "title": "암체 강도 등급",
+   "group": "대만 환경지질 (GSMMA)",
+   "abstract": "地質雲 開放資料 — 岩體強度分級 (RockMassClassification)",
+   "bbox": [
+    118.0,
+    21.8,
+    122.2,
+    26.5
+   ]
+  },
+  {
+   "name": "gsmma:open:cgps",
+   "title": "GPS 상시 관측소",
+   "group": "대만 지구물리 (GSMMA)",
+   "abstract": "地質雲 開放資料 — GPS連續觀測站 (CGPS)",
    "bbox": [
     118.0,
     21.8,

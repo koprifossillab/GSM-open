@@ -218,6 +218,11 @@ GSV_LAYERS = {
     # 광상(면 237)·광상 점(620) (wetherilli 269)
     "gsv:mineral": ("open-data-platform:mineral", 7, True),
     "gsv:mineralp": ("open-data-platform:mineralp", 7, True),
+    # 중력 측점(한 색, 줌 9 부터 — 넓게 보면 주가 초록으로 덮인다)과 지구물리 선형 셋(속성이 번호뿐이라 누르지 않는다) (wetherilli 302)
+    "gsv:gravity": ("open-data-platform:gravity", 9, True),
+    "gsv:lin_tmi": ("open-data-platform:lineaments_tmi", 6, False),
+    "gsv:lin_gravity": ("open-data-platform:lineaments_gravity", 6, False),
+    "gsv:lin_radio": ("open-data-platform:lineaments_radio", 6, False),
 }
 GSSA_LAYERS = {
     "gssa:units": ("gsmlp:GeologicUnitView", 9, True),
@@ -241,6 +246,7 @@ GSSA_LEGEND_FEATURES = 3000
 LAYER_PROPERTIES = {
     "gsv:mineral": "name,commdsc,commgrp,resclad,rescladf,locaccd",
     "gsv:mineralp": "name,commdsc,commgrp,resclad,rescladf,locaccd",
+    "gsv:gravity": "surveyid,station_no,elev_ahd,obs_grav,freeair,simple_ba,comp_ba",
     "gssa:minocc": "name,commodity,mineralOccurrenceType,mineralDepositModel,hostGeologicUnit,source",
 }
 
@@ -285,6 +291,10 @@ def gs_friendly(props: dict, lang: str = "ko") -> dict:
     """GeoSciML 포트레이얼의 열(빅토리아는 작은 글자, 남호주는 낙타 꼴). 이름·설명·암석은 영어 그대로, 시대만 옮긴다."""
     low = {str(k).lower(): v for k, v in props.items()}
     v = lambda k: _text(low.get(k))         # noqa: E731
+    if "comp_ba" in low or "freeair" in low:    # 빅토리아 중력 측점 (wetherilli 302) — 이상은 mGal, 관측 중력은 µm/s² 라 싣지 않는다
+        rows = (("측점", v("station_no")), ("조사", v("surveyid")), ("표고 (m)", v("elev_ahd")),
+                ("프리에어 이상 (mGal)", v("freeair")), ("부게 이상 (mGal)", v("comp_ba") or v("simple_ba")))
+        return {k: x for k, x in rows if x}
     if "commdsc" in low:                    # 빅토리아 광상 (wetherilli 269)
         rows = (("이름", v("name")), ("광종", v("commdsc")), ("광상 규모", v("rescladf") or v("resclad")), ("위치 정확도", v("locaccd")))
         return {k: x for k, x in rows if x}
@@ -449,7 +459,7 @@ def _gssa_legend(name: str, bbox: tuple) -> list:
 
 
 #: 누를 수 있지만 지질 단위가 아닌 레이어 — 광산·광물 산지. 범위 범례를 뜨지 않는다 (wetherilli 269)
-RESOURCES = ("gsq:mines", "gsv:mineral", "gsv:mineralp", "gssa:minocc")
+RESOURCES = ("gsq:mines", "gsv:mineral", "gsv:mineralp", "gssa:minocc", "gsv:gravity")
 
 
 def queryable(upstream: str, name: str) -> bool:

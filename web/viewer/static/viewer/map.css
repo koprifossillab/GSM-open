@@ -1150,8 +1150,11 @@ body.panel-folded #panel { display: none; }
 .ol-scale-line-inner { color: var(--gold-bright) !important; border-color: var(--gold) !important; }
 
 /* ── 팝업 ── */
+/* `relative` 다 — `absolute` 이면 OpenLayers 가 감싼 겹(`.ol-overlay-container`)의 크기가 0 이 되어 `positioning: bottom-center` 의
+   가운데 맞춤(-50 %, -100 %)이 먹지 않았다. 팝업이 누른 자리를 왼쪽 위 모서리로 삼아 오른쪽 아래로 늘어졌고, 지도가 끌려 와야
+   화면에 들었다 — 휴대폰에서는 팝업이 미끄러졌고 느린 CI 에서 그 사이를 잰 시험이 깨졌다 (wetherilli 304). 닫기 단추의 기준도 그대로다 */
 .popup {
-  position: absolute;
+  position: relative;
   display: none;
   min-width: 300px;
   max-width: 420px;

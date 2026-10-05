@@ -25,7 +25,8 @@ LAYERS = {
     "ispra:100k:2": ("carta_geologica_100k", "2"),
 }
 #: 상류가 그리는 줌 (첫, 끝) — 1:10만 단위는 1:50만(3857 줌 10)부터, 지구조는 1:100만(줌 9)부터
-ZOOMS = {"ispra:100k:1": (10, None), "ispra:100k:2": (9, None)}
+#: 상류 minScale — 지질 단위 1:50만·지구조 1:100만이라 화면 줌 11·10 부터 그린다(화면 줌 10 은 1:55만, 9 는 1:109만, wetherilli 308)
+ZOOMS = {"ispra:100k:1": (11, None), "ispra:100k:2": (10, None)}
 #: 메타타일로 받는다 (wetherilli 287) — 1:100만 512 px 11.3–14.9 초, 1 024 px 19.1 초. 큰 장 하나가 칸 넷보다 싸다. `metatile.limit` 의 표
 METATILE = {"ispra:1m:": None}
 

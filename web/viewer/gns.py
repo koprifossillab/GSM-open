@@ -33,9 +33,10 @@ LAYERS = {
                  "fields": _QMAP_FIELDS, "crs": "EPSG:3857", "min": 7},
     "gns:NZL_GNS_1M_geological_units": {"wms": "gns:NZL_GNS_1M_geological_units", "query": "gns:NZL_GNS_1M_geological_units",
                                         "fields": _GMNZ_FIELDS, "crs": "EPSG:3857"},
-    "gns:NZL_GNS_1M_faults": {"wms": "gns:NZL_GNS_1M_faults", "crs": "EPSG:3857"},
-    "gns:NZL_GNS_250K_faults": {"wms": "gns:NZL_GNS_250K_faults", "crs": "EPSG:3857", "min": 7},
-    "gns:NZL_GNS_250K_folds": {"wms": "gns:NZL_GNS_250K_folds", "crs": "EPSG:3857", "min": 8},
+    "gns:NZL_GNS_1M_faults": {"wms": "gns:NZL_GNS_1M_faults", "crs": "EPSG:3857", "min": 9},     # 1:200만까지 (wetherilli 310)
+    # 단층 1:100만·습곡 1:25만보다 넓으면 상류가 그리지 않는다 (wetherilli 310)
+    "gns:NZL_GNS_250K_faults": {"wms": "gns:NZL_GNS_250K_faults", "crs": "EPSG:3857", "min": 10},
+    "gns:NZL_GNS_250K_folds": {"wms": "gns:NZL_GNS_250K_folds", "crs": "EPSG:3857", "min": 12},
     "gns:NZL_GNS_250K_metamorphic_zones": {"wms": "gns:NZL_GNS_250K_metamorphic_zones", "crs": "EPSG:3857", "min": 7},
     # 남극 남빅토리아랜드 — 남극 탭(3031)에 얹는다. 속성에 모양이 딸려 오지 않아(850 B) 열을 고르지 않는다
     "gns:ATA_SVL_GNS_250K_geological_units": {"wms": "gns:ATA_SVL_GNS_250K_geological_units",

@@ -7,7 +7,8 @@
   서버가 똑같이 지을 수 없다(OpenLayers 가 쓴 소수 자리). 그래서 잘라 둔 조각은 **우리 열쇠**(레이어·칸 크기·z/x/y)로 담고, 칸 요청이 오면
   `map_cache_key` → 조각 열쇠 차례로 찾는다. 조각으로 낸 칸은 `views.wms` 가 제 열쇠로 **다시 담지 않는다** — 같은 그림을 두 벌 두게 되고,
   다음에 오면 조각 열쇠에서 곧 나온다(잠금 앞에서 찾는다, wetherilli 297)
-- 칸의 z/x/y 는 3857 의 `bbox` 에서 거꾸로 셈한다(OpenLayers `createXYZ` 의 격자). 격자에 맞지 않는 요청은 `None` — 부르는 쪽이 하던 대로 한 칸을 받는다
+- 칸의 z/x/y 는 `bbox` 에서 거꾸로 셈한다(OpenLayers 의 격자). 3857 에 더해 극지(3413·3031)·북극 람베르트(3575)·캐나다 람베르트(3978)·대만의
+  4326 격자도 안다(`GRIDS`, wetherilli 307). 격자에 맞지 않는 요청은 `None` — 부르는 쪽이 하던 대로 한 칸을 받는다
 - **같은 메타타일을 동시에 두 번 받지 않는다** — 워커가 프로세스 여럿이라 캐시 자리 밑의 잠금 파일(`fcntl.flock`)로 막는다. 잠금을 얻은 뒤 조각을
   다시 찾아, 먼저 받은 워커가 담은 것이면 그것을 낸다. 기다림은 `METATILE_LOCK_WAIT` 초까지다 — 넘으면 `Busy` (wetherilli 300)
 - 메타타일의 칸 수는 `META` 칸 × `META` 칸 — 큰 장이 `MAX_PX` 를 넘지 않게 칸 크기에서 정한다(512 px 칸이면 2 × 2, 256 px 칸이면 4 × 4)
@@ -21,7 +22,7 @@ from pathlib import Path
 
 from django.conf import settings
 
-from . import tilecache
+from . import tilecache, tilegrid
 
 log = logging.getLogger(__name__)
 
@@ -71,27 +72,54 @@ def limit(table: dict, name: str):
     return False
 
 
-def tile_of(params: dict):
-    """WMS 변수 → (z, x, y, 칸 px). 3857·정사각·격자에 맞는 칸이 아니면 None"""
+#: 격자 — 투영 → (원점 x, 원점 y(위), 줌 0 의 칸 한 변, 줌 0 의 칸 수(가로, 세로)). 화면(`map.js`)의 격자를 옮긴 것이다 (wetherilli 307)
+#: 3857 은 `createXYZ`, 극지·캐나다·북극 람베르트는 `npolarSource` 의 `createXYZ({extent})`(`tilegrid.EXTENT`), 4326 은 대만의 `TAIWAN_GRID`
+#: (줌 0 이 180° 네모 두 장). 스페인 IGME 1:100만도 4326 이지만 줌 0 이 360° 한 장인 격자다 — 같은 칸이 여기서는 줌이 하나 크게 셈해질 뿐 칸은 같다
+GRIDS = {
+    "EPSG:3857": (-R, R, 2 * R, (1, 1)),
+    "EPSG:900913": (-R, R, 2 * R, (1, 1)),
+    "EPSG:4326": (-180.0, 90.0, 180.0, (2, 1)),
+}
+for _crs, (_x0, _y0, _x1, _y1) in tilegrid.EXTENT.items():
+    if _crs != "EPSG:4326":
+        GRIDS[_crs] = (_x0, _y1, _x1 - _x0, (1, 1))
+#: WMS 1.3.0 에서 위도가 먼저인 투영 — 브라우저가 bbox 를 남,서,북,동 으로 적는다
+LAT_FIRST = ("EPSG:4326",)
+
+
+def _lat_first(crs: str, params: dict) -> bool:
+    return crs in LAT_FIRST and str(params.get("version") or "1.3.0") != "1.1.1"
+
+
+def cell(params: dict):
+    """WMS 변수 → (투영, z, x, y, 칸 px). 아는 격자의 정사각 칸이 아니면 None (wetherilli 307)"""
     crs = str(params.get("crs") or params.get("srs") or "").upper()
-    if crs not in ("EPSG:3857", "EPSG:900913"):
+    if crs not in GRIDS:
         return None
     try:
-        w, s, e, n = (float(v) for v in str(params["bbox"]).split(","))
+        a, b, c, d = (float(v) for v in str(params["bbox"]).split(","))
         width, height = int(params["width"]), int(params["height"])
     except (KeyError, TypeError, ValueError):
         return None
+    w, s, e, n = (b, a, d, c) if _lat_first(crs, params) else (a, b, c, d)
+    x0, y0, span0, (cols, rows) = GRIDS[crs]
     span = e - w
     if width != height or width <= 0 or span <= 0 or abs((n - s) - span) > span * TOLERANCE:
         return None
-    z = round(math.log2(2 * R / span))
-    if z < 0 or z > 22 or abs(2 * R / 2 ** z - span) > span * TOLERANCE:
+    z = round(math.log2(span0 / span))
+    if z < 0 or z > 22 or abs(span0 / 2 ** z - span) > span * TOLERANCE:
         return None
-    fx, fy = (w + R) / span, (R - n) / span
+    fx, fy = (w - x0) / span, (y0 - n) / span
     x, y = round(fx), round(fy)
-    if abs(fx - x) > 1e-4 or abs(fy - y) > 1e-4 or not (0 <= x < 2 ** z and 0 <= y < 2 ** z):
+    if abs(fx - x) > 1e-4 or abs(fy - y) > 1e-4 or not (0 <= x < cols * 2 ** z and 0 <= y < rows * 2 ** z):
         return None
-    return z, x, y, width
+    return crs, z, x, y, width
+
+
+def tile_of(params: dict):
+    """WMS 변수 → (z, x, y, 칸 px). 아는 격자의 칸이 아니면 None"""
+    got = cell(params)
+    return got[1:] if got else None
 
 
 def meta_size(px: int) -> int:
@@ -99,29 +127,36 @@ def meta_size(px: int) -> int:
     return max(1, MAX_PX // px)
 
 
-def piece_key(layer: str, px: int, z: int, x: int, y: int) -> str:
-    return tilecache.key_text("meta", f"{layer}/{px}/{z}/{x}/{y}")
+def _tag(crs: str) -> str:
+    """열쇠에 넣는 투영 — 3857 은 비워 앞 판의 열쇠를 그대로 둔다. 한 레이어를 투영 둘로 부르는 일이 있어(북극 탭 3413·유럽 3857) 가른다"""
+    return "" if crs in ("EPSG:3857", "EPSG:900913") else f"{crs}/"
+
+
+def piece_key(layer: str, px: int, z: int, x: int, y: int, crs: str = "EPSG:3857") -> str:
+    return tilecache.key_text("meta", f"{_tag(crs)}{layer}/{px}/{z}/{x}/{y}")
 
 
 def stale(layer: str, params: dict):
     """나이가 지난 조각이라도 — 상류가 못 줄 때 빈 자리보다 옛것을 내려고 (`tilecache.get(stale=True)` 의 짝, wetherilli 297)"""
-    tile = tile_of(params) if tilecache.enabled() else None
-    if tile is None:
+    got = cell(params) if tilecache.enabled() else None
+    if got is None:
         return None
-    z, x, y, px = tile
-    return tilecache.get(piece_key(layer, px, z, x, y), stale=True)
+    crs, z, x, y, px = got
+    return tilecache.get(piece_key(layer, px, z, x, y, crs), stale=True)
 
 
-def _bbox(z: int, x0: int, y0: int, count: int) -> str:
-    span = 2 * R / 2 ** z
-    w, n = -R + x0 * span, R - y0 * span
-    return ",".join(repr(v) for v in (w, n - span * count, w + span * count, n))
+def _bbox(z: int, x0: int, y0: int, count: int, crs: str = "EPSG:3857", lat_first: bool = False) -> str:
+    gx, gy, span0, _ = GRIDS[crs]
+    span = span0 / 2 ** z
+    w, n = gx + x0 * span, gy - y0 * span
+    s, e = n - span * count, w + span * count
+    return ",".join(repr(v) for v in ((s, w, n, e) if lat_first else (w, s, e, n)))
 
 
-def _lock_path(layer: str, px: int, z: int, mx: int, my: int) -> Path:
+def _lock_path(layer: str, px: int, z: int, mx: int, my: int, crs: str = "EPSG:3857") -> Path:
     root = Path(settings.TILE_CACHE_DIR) / "locks"
     root.mkdir(parents=True, exist_ok=True)
-    return root / f"{tilecache.key_text('meta-lock', f'{layer}/{px}/{z}/{mx}/{my}')}.lock"
+    return root / f"{tilecache.key_text('meta-lock', f'{_tag(crs)}{layer}/{px}/{z}/{mx}/{my}')}.lock"
 
 
 def serve(layer: str, params: dict, fetch, *, max_zoom=None, errors=()):
@@ -132,26 +167,26 @@ def serve(layer: str, params: dict, fetch, *, max_zoom=None, errors=()):
     **시간 초과는 되받지 않고 올린다** — 문 한계를 두 번 기다리면 nginx 한계를 넘는다(wetherilli 300). 그 밖의 문의 오류는 그대로 올린다."""
     from PIL import Image
 
-    tile = tile_of(params) if tilecache.enabled() else None     # 담을 곳이 없으면 자를 까닭이 없다
-    if tile is None:
+    got = cell(params) if tilecache.enabled() else None     # 담을 곳이 없으면 자를 까닭이 없다
+    if got is None:
         return None
-    z, x, y, px = tile
+    crs, z, x, y, px = got
     if max_zoom is not None and z > max_zoom:
         return None
-    key = piece_key(layer, px, z, x, y)
+    key = piece_key(layer, px, z, x, y, crs)
     hit = tilecache.get(key)
     if hit is not None:
         return hit
     count = min(meta_size(px), 2 ** z)
     mx, my = x // count * count, y // count * count
-    with open(_lock_path(layer, px, z, mx, my), "w") as lock:
+    with open(_lock_path(layer, px, z, mx, my, crs), "w") as lock:
         _acquire(lock, settings.METATILE_LOCK_WAIT)   # 같은 메타타일을 받는 다른 워커를 기다린다 — 한계까지만
         try:
             hit = tilecache.get(key)
             if hit is not None:
                 return hit
             try:
-                content, _ = fetch(_bbox(z, mx, my, count), px * count, px * count)
+                content, _ = fetch(_bbox(z, mx, my, count, crs, _lat_first(crs, params)), px * count, px * count)
             except errors as exc:
                 if slow(exc):
                     raise                                 # 늦은 것은 칸 하나로 되받지 않는다 — 한 번 더 기다리면 바깥 한계를 넘는다 (wetherilli 300)
@@ -166,7 +201,7 @@ def serve(layer: str, params: dict, fetch, *, max_zoom=None, errors=()):
                     buf = io.BytesIO()
                     big.crop((i * px, j * px, (i + 1) * px, (j + 1) * px)).save(buf, "PNG")
                     png = buf.getvalue()
-                    tilecache.put(piece_key(layer, px, z, mx + i, my + j), png)
+                    tilecache.put(piece_key(layer, px, z, mx + i, my + j, crs), png)
                     if (mx + i, my + j) == (x, y):
                         mine = png
             log.info("메타타일 %s z%d (%d,%d) %d×%d 칸을 잘라 담았다", layer, z, mx, my, count, count)

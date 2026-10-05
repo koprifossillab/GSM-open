@@ -2243,8 +2243,9 @@
       element: document.getElementById("popup"),
       // 아래 가장자리에는 좌표 막대가 덮여 있다. 여백을 주지 않으면 팝업
       // 아랫단이 막대 밑으로 들어간다. 여백은 사방에 걸려서 휴대폰(390 px)에서는 320 px 팝업 + 72 px 둘이 들지 않아
-      // 팝업이 왼쪽 밖으로 밀렸다 — 좁은 화면은 12 px 로 (휴대폰 시험이 잡았다, wetherilli 193)
-      autoPan: { animation: { duration: 200 }, margin: popupMargin() },
+      // 팝업이 왼쪽 밖으로 밀렸다 — 좁은 화면은 12 px 로 (휴대폰 시험이 잡았다, wetherilli 193).
+      // `autoPan` 은 두지 않는다 — 자리를 옮긴 그 순간에는 팝업이 아직 가운데 맞춤 전의 자리라 화면 밖으로 보고 지도를 괜히 끈다.
+      // 끌어오기는 그려진 뒤에 `panPopup` 이 한다 (wetherilli 304)
       offset: [0, -8],
       positioning: "bottom-center",
     });
@@ -5121,7 +5122,7 @@
       open.disabled = true;
       fetch(BASE + "kigam50k/rose/?" + query)
         .then(function (r) { return r.json(); })
-        .then(function (data) { box.innerHTML = ""; drawRoseBlock(box, data, isRange); popupOverlay.panIntoView({ animation: { duration: 200 }, margin: popupMargin() }); })
+        .then(function (data) { box.innerHTML = ""; drawRoseBlock(box, data, isRange); panPopup(); })
         .catch(function () { open.disabled = false; open.textContent = T("장미도를 받지 못했다"); });
     });
     return box;
@@ -5463,6 +5464,18 @@
    *  12 px (wetherilli 193). 처음 띄울 때와 속성이 늦게 와 자랐을 때 두 곳이 같은 값을 쓴다 */
   function popupMargin() { return window.innerWidth < 500 ? 12 : 72; }
 
+  /** 팝업을 화면 안으로 끌어온다 — **지도가 팝업을 새 자리에 그린 다음에**(wetherilli 304). 자리를 옮긴 그 틀에서 바로 끌면
+   *  팝업의 사각형이 아직 가운데 맞춤 전(왼쪽 끝이 누른 자리)이라, 화면 안에 들 팝업을 밖으로 보고 지도를 옮긴다 —
+   *  휴대폰에서 팝업이 미끄러졌고, 느린 기계에서는 그 사이에 잰 휴대폰 시험이 "오른쪽으로 나간다" 로 깨졌다 */
+  function panPopup() {
+    map.once("postrender", function () {
+      window.requestAnimationFrame(function () {
+        if (popupOverlay.getPosition()) popupOverlay.panIntoView({ animation: { duration: 200 }, margin: popupMargin() });
+      });
+    });
+    map.render();
+  }
+
   function showPopup(coordinate, parts, emptyText, opts) {
     var body = document.getElementById("popup-body");
     body.innerHTML = "";
@@ -5585,8 +5598,8 @@
     document.getElementById("map-wrap").classList.add("popup-open");
     popupOverlay.setPosition(coordinate);
     // 속성이 늦게 와서 팝업이 자라도 자리는 그대로라 OL 이 다시 끌어오지
-    // 않는다. 채운 뒤에 한 번 더 화면 안으로 끌어온다.
-    popupOverlay.panIntoView({ animation: { duration: 200 }, margin: popupMargin() });
+    // 않는다. 채울 때마다 그려진 뒤에 화면 안으로 끌어온다.
+    panPopup();
   }
 
   /** 평소에는 접어 두는 속성. 사람이 읽을 것이 아니거나 다른 줄과 겹친다.

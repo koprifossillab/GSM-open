@@ -94,3 +94,17 @@ def friendly(props: dict, lang: str = "ko") -> dict:
     rows = (("지층", v("Unit_Name")), ("암석", v("Lithology")), ("퇴적 환경", v("Environ")),
             ("지질시대", (i18n.age_ko(ics) if i18n.age_ko(ics) != ics else age) if lang == "ko" and age else age), ("지역", v("GeolRegion")))
     return {k: x for k, x in rows if x}
+
+
+def probe_tile(url: str):
+    """화면이 곧장 부르는 ArcGIS Online 타일 한 장을 대조가 받아 본다 (`verify_layers`, wetherilli 311). (상태, content-type, 바이트)"""
+    left = usage.paused()
+    if left:
+        raise AgsError(f"차단 조짐이 있어 {int(left)}초 동안 상류에 묻지 않는다")
+    try:
+        r = requests.get(url, timeout=settings.UPSTREAM_TIMEOUT, verify=settings.CA_BUNDLE or True, headers={"User-Agent": "GSM/0.1"})
+    except requests.RequestException as exc:
+        usage.record("ags", ok=False)
+        raise AgsError(f"앨버타 타일에 닿지 못했다: {exc}") from exc
+    usage.record("ags", ok=r.status_code == 200, blocked=usage.looks_blocked(r.status_code, r.content[:1000]), elapsed=r.elapsed)
+    return r.status_code, r.headers.get("content-type", ""), r.content

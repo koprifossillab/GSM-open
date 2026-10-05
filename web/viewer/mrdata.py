@@ -53,7 +53,8 @@ LAYERS = {
     "mrdata:gravity:bouguer": ("gravity", "bouguer"),
 }
 #: 넓게 보면 점이 땅을 덮는 레이어 — 처음 그리는 화면 줌 (wetherilli 247)
-MIN_ZOOM = {"mrdata:mrds:mrds": 7, "mrdata:usmin:points": 9, "mrdata:usmin:polygons": 9}
+MIN_ZOOM = {"mrdata:mrds:mrds": 7, "mrdata:usmin:points": 9, "mrdata:usmin:polygons": 9,
+            "mrdata:sgmc2:sgmc2structure": 9}      # SGMC 구조선 — MapCache 가 격자 줌 8 밑에서 404 (wetherilli 310)
 QUERYABLE = ("mrdata:sgmc2:sgmc2", "mrdata:sim3340:units", "mrdata:hi:units", "mrdata:pr:geol",
              "mrdata:mrds:mrds", "mrdata:usmin:points", "mrdata:usmin:polygons", "mrdata:geochron:geochron")
 #: 섬 — 미국 탭(3978)에서 제 범위 밖 타일을 묻지 않는다 (wetherilli 238)

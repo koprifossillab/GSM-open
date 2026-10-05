@@ -45,7 +45,7 @@ LAYERS = {
     "sgm:8": (8, None, True),
     "sgm:7": (7, 10, True),         # 상류 minScale 75만 — 화면 줌 10 남짓부터 그린다
     "sgm:6": (6, None, False),
-    "sgm:5": (5, 8, False),         # 상류 minScale 200만
+    "sgm:5": (5, 9, False),         # 상류 minScale 200만 — 화면 줌 8 은 1:218만이라 빈다(wetherilli 308)
     "sgm:edades:0": (0, None, True),
     "sgm:paleo:0": (0, None, True),
     "sgm:yac:0": (0, 8, True),      # 광산 9 465 점 — 넓게 보면 기호가 땅을 덮는다
@@ -55,7 +55,7 @@ LAYERS = {
     "sgm:yac:4": (4, None, True),   # 비금속 광화 지역
     "sgm:yac50:0": (0, 10, True),   # 광산 1:5만 4 만 6 천 점
     "sgm:geoq:0": (0, 9, True),     # 하천 퇴적물 지화학 21 만 5 천 점 — 넓게 보면 땅이 점으로 덮인다
-    **{f"sgm:anom250:{n}": (n, 8, True) for n in range(6)},     # 상류 minScale 200만
+    **{f"sgm:anom250:{n}": (n, 9, True) for n in range(6)},     # 상류 minScale 200만 — 화면 줌 9 부터(wetherilli 308)
     **{f"sgm:anom50:{n}": (n, 10, True) for n in range(6)},     # 상류 minScale 75만
     # 지자기 1:25만 — 칠하기 칸뿐이라(nT 가 없다) 누르지 않는다. 줌 6 밑은 칸 하나가 25–54 초라 8 부터 (wetherilli 244·282)
     "sgm:datos:7": (7, 8, False),

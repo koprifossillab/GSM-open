@@ -98,7 +98,7 @@ class Catalog(TestCase):
         for name, region in (("ispra:1m:0", "italy"), ("lneg:500k:2", "portugal"), ("swisstopo:geocover", "switzerland")):
             group, layer = rows[name]
             self.assertEqual((group["region"], layer["projection"]), (region, "EPSG:3857"), name)
-        self.assertEqual(rows["ispra:100k:1"][1]["minZoom"], 10)
+        self.assertEqual(rows["ispra:100k:1"][1]["minZoom"], 11)            # 상류 minScale 1:50만 (wetherilli 308)
         js = (Path(views.__file__).parent / "static/viewer/map.js").read_text(encoding="utf-8")
         europe = re.search(r'europe: \{ title: "유럽".*?includes: \[([^\]]*)\]', js, re.S).group(1)
         for key in ("italy", "portugal", "switzerland"):

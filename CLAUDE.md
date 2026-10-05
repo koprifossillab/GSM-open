@@ -385,7 +385,8 @@ WMS·z/x/y·우리가 굽는 것) 계획을 따로 둔다 (029).
   wetherilli 097), 카리브 대앤틸리스 지질도 USGS SIM 3534(`GSM_CARIBBEAN_DIR`, 기본 `<DB 옆>/caribbean`, wetherilli 254 —
   `manage.py build_caribbean <zip>`, 옛 판 OFR 2019-1036 의 셰이프 zip — 웹서비스가 없다). 운영은
   `/srv/GSM/db/` 아래다 — 배포한 자리의 compose 를 못 고쳐도 `db/` 는 붙어 있다. **저장소에 두지 않는다.** 원본은 NAS 의 `N:\GSM\sources\` 에 있다.
-  파일이 없어도 뷰어는 돌고 그 자리에 안내가 뜬다. GeoMAP 의 그리는 법을 고치면
+  파일이 없어도 뷰어는 돌고 그 자리에 안내가 뜬다. **새로 굽는 파일을 더하면 `datastatus.ITEMS` 에 한 줄 더한다** —
+  `manage.py data_status` 가 운영에 무엇이 있고 언제 구웠는지 한 표로 내고, healthz 가 없는 것의 수를 낸다(wetherilli 312). GeoMAP 의 그리는 법을 고치면
   `geomap.RENDERER` 를 올린다 — 안 올리면 캐시가 옛 그림을 낸다
 - **극지연구소(053–057)는 모아 두고 그린다** — 암석 시료 목록과 KPDC 자료·운석의 상세(3 500 쪽)를
   `manage.py fetch_kopri` 가 2 초 간격으로 받아 `GSM_KOPRI_DIR`(기본 `<DB 옆>/kopri`)에 적는다. 처음 세 시간 남짓,
@@ -443,6 +444,7 @@ web/viewer/       뷰어 앱 하나뿐이다. 앱을 더 가르지 않는다
   gsj.py          일본 지질조사종합센터(GSJ)로 나가는 문 (심리스 지질도 V2 타일·속성·범례, 새 호스트의 CCOP 200만 지질도 WMS, 지질도Navi 판 목록,
                   1:200만 일본 지질도·부게 중력·지구화학도 WMS — 상류 `gsjows`, 정부표준이용규약 2.0, wetherilli 255)
   gsmma.py        대만 경제부 지질조사·광업관리중심(GSMMA)으로 나가는 문 (지질도 WMS 는 4326 만, 누른 자리의 지층은 지질운 GeoJSON)
+                  지질운 열린자료 가운데 WMS 가 없는 것(탄층·토석류·낙석·암체 등급·GPS)을 통째로 한 번 — 끊기면 네모를 넷으로 나눈다(`fetch_taiwan_open`, wetherilli 305)
   emodnet.py      EMODnet Geology 로 나가는 문 (유럽 바다의 해저 퇴적물·해저 지질 WMS). 북극해에 두고 스발바르 탭이 빌린다. 3413 으로 곧장
   ngu.py          노르웨이 지질조사소(NGU)로 나가는 문 (본토 기반암 1:135만·25만·5만 MapServer WMS). 3413 을 안 그려 북극 람베르트(3575)로
   gtk.py          핀란드 지질조사소(GTK)로 나가는 문 (기반암 1:100만·20만 ArcGIS WMS). 3413 으로 곧장
@@ -553,6 +555,7 @@ web/viewer/       뷰어 앱 하나뿐이다. 앱을 더 가르지 않는다
   geo3al.py       중국 USGS geo3al 셰이프파일(람베르트) -> 위경도 GeoJSON. 연구실 내부용
   moonmap.py      달 지질도 원도 6 장 셰이프파일 -> sqlite(R*Tree) -> 달 경위도 타일. 문이 아니다
   peninsula.py    한반도 지질도 음영판·민판 — 좌표가 붙은 QGIS PDF·PNG -> EPSG:5179 타일(미리 잘라 둔다)
+  twopen.py       대만 지질운 열린자료 — 받아 둔 GeoJSON(<DB 옆>/taiwan_open)을 줄여 한 덩이로(`/points/`). 문이 아니다
   kigamdata.py    KIGAM 오픈플랫폼의 자료(시료·분석·조사·주제도) 목록·상세를 모아 둔 JSON. 지도에 올리는 것은 아직(#153). 문이 아니다
   kigam50k.py     KIGAM 5만 지질도의 층리·엽리·편리·절리·화석산지·시료·광산·광종·도폭 틀·단층·습곡·선구조·신장광물·습곡축·유동구조·변질대 — 받아 둔 WFS 파일(<DB 옆>/kigam50k/raw/날짜/)에서 자리와 값, 장미도. 문이 아니다
   ibcso.py        남극 해저·빙저 지형 IBCSO v2 — 칠한 GeoTIFF(9354) -> 3031 타일(미리 잘라 둔다). 문이 아니다
@@ -579,6 +582,7 @@ web/viewer/       뷰어 앱 하나뿐이다. 앱을 더 가르지 않는다
   glim.py         세계 암상 GLiM 0.5° 격자(data/glim_05deg.json) -> 경위도 타일·누른 자리의 갈래. 문이 아니다
   heatflow.py     IHFC 세계 지열류 2024 글 파일 -> sqlite(R*Tree) -> 경위도 점 타일·누른 자리. 문이 아니다
   seafloor.py     해양 지각 연대 Seton 2020(NetCDF-3)·해저 퇴적층 두께 GlobSed v3(글 격자) — numpy 없이 -> <EARTH_DIR> 의 칠한 PNG·int16 값 -> 경위도 타일·누른 자리. 문이 아니다
+  datastatus.py   구운 자료의 나이 — <DB 옆> 의 파일마다 있는지·크기·고친 날·원본 판(`ITEMS` 한 표). data_status·healthz·관리 화면이 읽는다. 문이 아니다
   earthpoints.py  지역 탭의 화석 산지·홀로세 화산·지진·고생태 산지 — 온 지구의 모아 둔 sqlite·JSON 에서 지역의 네모만 점 GeoJSON 으로. 문이 아니다
   pointvalues.py  점묶음 CSV 에 붙일 값 — 점마다 GeoMAP 단위·지각 두께·가까운 PBDB 산지, 달·화성·수성은 그 지질도 단위. 우리 파일만. 문이 아니다
   profileband.py  높이 그래프 밑의 지질 띠 — 잰 선의 점마다 GeoMAP·geo3al·달·화성·수성 파일의 단위, 온 지구는 지각 두께 칸. 상류뿐인 레이어는 띠가 없다. 문이 아니다
@@ -608,7 +612,7 @@ devlog/           왜 그렇게 했는지 — 색인은 devlog/README.md
 이 일흔여섯 말고는 어디서도 `requests` 를 쓰지 않는다. `gfs.py`·`era5.py`·`gmgsi.py`·`ecco.py` 는 **호스트에서만** 부른다 — 바람·해류를 받아
 굽는 일(numpy·ecCodes·numcodecs, `requirements-wind.txt`)이 `/srv/GSM/scripts/run.sh` 의 전용 venv 에서 돌고(koprifossillab 005), 컨테이너는 구운 PNG 를 내주기만 한다(koprifossillab P02). `linked.py` 만은 주소를 우리가 정하지 않는다 — 개인 레이어를 남의 API 에
 이을 때 브라우저가 곧장 못 받으면 거친다(wetherilli P09·122). 사설망은 `GSM_LINKED_ALLOW` 에 적은 호스트만, 밖에 열면 닫는다. 뷰가 직접 부르지 않는다. 상류가 바뀌거나 주소가
-닫힐 때 고칠 자리를 하나로 묶어두려는 것이다. `geomap.py`·`janmayen.py`·`geo3al.py`·`peninsula.py`·`moonmap.py`·`caribmap.py`·`ibcso.py`·`admap.py`·`kigam50k.py`·`kigamdata.py`·`zhurong.py`·`marscraters.py`·`marsmap.py`·`mercurymap.py`·`spamap.py`·`paleo.py`·`paleocoast.py`·`fossils.py`·`volcanoes.py`·`quakes.py`·`paleoeco.py`·`crust.py`·`glaciers.py`·`impacts.py`·`faults.py`·`minerals.py`·`stress.py`·`tectonics.py`·`seafloor.py`·`glim.py`·`heatflow.py`·`naturalearth.py`·`icemargins.py`·`mantle.py`·`earthpoints.py`·`pointvalues.py` 는
+닫힐 때 고칠 자리를 하나로 묶어두려는 것이다. `geomap.py`·`janmayen.py`·`geo3al.py`·`peninsula.py`·`moonmap.py`·`caribmap.py`·`ibcso.py`·`admap.py`·`kigam50k.py`·`kigamdata.py`·`twopen.py`·`zhurong.py`·`marscraters.py`·`marsmap.py`·`mercurymap.py`·`spamap.py`·`paleo.py`·`paleocoast.py`·`fossils.py`·`volcanoes.py`·`quakes.py`·`paleoeco.py`·`crust.py`·`glaciers.py`·`impacts.py`·`faults.py`·`minerals.py`·`stress.py`·`tectonics.py`·`seafloor.py`·`glim.py`·`heatflow.py`·`naturalearth.py`·`icemargins.py`·`mantle.py`·`earthpoints.py`·`pointvalues.py` 는
 상류가 아니라 우리 디스크의 파일을 읽으므로 문이 아니다. `warp.py` 도 문이 아니다 — 원본은 부르는 쪽이 넘긴다. 문은 서로를 타지 않는다 —
 주소 검색은 KIGAM 을 거치지 않고, KIGAM 인증키도 쓰지 않는다.
 

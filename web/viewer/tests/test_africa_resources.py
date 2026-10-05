@@ -40,3 +40,22 @@ class Catalog(TestCase):
             layers = {l["name"]: l for g in self.client.get(reverse("viewer:catalog")).json()["groups"] for l in g["layers"]}
         self.assertFalse(layers["cgs:coal"]["queryable"])
         self.assertNotIn("queryable", {k: v for k, v in layers["cgs:uranium"].items() if v is False})
+
+
+class IrgmFaults(SimpleTestCase):
+    """카메룬 단층 — 상류의 기본 스타일이 없는 기호 파일을 찾다 깨져 스타일을 우리가 보낸다 (wetherilli 308)"""
+
+    def test_단층은_SLD_BODY_로(self):
+        from viewer import brgm
+        with mock.patch.object(brgm.usage, "record"), mock.patch.object(brgm.usage, "paused", return_value=0), \
+                mock.patch.object(brgm.requests, "get", return_value=answer()) as get:
+            brgm.irgm_get_map({"layers": "irgm:CMR_IRGM_1M_Failles", "crs": "EPSG:4326", "version": "1.3.0",
+                               "bbox": "2,9,11,16", "width": 256, "height": 256})
+        sent = get.call_args.kwargs["params"]
+        self.assertIn("<LineSymbolizer>", sent["SLD_BODY"])
+        self.assertEqual(sent["bbox"], "9,2,16,11")                     # 1.3.0 의 4326 은 위도가 먼저다
+        with mock.patch.object(brgm.usage, "record"), mock.patch.object(brgm.usage, "paused", return_value=0), \
+                mock.patch.object(brgm.requests, "get", return_value=answer()) as get:
+            brgm.irgm_get_map({"layers": "irgm:CMR_IRGM_1M_UnitesGeologiques", "crs": "EPSG:4326", "bbox": "9,2,16,11",
+                               "width": 256, "height": 256})
+        self.assertNotIn("SLD_BODY", get.call_args.kwargs["params"])

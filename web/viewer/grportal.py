@@ -543,13 +543,14 @@ LAYERS = {
             "year": _field("year", "해"),
             "sheet": _field("map_sheet", "도폭"),
             "who": _field("fullname", "채취·보고"),
-            "link": _field(link, "GEUS 상세", "link"),
+            # 회사 탐사 자료에는 상세 링크 열이 없다 — 물으면 포털이 빈 오류를 낸다 (wetherilli 311, 운영 대조)
+            **({"link": _field(link, "GEUS 상세", "link")} if link else {}),
             **{k: _field(f, "", "assay") for k, f, _, _ in ELEMENTS},
         },
     } for key, service, item, link in (
         ("soil", "geochemistry_soil", "8724682f88e548288870bdd1611e52a1", "link"),
         ("heavy", "geochemistry_heavy_minerals_conc", "a4ae0f04bd84410d8a696ca3fc097d24", "link"),
-        ("companies", "geochemistry_companies", "ae1c3db86cfe4767a0d7f4e0fa54c25a", "link"),
+        ("companies", "geochemistry_companies", "ae1c3db86cfe4767a0d7f4e0fa54c25a", None),
         ("scree", "geochemistry_scree", "ae10729f316549fbbfe68f6f32204d16", "details"),
     )},
     # 전암 화학 3 만 점 — 원소 열을 다 실으면 덩이가 수십 MB 라 **고른 원소만 잘라 준다**(`slice`, `value_slice`)

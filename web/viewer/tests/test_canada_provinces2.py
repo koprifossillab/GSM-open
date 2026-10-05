@@ -65,7 +65,7 @@ class Views(TestCase):
             self.assertEqual(Layer.objects.get(name=name).group.region, "canada")
         self.assertEqual(self.layers["skgs:2"]["projection"], "EPSG:3978")
         self.assertIs(self.layers["skgs:11"]["queryable"], False)
-        self.assertEqual(self.layers["nsgs:9"]["minZoom"], 8)
+        self.assertEqual(self.layers["nsgs:9"]["minZoom"], 9)          # 1:200만까지 (wetherilli 310)
         self.assertTrue(self.layers["ags:bedrock"]["tiles"].endswith("/MapServer/tile/{z}/{y}/{x}"))
 
     def test_사스카치원_WMS_번호(self):

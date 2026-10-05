@@ -553,3 +553,17 @@ def client_geonavi(lang: str = "ko") -> dict:
     for g in out:
         del g["order"]
     return {"tiles": GEONAVI_TILES, "legend": GEONAVI_LEGEND, "attribution": GEONAVI_ATTRIBUTION, "series": out}
+
+
+def probe_tile(url: str):
+    """화면이 곧장 부르는 GSJ 타일(`tiles.gsj.jp`, 상류 `gsjows`) 한 장을 대조가 받아 본다 (`verify_layers`, wetherilli 311). (상태, content-type, 바이트)"""
+    left = usage.paused()
+    if left:
+        raise GsjError(f"차단 조짐이 있어 {int(left)}초 동안 상류에 묻지 않는다")
+    try:
+        r = requests.get(url, timeout=settings.UPSTREAM_TIMEOUT, verify=settings.CA_BUNDLE or True, headers={"User-Agent": "GSM/0.1"})
+    except requests.RequestException as exc:
+        usage.record("gsjows", ok=False)
+        raise GsjError(f"GSJ 타일에 닿지 못했다: {exc}") from exc
+    usage.record("gsjows", ok=r.status_code in (200, 404), blocked=usage.looks_blocked(r.status_code, r.content[:1000]), elapsed=r.elapsed)
+    return r.status_code, r.headers.get("content-type", ""), r.content

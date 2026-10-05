@@ -7,7 +7,7 @@
 
 ## 작업 방식 (2026-09-30 부터)
 
-**브랜치** `main` = `0.61.0`(2026-10-05 배포). 코드 작업은 각자 자기 계정에서 `feature/<기능 이름>` 브랜치를 `main` 에서 만들고, 끝나면 PR 을 만든다.
+**브랜치** `main` = `0.62.0`(2026-10-05 배포). 코드 작업은 각자 자기 계정에서 `feature/<기능 이름>` 브랜치를 `main` 에서 만들고, 끝나면 PR 을 만든다.
 **PR 병합과 판 올리기·배포는 판 세션(gsm-31)이 한다** — 다른 세션은 PR 을 열고 알린다. 판은 몇 PR 이 모이면 따로 올린다. 문서만 고치는 것은 `main` 에 바로. devlog 는 글쓴이마다 번호를 센다 — CLAUDE.md "커밋과 PR"·"devlog",
 [devlog/README.md](devlog/README.md). WegenersDream 과 같은 규약이다.
 
@@ -70,7 +70,7 @@
 | `kopri/` | 극지연구소 목록·상세 | `manage.py fetch_kopri` — 가끔, 새 것만 받는다 (053) |
 | `kigam50k/` | KIGAM 5만 지질도 층리·엽리·절리·단층 등 19 레이어(WFS, 2026-09-30). 0.25.1 부터 자세 기호의 커서·팝업이 읽는다 | 지금은 손으로 받아 둔 `raw/20260930/`. 받는 명령은 jikhanjung P01 |
 
-그 밖에 가끔 돌리는 것 — `fetch_grportal`(그린란드 시료·NPI 점·지명), `verify_layers --probe-info`
+그 밖에 가끔 돌리는 것 — `data_status`(위 표의 파일마다 있는지·크기·고친 날·원본 판, wetherilli 312), `fetch_grportal`(그린란드 시료·NPI 점·지명), `verify_layers --probe-info`
 (`/openapi/wms` 가 속성을 열었는지), `upstream_stats`(얼마나 묻는지).
 
 ## 돌려보는 법

@@ -88,11 +88,17 @@ class VerifyLayers(TestCase):
         self.assertEqual(gget.call_count, 1)
         self.assertIn("인증키가 없다", err.getvalue())
 
-    def test_점_레이어는_건너뛴다(self):
+    def test_점_레이어는_덩이를_센다(self):
+        """점 레이어는 건너뛰지 않고 화면이 받는 덩이(`points/`)의 모양 수를 센다 (wetherilli 311)"""
+        from django.http import JsonResponse
+        from viewer.management.commands import verify_layers
         group = LayerGroup.objects.get(name="시험")
         Layer.objects.create(name="grportal:samples", title="시료", group=group, upstream="grportal")
-        text, *_ = self.run_command(upstream="grportal")
-        self.assertIn("| grportal | 0 | 0 | 0 | 1 |", text)
+        body = JsonResponse({"type": "FeatureCollection", "features": [{"type": "Feature"}, {"type": "Feature"}]})
+        with mock.patch.object(verify_layers, "_call", return_value=(200, body)) as call:
+            text, *_ = self.run_command(upstream="grportal")
+        self.assertIn("points/", call.call_args[0][0])
+        self.assertIn("| grportal | 1 | 0 | 0 | 0 |", text)
 
 
 class Pace(TestCase):

@@ -114,3 +114,9 @@ def legend_rows(name: str) -> list:
         tilecache.put(key, held, ".json")
     return [{"symbol": "", "lithology": tidy_label(label), "age": "", "color": "transparent", "swatch": swatch}
             for label, swatch in json.loads(held)]
+
+
+def probe_tile(url: str):
+    """화면이 곧장 부르는 타일 한 장을 대조가 받아 본다 (`verify_layers`, wetherilli 311). (상태, content-type, 바이트)"""
+    r = _get(url, {})
+    return r.status_code, r.headers.get("content-type", ""), r.content

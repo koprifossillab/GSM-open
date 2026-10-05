@@ -165,6 +165,9 @@ ARC_QUERY = {"geusarc:g2500k": "4", "geusarc:g100k_ssw": "5", "geusarc:g100k_kar
 #: 목록 범례(`views.list_legend`)를 내는 레이어 — 지구물리는 REST 범례가 RGB 띠 이름뿐이라 두지 않는다 (wetherilli 301)
 LEGEND_LAYERS = tuple(ARC_QUERY)
 LEGEND_MAX_AGE = 30 * 86400
+#: 메타타일로 받는다 (wetherilli 307) — REST export 는 요청마다 드는 값이 크다: 서남부 1:10만 512 px 40 초·1 024 px(칸 넷) 40–48 초,
+#: 자력 편찬 1.9·2.3 초. 화면이 3413 이라 극지 격자로 자른다. `metatile.limit` 의 표
+METATILE = {"geusarc:": None}
 ARC_ATTRIBUTION = {"geusarc:bouguer": "Bouguer anomaly © DTU Space · via GEUS"}
 GEUS_ATTRIBUTION = '© <a href="https://www.geus.dk/" target="_blank" rel="noopener">GEUS</a> (personal use, terms 2014-06-20)'
 

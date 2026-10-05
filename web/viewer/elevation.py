@@ -632,3 +632,9 @@ def get_feature_info(params: dict) -> dict:
 def get_legend(layer: str):
     """PGC 의 범례는 늘인 값(0–255)뿐이라 싣지 않는다 — 화면은 `noLegend` 로 묻지 않는다."""
     raise ElevationError("PGC 레이어는 범례가 없다")
+
+
+def probe_tile(url: str, upstream: str = "gsitile"):
+    """화면이 곧장 부르는 국토지리원 타일 한 장을 대조가 받아 본다 (`verify_layers`, wetherilli 311). (상태, content-type, 바이트)"""
+    r = _get(url, upstream)
+    return r.status_code, r.headers.get("content-type", ""), r.content

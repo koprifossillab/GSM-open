@@ -361,6 +361,9 @@ ADMAP_DIR = env("GSM_ADMAP_DIR") or str(_data_dir() / "admap2")
 #: `manage.py fetch_kopri` 가 천천히 모아 여기 쓴다(두 시간 남짓, 다음부터는 새 것만). 저장소·이미지에
 #: 두지 않는다. 없으면 그 레이어에 "자료가 없다" 가 뜰 뿐 뷰어는 돈다 (devlog 053·055). 기본은 `<DB 옆>/kopri/`.
 KOPRI_DIR = env("GSM_KOPRI_DIR") or str(_data_dir() / "kopri")
+#: 대만 지질운의 열린자료(탄층·토석류·낙석·GPS 상시 관측소·암체 등급) — `manage.py fetch_taiwan_open` 이 한 번 받아 둔 GeoJSON. 화면은 이것만 읽는다.
+#: 저장소·이미지에 두지 않는다 (wetherilli 305)
+TAIWAN_OPEN_DIR = env("GSM_TAIWAN_OPEN_DIR") or str(_data_dir() / "taiwan_open")
 #: KIGAM 오픈플랫폼의 자료 목록·상세(`/openapi/data`) — `manage.py fetch_kigam_data` 가 1 초 간격으로 모아 둔 것과 행정구역을
 #: 찾은 자리. 저장소·이미지에 두지 않는다. 지도에 무엇을 올릴지는 아직 정하지 않았다(이슈 #153, wetherilli 169).
 KIGAM_DATA_DIR = env("GSM_KIGAM_DATA_DIR") or str(_data_dir() / "kigam_data")

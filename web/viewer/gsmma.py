@@ -452,3 +452,61 @@ def legend_row(row: dict, lang: str = "ko") -> dict:
     return {"color": row["color"], "swatch": row["swatch"], "symbol": row["symbol"],
             "lithology": row["name"] + (f" ({row['note']})" if row.get("note") else ""),
             "age": i18n.age_zh(row["time"], lang) if row.get("time") else ""}
+
+
+# ── 지질운의 열린자료 — WMS 가 없는 것을 통째로 (wetherilli 305) ─────────────
+
+#: 지질운 자료 목록의 갈래 가운데 WMS 그림이 없는 것. 사람이 부르는 `fetch_taiwan_open` 이 한 번 받아 디스크에 두고(`twopen.py`) 화면은 그것만 읽는다
+OPEN_APIS = ("CoalSeam", "DebrisFlowDeposition", "DebrisFlowFan", "DebrisFlowTrack", "RockFall", "CGPS", "RockMassClassification")
+#: 섬 전체와 펑후·진먼·마쭈까지 — 자료 목록 페이지(`/data/zh-tw/<갈래>`)는 100 개에서 끊기고, `bbox` API 는 끊지 않는다(2026-10-05)
+OPEN_BBOX = (118.0, 21.0, 123.0, 27.0)
+#: 네모 하나를 몇 번까지 넷으로 나누나 — 상류가 자료가 빽빽한 네모에서 120 초를 넘겨 끊는다. 0.3° 로도 끊기는 산지(낙석)가 있어 0.08° 까지
+OPEN_SPLITS = 6
+
+
+def fetch_open(api: str, bbox=OPEN_BBOX, *, timeout=60, gap=2.0, log=None, depth=0, sleep=None, holes=None) -> list:
+    """갈래 하나를 통째로 — 네모가 끊기면 넷으로 나눠 다시 묻고, 네모 사이에 걸친 것은 한 번만 남긴다. 상류에 묻는 사이 `gap` 초.
+    넷으로 `OPEN_SPLITS` 번 나눠도 끊기는 네모는 `holes` 에 적고 건너뛴다 — 여섯 번이면 0.08° 네모다"""
+    import json
+    import time
+    sleep = sleep or time.sleep
+    w, s, e, n = bbox
+    left = usage.paused()
+    if left:
+        raise GsmmaError(f"차단 조짐이 있어 {int(left)}초 동안 상류에 묻지 않는다")
+    try:
+        r = requests.get(f"{settings.GSMMA_API_URL}/{api}", params={"bbox": f"{w:.4f},{s:.4f},{e:.4f},{n:.4f}"},
+                         timeout=timeout, verify=settings.CA_BUNDLE or True, headers={"User-Agent": "GSM/0.1"})
+        ok = r.status_code == 200
+        usage.record("gsmma", ok=ok, blocked=usage.looks_blocked(r.status_code, r.content[:1000]), elapsed=r.elapsed)
+        if usage.looks_blocked(r.status_code, r.content[:1000]):
+            raise GsmmaError(f"차단 조짐 (status={r.status_code})")
+        features = r.json().get("features") if ok else None
+    except (requests.RequestException, ValueError) as exc:
+        if isinstance(exc, requests.RequestException):
+            usage.record("gsmma", ok=False)
+        features, r = None, None
+    sleep(gap)
+    if features is not None:
+        if log:
+            log(f"  {api} {w:.2f},{s:.2f},{e:.2f},{n:.2f} — {len(features)} 개")
+        return features
+    if depth >= OPEN_SPLITS:
+        if holes is None:
+            raise GsmmaError(f"지질운 {api} 의 {w:.3f},{s:.3f},{e:.3f},{n:.3f} 를 받지 못했다"
+                             + (f" (status={r.status_code})" if r is not None else ""))
+        holes.append([round(w, 4), round(s, 4), round(e, 4), round(n, 4)])
+        if log:
+            log(f"  {api} {w:.3f},{s:.3f},{e:.3f},{n:.3f} — 나눠도 끊긴다, 건너뛴다")
+        return []
+    if log:
+        log(f"  {api} {w:.2f},{s:.2f},{e:.2f},{n:.2f} — 끊겼다, 넷으로 나눈다")
+    mx, my = (w + e) / 2, (s + n) / 2
+    seen, out = set(), []
+    for part in ((w, s, mx, my), (mx, s, e, my), (w, my, mx, n), (mx, my, e, n)):
+        for f in fetch_open(api, part, timeout=timeout, gap=gap, log=log, depth=depth + 1, sleep=sleep, holes=holes):
+            key = json.dumps(f, sort_keys=True, ensure_ascii=False)
+            if key not in seen:
+                seen.add(key)
+                out.append(f)
+    return out

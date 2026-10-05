@@ -203,7 +203,11 @@ class PhoneScreenTests(PhoneBase):
         box = page.locator("#map").bounding_box()
         page.touchscreen.tap(box["x"] + box["width"] / 2, box["y"] + box["height"] / 2)
         page.wait_for_selector("#popup.on", timeout=5000)
-        page.wait_for_timeout(600)          # 지도가 팝업을 보이게 옮기는 동안(autoPan 200 ms)을 기다린다
+        # 뜬 그 틀에도 화면 안이어야 한다 — 가운데 맞춤이 먹지 않아 오른쪽 아래로 늘어졌다가 지도가 끌려 와 들어오던 것을 잡는다.
+        # 그 끌림 한가운데를 재면 느린 CI 에서만 깨졌다 (wetherilli 304)
+        page.evaluate("() => new Promise((ok) => requestAnimationFrame(() => requestAnimationFrame(ok)))")
+        self.assertFits(page.evaluate(MEASURE, PARTS + ["#popup", "#popup-close"]), "map/ (팝업이 뜬 틀)")
+        page.wait_for_timeout(600)          # 속성이 다 차 팝업을 한 번 더 끌어오는 동안(200 ms)을 기다린다
         self.assertEqual(errors, [])
         m = page.evaluate(MEASURE, PARTS + ["#popup", "#popup-close"])
         self.assertFits(m, "map/ (팝업)")

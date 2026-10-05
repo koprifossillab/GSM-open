@@ -24,7 +24,7 @@ ATTRIBUTION = ('<a href="https://data.geology.gov.yk.ca/" target="_blank" rel="n
 #: 레이어 → (WMS 번호, 처음 그리는 화면 줌, 누르기가 되나)
 LAYERS = {"ygs:47": ("47", 7, True), "ygs:50": ("50", 10, False),
           # MINFILE 광물 산지 3 223 곳(wetherilli 288) — 같은 서비스, WMS 57(REST 4)
-          "ygs:57": ("57", 5, True)}
+          "ygs:57": ("57", 11, True)}       # 1:30만보다 넓으면 상류가 그리지 않는다 (wetherilli 310)
 
 
 class YgsError(RuntimeError):
