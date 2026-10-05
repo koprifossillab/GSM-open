@@ -215,6 +215,9 @@ MRDATA_URL = env("GSM_MRDATA_URL", "https://mrdata.usgs.gov/services")
 GSQ_REST_URL = env("GSM_GSQ_REST_URL", "https://spatial-gis.information.qld.gov.au/arcgis/rest/services/GeoscientificInformation")
 GSV_WMS_URL = env("GSM_GSV_WMS_URL", "https://opendata.maps.vic.gov.au/geoserver/wms")
 GSSA_WMS_URL = env("GSM_GSSA_WMS_URL", "https://sarigdata.pir.sa.gov.au/geoserver/ows")
+#: 태즈메이니아 지질(theLIST, Mineral Resources Tasmania)·뉴사우스웨일스 광물 산지·광산(GSNSW GeoServer) (wetherilli 318)
+TAS_REST_URL = env("GSM_TAS_REST_URL", "https://services.thelist.tas.gov.au/arcgis/rest/services/Public/GeologicalAndSoils/MapServer")
+GSNSW_WMS_URL = env("GSM_GSNSW_WMS_URL", "https://gs.geoscience.nsw.gov.au/geoserver/ows")
 SGM_URL = env("GSM_SGM_URL", "https://portal.sgm.gob.mx/arcgis/rest/services/SGM/SUNGeologiaContinuoMineDatosEs/MapServer")
 #: 캐나다 — NRCan 1:500만(Wheeler) WMS·온타리오 OGS ArcGIS 의 앞 주소 (wetherilli 204). 열쇠가 없다
 NRCAN_WMS_URL = env("GSM_NRCAN_WMS_URL", "https://maps-cartes.services.geo.ca/server_serveur/services/NRCan/"
@@ -449,6 +452,8 @@ def _dev_direct_wms() -> bool:
 
 
 DEV_DIRECT_WMS = _dev_direct_wms()
+#: 레이어 대조(`verify_layers`)의 결과를 날마다 남기는 자리 (wetherilli 314) — 지난번과 견준다
+VERIFY_DIR = env("GSM_VERIFY_DIR") or str(_data_dir() / "verify")
 
 
 def _metatile() -> bool:
@@ -607,6 +612,9 @@ GA_CATALOG_SEED = REPO_DIR / "data" / "ga_layers.json"
 GSQ_CATALOG_SEED = REPO_DIR / "data" / "gsq_layers.json"
 GSV_CATALOG_SEED = REPO_DIR / "data" / "gsv_layers.json"
 GSSA_CATALOG_SEED = REPO_DIR / "data" / "gssa_layers.json"
+#: 태즈메이니아 MRT 지질·뉴사우스웨일스 GSNSW 광물 (wetherilli 318)
+MRT_CATALOG_SEED = REPO_DIR / "data" / "mrt_layers.json"
+GSNSW_CATALOG_SEED = REPO_DIR / "data" / "gsnsw_layers.json"
 #: 뉴질랜드, 남극 남빅토리아랜드 (wetherilli 218)
 GNS_CATALOG_SEED = REPO_DIR / "data" / "gns_layers.json"
 GNS_ANTARCTICA_CATALOG_SEED = REPO_DIR / "data" / "gns_antarctica_layers.json"

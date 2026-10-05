@@ -32,7 +32,7 @@ from gsmweb.version import VERSION
 from . import (coords, crs, datastatus, geo3al, geomap, geus, grportal, gsj, gsmma, i18n, ibcso, janmayen, kigam, kopri, npolar,
                patchnotes, elevation, moonmap, peninsula, phyloserver, pointsets, tilecache, tiles, trek, vworld, warp,
                marscraters, marsmap, mercurymap, zhurong)
-from . import admap, arcpoints, caribmap, crust, glaciers, impacts, faults, minerals, stress, tectonics, seafloor, glim, heatflow, fossils, gvp, icemargins, kigam50k, macrostrat, mantle, metatile, naturalearth, neotoma, paleo, paleoeco, paleocoast, pbdb, quakes, recentquakes, spamap, ocean, usgs, volcanoes, wind
+from . import admap, arcpoints, caribmap, crust, glaciers, impacts, faults, minerals, stress, tectonics, seafloor, glim, heatflow, fossils, gvp, icemargins, kigam50k, macrostrat, mantle, metatile, naturalearth, neotoma, paleo, paleoeco, paleocoast, pbdb, quakes, recentquakes, verifylog, spamap, ocean, usgs, volcanoes, wind
 from . import ags, austates, bas, basemaps, bcgs, bgr, bgs, brgm, calgs, cgs, dinamige, dmr, dov, egdi, emodnet, esdm, ga, georep, geosphere, gns, gsi, gsiindia, gtk, igme, iige, ineter, ingemmet, ispra, jmg, linked, lneg, mgb, mrdata, mris, natt, ngu, nrcan, nsgs, ogs, pig, segemar, sgb, sgc, sgm, sgs, sgu, sigeom, skgs, spw, stri, swisstopo, tno, twopen, usage, usgscarib, usstates, vmme, ygs
 from . import earthpoints, pointvalues, profileband, static_tables, tilegrid
 from .i18n import msg
@@ -313,6 +313,8 @@ def manage_view(request):
         "stamp": "" if settings.DEBUG else asset_stamp(),
         # 상류 응답 시간 (wetherilli 295) — `upstream_stats` 와 같은 값. 읽기만 하고 상류의 이름과 수뿐이다(주소·키는 남기지도 않는다)
         "upstream_rows": usage.summary(7),
+        # 마지막 레이어 대조의 한 줄 (wetherilli 314) — 날짜와 수뿐이다
+        "verify": verifylog.summary(),
         # 구운 자료 (wetherilli 312) — `data_status` 와 같은 표. 읽기만 하고 경로는 `<DB 옆>` 아래 이름뿐이다
         "data_rows": _data_rows(lang),
     })
@@ -403,7 +405,7 @@ MAP3D_WMS = ("kigam", "geus", "geusarc", "vworld", "ccop", "gsjows", "gsmma",
              # 사스카치원·노바스코샤(wetherilli 235) — 3857 로도 그린다
              "skgs", "nsgs",
              # 호주 GA(wetherilli 212) — ArcGIS WMS 가 3857 로 그린다. 주 판 셋(225)도 3857 이다
-             "ga", "gsq", "gsv", "gssa",
+             "ga", "gsq", "gsv", "gssa", "mrt", "gsnsw",
              # 이탈리아 ISPRA·포르투갈 LNEG·스위스 swisstopo(wetherilli 211) — 3857 로 그린다
              "ispra", "lneg", "swisstopo",
              # 스웨덴 SGU(wetherilli 213) — 2D 는 3413 이지만 GeoServer 가 3857 도 그린다
@@ -2848,9 +2850,24 @@ SCALE_FLOOR = {
 }
 
 
+#: 넓게 보면 한 칸이 10 초를 넘는 레이어의 처음 화면 줌 (wetherilli 313) — 넓이에 따라 느려져 메타타일로 풀리지 않는다.
+#: 운영의 걸린 시간(`upstream_stats`, 사흘치)으로 상류를 추리고(p95 8 초 넘는 열넷), 그 레이어 106 개를 범위 한가운데에서 격자 줌을 올려 가며
+#: 한 장씩 쟀다(2026-10-05, 1 초 간격·30 초까지). 10 초 안에 온 첫 격자 줌 + 1 이다. 줌마다 잰 초는 devlog 313 의 표
+SLOW_FLOOR = {
+    "egdi:GeologicUnitView_Age": 5, "egdi:GeologicUnitView_Lithology": 5,          # 격자 3 에서 11–12 초
+    "emodnet:cp_wp3_seabed_substrate_folk_7": 4,                                   # 격자 2 에서 30 초 넘게
+    "esdm:geology": 6,                                                             # 격자 4 에서 15 초
+    "geusarc:g100k_karrat": 7, "geusarc:g100k_ssw": 7,                             # 격자 5 에서 11–14 초
+    "gsmma:attitude_50k": 10, "gsmma:discontinuity_50k": 9, "gsmma:landslide_inventory": 8,   # 격자 8·7·6 에서 12–30 초
+    "mrdata:sim3340:faults": 5, "mrdata:sim3340:units": 6,                         # 격자 3·4 에서 16–30 초
+    "nrcan:lithium": 4, "nrcan:ree": 4,                                            # 격자 2 에서 13–15 초
+    "skgs:smdi": 7,                                                                # 격자 5 에서 10.2 초
+}
+
+
 def _layer_extra(layer, lang: str = "ko") -> dict:
     extra = _layer_extra_base(layer, lang)
-    floor = SCALE_FLOOR.get(layer.name)
+    floor = max(SCALE_FLOOR.get(layer.name) or 0, SLOW_FLOOR.get(layer.name) or 0) or None
     if floor and (extra.get("minZoom") or 0) < floor:
         extra = dict(extra, minZoom=floor)
     return extra
@@ -3025,7 +3042,7 @@ def _layer_extra_base(layer, lang: str = "ko") -> dict:
                 extra["queryable"] = False
             return extra
     if layer.upstream == "bcgs" and bcgs.knows(layer.name):
-        # 브리티시컬럼비아(wetherilli 231) — GeoServer 가 3978 로 그린다. 색 스타일이 1:50만 너머를 칠하지 않아 줌 11 부터
+        # 브리티시컬럼비아(wetherilli 231) — GeoServer 가 3978 로 그린다. 1:50만 너머는 우리 스타일을 POST 로 보내 줌 5 부터(wetherilli 317)
         if layer.name == "bcgs:minfile":
             # MINFILE 광물 산지(wetherilli 288) — 같은 openmaps 의 점 레이어, 넓게 봐도 그린다
             return {"attribution": bcgs.ATTRIBUTION, "projection": "EPSG:3978"}
@@ -3199,8 +3216,9 @@ def _layer_extra_base(layer, lang: str = "ko") -> dict:
         return {"attribution": gsj.GEONAVI_ATTRIBUTION, "tiles": gsj.gsjows_tiles(layer.name),
                 "maxZoom": gsj.GSJOWS_NAVI[layer.name][1], "queryable": False}
     if layer.upstream == "gsjows" and gsj.gsjows_knows(layer.name):
-        # GSJ 의 다른 WMS(wetherilli 255) — 3857 로. 누르면 기호 번호뿐이라 누르지 않고 범례 그림으로
-        return {"attribution": gsj.GSJOWS_ATTRIBUTION, "projection": "EPSG:3857", "queryable": False}
+        # GSJ 의 다른 WMS(wetherilli 255) — 3857 로. 1:200만 지질도·중력은 누른다(wetherilli 316), 지구화학도는 범례 그림으로
+        return {"attribution": gsj.GSJOWS_ATTRIBUTION, "projection": "EPSG:3857",
+                **({} if layer.name in gsj.GSJOWS_INFO else {"queryable": False})}
     if layer.upstream == "gsitile" and layer.name in GSI_TILES:
         # 국토지리원 주제 타일(wetherilli 172) — 서버를 거치지 않고 브라우저가 곧장 부르는 카탈로그 레이어의 첫 선례다.
         # 지리원 타일은 열쇠가 없고 CORS 가 열려 있어 배경(BASEMAPS gsi_*)과 같은 길이다. 속성이 없고 범례는 그림이 아니다
@@ -3357,6 +3375,8 @@ class _Door:
                "ga": ga,
                # 호주의 주 판(wetherilli 225) — 한 파일(`austates.py`)에 문 셋
                "gsq": austates.GSQ, "gsv": austates.GSV, "gssa": austates.GSSA,
+               # 태즈메이니아·뉴사우스웨일스 (wetherilli 318)
+               "mrt": austates.TAS, "gsnsw": austates.GSNSW,
                # 이탈리아·포르투갈·스위스(wetherilli 211)
                "ispra": ispra, "lneg": lneg, "swisstopo": swisstopo,
                # 아이슬란드(wetherilli 216)
@@ -3387,7 +3407,7 @@ class _Door:
         self.local = self.name == "geomap"
         #: 받은 것을 서버 캐시에 담지 않는다 — 우리가 그리는 것(GeoMAP)과, 자료를 파는 상류(`NO_STORE`, wetherilli 209)
         self.nostore = self.local or self.name in NO_STORE
-        if self.name in ("geus", "geusarc", "npolar", "kopri", "pgc", "ccop", "gsjows", "gsmma", "emodnet", "ngu", "gtk", "bgs", "bgsgi", "brgm", "egdi", "bgr", "igme", "gsi", "gsni", "sgc", "sgb", "ingemmet", "segemar", "dinamige", "iige", "mrdata", "sgm", "cgmw", "aga", "cgs", "gsn", "bumigeb", "irgm", "nrcan", "ogs", "sigeom", "ygs", "skgs", "nsgs", "ags", "ga", "gsq", "gsv", "gssa", "ispra", "lneg", "swisstopo", "sgu", "natt", "gns", "mris", "gsiindia", "sgs", "esdm", "jmg", "mgb", "dmr", "bcgs", "calgs", "nbmg", "wadnr", "dogami", "geosphere", "pig", "tno", "dov", "spw", "ineter", "georep"):    # 열쇠가 없는 공개 서비스다
+        if self.name in ("geus", "geusarc", "npolar", "kopri", "pgc", "ccop", "gsjows", "gsmma", "emodnet", "ngu", "gtk", "bgs", "bgsgi", "brgm", "egdi", "bgr", "igme", "gsi", "gsni", "sgc", "sgb", "ingemmet", "segemar", "dinamige", "iige", "mrdata", "sgm", "cgmw", "aga", "cgs", "gsn", "bumigeb", "irgm", "nrcan", "ogs", "sigeom", "ygs", "skgs", "nsgs", "ags", "ga", "gsq", "gsv", "gssa", "mrt", "gsnsw", "ispra", "lneg", "swisstopo", "sgu", "natt", "gns", "mris", "gsiindia", "sgs", "esdm", "jmg", "mgb", "dmr", "bcgs", "calgs", "nbmg", "wadnr", "dogami", "geosphere", "pig", "tno", "dov", "spw", "ineter", "georep"):    # 열쇠가 없는 공개 서비스다
             self.ready = True
         elif self.name == "vworld":
             self.ready = vworld.enabled()
@@ -4859,6 +4879,8 @@ def feature_info(request):
             props = vworld.friendly(props, params.get("query_layers") or "")
         elif door.name == "ccop":
             props = gsj.ccop_friendly(props, lang)   # code → 지질기호 …, 시대를 옮긴다
+        elif door.name == "gsjows":
+            props = gsj.gsjows_friendly(props, lang)  # 1:200만 — 설명을 시대(일본어에서 옮긴다)와 암상으로 (wetherilli 316)
         elif door.name == "gsmma":
             props = gsmma.friendly(props, lang)      # Name → 지층명 …, 시대를 중국어에서 옮긴다
         elif door.name == "emodnet":
@@ -4910,7 +4932,7 @@ def feature_info(request):
             props = sgc.friendly(props, lang)        # 남미 판의 ICS 시대는 옮기고, 콜롬비아 판의 값은 에스파냐어 그대로
         elif door.name == "ga":
             props = ga.friendly(props, lang)         # 호주 — 시대만 옮기고 이름·설명은 영어 그대로 (wetherilli 212)
-        elif door.name in ("gsq", "gsv", "gssa"):
+        elif door.name in ("gsq", "gsv", "gssa", "mrt", "gsnsw"):
             props = austates.UPSTREAMS[door.name][0].friendly(props, lang)     # 호주의 주 판 — 시대만 옮긴다 (wetherilli 225)
         elif door.name in ("ispra", "lneg", "swisstopo"):
             # 이탈리아·포르투갈·스위스(wetherilli 211) — 열 이름만 한국어로, 값은 그 나라 말 그대로

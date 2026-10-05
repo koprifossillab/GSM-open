@@ -98,7 +98,7 @@ Docker Hub 이미지(`koprifossillab/gsm`), 브라우저 `localStorage` 키.
 **연구소 밖 정적 판(https://koprifossillab.github.io/GSM-open/)은 예외가 아니다 — 거기에는 우리 키가 없다.** 보는 사람이 각자
 KIGAM·VWorld 키를 넣고(처음 열 때 묻는다, wetherilli 174)(그 브라우저 localStorage, 30 일), 브라우저가 `/openapi/wms` 를 곧장 부른다(`map.js` 의 `STATIC_KIGAM`).
 서버 없이 돌므로 위의 "서버가 키를 붙인다" 가 없다. 판 세션이 판마다 `deploy/publish_pages.sh` 로 굽고 민다
-(wetherilli P11·162). 실을 지역·상류는 `deploy/static_site.py` 의 `REGIONS`·`UPSTREAMS`. 조건은 열렸지만 실을지 사람이 정할 것은
+(wetherilli P11·162). 밀기 전에 `deploy/static_smoke.py` 가 구운 판을 띄워 소개·실린 지역마다 페이지 오류·레이어 목록·판 이력을 보고, 깨지면 밀지 않는다(wetherilli 315). 실을 지역·상류는 `deploy/static_site.py` 의 `REGIONS`·`UPSTREAMS`. 조건은 열렸지만 실을지 사람이 정할 것은
 `OPTIONAL` 에 두고 고를 때만 싣는다(`--with colombia` — 콜롬비아 1:50만, wetherilli 201; `--with usa` — 미국 USGS, 공공 도메인, wetherilli 205; `--with australia` — 호주 GA, CC BY 4.0, wetherilli 212; `--with sweden` — 스웨덴 SGU, CC0, wetherilli 213; `--with netherlands`·`belgium`·`austria`·`poland` — `arcwms.Door` 상류를 표 하나·손 하나(`static-kinds.js` 의 `arcKind`)로, wetherilli 257).
 
 ## 상류의 함정 — 문서를 믿지 않는다
@@ -442,7 +442,8 @@ web/viewer/       뷰어 앱 하나뿐이다. 앱을 더 가르지 않는다
   grportal.py     그린란드 정부 포털(ArcGIS)로 나가는 문 (시료·연대 점을 통째로)
   npolar.py       노르웨이 극지연구소(NPI)로 나가는 문 (스발바르·드로닝모드랜드)
   gsj.py          일본 지질조사종합센터(GSJ)로 나가는 문 (심리스 지질도 V2 타일·속성·범례, 새 호스트의 CCOP 200만 지질도 WMS, 지질도Navi 판 목록,
-                  1:200만 일본 지질도·부게 중력·지구화학도 WMS — 상류 `gsjows`, 정부표준이용규약 2.0, wetherilli 255)
+                  1:200만 일본 지질도·부게 중력·지구화학도 WMS — 상류 `gsjows`, 정부표준이용규약 2.0, wetherilli 255.
+                  1:200만·중력은 누른다 — 번호를 범례 SLD 로 풀고 시대는 일본어에서 옮긴다 `i18n.age_ja`, wetherilli 316)
   gsmma.py        대만 경제부 지질조사·광업관리중심(GSMMA)으로 나가는 문 (지질도 WMS 는 4326 만, 누른 자리의 지층은 지질운 GeoJSON)
                   지질운 열린자료 가운데 WMS 가 없는 것(탄층·토석류·낙석·암체 등급·GPS)을 통째로 한 번 — 끊기면 네모를 넷으로 나눈다(`fetch_taiwan_open`, wetherilli 305)
   emodnet.py      EMODnet Geology 로 나가는 문 (유럽 바다의 해저 퇴적물·해저 지질 WMS). 북극해에 두고 스발바르 탭이 빌린다. 3413 으로 곧장
@@ -503,7 +504,8 @@ web/viewer/       뷰어 앱 하나뿐이다. 앱을 더 가르지 않는다
                   알래스카의 물 면은 받은 그림에서 지운다 — 고침의 판이 캐시 열쇠에 든다 `views.map_cache_key`, wetherilli 224)
   iige.py         에콰도르 지질·에너지 연구소(IIGE)로 나가는 문 (일반 지질도 ArcGIS WMS 를 3857 로, 범례는 보는 범위의 REST 통계 질의)
   nrcan.py        캐나다 천연자원부(NRCan·GSC)로 나가는 문 (캐나다 지질도 1:500만 Wheeler ArcGIS WMS 를 3978 로, 속성은 GeoJSON.
-                  같은 서버의 편찬 지질도 CGMC·핵심 광물 시설·광상 유망도도 — `SERVICES`, wetherilli 250)
+                  같은 서버의 편찬 지질도 CGMC·핵심 광물 시설·광상 유망도도 — `SERVICES`, wetherilli 250.
+                  CGMC 래스터는 REST identify 의 OBJECTID − 1 을 범례 34 칸으로 풀어 누른다, wetherilli 320)
   ogs.py          온타리오 지질조사소(OGS)로 나가는 문 (기반암 1:25만·제4기 ArcGIS WMS 를 3978 로, 속성은 REST identify — WMS 번호와 REST 번호가 다르다)
                   광물 산지 목록 MDI(OMEIS, WMS 11·REST 46, wetherilli 288)
   sigeom.py       퀘벡 SIGÉOM 으로 나가는 문 (일반·지역 지질 GeoServer WMS 1.1.1 만, 3978 로. Origin 이 붙으면 403 이라 문으로만, 속성은 text/plain —
@@ -516,7 +518,8 @@ web/viewer/       뷰어 앱 하나뿐이다. 앱을 더 가르지 않는다
   nsgs.py         노바스코샤 자연자원부로 나가는 문 (기반암 1:50만 Keppie 2000 — WMS 가 없어 REST export·identify 로 옮긴다, 화면의 투영 그대로, wetherilli 235)
   ags.py          앨버타 지질조사소로 나가는 문 (기반암 1:100만 Map 600 의 누른 자리만 — 피처 서비스 query. 타일은 ArcGIS Online 의 3857 z/x/y 를 화면이 곧장, wetherilli 235)
   bas.py          영국 남극조사소(BAS)로 나가는 문 (Bedmap3 빙저 지형·얼음 두께·윗면의 범례만 — 타일은 ArcGIS Online 의 Esri 극 격자(3031)를 화면이 곧장, wetherilli 261)
-  bcgs.py         브리티시컬럼비아 지질조사소(BCGS)로 나가는 문 (BC Digital Geology GeoServer WMS 를 3978 로. 색 스타일이 1:50만 너머를 칠하지 않아 줌 11 부터, 속성은 열을 골라)
+  bcgs.py         브리티시컬럼비아 지질조사소(BCGS)로 나가는 문 (BC Digital Geology GeoServer WMS 를 3978 로. 상류 색 스타일이 1:50만 너머를 칠하지 않아 넓게 볼 때는
+                  그 스타일을 47 KB 로 줄여 POST 의 SLD_BODY 로 보낸다 — 줌 5 부터, wetherilli 317. 속성은 열을 골라)
                   MINFILE 광물 산지(같은 openmaps 의 다른 레이어 — 레이어마다 주소가 따로다, wetherilli 288)
   calgs.py        캘리포니아 지질조사소(CGS)로 나가는 문 (1:75만 ArcGIS REST — WMS 가 없어 export·identify 를 3978 로. 상류가 레이어 지정을 무시해 인쇄도 한 장. `cgs` 는 남아공)
   usstates.py     미국 주 지질조사소로 나가는 문 셋 — 네바다 NBMG 1:50만·워싱턴 DNR 1:50만·1:10만 GeMS·오리건 DOGAMI OGDC-6. 모두 REST export·identify 를 3978 로,

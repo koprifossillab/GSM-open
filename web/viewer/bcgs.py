@@ -2,9 +2,11 @@
 
 - 주소: `openmaps.gov.bc.ca/geo/pub/WHSE_MINERAL_TENURE.GEOL_BEDROCK_UNIT_POLY_SVW/ows` (GeoServer WMS). 레이어
   `pub:WHSE_MINERAL_TENURE.GEOL_BEDROCK_UNIT_POLY_SVW`. 열쇠가 없다. 1:5만–1:25만 합본
-- **1:50만보다 넓게 보면 그리지 않는다** — 색 스타일(`1903`)의 519 칸이 모두 `MaxScaleDenominator 500000` 이고, 레이어도 1:70만 너머는 빈다.
-  스타일을 우리가 보내면(SLD_BODY) 넓게도 칠하겠지만 640 KB 라 주소에 실을 수 없다. 그래서 **줌 11 부터** 얹고(1:27만 남짓), 그보다
-  넓으면 캐나다 탭의 Wheeler 1:500만이 밑을 맡는다. 줌 10 은 1:55만이라 빈 그림이었다(2026-10-04)
+- **상류의 스타일은 1:50만보다 넓게 보면 칠하지 않는다** — 색 스타일(`1903`)의 519 칸이 모두 `MaxScaleDenominator 500000`, 테두리 칸은 1:70만.
+  이름 붙은 스타일 셋이 다 그렇다. 처음엔 줌 11 부터 얹었다(wetherilli 231). **넓게 볼 때는 우리 스타일을 보낸다**(wetherilli 317) — 상류 스타일
+  (640 KB)을 한 번 받아 같은 색을 `AGE_GROUP` 값(173)에서 색(161)으로 묶고 축척 끝을 뺀 47 KB 로 줄여(`wide_sld`, 캐시에 30 일), 주소에 실을
+  수 없어 **POST 의 `SLD_BODY`** 로 보낸다(GeoServer 가 KVP 를 POST 몸으로 받는다). 섬 전체 512² 가 4 초 남짓. 1:50만 안쪽은 상류의 스타일 그대로다
+  (테두리까지). 그래서 줌 5 부터 얹는다
 - Capabilities 는 3005·CRS:84 만 적지만 **3978 GetMap 이 그린다** — 캐나다 탭의 투영으로 곧장 받는다(캄루프스 둘레 512² 2.6 초).
   처음 한 장은 9.5 초 걸렸다(wetherilli 210)
 - 속성은 `application/json` 인데 **모양까지 딸려 와 80 KB** 다 — `propertyName` 으로 열을 골라 묻는다(뉴질랜드 `gns.py` 와 같다).
@@ -27,8 +29,12 @@ ATTRIBUTION = ('<a href="https://www2.gov.bc.ca/gov/content/industry/mineral-exp
 LAYERS = {"bcgs:bedrock": "pub:WHSE_MINERAL_TENURE.GEOL_BEDROCK_UNIT_POLY_SVW",
           # MINFILE 광물 산지 1 만 6 천 곳(wetherilli 288) — 같은 openmaps 의 다른 레이어. 레이어마다 주소가 따로다(`…/pub/<레이어>/ows`)
           "bcgs:minfile": "pub:WHSE_MINERAL_TENURE.MINFIL_MINERAL_FILE"}
-#: 이 줌부터 그린다 — 색 스타일이 1:50만 너머를 칠하지 않는다
-MIN_ZOOM = 11
+#: 이 줌부터 얹는다 — 캐나다 탭에서 BC 가 한 화면에 드는 줌. 그보다 넓으면 캐나다 Wheeler 1:500만이 맡는다 (wetherilli 317)
+MIN_ZOOM = 5
+#: 상류의 색 스타일이 칠하는 가장 넓은 축척 — 이보다 넓으면 우리 스타일(`wide_sld`)을 보낸다
+WIDE_SCALE = 500000
+#: 줄인 스타일을 담아 두는 날 — 상류가 색을 고치면 따라간다
+WIDE_SLD_SECONDS = 30 * 86400
 FIELDS = ("STRATIGRAPHIC_UNIT_CODE,STRATIGRAPHIC_NAME,ROCK_TYPE_DESCRIPTION,ROCK_CLASS,ORIGINAL_DESCRIPTION,"
           "MAXIMUM_AGE_NAME,MINIMUM_AGE_NAME,MAXIMUM_AGE_VALUE,MINIMUM_AGE_VALUE,GEOLOGICAL_PERIOD,TERRANE_NAME,"
           "MORPHOTECTONIC_BELT,AUTHOR_NAMES")
@@ -86,8 +92,78 @@ def _wms(params: dict, request: str) -> dict:
     return params
 
 
+def _scale(params: dict) -> float:
+    """요청의 축척 분모 — 범위 너비 ÷ 픽셀 ÷ 0.28 mm. 경위도면 1° = 111 km 로 어림한다"""
+    try:
+        west, _, east, _ = (float(v) for v in str(params.get("bbox") or "").split(","))
+        width = float(params.get("width") or 256)
+    except ValueError:
+        return 0.0
+    metres = (east - west) * (111320.0 if str(params.get("srs") or params.get("crs") or "").upper() in ("EPSG:4326", "CRS:84") else 1.0)
+    return abs(metres) / max(width, 1.0) / 0.00028
+
+
+def compact_sld(style_xml: str) -> str:
+    """상류 스타일(SLD) → 같은 색의 `AGE_GROUP` 값을 한 칸으로 묶고 축척 끝·테두리를 뺀 SLD. 640 KB → 47 KB"""
+    import re
+    colours = {}
+    for rule in re.findall(r"<sld:Rule>(.*?)</sld:Rule>", style_xml, re.S):
+        value = re.search(r"PropertyName>AGE_GROUP</ogc:PropertyName>\s*<ogc:Literal>([^<]*)</ogc:Literal>", rule)
+        fill = re.search(r'name="fill">\s*([^<]+?)\s*<', rule)
+        if value and fill:
+            colours.setdefault(fill.group(1), set()).add(value.group(1))
+    if not colours:
+        raise BcgsError("상류 스타일에서 색을 찾지 못했다")
+    rules = []                                     # 값·색은 상류 XML 에서 뜬 글 그대로라 이미 이스케이프돼 있다 — 다시 하지 않는다
+    for colour, values in colours.items():
+        cond = "".join(f"<ogc:PropertyIsEqualTo><ogc:PropertyName>AGE_GROUP</ogc:PropertyName><ogc:Literal>{v}</ogc:Literal>"
+                       "</ogc:PropertyIsEqualTo>" for v in sorted(values))
+        if len(values) > 1:
+            cond = f"<ogc:Or>{cond}</ogc:Or>"
+        rules.append(f'<Rule><ogc:Filter>{cond}</ogc:Filter><PolygonSymbolizer><Fill><CssParameter name="fill">{colour}'
+                     "</CssParameter></Fill></PolygonSymbolizer></Rule>")
+    return ('<StyledLayerDescriptor version="1.0.0" xmlns="http://www.opengis.net/sld" xmlns:ogc="http://www.opengis.net/ogc">'
+            f'<NamedLayer><Name>{LAYERS["bcgs:bedrock"]}</Name><UserStyle><FeatureTypeStyle>{"".join(rules)}'
+            "</FeatureTypeStyle></UserStyle></NamedLayer></StyledLayerDescriptor>")
+
+
+def wide_sld() -> str:
+    """넓게 볼 때 보낼 스타일 — 상류의 색 스타일을 한 번 받아 줄인 것. 캐시에 30 일"""
+    from . import tilecache
+    key = tilecache.key_text("bcgs-wide-sld", LAYERS["bcgs:bedrock"])
+    held = tilecache.get(key, ".xml", max_age=WIDE_SLD_SECONDS)
+    if held is not None:
+        return held.decode("utf-8")
+    r = _get({"service": "WMS", "version": "1.1.1", "request": "GetStyles", "layers": LAYERS["bcgs:bedrock"]}, _url("bcgs:bedrock"))
+    if r.status_code != 200 or "Rule>" not in r.text:
+        raise BcgsError(f"상류 스타일을 받지 못했다 (status={r.status_code})")
+    sld = compact_sld(r.text)
+    tilecache.put(key, sld.encode("utf-8"), ".xml")
+    return sld
+
+
+def _post(params: dict, url: str):
+    left = usage.paused()
+    if left:
+        raise BcgsError(f"차단 조짐이 있어 {int(left)}초 동안 상류에 묻지 않는다")
+    try:
+        r = requests.post(url, data=params, timeout=max(settings.UPSTREAM_TIMEOUT, 60),
+                          verify=settings.CA_BUNDLE or True, headers={"User-Agent": "GSM/0.1"})
+    except requests.RequestException as exc:
+        usage.record("bcgs", ok=False)
+        raise BcgsError(f"BC openmaps 에 닿지 못했다: {exc}") from exc
+    log.info("BCGS POST %s %s -> %s", url, params.get("bbox"), r.status_code)       # 스타일(47 KB)은 적지 않는다
+    usage.record("bcgs", ok=r.status_code == 200, blocked=usage.looks_blocked(r.status_code, r.content[:1000]), elapsed=r.elapsed)
+    return r
+
+
 def get_map(params: dict):
-    r = _get(_wms(params, "GetMap"), _url(params.get("layers")))
+    wms = _wms(params, "GetMap")
+    if str(params.get("layers") or "").strip() == "bcgs:bedrock" and _scale(wms) > WIDE_SCALE:
+        # 넓게 볼 때 — 상류 스타일이 칠하지 않는 축척이라 우리 스타일을 POST 로 (wetherilli 317)
+        r = _post(dict(wms, styles="", SLD_BODY=wide_sld()), _url("bcgs:bedrock"))
+    else:
+        r = _get(wms, _url(params.get("layers")))
     ctype = r.headers.get("content-type", "")
     if r.status_code != 200 or not ctype.startswith("image/"):
         raise BcgsError(f"그림이 아닌 것이 왔다 (status={r.status_code}, type={ctype})")

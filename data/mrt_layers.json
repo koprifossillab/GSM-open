@@ -1,0 +1,37 @@
+{
+ "_주석": "태즈메이니아 광물자원청(MRT) 지질 씨앗이다 — 호주 탭. 주 토지정보 theLIST 의 ArcGIS REST(web/viewer/austates.py 의 TAS). 1:50만·1:35만보다 넓으면 상류가 그리지 않아 줌 11 부터. 조건은 theLIST 웹 서비스 약관(레이어 저작권 글이 비었다 — 정적 판에 싣지 않는다). 한글 제목과 레이어군은 사람이 붙였다 (wetherilli 318).",
+ "_뽑은날": "2026-10-05",
+ "_출처": "https://services.thelist.tas.gov.au/arcgis/rest/services/Public/GeologicalAndSoils/MapServer",
+ "_지역": "australia",
+ "_상류": "mrt",
+ "_레이어군차례": 13,
+ "레이어군순서": [
+  "태즈메이니아 지질도 (MRT)"
+ ],
+ "레이어": [
+  {
+   "name": "mrt:250k",
+   "title": "태즈메이니아 지질 (1:25만 합본)",
+   "group": "태즈메이니아 지질도 (MRT)",
+   "abstract": "Geological polygons and lines 250K — 1:5만·1:6.3만 지질 도첩을 1:25만으로 엮은 주 전체 판",
+   "bbox": [
+    143.8,
+    -43.7,
+    148.5,
+    -39.5
+   ]
+  },
+  {
+   "name": "mrt:25k",
+   "title": "태즈메이니아 지질 (1:2.5만)",
+   "group": "태즈메이니아 지질도 (MRT)",
+   "abstract": "Geological polygons and lines 25K — 조사한 곳만",
+   "bbox": [
+    143.8,
+    -43.7,
+    148.5,
+    -39.5
+   ]
+  }
+ ]
+}

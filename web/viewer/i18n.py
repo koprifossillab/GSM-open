@@ -531,6 +531,12 @@ EN = {
     "지열류 자료를 아직 굽지 않았다 (build_heatflow)": "Heat flow data not built yet (build_heatflow)",
     "최근 지진 (7 일, M2.5 이상)": "Recent earthquakes (7 days, M2.5+)",
     "속이 빈 고리 — 크기는 규모, 색은 지난 시간 (매시 받음)": "Hollow rings — size is magnitude, colour is time since (fetched hourly)",
+    # 관리 화면의 마지막 레이어 대조 (wetherilli 314)
+    "마지막 레이어 대조 {day} — 그림 {drawn} · 빈 그림 {empty} · 오류 {error} · 건너뜀 {skipped}":
+        "Last layer check {day} — drawn {drawn} · empty {empty} · error {error} · skipped {skipped}",
+    "앞의 대조보다 새로 깨진 것 {n}": "Newly broken since the previous check: {n}", "고쳐진 것 {n}": "Fixed: {n}",
+    "자세한 것은 manage.py verify_layers --diff": "Details: manage.py verify_layers --diff",
+    "레이어 대조 기록이 아직 없다 (manage.py verify_layers --redo)": "No layer check recorded yet (manage.py verify_layers --redo)",
     # 관리 화면의 상류 응답 시간 (wetherilli 295)
     "상류 응답 시간": "Upstream response times",
     "지난 7 일의 평균이 느린 차례 — 시간은 상류가 응답의 머리를 보내기까지": "Slowest first by the 7-day mean — time until the upstream sends the response headers",
@@ -905,7 +911,7 @@ EN = {
     "우루과이": "Uruguay",
     "아르헨티나 지질광업조사소": "Argentine Geological-Mining Survey (SEGEMAR)",
     "퀸즐랜드 지질조사소": "Geological Survey of Queensland", "빅토리아 지질조사소": "Geological Survey of Victoria",
-    "남호주 지질조사소": "Geological Survey of South Australia",
+    "남호주 지질조사소": "Geological Survey of South Australia", "태즈메이니아 광물자원청": "Mineral Resources Tasmania", "뉴사우스웨일스 지질조사소": "Geological Survey of New South Wales",
     # 아프리카 (wetherilli 207)
     "아프리카": "Africa",
     "세계지질도위원회·프랑스 지질광물조사소": "Commission for the Geological Map of the World · BRGM (CGMW–BRGM)",
@@ -1955,6 +1961,9 @@ EN = {
 # 모았다. 영문 열(`symnum`·`GRAY_INDEX` …)은 그대로 둔다.
 
 PROP_EN = {
+    # GSJ 1:200만·중력 (wetherilli 316)
+    "설명 (원문)": "Description (original)",
+    "부게 이상 (mGal, 둘레 등치선)": "Bouguer anomaly (mGal, nearby contours)",
     # 대만 지질운 열린자료 (wetherilli 305)
     "선상지 넓이": "Fan area",
     "보호 대상": "Protected targets",
@@ -2053,6 +2062,7 @@ PROP_EN = {
     "화산 종류": "Volcano type",
     "마지막 분화": "Last eruption",
     "표고 (m)": "Elevation (m)",
+    "광산 이름": "Mine name", "상태": "Status", "조사 방법": "Observation method",
     "측점": "Station", "조사": "Survey", "프리에어 이상 (mGal)": "Free-air anomaly (mGal)", "부게 이상 (mGal)": "Bouguer anomaly (mGal)",
     "지구조 환경": "Tectonic setting",
     "주 암석": "Major rock type",
@@ -3187,6 +3197,52 @@ TECTONIC_EN = {
 }
 
 
+# GSJ 1:200만 일본 지질도(wetherilli 316)는 범례의 설명이 일본어다 — `後期更新世後期より完新世`·`中期始新世より中期中新世前期`·`時代未詳`.
+# 조각은 `[앞 꾸밈]낱말[뒤 꾸밈]` 이고 `より`(부터)로 잇는다. 앞 꾸밈은 ICS 의 세(前期 = Early), 뒤 꾸밈은 그 세 안의 앞·가운데·뒤다.
+# 모르는 글자가 남으면 원문이다 — `age_zh` 와 같은 규칙.
+AGE_JA = {"完新世": "Holocene", "更新世": "Pleistocene", "鮮新世": "Pliocene", "中新世": "Miocene", "漸新世": "Oligocene",
+          "始新世": "Eocene", "暁新世": "Paleocene", "古第三紀": "Paleogene", "新第三紀": "Neogene", "第四紀": "Quaternary",
+          "白亜紀": "Cretaceous", "ジュラ紀": "Jurassic", "三畳紀": "Triassic", "二畳紀": "Permian", "石炭紀": "Carboniferous",
+          "デボン紀": "Devonian", "シルル紀": "Silurian", "オルドビス紀": "Ordovician", "カンブリア紀": "Cambrian"}
+AGE_JA_WHOLE = {"時代未詳": ("시대 미상", "Age unknown"), "先シルル紀": ("실루리아기 이전", "Pre-Silurian")}
+AGE_JA_MODS = {"前期": "early", "中期": "middle", "後期": "late"}
+#: 뒤 꾸밈(세 안의 앞·가운데·뒤) — 한국어
+AGE_JA_PART_KO = {"early": "전반", "middle": "중반", "late": "후반"}
+_AGE_JA_SEG = re.compile("^(前期|中期|後期)?(" + "|".join(map(re.escape, sorted(AGE_JA, key=len, reverse=True))) + ")(前期|中期|後期)?$")
+
+
+def age_ja(value: str, lang: str = "ko") -> str:
+    """일본어 지질시대 값 하나를 한국어(또는 영어)로. 못 옮기면 원문을 그대로 돌려준다.
+
+        後期更新世後期より完新世   → 플라이스토세 후기 후반~홀로세     (late Late Pleistocene – Holocene)
+        中期始新世より中期中新世前期 → 에오세 중기~마이오세 중기 전반
+        二畳紀                     → 페름기
+        時代未詳                   → 시대 미상
+    """
+    text = str(value or "").strip()
+    if not text:
+        return value
+    out = []
+    for part in text.split("より"):
+        if part in AGE_JA_WHOLE:
+            out.append(AGE_JA_WHOLE[part][0 if lang == "ko" else 1])
+            continue
+        found = _AGE_JA_SEG.match(part)
+        if not found:
+            return value
+        pre, noun, post = found.group(1), AGE_JA[found.group(2)], found.group(3)
+        if lang == "ko":
+            words = [AGE_WORDS_KO[noun.lower()]]
+            if pre:
+                words.append(AGE_MODIFIERS_KO[AGE_JA_MODS[pre]])
+            if post:
+                words.append(AGE_JA_PART_KO[AGE_JA_MODS[post]])
+        else:
+            words = ([AGE_JA_MODS[post]] if post else []) + ([AGE_JA_MODS[pre].capitalize()] if pre else []) + [noun]
+        out.append(" ".join(words))
+    return ("~" if lang == "ko" else " – ").join(out)
+
+
 def props_en(props: dict) -> dict:
     """팝업에 보일 속성을 영어로. 이름은 표로, 지질시대 값은 `age_en` 으로,
     링크 이름표는 `LINK_EN` 으로. 나머지 값은 상류가 준 그대로다."""
@@ -3236,6 +3292,7 @@ GROUP_EN = {
     "브라질 광물 자원 (SGB)": "Brazil mineral resources (SGB)", "콜롬비아 금속광상·지구물리 (SGC)": "Colombia metallogeny and geophysics (SGC)",
     "아르헨티나 광상 (SEGEMAR 1:25만)": "Argentina mineral deposits (SEGEMAR 1:250k)",
     "퀸즐랜드 광물·지구물리 (GSQ)": "Queensland minerals and geophysics (GSQ)", "빅토리아 광상 (GSV)": "Victoria mineral deposits (GSV)", "빅토리아 지구물리 (GSV)": "Victoria geophysics (GSV)",
+    "태즈메이니아 지질도 (MRT)": "Tasmania geology (MRT)", "뉴사우스웨일스 광물 (GSNSW)": "New South Wales minerals (GSNSW)",
     "남호주 광물 산지 (GSSA)": "South Australia mineral occurrences (GSSA)", "뉴질랜드 지구물리 (GNS)": "New Zealand geophysics (GNS)",
     "일본 지질도·중력 (GSJ)": "Japan geology and gravity (GSJ)", "일본 지구화학도 (GSJ, 하천 퇴적물)": "Japan geochemical map (GSJ, stream sediments)",
     "일본 지구화학도 — 나머지 원소 (GSJ)": "Japan geochemical map — other elements (GSJ)", "일본 자기 이상도 (GSJ 지질도Navi)": "Japan magnetic anomaly maps (GSJ Geological Map Navi)",
@@ -3435,7 +3492,9 @@ LAYER_EN = {
     # 오세아니아 광물·지구물리 (wetherilli 269)
     "gsq:mines": "Mines and mineral occurrences (MINOCC)", "gsq:tmi": "Total magnetic intensity (TMI)", "gsq:radiometric": "Radiometric ternary",
     "gsq:gravity": "Complete Bouguer gravity anomaly", "gsv:mineral": "Mineral deposits (polygons)", "gsv:mineralp": "Mineral deposits (points)",
-    "gsv:gravity": "Gravity stations", "gsv:lin_tmi": "Magnetic lineaments (TMI)", "gsv:lin_gravity": "Gravity lineaments",
+    "gsv:gravity": "Gravity stations",
+    "mrt:250k": "Tasmania geology (1:250k compilation)", "mrt:25k": "Tasmania geology (1:25k)",
+    "gsnsw:minocc": "New South Wales mineral occurrences", "gsnsw:mines": "New South Wales mines", "gsv:lin_tmi": "Magnetic lineaments (TMI)", "gsv:lin_gravity": "Gravity lineaments",
     "gsv:lin_radio": "Radiometric lineaments",
     "gssa:minocc": "Mineral occurrences (SARIG)", "gns:gravity": "Gravity anomaly",
     # GSJ 의 다른 WMS (wetherilli 255)

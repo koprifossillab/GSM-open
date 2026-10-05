@@ -337,8 +337,8 @@ CCOP = _NS(get_map=ccop_get_map, get_feature_info=ccop_get_feature_info, get_leg
 # - 조건: WMS·WMTS 의 지질도는 **정부표준이용규약 2.0**(안내 쪽 "Terms of Use") — 출처를 밝히면 된다. 중력도의 AccessConstraints 는 "저작권은
 #   산총연 GSJ 에 있다" 고 적는데, 이용 조건은 위의 규약이다
 # - 1:200만 지질도·중력도는 새 호스트(`ows.gsj.jp/ows/`), **지구화학도는 옛 호스트에만**(`gbank.gsj.jp/ows/geochemmap` — 새 호스트는 404)
-# - 셋 다 MapServer 라 3857 로 그린다. **누르지 않는다** — CCOP 처럼 3857 로 물으면 "no results", 4326 으로 물어도 기호 번호(`GEO200 = '25'`)
-#   뿐이다. 범례 그림(GetLegendGraphic)이 번호·색·이름을 다 싣는다
+# - 셋 다 MapServer 라 3857 로 그린다. 누르면 기호 번호(`GEO200 = '25'`)뿐이라 처음엔 누르지 않았다. **1:200만 지질도·중력은 누른다**
+#   (wetherilli 316) — `styles=` 를 붙이면 답하고(MapServer 8 이 요구한다), 번호 → 기호·설명은 범례의 SLD(`GetStyles`)가 준다. 지구화학도는 그대로
 # - 지구화학도는 원소 53 가지(하천 퇴적물, 이마이 외 2004) — 처음엔 금속·환경 원소 열하나만 골랐고(`GEOCHEM`), 나머지 마흔둘은 셋째 판에
 #   더했다(`GEOCHEM_MORE`, wetherilli 266). Capabilities 의 차례 그대로다
 # - **공중 자력은 WMS 가 없다** — 지질도Navi 판으로만 있다. 일본 전체를 덮는 편집도 셋(`GSJOWS_NAVI` — 일본의 자기도 1:200만 1992, 동아시아
@@ -421,8 +421,92 @@ def gsjows_get_legend(layer: str):
     return r.content, r.headers.get("content-type")
 
 
+#: 누를 수 있는 레이어 → (물을 상류 레이어, 값의 열) (wetherilli 316). 지구화학도는 누르지 않는다 — 함량 구간 번호뿐이고 범례 그림이 다 말한다
+GSJOWS_INFO = {"gsjows:japan2m": ("area", "GEO200"), "gsjows:gravity": ("AssumedDensity267", "VAL")}
+#: 범례 표(SLD)를 담아 두는 날 — 1:200만은 판이 바뀌지 않는다
+GSJOWS_TABLE_SECONDS = 30 * 86400
+_GSJOWS_RULE = _re.compile(r"<Rule>\s*<Name>\s*(\d+)\s+(\S+)\s*:\s*([^<]*?)\s*</Name>")
+_GSJOWS_TEXT = _re.compile(r"^\s*(\w+)\s*=\s*'([^']*)'", _re.M)
+
+
+def gsjows_classes() -> dict:
+    """1:200만 지질도의 번호(`GEO200`) → (기호, 설명). 범례의 SLD(`GetStyles`)에서 — `1 H : 後期更新世後期より完新世の堆積岩類`.
+    한 번 받아 캐시에 30 일 둔다"""
+    import json as _json
+    from . import tilecache
+    key = tilecache.key_text("gsjows-classes", "geologicmap2000k/area")
+    held = tilecache.get(key, ".json", max_age=GSJOWS_TABLE_SECONDS)
+    if held is not None:
+        return {int(k): tuple(v) for k, v in _json.loads(held).items()}
+    url, _, _ = _gsjows("gsjows:japan2m")
+    r = _gsjows_get(url, {"service": "WMS", "version": "1.1.1", "request": "GetStyles", "layers": "area"})
+    if r.status_code != 200 or "<Rule>" not in r.text:
+        raise GsjError(f"범례 표를 받지 못했다 (status={r.status_code})")
+    table = {int(n): (code, desc) for n, code, desc in _GSJOWS_RULE.findall(r.text)}
+    tilecache.put(key, _json.dumps(table, ensure_ascii=False).encode("utf-8"), ".json")
+    return table
+
+
 def gsjows_get_feature_info(params: dict) -> dict:
-    return {"features": []}
+    """누른 자리 — CCOP 처럼 4326 의 작은 네모(0.2°, 101 픽셀)로 다시 묻는다. 3857 로도 답하지만 화면의 줌마다 네모가 달라져 캐시가 맞지 않는다.
+    값은 `text/plain` 의 `GEO200 = '3'` 한 줄 — 지질도는 범례 표로 기호·설명을 붙인다 (wetherilli 316)"""
+    layer = str(params.get("query_layers") or params.get("layers") or "").split(",")[0].strip()
+    if layer not in GSJOWS_INFO:
+        return {"features": []}
+    upstream, column = GSJOWS_INFO[layer]
+    lon, lat = _clicked_lonlat(params)
+    gravity = layer == "gsjows:gravity"
+    # 중력은 등치선(2 mGal 간격)만 누를 수 있다 — 칠한 면이 없다. 픽셀 몇 칸 안의 선만 걸리므로 0.4° 네모(한 픽셀 0.004°)로 묻고,
+    # 비면 1° 로 한 번 더 — 1° 는 10 mGal 남짓을 걸쳐 넓다
+    url, _, _ = _gsjows(layer)
+    found = []
+    for half in ((0.2, 0.5) if gravity else (0.1,)):
+        r = _gsjows_get(url, {"service": "WMS", "version": "1.1.1", "request": "GetFeatureInfo", "layers": upstream,
+                              "query_layers": upstream, "styles": "", "srs": "EPSG:4326",
+                              "bbox": f"{lon - half:.6f},{lat - half:.6f},{lon + half:.6f},{lat + half:.6f}",
+                              "width": 101, "height": 101, "x": 50, "y": 50, "info_format": "text/plain",
+                              "feature_count": 10 if gravity else 1})
+        if r.status_code != 200:
+            raise GsjError(f"속성을 읽지 못했다 (status={r.status_code})")
+        found = _GSJOWS_TEXT.findall(r.text)
+        if found:
+            break
+    values = dict(found)
+    if column not in values:
+        return {"features": []}
+    if gravity:
+        numbers = sorted({float(v) for k, v in found if k == column and _re.fullmatch(r"-?\d+(\.\d+)?", v)})
+        if not numbers:
+            return {"features": []}
+        text = f"{numbers[0]:g}" if len(numbers) == 1 else f"{numbers[0]:g} – {numbers[-1]:g}"
+        return {"features": [{"id": "gsjows.gravity", "properties": {"gravity": text}}]}
+    number = int(values[column]) if values[column].lstrip("-").isdigit() else None
+    code, desc = gsjows_classes().get(number, ("", ""))
+    if number is None or code in ("Undef0", "Undef", "Sea", "Lake", "Water", "River") or not desc:
+        return {"features": []}
+    return {"features": [{"id": f"gsjows.japan2m.{number}", "properties": {"code": code, "desc": desc}}]}
+
+
+#: 팝업에 보일 이름
+GSJOWS_FRIENDLY = {"code": "기호", "age": "지질시대", "rock": "암상", "desc": "설명 (원문)", "gravity": "부게 이상 (mGal, 둘레 등치선)"}
+
+
+def gsjows_friendly(props: dict, lang: str = "ko") -> dict:
+    """설명(`後期更新世後期より完新世の堆積岩類`)을 첫 `の` 에서 시대와 암상으로 나눈다. 시대는 옮기고(`i18n.age_ja`) 암상은 값이라 원문 그대로"""
+    out = {}
+    if "code" in props:
+        out[GSJOWS_FRIENDLY["code"]] = props["code"]
+    desc = props.get("desc") or ""
+    if desc:
+        age, _, rock = desc.partition("の")
+        translated = i18n.age_ja(age, lang) if rock else ""
+        if translated and translated != age:
+            out[GSJOWS_FRIENDLY["age"]] = translated
+            out[GSJOWS_FRIENDLY["rock"]] = rock
+        out[GSJOWS_FRIENDLY["desc"]] = desc
+    if "gravity" in props:
+        out[GSJOWS_FRIENDLY["gravity"]] = props["gravity"]
+    return out
 
 
 OWS = _NS(get_map=gsjows_get_map, get_feature_info=gsjows_get_feature_info, get_legend=gsjows_get_legend)

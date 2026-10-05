@@ -1148,6 +1148,9 @@
     gsq: { source: npolarSource, info: wmsInfoUrl },
     gsv: { source: npolarSource, info: wmsInfoUrl },
     gssa: { source: npolarSource, info: wmsInfoUrl },
+    // 태즈메이니아(theLIST REST, 문이 옮긴다)·뉴사우스웨일스 광물(wetherilli 318) — 3857
+    mrt: { source: npolarSource, info: wmsInfoUrl },
+    gsnsw: { source: npolarSource, info: wmsInfoUrl },
     // 이탈리아 ISPRA·포르투갈 LNEG·스위스 swisstopo(wetherilli 211) — 유럽 문처럼 카탈로그 행의 투영(3857)으로 서버 문을 거친다
     ispra: { source: npolarSource, info: wmsInfoUrl },
     lneg: { source: npolarSource, info: wmsInfoUrl },
@@ -2668,7 +2671,7 @@
   //: 상류의 짧은 이름 — 기관 이름이라 옮기지 않는다
   var UPSTREAM_TAGS = {
     kigam: "KIGAM", vworld: "VWorld", geus: "GEUS", geusarc: "GEUS", grportal: "GRL", npolar: "NPI", janmayen: "NPI",
-    gsj: "GSJ", gsitile: "GSIJ", geonavi: "GSJ", gsjows: "GSJ", ccop: "CCOP", gsmma: "GSMMA", emodnet: "EMOD", ngu: "NGU", gtk: "GTK", sgu: "SGU", natt: "NÍ", bgs: "BGS", bgsgi: "BGS", brgm: "BRGM", egdi: "EGDI", bgr: "BGR", igme: "IGME", gsi: "GSI", gsni: "GSNI", sgc: "SGC", sgb: "SGB", ingemmet: "INGEMMET", iige: "IIGE", cgmw: "CGMW", aga: "BGS", cgs: "CGS", gsn: "GSN", bumigeb: "BUMIGEB", irgm: "IRGM", mrdata: "USGS", sgm: "SGM", nrcan: "NRCan", ogs: "OGS", sigeom: "SIGÉOM", ygs: "YGS", skgs: "SGS-SK", nsgs: "NSNRR", ags: "AGS", bcgs: "BCGS", calgs: "CGS", nbmg: "NBMG", wadnr: "WGS", dogami: "DOGAMI", geosphere: "GSA", georep: "NC", ineter: "INETER", usgscarib: "USGS", bas: "BAS", sim3534: "USGS", stri: "STRI", vmme: "VMME", pig: "PIG", tno: "TNO", dov: "DOV", spw: "SPW", ga: "GA", gsq: "GSQ", gsv: "GSV", gssa: "GSSA", gns: "GNS", mris: "NGS", gsiindia: "GSI-IN", sgs: "SGS", esdm: "ESDM", jmg: "JMG", mgb: "MGB", dmr: "DMR", ispra: "ISPRA", lneg: "LNEG", swisstopo: "swisstopo", segemar: "SEGEMAR", dinamige: "DINAMIGE", geomap: "GeoMAP", geo3al: "USGS", kopri: "KOPRI", pgc: "PGC", ibcso: "IBCSO", admap: "ADMAP",
+    gsj: "GSJ", gsitile: "GSIJ", geonavi: "GSJ", gsjows: "GSJ", ccop: "CCOP", gsmma: "GSMMA", emodnet: "EMOD", ngu: "NGU", gtk: "GTK", sgu: "SGU", natt: "NÍ", bgs: "BGS", bgsgi: "BGS", brgm: "BRGM", egdi: "EGDI", bgr: "BGR", igme: "IGME", gsi: "GSI", gsni: "GSNI", sgc: "SGC", sgb: "SGB", ingemmet: "INGEMMET", iige: "IIGE", cgmw: "CGMW", aga: "BGS", cgs: "CGS", gsn: "GSN", bumigeb: "BUMIGEB", irgm: "IRGM", mrdata: "USGS", sgm: "SGM", nrcan: "NRCan", ogs: "OGS", sigeom: "SIGÉOM", ygs: "YGS", skgs: "SGS-SK", nsgs: "NSNRR", ags: "AGS", bcgs: "BCGS", calgs: "CGS", nbmg: "NBMG", wadnr: "WGS", dogami: "DOGAMI", geosphere: "GSA", georep: "NC", ineter: "INETER", usgscarib: "USGS", bas: "BAS", sim3534: "USGS", stri: "STRI", vmme: "VMME", pig: "PIG", tno: "TNO", dov: "DOV", spw: "SPW", ga: "GA", gsq: "GSQ", gsv: "GSV", gssa: "GSSA", mrt: "MRT", gsnsw: "GSNSW", gns: "GNS", mris: "NGS", gsiindia: "GSI-IN", sgs: "SGS", esdm: "ESDM", jmg: "JMG", mgb: "MGB", dmr: "DMR", ispra: "ISPRA", lneg: "LNEG", swisstopo: "swisstopo", segemar: "SEGEMAR", dinamige: "DINAMIGE", geomap: "GeoMAP", geo3al: "USGS", kopri: "KOPRI", pgc: "PGC", ibcso: "IBCSO", admap: "ADMAP",
     phyloserver: "LAB", peninsula: "LAB",
     // 지구 자료 점(wetherilli 185) — 기관이 넷이라 딱지는 하나로 두고 이름은 레이어 제목이 적는다
     earth: "EARTH",
@@ -2693,6 +2696,7 @@
     cgmw: T("세계지질도위원회·프랑스 지질광물조사소"), aga: T("영국 지질조사소 — 아프리카 지하수 지도책"),
     cgs: T("남아프리카공화국 지질조사소"), gsn: T("나미비아 지질조사소"), bumigeb: T("부르키나파소 지질광업국"), irgm: T("카메룬 지질광업연구소"), ga: "Geoscience Australia",
     gsq: T("퀸즐랜드 지질조사소"), gsv: T("빅토리아 지질조사소"), gssa: T("남호주 지질조사소"),
+    mrt: T("태즈메이니아 광물자원청"), gsnsw: T("뉴사우스웨일스 지질조사소"),
     gsni: T("북아일랜드 지질조사소"),
     geomap: "GeoMAP (SCAR)", geo3al: T("미국 지질조사국"), kopri: T("극지연구소"), pgc: T("미네소타대 극지공간정보센터"),
     ibcso: "IBCSO", admap: "ADMAP-2", phyloserver: T("연구실 자료"), peninsula: T("연구실 자료"),

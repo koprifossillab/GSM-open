@@ -37,7 +37,7 @@ from django.utils import timezone
 from django.test import RequestFactory
 from django.urls import resolve, reverse
 
-from viewer import ags, bas, elevation, geomap, gsj, ingemmet, kigam, tilegrid, usage, views, vworld
+from viewer import ags, bas, elevation, geomap, gsj, ingemmet, kigam, tilegrid, usage, verifylog, views, vworld
 from viewer.models import Layer
 
 from .prewarm import PREWARM_ERRORS, GeomapPlan, GsjPlan, IngemmetPlan, WmsPlan, plan_for
@@ -267,10 +267,15 @@ class Command(BaseCommand):
         parser.add_argument("--upstream", default="", help="이 상류만 (쉼표로 여럿)")
         parser.add_argument("--skip", default="", help="이 상류는 빼고 (쉼표로 여럿)")
         parser.add_argument("--redo", action="store_true", help="이미 확인한 것도 다시 본다")
+        parser.add_argument("--diff", action="store_true",
+                            help="대조는 건너뛰고 마지막 기록(<DB 옆>/verify/)에서 앞의 기록보다 새로 깨진 것만 본다")
         parser.add_argument("--probe-info", action="store_true",
                             help="대조는 건너뛰고 /openapi/wms 의 GetFeatureInfo 만 찔러본다")
 
     def handle(self, *args, **o):
+        if o["diff"]:
+            self._diff()
+            return
         if o["probe_info"]:
             if not kigam.has_key():
                 self.stderr.write(self.style.ERROR("인증키가 없다. .env 의 GSM_KIGAM_KEY 를 채운다."))
@@ -298,6 +303,7 @@ class Command(BaseCommand):
 
         table = defaultdict(Counter)
         broken = []                                  # (상류, 레이어, 갈래, 까닭)
+        results = {}                                 # 날마다 남기는 기록 (wetherilli 314)
         in_a_row, given_up = Counter(), set()
         stopped = None
         for index, layer in enumerate(layers, start=1):
@@ -312,6 +318,7 @@ class Command(BaseCommand):
             elif asked:
                 in_a_row[up] = 0
             self._save(layer, kind, note)
+            results[layer.name] = {"upstream": up, "kind": kind, "note": note}
             table[up][kind] += 1
             if kind in ("빈 그림", "오류"):
                 broken.append((up, layer.name, kind, note))
@@ -323,8 +330,27 @@ class Command(BaseCommand):
                 break
 
         self._report(table, broken, given_up)
+        path = verifylog.record(results)
+        self.stdout.write(f"기록: {path}")
+        self._diff()
         if kigam.has_key():
             self._probe_info()
+
+    def _diff(self):
+        """마지막 기록에서 앞의 기록보다 새로 깨진 것과 고쳐진 것 (wetherilli 314)"""
+        got = verifylog.diff()
+        if got["day"] is None:
+            self.stdout.write("대조 기록이 없다.")
+            return
+        if got["previous"] is None:
+            self.stdout.write(f"{got['day']} — 견줄 앞의 기록이 없다.")
+            return
+        self.stdout.write(f"{got['day']} 을 앞의 기록(마지막 {got['previous']})과 견준다 — "
+                          f"새로 깨진 것 {len(got['newly'])}, 고쳐진 것 {len(got['fixed'])}")
+        for name, day, kind, note in got["newly"]:
+            self.stdout.write(self.style.WARNING(f"- 새로 깨짐 `{name}` — {kind}: {note} (앞: {day} 그림)"))
+        for name, day, was in got["fixed"]:
+            self.stdout.write(f"- 고쳐짐 `{name}` (앞: {day} {was})")
 
     def _one(self, layer, given_up, delay):
         """(갈래, 기록, 상류에 물었나)"""

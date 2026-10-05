@@ -459,7 +459,7 @@ NOT_LAYERS = {
 #: (wetherilli 182). 같은 상류도 판마다(IGME 1:100만 4326·MAGNA 3857), 레이어군마다(EMODnet 북극해 3413·유럽 바다 3857) 다르다.
 #: PGC 경사·등고선(wetherilli 099)도 같은 길이다 — 182 가 "더하면 된다" 고 남긴 것 (wetherilli 203)
 PROJECTED = ("pgc", "geusarc", "emodnet", "ngu", "gtk", "bgs", "bgsgi", "brgm", "egdi", "bgr", "igme", "gsi", "gsni", "sgc", "sgb", "segemar", "dinamige",
-             "iige", "mrdata", "sgm", "cgmw", "aga", "bumigeb", "irgm", "nrcan", "ogs", "sigeom", "ygs", "skgs", "nsgs", "ga", "gsq", "gsv", "gssa", "ispra", "lneg", "swisstopo", "sgu", "natt", "gns", "mris", "gsiindia", "sgs", "esdm", "jmg", "mgb", "dmr", "bcgs", "calgs", "geosphere", "pig", "tno", "dov", "spw", "ineter", "georep")
+             "iige", "mrdata", "sgm", "cgmw", "aga", "bumigeb", "irgm", "nrcan", "ogs", "sigeom", "ygs", "skgs", "nsgs", "ga", "gsq", "gsv", "gssa", "mrt", "gsnsw", "ispra", "lneg", "swisstopo", "sgu", "natt", "gns", "mris", "gsiindia", "sgs", "esdm", "jmg", "mgb", "dmr", "bcgs", "calgs", "geosphere", "pig", "tno", "dov", "spw", "ineter", "georep")
 
 
 def _projected_plan(name, upstream):

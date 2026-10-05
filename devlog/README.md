@@ -354,6 +354,14 @@
 | wetherilli 310 | 2026-10-05 | [운영 대조의 빈 그림 — 대개 축척 끝이었다](20261005_wetherilli_310_verify_empty.md) |
 | wetherilli 311 | 2026-10-05 | [대조가 건너뛰던 갈래 — 점·모양 덩이, 곧장 부르는 타일, 우리가 자른 타일](20261005_wetherilli_311_verify_more.md) |
 | wetherilli 312 | 2026-10-05 | [구운 자료의 나이 — data_status](20261005_wetherilli_312_data_status.md) |
+| wetherilli 313 | 2026-10-05 | [넓게 볼 때만 느린 레이어 — 10 초 넘는 줌은 묻지 않는다](20261005_wetherilli_313_slow_wide.md) |
+| wetherilli 314 | 2026-10-05 | [레이어 대조의 기록 — 날마다 남기고 지난번과 견준다](20261005_wetherilli_314_verify_history.md) |
+| wetherilli 315 | 2026-10-05 | [정적 판 연기 시험](20261005_wetherilli_315_static_smoke.md) |
+| wetherilli 316 | 2026-10-05 | [일본 — GSJ 1:200만 지질도·중력을 누르면 이름이](20261005_wetherilli_316_gsj_names.md) |
+| wetherilli 317 | 2026-10-05 | [브리티시컬럼비아 — 넓게 볼 때도 칠한다](20261005_wetherilli_317_bcgs_wide.md) |
+| wetherilli 318 | 2026-10-05 | [호주의 남은 주 — 태즈메이니아 지질, 뉴사우스웨일스 광물](20261005_wetherilli_318_au_states_more.md) |
+| wetherilli 319 | 2026-10-05 | [TODOs 를 다시 묶었다 — 끝난 줄을 걷고, 결정 없이 할 것과 (사람) 을 가르고](20261005_wetherilli_319_todos_cleanup.md) |
+| wetherilli 320 | 2026-10-05 | [캐나다 — 편찬 지질도 CGMC 를 누르면 암상이](20261005_wetherilli_320_cgmc_names.md) |
 | koprifossillab P01 | 2026-09-30 | [백업 — WegenersDream 의 틀로, 바뀌는 빠르기에 따라 넷으로 (계획)](20260930_koprifossillab_P01_backup_plan.md) |
 | koprifossillab 001 | 2026-09-30 | [매주 월요일 새벽: 운영 자료 백업과 KPDC 목록 갱신](20260930_koprifossillab_001_weekly_backup.md) |
 | koprifossillab 002 | 2026-09-30 | [`/healthz/` — 판·DB·백업 상태를 한 장으로](20260930_koprifossillab_002_healthz.md) |

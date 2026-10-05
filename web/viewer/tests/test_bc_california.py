@@ -85,7 +85,7 @@ class Catalog(TestCase):
     def test_캐나다_탭과_미국_탭에(self):
         rows = {l["name"]: (g, l) for g in views._catalog("ko") for l in g["layers"]}
         group, layer = rows["bcgs:bedrock"]
-        self.assertEqual((group["region"], layer["projection"], layer["minZoom"]), ("canada", "EPSG:3978", 11))
+        self.assertEqual((group["region"], layer["projection"], layer["minZoom"]), ("canada", "EPSG:3978", 5))
         group, layer = rows["calgs:geology"]
         self.assertEqual((group["region"], layer["projection"], layer["maxZoom"]), ("usa", "EPSG:3978", 12))
 

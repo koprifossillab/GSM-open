@@ -24,6 +24,12 @@ else
   "$PY" deploy/static_site.py "$WORK/site"
 fi
 
+# 밀기 전에 구운 판을 띄워 브라우저로 열어 본다 — 깨지면 밀지 않는다(set -e). 브라우저가 없으면 건너뛴다 (wetherilli 315).
+# 급할 때만 GSM_SKIP_SMOKE=1
+if [ "${GSM_SKIP_SMOKE:-}" != "1" ]; then
+  "$PY" deploy/static_smoke.py "$WORK/site"
+fi
+
 VERSION="$(sed -n 's/^VERSION = "\(.*\)"/\1/p' web/gsmweb/version.py)"
 cd "$WORK/site"
 git init -q -b gh-pages

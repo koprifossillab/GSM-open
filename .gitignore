@@ -57,3 +57,5 @@ geo3al.dbf
 /mars/
 # 수성 지질도를 구운 것 — 기본 자리 <DB 옆>/mercury/. 5 MB, 원본은 NAS 의 sources/mercury/ (wetherilli 144)
 /mercury/
+# 레이어 대조의 기록 — 기본 자리 <DB 옆>/verify/ (wetherilli 314)
+/verify/

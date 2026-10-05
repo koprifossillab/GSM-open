@@ -1,4 +1,4 @@
-"""호주 주 지질조사소로 나가는 문 — 퀸즐랜드(GSQ)·빅토리아(GSV)·남호주(GSSA) (wetherilli 225).
+"""호주 주 지질조사소로 나가는 문 — 퀸즐랜드(GSQ)·빅토리아(GSV)·남호주(GSSA) (wetherilli 225), 태즈메이니아(MRT)·뉴사우스웨일스(GSNSW) (wetherilli 318).
 
 GA(`ga.py`)가 대륙 전체의 1:250만·1:100만을 그린다면, 여기는 주가 내는 더 자세한 판이다. 주마다 서버가 따로라 BGS 문(`bgs.py`)이
 GSNI·AGA·GSN 을 함께 내듯 한 파일에 셋을 둔다 — 상류 이름(`gsq`·`gsv`·`gssa`)은 따로다. 셋 다 열쇠가 없고 3857 로 그린다.
@@ -15,6 +15,11 @@ GSNI·AGA·GSN 을 함께 내듯 한 파일에 셋을 둔다 — 상류 이름(`
   남호주는 WFS(보는 범위의 면 — 기하가 따라와 무거워 좁을 때만)와 SLD 의 규칙(`genericSymbolizer` → 색)으로 뜬다. 구조선은 퀸즐랜드
   1:200만 단층·습곡, 1:10만 단층·습곡, 남호주 단층 — 선이라 누르지 않는다
 - 속성은 셋 다 JSON. GeoServer 둘은 기하가 따라와 무거워(빅토리아 한 점 38 KB) `propertyName` 으로 열만 받는다
+- **태즈메이니아**(wetherilli 318) — 주 토지정보 theLIST 의 `Public/GeologicalAndSoils` ArcGIS(MRT 의 지질 1:25만 합본·1:2.5만). 퀸즐랜드처럼 REST
+  `export`·`identify`. 1:50만(1:25만 판)·1:35만(1:2.5만 판)보다 넓으면 그리지 않아 줌 11 부터. 면의 색이 피처마다라 REST 범례가 빈 칸 하나다 — 범례는 없고
+  누르면 기호·단위·지역·시대·설명. 조건은 theLIST 웹 서비스 약관(2014-12)이 "레이어의 저작권 글" 로 미루는데 그 글이 비었다 — 정적 판에 싣지 않는다
+- **뉴사우스웨일스**(wetherilli 318) — GSNSW GeoServer(CC BY 4.0)에는 지질도가 없고 광물 산지·광산·광업권·시추공뿐이다. 광물 산지(EarthResourceML 라이트)·광산을 붙였다.
+  이음매 없는 지질도(`gs-seamless.geoscience.nsw.gov.au`)는 503 이었다
 """
 import logging
 import math
@@ -143,21 +148,21 @@ def _gsq_url(name: str, op: str) -> str:
     return f"{settings.GSQ_REST_URL.rstrip('/')}/{GSQ_LAYERS[name][0]}/MapServer/{op}"
 
 
-def gsq_get_map(params: dict):
-    name = _one(params, GSQ_LAYERS, "layers")
+def _rest_map(upstream: str, url: str, show: str, params: dict):
+    """WMS 꼴 → ArcGIS REST `export` (퀸즐랜드·태즈메이니아)"""
     _merc(params)
     box, (w, h) = _box(params), _size(params)
-    r = _get("gsq", _gsq_url(name, "export"), {
+    r = _get(upstream, url, {
         "bbox": ",".join(repr(v) for v in box), "bboxSR": 3857, "imageSR": 3857, "size": f"{w},{h}", "dpi": 96,
-        "format": "png32", "transparent": "true", "layers": f"show:{GSQ_LAYERS[name][1]}", "f": "image"})
+        "format": "png32", "transparent": "true", "layers": f"show:{show}", "f": "image"})
     ctype = r.headers.get("content-type", "")
     if r.status_code != 200 or not ctype.startswith("image/"):
         raise AuStatesError(f"그림이 아닌 것이 왔다 (status={r.status_code}, type={ctype})")
     return r.content, ctype
 
 
-def gsq_get_feature_info(params: dict) -> dict:
-    name = _one(params, GSQ_LAYERS, "query_layers", "layers")
+def _rest_identify(upstream: str, url: str, layers: str, params: dict) -> dict:
+    """WMS GetFeatureInfo 꼴 → ArcGIS REST `identify` (퀸즐랜드·태즈메이니아). 셋까지"""
     _merc(params)
     box, (w, h) = _box(params), _size(params)
     try:
@@ -167,9 +172,9 @@ def gsq_get_feature_info(params: dict) -> dict:
         raise AuStatesError("누른 자리를 읽지 못했다") from exc
     x = box[0] + (i + 0.5) * (box[2] - box[0]) / w
     y = box[3] - (j + 0.5) * (box[3] - box[1]) / h
-    r = _get("gsq", _gsq_url(name, "identify"), {
+    r = _get(upstream, url, {
         "geometry": f"{x!r},{y!r}", "geometryType": "esriGeometryPoint", "sr": 3857,
-        "layers": f"visible:{GSQ_LAYERS[name][1]}", "tolerance": 2, "mapExtent": ",".join(repr(v) for v in box),
+        "layers": f"visible:{layers}", "tolerance": 2, "mapExtent": ",".join(repr(v) for v in box),
         "imageDisplay": f"{w},{h},96", "returnGeometry": "false", "f": "json"})
     if r.status_code != 200:
         raise AuStatesError(f"속성을 읽지 못했다 (status={r.status_code})")
@@ -177,8 +182,18 @@ def gsq_get_feature_info(params: dict) -> dict:
         results = r.json().get("results") or []
     except ValueError as exc:
         raise AuStatesError("속성이 JSON 이 아니다") from exc
-    return {"features": [{"id": f"gsq.{(x.get('attributes') or {}).get('OBJECTID', n)}", "properties": x.get("attributes") or {}}
+    return {"features": [{"id": f"{upstream}.{(x.get('attributes') or {}).get('OBJECTID', n)}", "properties": x.get("attributes") or {}}
                          for n, x in enumerate(results[:3])]}
+
+
+def gsq_get_map(params: dict):
+    name = _one(params, GSQ_LAYERS, "layers")
+    return _rest_map("gsq", _gsq_url(name, "export"), GSQ_LAYERS[name][1], params)
+
+
+def gsq_get_feature_info(params: dict) -> dict:
+    name = _one(params, GSQ_LAYERS, "query_layers", "layers")
+    return _rest_identify("gsq", _gsq_url(name, "identify"), GSQ_LAYERS[name][1], params)
 
 
 def gsq_get_legend(layer: str):
@@ -200,6 +215,45 @@ def gsq_friendly(props: dict, lang: str = "ko") -> dict:
 
 
 GSQ = _NS(get_map=gsq_get_map, get_feature_info=gsq_get_feature_info, get_legend=gsq_get_legend, friendly=gsq_friendly)
+
+
+# ── 태즈메이니아 MRT — theLIST ArcGIS REST (wetherilli 318) ──────────────────
+
+TAS_ATTRIBUTION = ('<a href="https://www.mrt.tas.gov.au/" target="_blank" rel="noopener">Mineral Resources Tasmania</a> · '
+                   '<a href="https://www.thelist.tas.gov.au/" target="_blank" rel="noopener">theLIST</a> © State of Tasmania')
+#: 레이어 → (그릴 REST 레이어, 누를 REST 레이어, 처음 그리는 줌). 면·구조선을 함께 그리고 면만 누른다
+TAS_LAYERS = {
+    "mrt:250k": ("16,15", "16", 11),
+    "mrt:25k": ("14,13", "14", 11),
+}
+
+
+def tas_get_map(params: dict):
+    name = _one(params, TAS_LAYERS, "layers")
+    return _rest_map("mrt", f"{settings.TAS_REST_URL.rstrip('/')}/export", TAS_LAYERS[name][0], params)
+
+
+def tas_get_feature_info(params: dict) -> dict:
+    name = _one(params, TAS_LAYERS, "query_layers", "layers")
+    return _rest_identify("mrt", f"{settings.TAS_REST_URL.rstrip('/')}/identify", TAS_LAYERS[name][1], params)
+
+
+def tas_get_legend(layer: str):
+    raise AuStatesError("태즈메이니아 지질의 면은 범례가 없다 — 색이 피처마다다")
+
+
+def tas_friendly(props: dict, lang: str = "ko") -> dict:
+    """단위 이름은 층원·층·아층군·층군·초층군 가운데 가장 작은 것. 값은 영어 그대로, 시대(`Cretaceous - Quaternary`)만 옮긴다"""
+    v = lambda k: _text(props.get(k))       # noqa: E731
+    unit = next((v(k) for k in ("MEMBER", "FORMATION", "SUBGROUP", "GROUP", "GRP", "SUPERGROUP") if v(k)), "")
+    period = v("PERIOD")
+    rows = (("기호", v("SYMBOL")), ("이름", unit), ("지역", v("REGION")),
+            ("지질시대", i18n.age_ko(period) if lang == "ko" and period else period),
+            ("설명", v("DESCRIPTION") or v("DESCRIPT")))
+    return {k: x for k, x in rows if x}
+
+
+TAS = _NS(get_map=tas_get_map, get_feature_info=tas_get_feature_info, get_legend=tas_get_legend, friendly=tas_friendly)
 
 
 # ── 빅토리아 GSV·남호주 GSSA — GeoServer 의 GeoSciML 포트레이얼 ──────────────
@@ -231,6 +285,13 @@ GSSA_LAYERS = {
     # 광물 산지 — EarthResourceML 라이트 (wetherilli 269)
     "gssa:minocc": ("erl:MineralOccurrenceView", 7, True),
 }
+#: 뉴사우스웨일스 GSNSW(wetherilli 318) — 광물 산지(EarthResourceML 라이트)·광산. 지질도는 이 GeoServer 에 없다
+GSNSW_ATTRIBUTION = ('<a href="https://www.regional.nsw.gov.au/meg/geoscience" target="_blank" rel="noopener">'
+                     '© State of New South Wales</a> (Geological Survey of NSW, CC BY 4.0)')
+GSNSW_LAYERS = {
+    "gsnsw:minocc": ("erl:MineralOccurrenceView", 8, True),
+    "gsnsw:mines": ("erl:MineView", 8, True),
+}
 #: 속성으로 받을 열 — 빅토리아는 작은 글자, 남호주는 낙타 꼴이다
 GSV_PROPERTIES = "name,description,rank,lithology,geologichistory,representativeage_uri,representativelowerage_uri,representativeupperage_uri"
 GSSA_PROPERTIES = ("name,description,rank,lithology,geologicHistory,numericOlderAge,numericYoungerAge,"
@@ -248,12 +309,16 @@ LAYER_PROPERTIES = {
     "gsv:mineralp": "name,commdsc,commgrp,resclad,rescladf,locaccd",
     "gsv:gravity": "surveyid,station_no,elev_ahd,obs_grav,freeair,simple_ba,comp_ba",
     "gssa:minocc": "name,commodity,mineralOccurrenceType,mineralDepositModel,hostGeologicUnit,source",
+    "gsnsw:minocc": "name,commodity,mineName,mineralOccurrenceType,observationMethod,positionalAccuracy",
+    "gsnsw:mines": "name,status,observationMethod,positionalAccuracy,source",
 }
 
 
 def _gs(upstream: str):
     if upstream == "gsv":
         return settings.GSV_WMS_URL, GSV_LAYERS, GSV_PROPERTIES
+    if upstream == "gsnsw":
+        return settings.GSNSW_WMS_URL, GSNSW_LAYERS, ""
     return settings.GSSA_WMS_URL, GSSA_LAYERS, GSSA_PROPERTIES
 
 
@@ -297,6 +362,15 @@ def gs_friendly(props: dict, lang: str = "ko") -> dict:
         return {k: x for k, x in rows if x}
     if "commdsc" in low:                    # 빅토리아 광상 (wetherilli 269)
         rows = (("이름", v("name")), ("광종", v("commdsc")), ("광상 규모", v("rescladf") or v("resclad")), ("위치 정확도", v("locaccd")))
+        return {k: x for k, x in rows if x}
+    if "mineName" in props or "minename" in low:    # 뉴사우스웨일스 광물 산지 (wetherilli 318) — 비었으면 'None'·'Unnamed'
+        clean = lambda k: "" if v(k) in ("None", "Unnamed") else v(k)       # noqa: E731
+        rows = (("이름", clean("name")), ("광종", clean("commodity")), ("광산 이름", clean("minename")),
+                ("조사 방법", v("observationmethod")), ("위치 정확도", v("positionalaccuracy")))
+        return {k: x for k, x in rows if x}
+    if "status" in low and "commodity" not in low:  # 뉴사우스웨일스 광산
+        rows = (("이름", v("name")), ("상태", "" if v("status") == "None" else v("status")), ("조사 방법", v("observationmethod")),
+                ("위치 정확도", v("positionalaccuracy")))
         return {k: x for k, x in rows if x}
     if "commodity" in low:                  # 남호주 광물 산지
         src = v("source")
@@ -459,16 +533,20 @@ def _gssa_legend(name: str, bbox: tuple) -> list:
 
 
 #: 누를 수 있지만 지질 단위가 아닌 레이어 — 광산·광물 산지. 범위 범례를 뜨지 않는다 (wetherilli 269)
-RESOURCES = ("gsq:mines", "gsv:mineral", "gsv:mineralp", "gssa:minocc", "gsv:gravity")
+RESOURCES = ("gsq:mines", "gsv:mineral", "gsv:mineralp", "gssa:minocc", "gsv:gravity", "gsnsw:minocc", "gsnsw:mines")
+#: 단위 면이지만 범위 범례를 뜨지 않는 것 — 태즈메이니아는 색이 피처마다라 REST 범례가 비었다 (wetherilli 318)
+NO_LEGEND = ("mrt:250k", "mrt:25k")
 
 
 def queryable(upstream: str, name: str) -> bool:
     spec = UPSTREAMS[upstream][1][name]
+    if upstream == "mrt":
+        return bool(spec[1])
     return bool(spec[3] if upstream == "gsq" else spec[2])
 
 
 def is_unit(upstream: str, name: str) -> bool:
-    return queryable(upstream, name) and name not in RESOURCES
+    return queryable(upstream, name) and name not in RESOURCES and name not in NO_LEGEND
 
 
 def extent_legend(upstream: str, name: str, bbox: tuple, lang: str = "ko") -> list:
@@ -491,10 +569,13 @@ GSV = _NS(get_map=lambda p: _gs_get_map("gsv", p), get_feature_info=lambda p: _g
           get_legend=_gs_get_legend, friendly=gs_friendly)
 GSSA = _NS(get_map=lambda p: _gs_get_map("gssa", p), get_feature_info=lambda p: _gs_get_feature_info("gssa", p),
            get_legend=_gs_get_legend, friendly=gs_friendly)
+GSNSW = _NS(get_map=lambda p: _gs_get_map("gsnsw", p), get_feature_info=lambda p: _gs_get_feature_info("gsnsw", p),
+            get_legend=_gs_get_legend, friendly=gs_friendly)
 
 #: 상류 → (문, 레이어 표, 출처)
 UPSTREAMS = {"gsq": (GSQ, GSQ_LAYERS, GSQ_ATTRIBUTION), "gsv": (GSV, GSV_LAYERS, GSV_ATTRIBUTION),
-             "gssa": (GSSA, GSSA_LAYERS, GSSA_ATTRIBUTION)}
+             "gssa": (GSSA, GSSA_LAYERS, GSSA_ATTRIBUTION),
+             "mrt": (TAS, TAS_LAYERS, TAS_ATTRIBUTION), "gsnsw": (GSNSW, GSNSW_LAYERS, GSNSW_ATTRIBUTION)}
 
 
 def knows(upstream: str, name: str) -> bool:
@@ -503,4 +584,4 @@ def knows(upstream: str, name: str) -> bool:
 
 def first_zoom(upstream: str, name: str):
     spec = UPSTREAMS[upstream][1][name]
-    return spec[2] if upstream == "gsq" else spec[1]
+    return spec[2] if upstream in ("gsq", "mrt") else spec[1]

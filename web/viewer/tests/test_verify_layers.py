@@ -1,10 +1,11 @@
 """`manage.py verify_layers` — 레이어가 실제로 그려지는지 모든 상류에 한 장씩 대조해 DB 에 남긴다 (wetherilli 203·298).
 상류를 부르지 않는다 — 문의 `get_map` 을 갈아 끼운다."""
 import io
+import tempfile
 from unittest import mock
 
 from django.core.management import call_command
-from django.test import TestCase
+from django.test import TestCase, override_settings
 from PIL import Image
 
 from viewer import geus, kigam, sgm, usage
@@ -21,6 +22,7 @@ PAINTED = png((200, 80, 40, 255))
 BLANK = png((0, 0, 0, 0))
 
 
+@override_settings(VERIFY_DIR=tempfile.mkdtemp(prefix="gsm-verify-t-"))      # 기록을 저장소에 남기지 않는다 (wetherilli 314)
 class VerifyLayers(TestCase):
     def setUp(self):
         group = LayerGroup.objects.create(name="시험", region="korea")
@@ -101,6 +103,7 @@ class VerifyLayers(TestCase):
         self.assertIn("| grportal | 1 | 0 | 0 | 0 |", text)
 
 
+@override_settings(VERIFY_DIR=tempfile.mkdtemp(prefix="gsm-verify-t-"))      # 기록을 저장소에 남기지 않는다 (wetherilli 314)
 class Pace(TestCase):
     """천천히 간다 — 한 상류가 연달아 셋 깨지면 그 상류는 그만, 차단 조짐이면 멈춘다"""
 

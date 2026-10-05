@@ -1,0 +1,37 @@
+{
+ "_주석": "뉴사우스웨일스 지질조사소(GSNSW) 씨앗이다 — 호주 탭. GeoServer WMS 의 EarthResourceML 라이트(web/viewer/austates.py 의 GSNSW). 지질도는 이 GeoServer 에 없다. CC BY 4.0(AccessConstraints). 한글 제목과 레이어군은 사람이 붙였다 (wetherilli 318).",
+ "_뽑은날": "2026-10-05",
+ "_출처": "https://gs.geoscience.nsw.gov.au/geoserver/ows?service=WMS&request=GetCapabilities",
+ "_지역": "australia",
+ "_상류": "gsnsw",
+ "_레이어군차례": 14,
+ "레이어군순서": [
+  "뉴사우스웨일스 광물 (GSNSW)"
+ ],
+ "레이어": [
+  {
+   "name": "gsnsw:minocc",
+   "title": "뉴사우스웨일스 광물 산지",
+   "group": "뉴사우스웨일스 광물 (GSNSW)",
+   "abstract": "Mineral occurrences (EarthResourceML-Lite) — 광종·광산 이름",
+   "bbox": [
+    140.9,
+    -37.6,
+    153.7,
+    -28.1
+   ]
+  },
+  {
+   "name": "gsnsw:mines",
+   "title": "뉴사우스웨일스 광산",
+   "group": "뉴사우스웨일스 광물 (GSNSW)",
+   "abstract": "Mines (EarthResourceML-Lite) — 이름·상태",
+   "bbox": [
+    140.9,
+    -37.6,
+    153.7,
+    -28.1
+   ]
+  }
+ ]
+}

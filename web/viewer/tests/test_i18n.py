@@ -21,7 +21,7 @@ def used_keys():
     html = "".join((HERE / "templates/viewer" / n).read_text(encoding="utf-8")
                    for n in ("map.html", "map3d.html", "moon.html", "mars.html", "mercury.html", "earth.html", "intro.html", "manage.html"))
     keys = set(re.findall(r'\bT\("((?:[^"\\]|\\.)*)"', js))
-    keys |= set(re.findall(r'\{% t "((?:[^"\\]|\\.)*)" %\}', html))
+    keys |= set(re.findall(r'\{% t "((?:[^"\\]|\\.)*)"(?: [^%]*)? %\}', html))      # 자리표 값이 붙은 꼴도 (wetherilli 314)
     for name in ("views.py", "pointsets.py", "linked.py"):
         src = (HERE / name).read_text(encoding="utf-8")
         # msg("…") 는 여러 줄로 이어 붙일 수 있다 — "a" "b" 를 하나로 합친다

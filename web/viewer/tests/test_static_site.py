@@ -333,6 +333,16 @@ class Browser(SimpleTestCase):
         self.assertNotIn("판 이력을 읽지 못했다", page.inner_text("#notes"))
         self.assertEqual(errors, [])
 
+    def test_연기_시험이_통과한다(self):
+        """`deploy/static_smoke.py`(wetherilli 315) — `publish_pages.sh` 가 밀기 전에 부르는 것. 작은 판에 돌려 스크립트가 깨지지 않았는지 본다.
+        제 브라우저를 따로 띄우므로 다른 프로세스로 부른다"""
+        done = subprocess.run([sys.executable, str(ROOT / "deploy" / "static_smoke.py"), str(built() / "GSM-open"), "--settle", "1500"],
+                              env=dict(os.environ, GSM_BROWSER_TESTS="1"), capture_output=True, text=True, timeout=300)
+        self.assertEqual(done.returncode, 0, done.stdout + done.stderr)
+        self.assertIn("✓ 지도 korea", done.stdout)
+        self.assertIn("✓ 소개 (en)", done.stdout)
+        self.assertIn("통과", done.stdout)
+
     def test_소개는_실린_지역의_칩만(self):
         ctx = self.browser.new_context(viewport={"width": 1280, "height": 800}, locale="ko-KR")
         self.addCleanup(ctx.close)

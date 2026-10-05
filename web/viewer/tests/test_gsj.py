@@ -314,14 +314,16 @@ class GsjOws(TestCase):
             gsj.gsjows_get_map({"layers": "gsjows:japan2m", "crs": "EPSG:3857", "bbox": "0,0,1,1", "width": 256, "height": 256})
         self.assertEqual((get.call_args.args[0], get.call_args.kwargs["params"]["layers"]), ("https://ows.gsj.jp/ows/geologicmap2000k", "area,line"))
 
-    def test_범례는_그림_누르기는_없다(self):
+    def test_범례는_그림(self):
         with mock.patch.object(gsj.requests, "get", return_value=self.png()) as get:
             gsj.gsjows_get_legend("gsjows:gravity")
         self.assertEqual(get.call_args.kwargs["params"]["layer"], "GravityContour267")
-        self.assertEqual(gsj.gsjows_get_feature_info({"layers": "gsjows:gravity"}), {"features": []})
+        # 지구화학도는 누르지 않는다 — 1:200만·중력의 누르기는 test_gsjows_names (wetherilli 316)
+        self.assertEqual(gsj.gsjows_get_feature_info({"layers": "gsjows:geochem:Cu"}), {"features": []})
 
     def test_카탈로그(self):
         self.assertEqual(Layer.objects.get(name="gsjows:geochem:Hg").group.region, "japan")
         rows = {l["name"]: l for g in self.client.get("/GSM/catalog/").json()["groups"] for l in g["layers"]}
-        self.assertIs(rows["gsjows:japan2m"]["queryable"], False)
+        self.assertTrue(rows["gsjows:japan2m"]["queryable"])                  # 누르면 이름이 뜬다 (wetherilli 316)
+        self.assertIs(rows["gsjows:geochem:Hg"]["queryable"], False)
         self.assertEqual(rows["gsjows:gravity"]["projection"], "EPSG:3857")

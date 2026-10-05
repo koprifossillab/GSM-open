@@ -3,10 +3,11 @@
 응답의 꼴은 2026-10-04 에 받아 본 그대로다 — NRCan GetFeatureInfo 는 GeoJSON(영어·프랑스어 열이 짝으로), OGS 는 REST identify.
 """
 import json
+import tempfile
 from unittest import mock
 
 from django.core.management import call_command
-from django.test import SimpleTestCase, TestCase
+from django.test import SimpleTestCase, TestCase, override_settings
 
 from viewer import crs, nrcan, ogs, tilegrid, views
 
@@ -127,10 +128,31 @@ class NrcanServices(SimpleTestCase):
             nrcan.get_map({"layers": "nrcan:wheeler", "crs": "EPSG:3978", "bbox": "0,0,1,1", "width": "512", "height": "512"})
         self.assertIn("geological_map_canada_wheeler_en", get.call_args.args[0])
 
-    def test_래스터는_누르지_않는다(self):
+    def test_유망도_래스터는_누르지_않는다(self):
         with mock.patch("viewer.nrcan.requests.get") as get:
-            self.assertEqual(nrcan.get_feature_info(dict(WMS, layers="nrcan:cgmc", query_layers="nrcan:cgmc")), {"features": []})
+            self.assertEqual(nrcan.get_feature_info(dict(WMS, layers="nrcan:ree", query_layers="nrcan:ree")), {"features": []})
         get.assert_not_called()
+
+    def test_편찬_지질도는_칸을_범례로_푼다(self):
+        """CGMC(wetherilli 320) — REST identify 의 OBJECTID − 1 이 범례의 차례. 범례는 한 번만 받는다"""
+        legend = response({"layers": [{"legend": [{"label": "mixed volcanic"}, {"label": "felsic volcanic"},
+                                                  {"label": "intermediate intrusive"}]}]})
+        hit = response({"results": [{"attributes": {"Pixel Value": "4", "OBJECTID": "3", "Count": "1"}}]})
+        nodata = response({"results": [{"attributes": {"Pixel Value": "NoData"}}]})
+        with override_settings(TILE_CACHE_DIR=tempfile.mkdtemp()), \
+             mock.patch("viewer.nrcan.requests.get", side_effect=[hit, legend, hit, nodata]) as get:
+            first = nrcan.get_feature_info(dict(WMS, layers="nrcan:cgmc", query_layers="nrcan:cgmc"))
+            again = nrcan.get_feature_info(dict(WMS, layers="nrcan:cgmc", query_layers="nrcan:cgmc"))
+            empty = nrcan.get_feature_info(dict(WMS, layers="nrcan:cgmc", query_layers="nrcan:cgmc"))
+        self.assertEqual(first, again)
+        self.assertEqual(nrcan.friendly(first["features"][0]["properties"]), {"암상": "intermediate intrusive"})
+        self.assertEqual(empty, {"features": []})
+        sent = get.call_args_list[0]
+        self.assertTrue(sent.args[0].endswith("/rest/services/NRCan/cdn_geol_compil_en/MapServer/identify"))
+        self.assertEqual(sent.kwargs["params"]["sr"], "3978")
+        x, y = (float(v) for v in sent.kwargs["params"]["geometry"].split(","))
+        self.assertAlmostEqual(x, 1000000 + 127.5 * 100000 / 256)
+        self.assertAlmostEqual(y, -100000 - 127.5 * 100000 / 256)
 
     def test_핵심_광물(self):
         props = {"Operation Group": "Mines and other primary producing sites", "Property Name": "Beaver Brook",

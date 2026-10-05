@@ -11,7 +11,7 @@ from django.core.management import call_command
 from django.test import SimpleTestCase, TestCase, override_settings
 from django.urls import reverse
 
-from viewer import austates
+from viewer import austates, i18n
 from viewer.models import Layer
 
 QLD = {"Rock Unit Key (Surface)": "217", "Rock Unit Name": "Bunya Phyllite", "Map Symbol": "DCy",
@@ -232,3 +232,37 @@ class VictoriaGeophysics(TestCase):
                          {"측점": "1999301593", "조사": "199930", "표고 (m)": "121.17", "프리에어 이상 (mGal)": "30.43", "부게 이상 (mGal)": "-104.78"})
         self.assertFalse(austates.is_unit("gsv", "gsv:gravity"))
         self.assertFalse(austates.queryable("gsv", "gsv:lin_tmi"))
+
+
+class TasmaniaNsw(TestCase):
+    """태즈메이니아 지질(theLIST REST)·뉴사우스웨일스 광물 산지·광산(GSNSW GeoServer) (wetherilli 318)"""
+    def test_태즈메이니아는_REST_export_identify(self):
+        sent = []
+        body = {"results": [{"attributes": {"OBJECTID": "5718", "SYMBOL": "Ts", "REGION": "Cenozoic cover sequences", "GROUP": "Null",
+                                            "FORMATION": "Null", "PERIOD": "Cretaceous - Quaternary",
+                                            "DESCRIPTION": "Dominantly non-marine sequences of gravel, sand"}}]}
+
+        def fake(url, params=None, **kw):
+            sent.append((url, params))
+            if url.endswith("/export"):
+                return mock.Mock(status_code=200, headers={"content-type": "image/png"}, content=b"png", url=url, elapsed=None)
+            return mock.Mock(status_code=200, url=url, content=b"{}", json=lambda: body, elapsed=None)
+        q = {"layers": "mrt:250k", "crs": "EPSG:3857", "bbox": "0,0,1,1", "width": 256, "height": 256, "i": 1, "j": 1}
+        with mock.patch.object(austates.requests, "get", side_effect=fake), mock.patch.object(austates.usage, "paused", return_value=0):
+            austates.TAS.get_map(q)
+            got = austates.TAS.get_feature_info(q)
+        self.assertEqual((sent[0][1]["layers"], sent[1][1]["layers"]), ("show:16,15", "visible:16"))
+        self.assertEqual(austates.tas_friendly(got["features"][0]["properties"]),
+                         {"기호": "Ts", "지역": "Cenozoic cover sequences", "지질시대": i18n.age_ko("Cretaceous - Quaternary"),
+                          "설명": "Dominantly non-marine sequences of gravel, sand"})
+        self.assertFalse(austates.is_unit("mrt", "mrt:250k"))                       # 범위 범례를 뜨지 않는다
+        self.assertEqual(austates.first_zoom("mrt", "mrt:250k"), 11)
+
+    def test_뉴사우스웨일스_광물(self):
+        props = {"name": "Pegmatite K", "commodity": "feldspar", "mineName": "Unnamed", "observationMethod": "50K mapping",
+                 "positionalAccuracy": "50 metres"}
+        self.assertEqual(austates.gs_friendly(props),
+                         {"이름": "Pegmatite K", "광종": "feldspar", "조사 방법": "50K mapping", "위치 정확도": "50 metres"})
+        mine = {"name": "South Mine Thompsons Shaft", "status": "None", "observationMethod": "50K", "positionalAccuracy": "50"}
+        self.assertEqual(austates.gs_friendly(mine), {"이름": "South Mine Thompsons Shaft", "조사 방법": "50K", "위치 정확도": "50"})
+        self.assertFalse(austates.is_unit("gsnsw", "gsnsw:minocc"))

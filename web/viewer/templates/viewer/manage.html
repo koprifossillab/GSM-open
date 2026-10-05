@@ -186,6 +186,17 @@
         <p class="hint">{% t "아직 센 것이 없다" %}</p>
         {% endif %}
         <p class="hint">{% t "p95 는 시간 칸(0.5·1·2·3·5·8·13·21·34 초)에서 어림한 위 끝이다. 실패는 차단 조짐을 함께 센다. 서버 쪽에서는 manage.py upstream_stats 로 같은 값을 본다." %}</p>
+        {% comment %}마지막 레이어 대조 (wetherilli 314) — `verify_layers` 가 남긴 기록의 한 줄{% endcomment %}
+        <p class="hint mg-verify" id="mg-verify">
+          {% if verify %}
+            {% t "마지막 레이어 대조 {day} — 그림 {drawn} · 빈 그림 {empty} · 오류 {error} · 건너뜀 {skipped}" day=verify.day drawn=verify.drawn empty=verify.empty error=verify.error skipped=verify.skipped %}
+            {% if verify.newly %}<b class="bad">{% t "앞의 대조보다 새로 깨진 것 {n}" n=verify.newly %}</b>{% endif %}
+            {% if verify.fixed %}{% t "고쳐진 것 {n}" n=verify.fixed %}{% endif %}
+            <span>{% t "자세한 것은 manage.py verify_layers --diff" %}</span>
+          {% else %}
+            {% t "레이어 대조 기록이 아직 없다 (manage.py verify_layers --redo)" %}
+          {% endif %}
+        </p>
       </div>
     </div>
   </section>
