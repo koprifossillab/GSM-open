@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>{% t "대돌여지도" %} 3D</title>
 <link rel="icon" type="image/svg+xml" href="{% static 'viewer/emblem.svg' %}?v={{ stamp|default:version }}">
-<link rel="stylesheet" href="{% static 'viewer/vendor/maplibre/maplibre-gl.css' %}">
+<link rel="stylesheet" href="{% static 'viewer/vendor/maplibre/maplibre-gl.css' %}?v={{ stamp|default:version }}">
 <link rel="stylesheet" href="{% static 'viewer/map.css' %}?v={{ stamp|default:version }}">
 {% comment %}2D 와 같은 테마·지역 색으로 뜬다. 지역은 2D 의 3D 단추가 `?region=` 으로 넘기고, 없으면
 2D 에서 마지막에 보던 지역이다. CSS 가 입혀지기 전에 달아야 깜빡이지 않는다.{% endcomment %}
@@ -128,7 +128,7 @@
 <script id="pointset-data" type="application/json">{{ pointsets|safe }}</script>
 <script id="custom-data" type="application/json">{{ custom_layers|safe }}</script>
 <script id="glyphs-url" type="application/json">"{% static 'viewer/vendor/maplibre/glyphs/' %}"</script>
-<script src="{% static 'viewer/vendor/maplibre/maplibre-gl.js' %}"></script>
+<script src="{% static 'viewer/vendor/maplibre/maplibre-gl.js' %}?v={{ stamp|default:version }}"></script>
 <script src="{% static 'viewer/map3d.js' %}?v={{ stamp|default:version }}"></script>
 </body>
 </html>

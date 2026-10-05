@@ -27,14 +27,14 @@
   #splash.gone{opacity:0;visibility:hidden}
   #splash p.splash-ver{font-size:12px;letter-spacing:.12em;opacity:.65}
 </style>
-<link rel="stylesheet" href="{% static 'viewer/vendor/ol.css' %}">
-<link rel="stylesheet" href="{% static 'viewer/vendor/cesium/Widgets/widgets.css' %}">
+<link rel="stylesheet" href="{% static 'viewer/vendor/ol.css' %}?v={{ stamp|default:version }}">
+<link rel="stylesheet" href="{% static 'viewer/vendor/cesium/Widgets/widgets.css' %}?v={{ stamp|default:version }}">
 <link rel="stylesheet" href="{% static 'viewer/map.css' %}?v={{ stamp|default:version }}">
 </head>
 <body>
 
 <div id="splash" role="status" aria-live="polite">
-  <img src="{% static 'viewer/splash-mars.gif' %}" alt="{% t "대돌여지도" %} · {% t "화성" %}">
+  <picture><source type="image/webp" srcset="{% static 'viewer/splash-mars.webp' %}?v={{ stamp|default:version }}"><img src="{% static 'viewer/splash-mars.gif' %}?v={{ stamp|default:version }}" alt="{% t "대돌여지도" %} · {% t "화성" %}"></picture>
   <p>{% t "불러오는 중" %}</p>
   <p class="splash-ver">v{{ version }}</p>
 </div>
@@ -326,8 +326,8 @@
 <script id="pointset-data" type="application/json">{{ pointsets|safe }}</script>
 <script id="trek-data" type="application/json">{{ trek_catalog|safe }}</script>
 <script>window.CESIUM_BASE_URL = "{% static 'viewer/vendor/cesium/' %}";</script>
-<script src="{% static 'viewer/vendor/ol.js' %}"></script>
-<script src="{% static 'viewer/vendor/cesium/Cesium.js' %}"></script>
+<script src="{% static 'viewer/vendor/ol.js' %}?v={{ stamp|default:version }}"></script>
+<script src="{% static 'viewer/vendor/cesium/Cesium.js' %}?v={{ stamp|default:version }}"></script>
 <script src="{% static 'viewer/profile-band.js' %}?v={{ stamp|default:version }}"></script>
 <script src="{% static 'viewer/share.js' %}?v={{ stamp|default:version }}"></script>
 <script src="{% static 'viewer/mars.js' %}?v={{ stamp|default:version }}"></script>

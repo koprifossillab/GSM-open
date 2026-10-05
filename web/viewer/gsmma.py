@@ -537,12 +537,32 @@ SENSITIVE_COUNTIES = ("臺北市", "南投縣", "臺中市", "嘉義縣市", "�
                       "新竹縣市", "苗栗縣", "彰化縣", "雲林縣", "宜蘭縣", "花蓮縣")
 
 
+#: 끊김(SSL EOF·연결 끊김·5xx)이 나면 쉬었다 다시 묻는 사이 — 2026-10-05 운영에서 基隆市 七堵區 차례에 SSL EOF 로 멈췄다 (wetherilli 346)
+SENSITIVE_RETRY = (5, 15, 45)
+
+
 def _sensitive_get(url: str, params: dict, gap: float, sleep):
-    r = _get(url, params, "지질운 민감구역")
-    sleep(gap)
-    if usage.looks_blocked(r.status_code, r.content[:1000]):
-        raise GsmmaError(f"차단 조짐 (status={r.status_code})")
-    return r
+    """한 번 묻는다 — 끊기면 `SENSITIVE_RETRY` 만큼 쉬고 다시. 끝내 못 받으면 `GsmmaError`. 차단 조짐이면 다시 묻지 않고 곧장 멈춘다"""
+    reason = ""
+    for wait in (0,) + SENSITIVE_RETRY:
+        if wait:
+            sleep(wait)
+        try:
+            r = _get(url, params, "지질운 민감구역")
+        except GsmmaError as exc:
+            if "차단 조짐" in str(exc):
+                raise
+            reason = str(exc)
+            continue
+        finally:
+            sleep(gap)
+        if usage.looks_blocked(r.status_code, r.content[:1000]):
+            raise GsmmaError(f"차단 조짐 (status={r.status_code}) — 멈춘다")
+        if r.status_code >= 500:
+            reason = f"status={r.status_code}"
+            continue
+        return r
+    raise GsmmaError(f"끝내 받지 못했다 ({reason})")
 
 
 def sensitive_notices(text: str) -> dict:
@@ -575,54 +595,86 @@ def sensitive_names(script: str) -> list:
     return re.findall(r'E\("([FGH]\d{4})","([^"]+)",\w\)', script)
 
 
-def fetch_sensitive(*, gap=2.0, log=None, sleep=None):
-    """민감구역을 모두 — [{"kind", "code", "name", "town", "date", "doc", "geometry"}] 를 하나씩 낸다(제너레이터)"""
+def fetch_sensitive(*, gap=2.0, log=None, sleep=None, done=frozenset(), missing=None):
+    """민감구역을 묻기 하나씩 — (열쇠, [{"kind", "code", "name", "town", "date", "doc", "geometry"}]) 를 낸다(제너레이터).
+
+    `done` 에 든 열쇠는 묻지 않는다 — 앞서 받다 멈춘 것을 이어 받는다(wetherilli 346). 다시 물어도 못 받은 묻기는 건너뛰고
+    `missing` 에 (열쇠, 까닭)을 적는다. 열쇠는 `F:車籠埔斷層` · `L:臺北市:北投區` · 향·진 목록은 `Ltown:臺北市` 꼴"""
     import json
     import re
     import time
     sleep = sleep or time.sleep
     say = log or (lambda m: None)
-    r = _sensitive_get(settings.GSMMA_SENSITIVE_LIST, {}, gap, sleep)
-    notices = sensitive_notices(r.content.decode("utf-8-sig", "replace")) if r.status_code == 200 else {}
+    missing = [] if missing is None else missing
+
+    def get(url, params, key):
+        try:
+            return _sensitive_get(url, params, gap, sleep)
+        except GsmmaError as exc:
+            if "차단 조짐" in str(exc):
+                raise
+            missing.append((key, str(exc)))
+            say(f"  {key} — {exc}, 건너뛴다")
+            return None
+
+    r = get(settings.GSMMA_SENSITIVE_LIST, {}, "notices")
+    notices = sensitive_notices(r.content.decode("utf-8-sig", "replace")) if r is not None and r.status_code == 200 else {}
     say(f"공고 목록 {len(notices)} 구역")
-    r = _sensitive_get(settings.GSMMA_SENSITIVE_PAGE, {}, gap, sleep)
-    script = r.text if r.status_code == 200 else ""
+    r = get(settings.GSMMA_SENSITIVE_PAGE, {}, "names")
+    script = r.text if r is not None and r.status_code == 200 else ""
     named = sensitive_names(script) or [(c, n["name"]) for c, n in notices.items() if c[0] in "FGH"]
+    if not named:
+        raise GsmmaError("구역 이름 목록을 얻지 못했다 — 지질운 화면 스크립트도 공고 목록도 없다")
     match = re.search(r'\[("[^"\]]+市"[^\]]*)\]\.forEach', script)
     counties = json.loads(f"[{match.group(1)}]") if match else list(SENSITIVE_COUNTIES)
     data = settings.GSMMA_SENSITIVE_URL
     by_county = {v["name"]: k for k, v in notices.items() if k.startswith("L")}
 
-    def areas(params):
-        r = _sensitive_get(f"{data}/GeologicalSensitiveAreas", params, gap, sleep)
+    def areas(params, key):
+        r = get(f"{data}/GeologicalSensitiveAreas", params, key)
+        if r is None:
+            return None
         if r.status_code != 200:
-            say(f"  {params} — status {r.status_code}, 건너뛴다")
-            return []
+            missing.append((key, f"status={r.status_code}"))
+            say(f"  {key} — status {r.status_code}, 건너뛴다")
+            return None
         try:
             return r.json().get("features") or []
         except ValueError:
-            say(f"  {params} — JSON 이 아니다, 건너뛴다")
-            return []
+            missing.append((key, "JSON 이 아니다"))
+            say(f"  {key} — JSON 이 아니다, 건너뛴다")
+            return None
 
     for code, name in named:
         kind = code[0]
+        key = f"{kind}:{name}"
+        if key in done:
+            continue
         meta = notices.get(code, {})
-        found = areas({"category": SENSITIVE_CATEGORY[kind], "name": name})
+        found = areas({"category": SENSITIVE_CATEGORY[kind], "name": name}, key)
+        if found is None:
+            continue
         say(f"  {code} {name} — 면 {len(found)}")
-        for f in found:
-            yield {"kind": kind, "code": code, "name": name, "town": "", "date": meta.get("date", ""), "doc": meta.get("doc", ""),
-                   "geometry": f.get("geometry")}
+        yield key, [{"kind": kind, "code": code, "name": name, "town": "", "date": meta.get("date", ""), "doc": meta.get("doc", ""),
+                     "geometry": f.get("geometry")} for f in found]
     for county in counties:
-        r = _sensitive_get(f"{data}/GeologicalSensitiveAreasLTown", {"name": county}, gap, sleep)
+        r = get(f"{data}/GeologicalSensitiveAreasLTown", {"name": county}, f"Ltown:{county}")
         try:
-            towns = r.json().get("data") or [] if r.status_code == 200 else []
+            towns = (r.json().get("data") or []) if r is not None and r.status_code == 200 else []
         except ValueError:
             towns = []
         for town in towns:
-            found = areas({"category": SENSITIVE_CATEGORY["L"], "name": county, "town": town})
+            key = f"L:{county}:{town}"
+            if key in done:
+                continue
+            found = areas({"category": SENSITIVE_CATEGORY["L"], "name": county, "town": town}, key)
+            if found is None:
+                continue
             say(f"  L {county} {town} — 면 {len(found)}")
+            out = []
             for f in found:
                 code = sensitive_code(f.get("properties") or {}) or by_county.get(county, "")
                 meta = notices.get(code, {})
-                yield {"kind": "L", "code": code, "name": meta.get("name") or county, "town": town,
-                       "date": meta.get("date", ""), "doc": meta.get("doc", ""), "geometry": f.get("geometry")}
+                out.append({"kind": "L", "code": code, "name": meta.get("name") or county, "town": town,
+                            "date": meta.get("date", ""), "doc": meta.get("doc", ""), "geometry": f.get("geometry")})
+            yield key, out

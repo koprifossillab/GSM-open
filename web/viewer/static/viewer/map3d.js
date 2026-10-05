@@ -152,7 +152,7 @@
       return { type: "raster", tiles: [BASE + "wms/"], tileSize: 512, bounds: [0, 0, 0.000001, 0.000001] };
     }
     var opt = [].filter.call(select.options, function (o) { return o.value === name; })[0];
-    var attribution = (opt && opt.getAttribute("data-attribution")) || "© 한국지질자원연구원";
+    var attribution = (opt && opt.getAttribute("data-attribution")) || T("© 한국지질자원연구원");
     if (opt && opt.getAttribute("data-upstream") === "geomap") {
       return { type: "raster", tileSize: 512, minzoom: 3, maxzoom: 17, bounds: [-180, -85.06, 180, -60],
                tiles: [BASE + "warp/geomap/" + name + "/{z}/{x}/{y}@2x.png"], attribution: attribution };
@@ -200,7 +200,7 @@
     // 스발바르를 z13 으로 열면 PGC 타일이 96 장, 빈 캐시에서 55 초였다(2026-09-29). 한 픽셀이
     // 땅 수 m–수십 m 라 지형에는 넉넉하다
     dem: { type: "raster-dem", tiles: [DEM], encoding: "terrarium", tileSize: 512, maxzoom: 15,
-           attribution: "Terrain: Mapzen/AWS Terrain Tiles · 국토지리원 · ArcticDEM/REMA © PGC (CC BY 4.0) · " +
+           attribution: "Terrain: Mapzen/AWS Terrain Tiles · " + T("국토지리원") + " · ArcticDEM/REMA © PGC (CC BY 4.0) · " +
                         "IBCSO v2 (Dorschel et al., 2022, CC BY 4.0)" },
     shade: { type: "raster-dem", tiles: [DEM], encoding: "terrarium", tileSize: 512, maxzoom: 15 },
     kigam: geologySource(select.value),

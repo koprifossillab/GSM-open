@@ -945,7 +945,11 @@ body.panel-folded #panel { display: none; }
   flex-direction: row-reverse;
   align-items: flex-start;
   gap: 8px;
+  /* 상자는 단추 묶음과 안내 글을 감쌀 뿐이다 — 안내 글이 길면 상자가 지도를 넓게 덮어 그 밑을 누를 수 없다.
+     휴대폰에서 거리 재기의 둘째 점이 툴바에 먹혔다 (wetherilli 342) */
+  pointer-events: none;
 }
+.toolbar > * { pointer-events: auto; }
 .tool-col {
   display: flex;
   flex-direction: column;
@@ -1455,6 +1459,8 @@ button.proplink { font-family: inherit; line-height: inherit; cursor: pointer; }
   .tool { width: 40px; height: 40px; }
   .tool-sep { margin: 2px 4px; }
   .tool-out { max-width: calc(100vw - 80px); font-size: 11.5px; }
+  /* 패널 손잡이(위 가운데, 22 px) 밑으로 — 툴바의 맨 위에 서면 손잡이에 앞 글자가 가린다 (wetherilli 342) */
+  .tool-out { margin-top: 22px; }
   .ol-zoom { top: 8px !important; left: 8px !important; }
 
   #coordbar { gap: 6px; padding: 6px 8px; }
@@ -2121,6 +2127,15 @@ a.tool { text-decoration: none; }                /* 3D 단추는 링크다 */
 .profile-svg .dot { fill: var(--gold-bright); stroke: var(--glass); stroke-width: 1.5; }
 .profile-read { min-height: 1.5em; margin: 0; padding: 0 12px 7px; font-family: var(--font-mono); font-size: 11.5px;
                 color: var(--ink-soft); }
+/* 휴대폰 — 가운데 280 px 칸이면 제목이 한 글자씩 꺾이고 아래가 접힌 범례 밑에 깔렸다. 왼쪽부터 툴바 앞까지 펴고
+   범례 머리(아래 54 px 위의 37 px) 위로 올린다 (wetherilli 342) */
+@media (max-width: 760px) {
+  .profile-dock { left: 8px; transform: none; width: calc(100% - 72px); min-width: 0; bottom: 98px; }
+  .profile-dock > header { flex-wrap: wrap; row-gap: 0; padding-right: 30px; }
+  .profile-close { position: absolute; top: 6px; right: 8px; }
+  .profile-dock > header strong { white-space: nowrap; }
+  .profile-svg { height: 130px; }
+}
 /* 범례 — 오른쪽 아래, 좌표 막대 위에 펼쳐 둔다. 머리를 누르면 접힌다 */
 .legend-dock { position: absolute; right: 12px; bottom: 62px; z-index: 5; width: 290px; max-width: calc(100% - 24px);
                background: var(--glass); border: 1px solid var(--glass-line); border-radius: 10px;
@@ -2196,6 +2211,11 @@ a.tool { text-decoration: none; }                /* 3D 단추는 링크다 */
   /* 온 지구는 시간 축이 아래에 앉는다 — 범례는 그 위로 */
   .timebar ~ .legend-dock { bottom: 150px; }
   .coord-readout, .pose-readout { display: none; }
+  /* 평면의 축척 막대가 범례 머리(달·화성·수성)·시간 축(온 지구) 밑에 깔렸다 — 그 위로 (wetherilli 342) */
+  :root:is([data-region="moon"], [data-region="mars"], [data-region="mercury"]) #scalebar { bottom: 98px; }
+  :root[data-region="earth"] #scalebar, :root[data-region="earth"] .profile-dock { bottom: 192px; }
+  /* 펼친 범례는 툴바(z 6) 위에 — 툴바가 범례 오른쪽의 칸 수를 덮었다. 접으면 툴바가 다시 보인다 */
+  .legend-dock[open] { z-index: 7; }
 }
 /* 시간 축 (wetherilli 091) — 온 지구 화면의 왼쪽 위. 연대 하나를 로그 막대로 고른다 */
 .timebar { position: absolute; left: 12px; top: 12px; z-index: 6; width: min(520px, calc(100% - 200px));
@@ -2235,7 +2255,18 @@ a.tool { text-decoration: none; }                /* 3D 단추는 링크다 */
 .share-notice button { flex: none; padding: 4px 10px; font: inherit; color: var(--on-hi); background: var(--hi); border: 0;
                        border-radius: 6px; cursor: pointer; }
 .share-notice .share-notice-x { padding: 2px 6px; color: var(--ink-faint); background: none; font-size: 15px; }
-@media (max-width: 760px) { .share-notice { top: auto; bottom: 120px; font-size: 12px; } }
+@media (max-width: 760px) {
+  /* 가운데 맞춤(left 50%)이면 상자가 화면 오른쪽 반 너비에 갇혀 글이 한 줄에 서너 자로 꺾였다 — 좌우로 편다 (wetherilli 342) */
+  .share-notice { top: auto; bottom: 120px; left: 8px; right: 8px; transform: none; max-width: none; font-size: 12px; }
+  .share-notice > span { flex: 1; }
+  /* 구 화면은 축척 막대·범례 머리 위로 */
+  :root:is([data-region="moon"], [data-region="mars"], [data-region="mercury"]) .share-notice { bottom: 156px; }
+  :root[data-region="earth"] .share-notice { bottom: 250px; }
+}
+/* 링크를 복사했다는 띠 — 휴대폰은 툴바의 이름표가 숨어 단추의 "복사했다" 가 보이지 않는다 (wetherilli 342) */
+.share-toast { position: absolute; left: 50%; top: 34px; z-index: 15; transform: translateX(-50%); padding: 6px 14px;
+               font-size: 12.5px; white-space: nowrap; color: var(--on-hi); background: var(--hi); border-radius: 999px;
+               box-shadow: var(--shadow); pointer-events: none; }
 .render-failed { position: absolute; left: 50%; top: 50%; z-index: 20; width: min(460px, calc(100% - 32px));
                  transform: translate(-50%, -50%); padding: 16px 18px; background: var(--panel); color: var(--ink);
                  border: 1px solid var(--gold-edge); border-radius: 12px; box-shadow: var(--shadow); font-size: 13px;

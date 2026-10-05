@@ -47,6 +47,21 @@ MEASURE = """(sels) => {
 }"""
 
 
+#: 영어판 화면에 보이는 한국어 — 일부러 둔 것(한국어 이름·언어 고르개·위경도 열 이름 안내·판 이력)은 뺀다 (wetherilli 341)
+HANGUL_LEAKS = """() => {
+  const allowed = new Set(["대돌여지도", "한국어", "언어 · Language", "위도", "경도"]);
+  const out = [], w = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT);
+  while (w.nextNode()) {
+    const el = w.currentNode.parentElement, t = w.currentNode.textContent.trim();
+    if (!el || !t || !/[가-힣]/.test(t) || allowed.has(t) || t.startsWith("대돌여지도 ·")) continue;
+    const st = getComputedStyle(el);
+    if (st.display === "none" || st.visibility === "hidden" || el.closest("[hidden]") || el.closest("#notes")) continue;
+    out.push(t.slice(0, 80));
+  }
+  return out;
+}"""
+
+
 class PhoneBase(StaticLiveServerTestCase):
     """여는 법과 공통 검사 — 시험은 아래 반들이 갖는다. 반마다 브라우저 하나"""
 
@@ -317,6 +332,9 @@ class GlobeScreens(PhoneBase):
             with self.subTest(path=path):
                 page = self.check_map_screen(path, settle, lang="en")
                 self.assertEqual(page.evaluate("document.documentElement.lang"), "en")
+                # 한국어가 새지 않는다 (wetherilli 341) — 한국어 이름(대돌여지도·그 밑줄), 언어 고르개, 판 이력(옮기지 않는다)만 뺀다
+                leaks = page.evaluate(HANGUL_LEAKS)
+                self.assertEqual(leaks, [], f"{path}: 영어판에 한국어가 샌다")
                 page.context.close()
 
 # ── 지역 탭 전부 (wetherilli 193) ───────────────────────────
@@ -330,6 +348,76 @@ def region_tabs(shard=None) -> list:
     js = (Path(__file__).resolve().parents[1] / "static/viewer/map.js").read_text(encoding="utf-8")
     regions = [r for r in re.findall(r"^    (\w+): \{ title: \"[^\"]+\", proj:", js, re.M) if r not in ("korea", "antarctica")]
     return regions if shard is None else regions[shard::SHARDS]
+
+
+class PlanetFlows(PhoneBase):
+    """달·화성·수성 화면을 손가락으로 써 본다 — 거리 재기와 높이 그래프, 극 평면, 공유 (wetherilli 342).
+    표고는 상류라 끊긴다 — 높이 그래프의 판이 뜨는지·자리가 맞는지만 본다"""
+
+    BOX = "(s) => { const e = document.querySelector(s); if (!e || e.hidden) return null; const b = e.getBoundingClientRect(); " \
+          "return b.width ? {left: b.left, top: b.top, right: b.right, bottom: b.bottom, width: b.width} : null; }"
+
+    def box(self, page, sel):
+        return page.evaluate(self.BOX, sel)
+
+    def assertApart(self, a, b, what):
+        if a and b:
+            self.assertTrue(a["right"] <= b["left"] or b["right"] <= a["left"] or a["bottom"] <= b["top"] or b["bottom"] <= a["top"],
+                            f"{what}: 겹친다 {a} {b}")
+
+    def test_손가락으로_거리를_재면_높이_그래프가_뜬다(self):
+        """툴바 상자가 지도를 덮어 둘째 점이 먹히고, 터치에는 두 번 누르기가 오지 않아 선이 끝나지 않았다.
+        이제 마지막 점을 다시 누르면 끝난다. 그래프는 화면 안·범례 머리 위에 선다"""
+        for body in ("moon", "mars", "mercury"):
+            with self.subTest(body=body):
+                page, errors = self.open(f"{body}/", settle=4000)
+                page.tap('[data-draw="line"]')
+                page.wait_for_timeout(300)
+                self.assertApart(self.box(page, "#tool-out"), self.box(page, "#panel-handle"), f"{body}: 그리기 안내와 패널 손잡이")
+                page.touchscreen.tap(150, 450)
+                page.wait_for_timeout(400)
+                page.touchscreen.tap(250, 500)          # 툴바 상자가 덮던 자리
+                page.wait_for_timeout(400)
+                page.touchscreen.tap(250, 500)          # 마지막 점을 다시 — 끝
+                page.wait_for_timeout(1500)
+                profile = self.box(page, "#profile")
+                self.assertIsNotNone(profile, f"{body}: 거리 재기가 끝나지 않는다(높이 그래프가 없다)")
+                self.assertGreaterEqual(profile["left"], -1)
+                self.assertLessEqual(profile["right"], 391, f"{body}: 높이 그래프가 오른쪽으로 넘친다")
+                legend = self.box(page, "#legend-dock")
+                if legend:
+                    self.assertLessEqual(profile["bottom"], legend["top"] + 1, f"{body}: 높이 그래프가 범례 밑에 깔린다")
+                self.assertIn("km", page.locator("#tool-out").inner_text())
+                self.assertFits(self.measure(page), f"{body} 높이 그래프")
+                self.assertEqual(errors, [])
+                page.context.close()
+
+    def test_평면은_극으로_넘어가고_축척_막대가_가리지_않는다(self):
+        page, errors = self.open("moon/", settle=4000)
+        page.tap("#tool-mode")
+        page.wait_for_timeout(1500)
+        page.fill("#goto-input", "80, 30")
+        page.press("#goto-input", "Enter")
+        page.wait_for_timeout(2000)
+        self.assertEqual(page.evaluate("window.__gsmMoonFlat.getView().getProjection().getCode()"), "IAU_2015:30130")
+        self.assertApart(self.box(page, "#scalebar"), self.box(page, "#legend-dock"), "축척 막대와 범례")
+        self.assertFits(self.measure(page), "달 극 평면")
+        self.assertEqual(errors, [])
+
+    def test_링크를_복사하면_띠가_뜨고_링크로_연_알림은_넓다(self):
+        page, errors = self.open("moon/", settle=4000)
+        page.context.grant_permissions(["clipboard-read", "clipboard-write"], origin=self.live_server_url)
+        page.tap("#tool-share")
+        page.wait_for_timeout(300)
+        self.assertTrue(page.locator(".share-toast").is_visible(), "복사했다는 것이 보이지 않는다 — 휴대폰은 단추의 이름표가 숨는다")
+        page.context.close()
+        page, errors = self.open("moon/#m=flat&l=units*60&c=40.00000,-20.00000&res=94", settle=4000)
+        notice = self.box(page, ".share-notice")
+        self.assertIsNotNone(notice)
+        self.assertGreaterEqual(notice["width"], 300, "링크로 연 알림이 좁아 글이 서너 자씩 꺾인다")
+        self.assertApart(notice, self.box(page, "#scalebar"), "링크 알림과 축척 막대")
+        self.assertApart(notice, self.box(page, "#legend-dock"), "링크 알림과 범례")
+        self.assertEqual(errors, [])
 
 
 class RegionTabs(PhoneBase):
@@ -352,3 +440,52 @@ def _shard(k):
 
 for _k in range(SHARDS):
     globals()[f"RegionTabs{_k}"] = _shard(_k)
+
+
+class PointsetsAcrossProjections(PhoneBase):
+    """점묶음이 지역마다의 투영(3978·3413·3031·3857)에서 제자리에 선다 — "이 자료로 범위를 맞춘다" 를 누르면 보던 자리가 그 점이다
+    (wetherilli 343, 지역이 쉰이 되며 캐나다 람베르트·극 평사도법 탭이 늘었다)"""
+    PLACES = {"ottawa": (-75.70, 45.42), "longyearbyen": (15.63, 78.22), "mcmurdo": (166.67, -77.85), "lima": (-77.03, -12.05)}
+    TABS = (("canada", "ottawa", "EPSG:3978"), ("svalbard", "longyearbyen", "EPSG:3413"),
+            ("antarctica", "mcmurdo", "EPSG:3031"), ("peru", "lima", "EPSG:3857"))
+
+    def setUp(self):
+        call_command("seed_catalog", stdout=open(os.devnull, "w"))
+
+    def test_범위를_맞추면_그_점이다(self):
+        import json
+        from viewer.models import Point, PointSet
+        base = self.live_server_url + "/GSM/"
+        for region, place, proj in self.TABS:
+            # 점묶음은 탭마다 하나만 — 여럿이면 화면이 덩이를 한꺼번에 묻고, 시험 서버의 메모리 sqlite 가 스레드끼리 부딪힌다
+            PointSet.objects.all().delete()
+            lon, lat = self.PLACES[place]
+            ps = PointSet.objects.create(name=place, color="#e4572e")
+            Point.objects.create(pointset=ps, label=place, lat=lat, lon=lon)
+            ctx = self.browser.new_context(**PHONE)
+            self.addCleanup(ctx.close)
+            ctx.add_init_script(f"localStorage.setItem('gsm.region', '{region}');"
+                                f"localStorage.setItem('gsm.regions', JSON.stringify(['{region}']));")
+            page = ctx.new_page()
+            errors = []
+            page.on("pageerror", lambda e: errors.append(str(e)))
+
+            def route(r):
+                rest = r.request.url[len(base):] if r.request.url.startswith(base) else None
+                if rest is not None and (r.request.resource_type == "document" or rest.startswith(("static/", "pointsets/", "patchnotes/"))):
+                    return r.continue_()
+                return r.abort()
+            page.route("**/*", route)
+            page.goto(base + "map/", wait_until="load")
+            page.wait_for_timeout(1500)
+            clicked = page.evaluate("""(place) => {
+                const li = [...document.querySelectorAll('#pointset-list li')].find(l => l.textContent.includes(place));
+                const b = li && [...li.querySelectorAll('button')].find(x => x.textContent.includes('⊙'));
+                if (!b) return false; b.click(); return true; }""", place)
+            self.assertTrue(clicked, region)
+            page.wait_for_timeout(1200)
+            view = json.loads(page.evaluate(f"() => localStorage.getItem('gsm.view.{region}')") or "null")
+            self.assertEqual(view["proj"], proj)
+            self.assertAlmostEqual(view["lon"], lon, delta=0.01, msg=region)
+            self.assertAlmostEqual(view["lat"], lat, delta=0.01, msg=region)
+            self.assertEqual(errors, [], region)

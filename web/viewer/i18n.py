@@ -544,6 +544,7 @@ EN = {
     "지열류 자료를 아직 굽지 않았다 (build_heatflow)": "Heat flow data not built yet (build_heatflow)",
     "최근 지진 (7 일, M2.5 이상)": "Recent earthquakes (7 days, M2.5+)",
     "속이 빈 고리 — 크기는 규모, 색은 지난 시간 (매시 받음)": "Hollow rings — size is magnitude, colour is time since (fetched hourly)",
+    "그 밖의 {n} 지역": "{n} more regions",          # 소개 화면의 지역 칩 (wetherilli 344)
     # 관리 화면의 마지막 레이어 대조 (wetherilli 314)
     "마지막 레이어 대조 {day} — 그림 {drawn} · 빈 그림 {empty} · 오류 {error} · 건너뜀 {skipped}":
         "Last layer check {day} — drawn {drawn} · empty {empty} · error {error} · skipped {skipped}",
@@ -574,6 +575,10 @@ EN = {
     "지각 (CRUST 2.0)": "Crust (CRUST 2.0)",
     "지각 두께": "Crustal thickness",
     "약 {km} km — CRUST 2.0, 2° 칸의 모형이다": "About {km} km — CRUST 2.0, a model on 2° cells",
+    # 영어판 새는 곳 (wetherilli 341)
+    "© 한국지질자원연구원": "© KIGAM",
+    "국토지리원": "GSI Japan",
+    "(손으로 둔다)": "(placed by hand)",
     # 구운 자료 (wetherilli 312)
     "구운 자료": "Baked data",
     "서버의 자료 폴더에 굽거나 모아 둔 파일 — 있는지·크기·고친 날·원본 판": "Files baked or collected in the server's data folder — present, size, modified, source version",

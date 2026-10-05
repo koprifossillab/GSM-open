@@ -382,6 +382,14 @@
 | wetherilli 338 | 2026-10-05 | [3D 에 PGC 경사·등고선 — 극지연구소 KPDC 는 잴 수 없었다](20261005_wetherilli_338_3d_polar.md) |
 | wetherilli 339 | 2026-10-05 | [깨진 출처 링크](20261005_wetherilli_339_source_links.md) |
 | wetherilli 340 | 2026-10-05 | [3D 를 지역마다 열어 보다 — 빌려 온 레이어가 빠져 있었다](20261005_wetherilli_340_3d_regions.md) |
+| wetherilli 341 | 2026-10-05 | [영어판 새는 곳과 온 지구의 무게](20261005_wetherilli_341_en_leaks.md) |
+| wetherilli 342 | 2026-10-05 | [달·화성·수성을 휴대폰으로 — 거리 재기가 끝나지 않던 것과 겹치던 띠들](20261005_wetherilli_342_planets_mobile.md) |
+| wetherilli 343 | 2026-10-05 | [점묶음·개인 레이어·연결 레이어를 지역 쉰에서 써 보다 — 깨진 곳은 없었다](20261005_wetherilli_343_user_layers.md) |
+| wetherilli 344 | 2026-10-05 | [공유 링크·소개 화면을 지역 쉰에서 써 보다](20261005_wetherilli_344_share_intro.md) |
+| wetherilli 345 | 2026-10-05 | [첫 화면의 무게](20261005_wetherilli_345_page_weight.md) |
+| wetherilli 346 | 2026-10-05 | [대만 민감구역 받기 — 끊기면 다시 묻고, 멈추면 이어 받는다](20261005_wetherilli_346_taiwan_sensitive_retry.md) |
+| wetherilli 347 | 2026-10-05 | [메타타일·응답 시간 첫 운영 보기 — 아직 볼 것이 없었다](20261005_wetherilli_347_metatile_ops_first_look.md) |
+| wetherilli 348 | 2026-10-05 | [README "라이선스와 자료의 출처" 맞추기](20261005_wetherilli_348_readme_sources.md) |
 | koprifossillab P01 | 2026-09-30 | [백업 — WegenersDream 의 틀로, 바뀌는 빠르기에 따라 넷으로 (계획)](20260930_koprifossillab_P01_backup_plan.md) |
 | koprifossillab 001 | 2026-09-30 | [매주 월요일 새벽: 운영 자료 백업과 KPDC 목록 갱신](20260930_koprifossillab_001_weekly_backup.md) |
 | koprifossillab 002 | 2026-09-30 | [`/healthz/` — 판·DB·백업 상태를 한 장으로](20260930_koprifossillab_002_healthz.md) |

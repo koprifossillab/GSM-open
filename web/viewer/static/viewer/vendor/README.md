@@ -1,6 +1,6 @@
 # 담아 둔 것
 
-**OpenLayers 9.2.4** — `ol.js`, `ol.css`
+**OpenLayers 9.2.4** — `ol.js`, `ol.css` (BSD-2-Clause, `ol.LICENSE.md` 동봉 — 2026-10-05 에 `https://cdn.jsdelivr.net/npm/ol@9.2.4/LICENSE.md` 에서, wetherilli 348)
 
 CDN 에서 불러오지 않고 저장소에 담는 까닭은 둘이다.
 

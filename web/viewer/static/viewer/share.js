@@ -115,6 +115,17 @@
     return bar;
   }
 
+  function toast(text) {
+    var old = document.querySelector(".share-toast");
+    if (old) old.remove();
+    var bar = document.createElement("div");
+    bar.className = "share-toast";
+    bar.setAttribute("role", "status");
+    bar.textContent = text;
+    (document.getElementById("map-wrap") || document.body).appendChild(bar);
+    setTimeout(function () { bar.remove(); }, 1600);
+  }
+
   function wire(button, make, words) {
     if (!button) return;
     var label = button.querySelector("span"), was = label ? label.textContent : "";
@@ -122,7 +133,8 @@
       var url = make();
       copy(url).then(function (ok) {
         if (!ok) { window.prompt(words.ask, url); return; }     // 복사가 막힌 곳 — 사람이 골라 복사한다
-        if (!label) return;
+        // 이름표가 숨은 곳(휴대폰의 툴바)에서는 띠로 알린다 (wetherilli 342)
+        if (!label || label.offsetParent === null) { toast(words.done); return; }
         label.textContent = words.done;
         button.classList.add("on");
         setTimeout(function () { label.textContent = was; button.classList.remove("on"); }, 1600);

@@ -38,9 +38,24 @@ class AssetStampTests(TestCase):
             views.STAMPED = original
             views.asset_stamp.cache_clear()
 
+    def test_정적_주소에는_판이_붙는다(self):
+        """정적 파일은 nginx 가 `?v=` 가 붙은 것만 1 년 `immutable` 로 둔다(wetherilli 345) — 템플릿의 파일 주소마다 판을 붙인다.
+        끝이 `/` 인 뿌리 주소(Cesium·MapLibre 가 제 안에서 이어 붙인다)만 뺀다"""
+        import pathlib
+        missing = []
+        for path in sorted((pathlib.Path(__file__).resolve().parents[1] / "templates" / "viewer").glob("*.html")):
+            for m in re.finditer(r"\{% static '([^']+)' %\}(\S?)", path.read_text(encoding="utf-8")):
+                if not m.group(1).endswith("/") and m.group(2) != "?":
+                    missing.append(f"{path.name}: {m.group(1)}")
+        self.assertEqual(missing, [])
+
     def test_splash_is_in_the_first_paint(self):
         html = self.client.get(reverse("viewer:map")).content.decode()
-        self.assertTrue(re.search(r'<div id="splash"[^>]*>\s*<img[^>]*splash\.gif', html))
+        # 대기 그림은 첫 칠에 든다 — 그림 자리(`picture`)가 splash 안에 있고, 그 바로 밑 스크립트가 주소를 고른다(WebP, 못 읽으면 GIF, wetherilli 345)
+        self.assertTrue(re.search(r'<div id="splash"[^>]*>.*?<picture><source type="image/webp" id="splash-webp"><img id="splash-img"', html, re.S))
+        script = html[html.index('id="splash-img"'):html.index("viewer/map.js")]
+        self.assertIn("splash.webp?v=", script)
+        self.assertIn("splash.gif?v=", script)
         self.assertIn("불러오는 중", html)
 
 

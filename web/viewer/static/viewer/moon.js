@@ -1444,7 +1444,7 @@
               }).join("") + "</table>" : ""), pixel);
   }
   handler.setInputAction(function (click) {
-    if (tool) { drawClick(globeLL(click.position)); return; }     // 도구가 켜져 있으면 도구가 받는다 (041)
+    if (tool) { drawClick(globeLL(click.position), click.position); return; }     // 도구가 켜져 있으면 도구가 받는다 (041)
     var picked = scene.pick(click.position);
     var entity = picked && picked.id;
     var px = [click.position.x, click.position.y];
@@ -2256,7 +2256,7 @@
       showMeasure(measureOf({ kind: tool, coords: pts }));
     }
   }, Cesium.ScreenSpaceEventType.MOUSE_MOVE);
-  drawHandler.setInputAction(function () { finishGlobeSketch(); }, Cesium.ScreenSpaceEventType.LEFT_DOUBLE_CLICK);
+  drawHandler.setInputAction(function () { if (sketch.length) finishGlobeSketch(); }, Cesium.ScreenSpaceEventType.LEFT_DOUBLE_CLICK);
   drawHandler.setInputAction(function (e) {
     if (tool !== "box") return;
     boxFrom = globeLL(e.position);
@@ -2272,8 +2272,17 @@
   }, Cesium.ScreenSpaceEventType.LEFT_UP);
 
   /** 도구가 켜져 있으면 누른 것을 도구가 받는다. 받았으면 true — 그때는 속성을 읽지 않는다. */
-  function drawClick(ll) {
+  //: 터치에는 두 번 누르기(LEFT_DOUBLE_CLICK)가 오지 않는다 — Cesium 은 마우스의 dblclick 만 옮긴다. 그래서 **마지막 점을 다시 누르면**
+  //  (24 px 안) 선·면을 끝낸다. 시간 창은 두지 않는다 — 구를 그리느라 느린 기기에서는 두 번 누른 사이가 1 초 가까이 벌어졌다.
+  //  휴대폰에서 거리 재기가 끝나지 않아 높이 그래프를 볼 수 없었다 (wetherilli 342)
+  var lastTap = null;
+  function drawClick(ll, px) {
     if (!tool) return false;
+    var now = Date.now(), prev = lastTap, again = px && prev && Math.hypot(px.x - prev.x, px.y - prev.y) < 24;
+    lastTap = px ? { t: now, x: px.x, y: px.y } : null;
+    // 방금 끝낸 자리를 곧바로(3 초 안 — 느린 기기에서는 두 번 누른 사이가 1 초를 넘는다) 또 누른 것은 새 선을 시작하지 않는다 — 그래프가 닫혔다
+    if (again && prev.done && now - prev.t < 3000) { lastTap.done = true; return true; }
+    if (again && (tool === "line" || tool === "area") && sketch.length) { lastTap.done = true; finishGlobeSketch(); return true; }
     if (!ll) return true;
     if (tool === "point") addTemp(ll);
     else if (tool === "line" || tool === "area") {
@@ -2898,7 +2907,9 @@
       if (c) {
         q.c = c.lon.toFixed(5) + "," + c.lat.toFixed(5);
         q.h = Math.round(c.h);
-        q.hd = viewer.camera.heading.toFixed(4);
+        // 바로 북쪽을 보면 Cesium 이 2π(6.2832)를 줄 때가 있다 — 0 과 같은 쪽이라 0 으로 적어 링크가 늘 같게 (wetherilli 344)
+        var heading = ((viewer.camera.heading % (2 * Math.PI)) + 2 * Math.PI) % (2 * Math.PI);
+        q.hd = (2 * Math.PI - heading < 1e-4 ? 0 : heading).toFixed(4);
         q.pt = viewer.camera.pitch.toFixed(4);
       }
     }

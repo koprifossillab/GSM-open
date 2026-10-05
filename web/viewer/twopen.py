@@ -207,32 +207,89 @@ def _parts(geometry: dict) -> list:
     return [coords] if kind == "Polygon" else list(coords) if kind == "MultiPolygon" else []
 
 
-def write_sensitive(areas, path: Path) -> int:
-    """`gsmma.fetch_sensitive` 가 낸 구역들 → sqlite. 조각 수를 돌려준다. `.part` 에 쓰고 바꿔 단다"""
-    import sqlite3
-    tmp = path.with_suffix(".part")
-    tmp.unlink(missing_ok=True)
-    db = sqlite3.connect(tmp)
+def _sensitive_tables(db):
     db.executescript("""
-        CREATE TABLE area (id INTEGER PRIMARY KEY, kind TEXT, code TEXT, name TEXT, town TEXT, date TEXT, doc TEXT, rings TEXT);
-        CREATE VIRTUAL TABLE area_box USING rtree(id, w, e, s, n);""")
+        CREATE TABLE IF NOT EXISTS area (id INTEGER PRIMARY KEY, kind TEXT, code TEXT, name TEXT, town TEXT, date TEXT, doc TEXT, rings TEXT);
+        CREATE VIRTUAL TABLE IF NOT EXISTS area_box USING rtree(id, w, e, s, n);
+        CREATE TABLE IF NOT EXISTS done (key TEXT PRIMARY KEY);
+        CREATE TABLE IF NOT EXISTS missing (key TEXT PRIMARY KEY, reason TEXT);""")
+
+
+def open_sensitive(path: Path):
+    """받을 자리(`<이름>.part`)를 연다 — (db, 받은 열쇠들, 앞서 못 받은 [(열쇠, 까닭)]). 이어 받기 (wetherilli 346)
+
+    `.part` 가 있으면 거기서 잇는다(앞서 멈췄다). 없고 다 지은 파일에 못 받은 것이 적혀 있으면 그것을 `.part` 로 베껴 잇는다 —
+    못 받은 것만 다시 묻는다. 아니면 새로 시작한다"""
+    import shutil
+    import sqlite3
+    part = path.with_suffix(".part")
+    if not part.exists() and path.exists():
+        try:
+            db = sqlite3.connect(f"file:{path}?mode=ro", uri=True)
+            left = db.execute("SELECT count(*) FROM missing").fetchone()[0]
+            db.close()
+        except sqlite3.Error:            # 옛 판(wetherilli 336)의 파일 — 받은 열쇠를 적지 않았다
+            left = 0
+        if left:
+            shutil.copyfile(path, part)
+    db = sqlite3.connect(part)
+    if part.exists() and not db.execute("SELECT 1 FROM sqlite_master WHERE name = 'done'").fetchone():
+        # 옛 판(wetherilli 336)이 멈추며 남긴 것 — 어느 묻기를 받았는지 적지 않아 이으면 겹친다. 버리고 새로
+        db.close()
+        part.unlink()
+        db = sqlite3.connect(part)
+    _sensitive_tables(db)
+    done = {k for (k,) in db.execute("SELECT key FROM done")}
+    missing = list(db.execute("SELECT key, reason FROM missing"))
+    return db, done, missing
+
+
+def add_sensitive(db, key: str, areas) -> int:
+    """묻기 하나의 구역들을 담고 열쇠를 받은 것으로 적는다 — 한 거래라 멈춰도 반쯤 담긴 묻기가 없다. 담은 조각 수"""
     n = 0
-    for a in areas:
-        for rings in _parts(a.get("geometry")):
-            rings = [[[round(p[0], 6), round(p[1], 6)] for p in ring] for ring in rings if ring]
-            if not rings:
-                continue
-            xs = [p[0] for p in rings[0]]
-            ys = [p[1] for p in rings[0]]
-            n += 1
-            db.execute("INSERT INTO area VALUES (?,?,?,?,?,?,?,?)",
-                       (n, a["kind"], a.get("code", ""), a.get("name", ""), a.get("town", ""), a.get("date", ""), a.get("doc", ""),
-                        json.dumps(rings, separators=(",", ":"))))
-            db.execute("INSERT INTO area_box VALUES (?,?,?,?,?)", (n, min(xs), max(xs), min(ys), max(ys)))
-    db.commit()
-    db.close()
-    tmp.replace(path)
+    with db:
+        for a in areas:
+            for rings in _parts(a.get("geometry")):
+                rings = [[[round(p[0], 6), round(p[1], 6)] for p in ring] for ring in rings if ring]
+                if not rings:
+                    continue
+                xs = [p[0] for p in rings[0]]
+                ys = [p[1] for p in rings[0]]
+                cur = db.execute("INSERT INTO area (kind, code, name, town, date, doc, rings) VALUES (?,?,?,?,?,?,?)",
+                                 (a["kind"], a.get("code", ""), a.get("name", ""), a.get("town", ""), a.get("date", ""), a.get("doc", ""),
+                                  json.dumps(rings, separators=(",", ":"))))
+                db.execute("INSERT INTO area_box VALUES (?,?,?,?,?)", (cur.lastrowid, min(xs), max(xs), min(ys), max(ys)))
+                n += 1
+        db.execute("INSERT OR IGNORE INTO done VALUES (?)", (key,))
+        db.execute("DELETE FROM missing WHERE key = ?", (key,))
     return n
+
+
+def close_sensitive(db, path: Path, missing: list) -> int:
+    """받은 만큼 다 지은 파일을 쓴다 — 조각 수. 못 받은 것이 남으면 파일에 적어 두고 `.part` 도 남긴다(다시 부르면 그것만 묻는다)"""
+    import shutil
+    part = path.with_suffix(".part")
+    with db:
+        db.execute("DELETE FROM missing")
+        db.executemany("INSERT OR REPLACE INTO missing VALUES (?, ?)", missing)
+    n = db.execute("SELECT count(*) FROM area").fetchone()[0]
+    db.close()
+    if missing:
+        tmp = path.with_suffix(".tmp")
+        shutil.copyfile(part, tmp)
+        tmp.replace(path)
+    else:
+        part.replace(path)
+    return n
+
+
+def write_sensitive(batches, path: Path) -> int:
+    """[(열쇠, 구역들)] → 처음부터 다 지은 파일 (시험·손으로 담을 때)"""
+    path.with_suffix(".part").unlink(missing_ok=True)
+    db, _, _ = open_sensitive(path)
+    for key, areas in batches:
+        add_sensitive(db, key, areas)
+    return close_sensitive(db, path, [])
 
 
 def sensitive_at(kind: str, lon: float, lat: float) -> list:

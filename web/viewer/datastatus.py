@@ -37,7 +37,7 @@ class Item:
     where: str                # 설정 이름(폴더) — 절대 경로는 화면에 내지 않는다
     name: str                 # 그 폴더 안의 이름. "" 면 폴더 자체
     what: object              # 무엇인가(msg)
-    command: str              # 만드는 명령
+    command: object           # 만드는 명령(글) — 손으로 둔 것은 `MANUAL`(msg)
     lab: bool = False         # 연구실 내부용 — 밖에 연 판에서는 없어도 된다
     needed: bool = True       # 없으면 "있어야 하는데 없는 것" 으로 센다
 
@@ -46,12 +46,15 @@ class Item:
         return base / self.name if self.name else base
 
 
+#: 만드는 명령이 없이 사람이 파일을 둔 것 — 영어판에서 옮기도록 `msg` 로 둔다 (wetherilli 341)
+MANUAL = msg("(손으로 둔다)")
+
 ITEMS = [
     # 남극
     Item("admap2/meta.json", "ADMAP_DIR", "meta.json", msg("남극 자력 이상 ADMAP-2"), "build_admap"),
-    Item("geomap/*.gpkg", "GEOMAP_DIR", "", msg("남극 GeoMAP"), "(손으로 둔다)"),
+    Item("geomap/*.gpkg", "GEOMAP_DIR", "", msg("남극 GeoMAP"), MANUAL),
     Item("ibcso/tiles-bed", "IBCSO_DIR", "tiles-bed", msg("남극 해저·빙저 지형 IBCSO v2"), "build_ibcso"),
-    Item("npolar/NP_J250_Geologi", "NPOLAR_DIR", "NP_J250_Geologi", msg("얀마옌 지질도"), "(손으로 둔다)"),
+    Item("npolar/NP_J250_Geologi", "NPOLAR_DIR", "NP_J250_Geologi", msg("얀마옌 지질도"), MANUAL),
     # 북미·카리브
     Item("caribbean/sim3534.sqlite", "CARIBBEAN_DIR", "sim3534.sqlite", msg("카리브 대앤틸리스 지질도"), "build_caribbean"),
     # 온 지구
@@ -76,7 +79,7 @@ ITEMS = [
     Item("ocean/ecco2", "OCEAN_DIR", "ecco2", msg("해류 ECCO2"), "build_ecco2"),
     # 달·화성·수성
     Item("moon/moon_originals.sqlite", "MOON_DIR", "moon_originals.sqlite", msg("달 지질도 원도"), "build_moon_originals"),
-    Item("moon/spa_geomap_iqbal2026.tif", "MOON_DIR", "spa_geomap_iqbal2026.tif", msg("남극–에이트켄 분지 지질도"), "(손으로 둔다)"),
+    Item("moon/spa_geomap_iqbal2026.tif", "MOON_DIR", "spa_geomap_iqbal2026.tif", msg("남극–에이트켄 분지 지질도"), MANUAL),
     Item("mars/mars_craters.sqlite", "MARS_DIR", "mars_craters.sqlite", msg("화성 크레이터"), "build_mars_craters"),
     Item("mars/mars_originals.sqlite", "MARS_DIR", "mars_originals.sqlite", msg("화성 옛 지질도"), "build_mars_originals"),
     Item("mercury/mercury_geology.sqlite", "MERCURY_DIR", "mercury_geology.sqlite", msg("수성 지질도"), "build_mercury_geology"),
@@ -91,7 +94,7 @@ ITEMS = [
     # 연구실 내부용
     Item("peninsula/tiles", "PENINSULA_DIR", "tiles", msg("한반도 지질도 음영판"), "build_peninsula", lab=True),
     Item("peninsula/tiles-plain", "PENINSULA_DIR", "tiles-plain", msg("한반도 지질도 민판"), "build_peninsula", lab=True),
-    Item("usgs/geo3al", "USGS_DIR", "geo3al", msg("중국 USGS geo3al"), "(손으로 둔다)", lab=True),
+    Item("usgs/geo3al", "USGS_DIR", "geo3al", msg("중국 USGS geo3al"), MANUAL, lab=True),
 ]
 # 대만 지질운 열린자료(wetherilli 305) — 그 판이 들어온 뒤에만
 if hasattr(settings, "TAIWAN_OPEN_DIR"):

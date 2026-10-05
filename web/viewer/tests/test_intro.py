@@ -74,10 +74,10 @@ class IntroTests(TestCase):
     def test_극지_아이콘과_대기_화면(self):
         """극지 지역에서 지도는 극지 아이콘·대기 화면을, 소개는 극지 표지를 쓴다 (wetherilli 123)."""
         static = HERE / "static" / "viewer"
-        for name in ("emblem-polar.png", "splash-polar.gif"):
+        for name in ("emblem-polar.png", "splash-polar.gif", "splash-polar.webp"):
             self.assertTrue((static / name).is_file(), name)
         html = self.get("viewer:map")
-        self.assertIn('data-emblem-polar="/GSM/static/viewer/emblem-polar.png"', html)
+        self.assertIn('data-emblem-polar="/GSM/static/viewer/emblem-polar.png?v=', html)       # 판이 붙는다 (wetherilli 345)
         self.assertIn("splash-polar.gif", html)
         self.assertIn('id="favicon"', html)
         intro = self.get("viewer:intro")
@@ -89,3 +89,16 @@ class IntroTests(TestCase):
         intro = self.get("viewer:intro")
         self.assertIn('href="https://github.com/koprifossillab/GSM-open"', intro)
         self.assertNotIn('href="https://github.com/koprifossillab/GSM"', intro)
+
+
+class OtherRegions(TestCase):
+    """지역 칩에 이름이 없는 지역의 수 (wetherilli 344) — 서버 판에만"""
+    def test_수를_센다(self):
+        from django.core.management import call_command
+        from viewer import views
+        call_command("seed_catalog", stdout=open("/dev/null", "w"))
+        n = views._intro_other_regions()
+        self.assertGreater(n, 30)
+        html = self.client.get("/GSM/").content.decode()
+        self.assertIn(f"그 밖의 {n} 지역", html)
+        self.assertIn(f"{n} more regions", self.client.get("/GSM/", HTTP_ACCEPT_LANGUAGE="en").content.decode())

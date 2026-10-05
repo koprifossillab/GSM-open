@@ -63,14 +63,32 @@ class Command(BaseCommand):
         twopen.forget()
 
     def sensitive(self, gap):
+        """민감구역 — 끊기면 쉬었다 다시 묻고, 그래도 못 받은 묻기는 건너뛰어 적는다. 다시 부르면 `.part` 에서 잇는다 (wetherilli 346)"""
         folder = Path(settings.TAIWAN_OPEN_DIR)
         folder.mkdir(parents=True, exist_ok=True)
+        path = folder / twopen.SENSITIVE_FILE
         started = time.time()
+        db, done, missing = twopen.open_sensitive(path)
+        if done:
+            self.stdout.write(f"이어 받는다 — 받은 묻기 {len(done)}, 앞서 못 받은 것 {len(missing)}")
+        # 이번에 다시 물을 것이니 앞서 못 받은 목록은 비우고 이번 것만 적는다
+        missing = []
         try:
-            n = twopen.write_sensitive(gsmma.fetch_sensitive(gap=gap, log=self.stdout.write), folder / twopen.SENSITIVE_FILE)
+            for key, areas in gsmma.fetch_sensitive(gap=gap, log=self.stdout.write, done=done, missing=missing):
+                twopen.add_sensitive(db, key, areas)
         except gsmma.GsmmaError as exc:
-            raise CommandError(str(exc)) from exc
+            db.close()
+            raise CommandError(f"{exc} — 받은 것은 {path.with_suffix('.part')} 에 남았다. 다시 부르면 잇는다") from exc
+        except KeyboardInterrupt:
+            db.close()
+            raise
+        n = twopen.close_sensitive(db, path, missing)
         self.stdout.write(self.style.SUCCESS(f"민감구역 — 면 조각 {n:,} 개 ({time.time() - started:.0f} 초)"))
+        if missing:
+            self.stdout.write(self.style.WARNING(f"  못 받은 묻기 {len(missing)} — 파일에 적었다. 다시 부르면 그것만 묻는다:"))
+            for key, reason in missing:
+                self.stdout.write(f"    {key} — {reason}")
+
     def _holes(self, folder: Path, apis: list, o: dict):
         """구멍(0.08° 네모)마다 `splits` 번 더 나눠 묻는다. 새로 받은 것만 보태고, 남은 작은 구멍을 다시 적는다.
         구멍에는 상류를 멈추게 하는 자료가 든 듯하다 — 1 km 네모로도 끊기는 자리가 남는다(wetherilli 328)"""

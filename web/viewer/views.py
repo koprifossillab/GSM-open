@@ -293,7 +293,19 @@ def intro_view(request):
         # 정적 판(wetherilli 167) — 서버 화면으로 가는 장면·문을 빼고, 실린 지역만 화면이 남긴다
         "static_site": _script_json(settings.STATIC_SITE) if settings.STATIC_SITE else "",
         "stamp": "" if settings.DEBUG else asset_stamp(),
+        # 칩에 이름을 적지 않은 지역의 수 — 지역이 쉰이 되며 칩 여덟이 다루는 곳의 전부처럼 읽혔다 (wetherilli 344)
+        "other_regions": _intro_other_regions(),
     })
+
+
+#: 소개 화면의 지역 칩에 이름이 오른 지역 — `intro.html` 의 `data-region` 과 같다(동아시아는 묶음이라 DB 에 없다)
+INTRO_CHIP_REGIONS = {"korea", "japan", "antarctica", "greenland", "svalbard", "jan_mayen", "arctic_ocean"}
+
+
+def _intro_other_regions() -> int:
+    """레이어가 있는 지역 가운데 칩에 이름이 없는 것의 수"""
+    regions = set(LayerGroup.objects.filter(layers__enabled=True).values_list("region", flat=True).distinct())
+    return len(regions - INTRO_CHIP_REGIONS)
 
 
 @require_GET
@@ -323,7 +335,7 @@ def manage_view(request):
 def _data_rows(lang):
     out = []
     for r in datastatus.rows():
-        out.append({**r, "what": i18n.t(r["what"], lang),
+        out.append({**r, "what": i18n.t(r["what"], lang), "command": i18n.t(r["command"], lang),
                     "size_text": datastatus.human_size(r["size"]) if r["size"] is not None
                     else (i18n.t(msg("{n} 칸", n=r["count"]), lang) if r["count"] is not None else ""),
                     "date": f"{r['modified']:%Y-%m-%d}" if r["modified"] else ""})

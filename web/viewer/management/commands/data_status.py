@@ -24,10 +24,10 @@ class Command(BaseCommand):
         for r in shown:
             if not r["exists"]:
                 state = "**없다**" if r["needed"] else "없다(밖에 연 판)"
-                self.stdout.write(f"| {r['key']} | {t(r['what'])} | {state} | | | `{r['command']}` |")
+                self.stdout.write(f"| {r['key']} | {t(r['what'])} | {state} | | | `{t(r['command'])}` |")
                 continue
             size = datastatus.human_size(r["size"]) if r["size"] is not None else f"{r['count']} 칸"
-            self.stdout.write(f"| {r['key']} | {t(r['what'])} | {size} | {r['modified']:%Y-%m-%d} | {r['version']} | `{r['command']}` |")
+            self.stdout.write(f"| {r['key']} | {t(r['what'])} | {size} | {r['modified']:%Y-%m-%d} | {r['version']} | `{t(r['command'])}` |")
         lost = datastatus.missing(table)
         style = self.style.WARNING if lost else self.style.SUCCESS
         self.stdout.write(style(f"\n{len(table)} 가운데 있는 것 {sum(r['exists'] for r in table)}, 있어야 하는데 없는 것 {len(lost)}"
