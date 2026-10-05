@@ -3034,8 +3034,9 @@ def _layer_extra_base(layer, lang: str = "ko") -> dict:
         return {"attribution": getattr(door, "ATTRIBUTIONS", {}).get(sheet, door.ATTRIBUTION),
                 "projection": getattr(door, "PROJECTION", {}).get(sheet, "EPSG:3857"),
                 **({"minZoom": first} if first else {}), **({"lastZoom": last} if last else {}),
-                # 범례 그림이 너무 큰 판(도미니카공화국, wetherilli 242)
-                **({"noLegend": True} if sheet in getattr(door, "NO_LEGEND", ()) else {}),
+                # 범례 그림이 너무 큰 판(도미니카공화국, wetherilli 242) — 지질 단위는 칠하기 규칙을 목록으로 (wetherilli 357)
+                **({"legend": "list", "legendUrl": "list/legend/"} if layer.name in getattr(door, "LEGEND_LAYERS", ())
+                   else {"noLegend": True} if sheet in getattr(door, "NO_LEGEND", ()) else {}),
                 # IGME5000 의 단층·연대 기호(wetherilli 217)는 누를 것이 없다
                 **({} if getattr(door, "queryable", lambda n: True)(layer.name) else {"queryable": False})}
     if layer.upstream == "georep" and georep.knows(layer.name):
@@ -3054,7 +3055,8 @@ def _layer_extra_base(layer, lang: str = "ko") -> dict:
     if layer.upstream == "nsgs" and nsgs.knows(layer.name):
         # 노바스코샤(wetherilli 235) — WMS 가 없어 문이 REST export 로 옮긴다. 화면의 투영을 그대로 넘긴다
         first, _ = nsgs.zooms(layer.name)
-        return {"attribution": nsgs.ATTRIBUTION, "projection": "EPSG:3978", "noLegend": True,
+        return {"attribution": nsgs.ATTRIBUTION, "projection": "EPSG:3978",
+                **({"legend": "extent", "legendUrl": "units/legend/"} if layer.name in nsgs.EXTENT_LEGENDS else {"noLegend": True}),
                 **({"minZoom": first} if first else {}), **({} if nsgs.queryable(layer.name) else {"queryable": False})}
     if layer.upstream == "bas" and bas.knows(layer.name):
         # 남극 Bedmap3(wetherilli 261) — BAS 의 ArcGIS Online 타일을 화면이 곧장. Esri 극 격자라 원점·해상도를 행에 싣는다. 누르기는 없다
@@ -3063,7 +3065,8 @@ def _layer_extra_base(layer, lang: str = "ko") -> dict:
     if layer.upstream == "ags" and ags.knows(layer.name):
         # 앨버타(wetherilli 235) — 타일은 ArcGIS Online 의 3857 z/x/y 를 화면이 곧장(지리원 주제 타일과 같은 길), 누른 자리만 문이
         url, last = ags.LAYERS[layer.name]
-        return {"attribution": ags.ATTRIBUTION, "tiles": url, "maxZoom": last, "noLegend": True}
+        return {"attribution": ags.ATTRIBUTION, "tiles": url, "maxZoom": last,
+                **({"legend": "extent", "legendUrl": "units/legend/"} if layer.name in ags.EXTENT_LEGENDS else {"noLegend": True})}
     if layer.upstream in ("geosphere", "pig", "tno", "dov", "spw"):
         # 유럽(wetherilli 237) — 3857 로 그린다. 오스트리아·폴란드는 상류가 가까이서 그리지 않아 그 줌 위는 화면이 늘리고(`maxZoom`),
         # 폴란드 단층은 줌 10·왈로니아는 줌 9(단층 13)부터. 왈로니아 범례는 395 칸 약호뿐이라 두지 않는다
@@ -4358,7 +4361,7 @@ def mris_legend(request):
 
 
 #: 목록 범례를 내는 문 — `legend_rows(이름)` 과 `LEGEND_LAYERS` 를 갖는다 (wetherilli 228)
-LIST_LEGENDS = (jmg, dmr, calgs, georep, bas, usstates, geus, bgs)
+LIST_LEGENDS = (jmg, dmr, calgs, georep, bas, usstates, geus, bgs, igme)
 
 
 @require_GET
@@ -4581,6 +4584,46 @@ def austates_legend(request):
         tilecache.put(key, json.dumps(rows, ensure_ascii=False).encode("utf-8"), ".json")
     shown = rows[:austates.MAX_LEGEND]
     return JsonResponse({"rows": shown, "more": max(0, len(rows) - len(shown))})
+
+
+@require_GET
+@browser_cached
+def units_legend(request):
+    """`?layer=nsgs:11&bbox=서,남,동,북` — ArcGIS 단위 면의 보는 범위 범례 (wetherilli 357). 노바스코샤는 칠하기 규칙(한 번 받아 담는다)에 통계 질의를,
+    앨버타는 피처 서비스의 `RGB` 열을 통계 질의 하나로. 꼴은 퀸즐랜드(`austates_legend`)와 같다"""
+    lang = i18n.lang_of(request)
+    name = request.GET.get("layer", "")
+    door = nsgs if name in nsgs.EXTENT_LEGENDS else ags if name in ags.EXTENT_LEGENDS else None
+    if door is None:
+        return JsonResponse({"error": i18n.t(msg("범례가 없는 레이어다"), lang), "rows": []}, status=400)
+    parts = [_float(v) for v in (request.GET.get("bbox") or "").split(",")]
+    if len(parts) != 4 or None in parts:
+        return JsonResponse({"error": i18n.t(msg("bbox 가 없다"), lang), "rows": []}, status=400)
+    bbox = [round(v, 2) for v in parts]
+    if bbox[2] - bbox[0] > door.LEGEND_SPAN or bbox[3] - bbox[1] > door.LEGEND_SPAN:
+        return JsonResponse({"error": i18n.t(msg("범위가 넓다 — 더 들어오면 범례가 뜬다"), lang), "rows": []}, status=422)
+    key = tilecache.key_text("units-legend", f"{name}/{bbox}/{lang}")
+    rows = _cached_json(key)
+    if rows is None:
+        try:
+            if door is nsgs:
+                rule_key = tilecache.key_text("nsgs-renderer", name)
+                rules = _cached_json(rule_key)
+                if rules is None:
+                    rules = nsgs.renderer(name)
+                    tilecache.put(rule_key, json.dumps(rules, ensure_ascii=False).encode("utf-8"), ".json")
+                rows = nsgs.extent_legend(name, tuple(bbox), rules, lang)
+            else:
+                rows = ags.extent_legend(name, tuple(bbox), lang)
+        except UPSTREAM_ERRORS as exc:
+            log.info("단위 범례를 받지 못했다 (%s): %s", name, exc)
+            return JsonResponse({"error": i18n.t(msg("범례를 받지 못했다"), lang), "rows": []}, status=502)
+        tilecache.put(key, json.dumps(rows, ensure_ascii=False).encode("utf-8"), ".json")
+    shown = rows[:UNITS_MAX_LEGEND]
+    return JsonResponse({"rows": shown, "more": max(0, len(rows) - len(shown))})
+
+
+UNITS_MAX_LEGEND = 80
 
 
 @require_GET

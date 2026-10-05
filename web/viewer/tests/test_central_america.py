@@ -79,7 +79,8 @@ class Catalog(TestCase):
         for name, region in (("ineter:geology", "nicaragua"), ("igme:sgnrd:0", "dominican_republic"), ("mrdata:pr:geol", "usa")):
             group, layer = rows[name]
             self.assertEqual((group["region"], layer["projection"]), (region, "EPSG:3857"), name)
-        self.assertTrue(rows["igme:sgnrd:0"][1]["noLegend"])
+        self.assertEqual(rows["igme:sgnrd:0"][1]["legend"], "list")          # 칠하기 규칙 77 칸을 목록으로 (wetherilli 357)
+        self.assertTrue(rows["igme:sgnrd:1"][1]["noLegend"])
         self.assertFalse(rows["ineter:faults"][1]["queryable"])
         js = (Path(views.__file__).parent / "static/viewer/map.js").read_text(encoding="utf-8")
         ca = re.search(r'central_america: \{ title: "중미·카리브".*?includes: \[([^\]]*)\]', js, re.S).group(1)

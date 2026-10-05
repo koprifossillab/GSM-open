@@ -30,7 +30,7 @@ from django.conf import settings
 
 import json
 
-from . import arcpoints, i18n, tilecache, usage
+from . import arcpoints, i18n, sarad, tilecache, usage
 
 log = logging.getLogger(__name__)
 
@@ -284,7 +284,8 @@ GSSA_LAYERS = {
     "gssa:faults": ("gsmlp:ShearDisplacementStructureView", 10, False),
     # 광물 산지 — EarthResourceML 라이트 (wetherilli 269)
     "gssa:minocc": ("erl:MineralOccurrenceView", 7, True),
-    # 지구물리 영상 — SARIG 의 다른 GeoServer(`GSSA_IMAGERY_URL`, `GeophysicalStateImages`). 누르면 RGB 뿐이라 누르지 않는다 (wetherilli 329)
+    # 지구물리 영상 — SARIG 의 다른 GeoServer(`GSSA_IMAGERY_URL`, `GeophysicalStateImages`). 누르면 RGB 뿐이라 누르지 않는다 (wetherilli 329).
+    # 방사능 삼색만은 받아 둔 농도 격자가 있으면 누른다 — 상류가 아니라 우리 파일에서 K·Th·U 를 읽는다(`sarad.py`, wetherilli 358)
     "gssa:tmi_rtp": ("tmi_vrtp", None, False),
     "gssa:tmi_rtp_1vd": ("tmi_vrtp_1vd", None, False),
     "gssa:tmi_tilt": ("tmi_vrtp_tilt", None, False),
@@ -293,6 +294,7 @@ GSSA_LAYERS = {
     "gssa:rad_rgb": ("rad_rgb", None, False),
 }
 #: 지구물리 영상 레이어 — 주소가 다르다
+SARAD_LAYER = "gssa:rad_rgb"
 GSSA_IMAGERY = ("gssa:tmi_rtp", "gssa:tmi_rtp_1vd", "gssa:tmi_tilt", "gssa:grav", "gssa:grav_1vd", "gssa:rad_rgb")
 #: 뉴사우스웨일스 GSNSW(wetherilli 318) — 광물 산지(EarthResourceML 라이트)·광산. 지질도는 이 GeoServer 에 없다
 GSNSW_ATTRIBUTION = ('<a href="https://www.regional.nsw.gov.au/meg/geoscience" target="_blank" rel="noopener">'
@@ -344,9 +346,31 @@ def _gs_get_map(upstream: str, params: dict):
     return r.content, ctype
 
 
+def _clicked_lonlat(params: dict):
+    """WMS 변수(3857·4326 범위, 누른 화소) → (경도, 위도). 화소의 가운데를 잡는다"""
+    crs = str(params.get("crs") or params.get("srs") or "").upper()
+    try:
+        west, south, east, north = (float(v) for v in str(params["bbox"]).split(","))
+        width, height = int(params["width"]), int(params["height"])
+        i, j = float(params.get("i", params.get("x"))), float(params.get("j", params.get("y")))
+    except (KeyError, TypeError, ValueError) as exc:
+        raise AuStatesError("누른 자리를 읽지 못했다") from exc
+    x = west + (east - west) * (i + 0.5) / width
+    y = north - (north - south) * (j + 0.5) / height
+    if crs in ("EPSG:3857", "EPSG:900913"):
+        return math.degrees(x / 6378137.0), math.degrees(2 * math.atan(math.exp(y / 6378137.0)) - math.pi / 2)
+    if crs in ("EPSG:4326", "CRS:84"):
+        # WMS 1.3.0 의 4326 은 위도가 먼저다
+        return (y, x) if crs == "EPSG:4326" and str(params.get("version", "1.3.0")) == "1.3.0" else (x, y)
+    raise AuStatesError(f"3857·4326 으로만 누른다: {crs}")
+
+
 def _gs_get_feature_info(upstream: str, params: dict) -> dict:
     url, layers, columns = _gs(upstream)
     name = _one(params, layers, "query_layers", "layers")
+    if name == SARAD_LAYER:
+        props = sarad.value_at(*reversed(_clicked_lonlat(params)))
+        return {"features": [{"id": "sarad.0", "properties": props}] if props else []}
     params = dict(params, service="WMS", request="GetFeatureInfo", layers=layers[name][0], query_layers=layers[name][0],
                   styles="", info_format="application/json", feature_count=3, propertyName=LAYER_PROPERTIES.get(name, columns))
     r = _get(upstream, url, params)
@@ -365,6 +389,8 @@ def _gs_get_legend(layer: str):
 
 def gs_friendly(props: dict, lang: str = "ko") -> dict:
     """GeoSciML 포트레이얼의 열(빅토리아는 작은 글자, 남호주는 낙타 꼴). 이름·설명·암석은 영어 그대로, 시대만 옮긴다."""
+    if any(name in props for _, _, name in sarad.ELEMENTS.values()):       # 남호주 방사능 — 우리가 지은 이름 그대로 (wetherilli 358)
+        return dict(props)
     low = {str(k).lower(): v for k, v in props.items()}
     v = lambda k: _text(low.get(k))         # noqa: E731
     if "comp_ba" in low or "freeair" in low:    # 빅토리아 중력 측점 (wetherilli 302) — 이상은 mGal, 관측 중력은 µm/s² 라 싣지 않는다
@@ -550,6 +576,8 @@ NO_LEGEND = ("mrt:250k", "mrt:25k")
 
 
 def queryable(upstream: str, name: str) -> bool:
+    if name == SARAD_LAYER:
+        return sarad.available()
     spec = UPSTREAMS[upstream][1][name]
     if upstream == "mrt":
         return bool(spec[1])
@@ -557,7 +585,7 @@ def queryable(upstream: str, name: str) -> bool:
 
 
 def is_unit(upstream: str, name: str) -> bool:
-    return queryable(upstream, name) and name not in RESOURCES and name not in NO_LEGEND
+    return queryable(upstream, name) and name not in RESOURCES and name not in NO_LEGEND and name != SARAD_LAYER
 
 
 def extent_legend(upstream: str, name: str, bbox: tuple, lang: str = "ko") -> list:

@@ -106,12 +106,12 @@
         src: "Paleobiology Database · CC BY 4.0" },
       // 같은 산지를 1° 칸에 세어 로그로 칠한 것 — 점이 서로를 덮어 몰린 곳이 안 보일 때. 모든 연대에, 옛 연대는 그때의 자리로 (wetherilli 286)
       { name: "fossilheat", title: "화석 산지 밀도", grid: "ll", always: true, legend: "fossilheat", max: 5,
-        src: "Paleobiology Database · CC BY 4.0 — 산지 수(채집 편향이 든다)" },
+        src: "Paleobiology Database · CC BY 4.0", note: "산지 수(채집 편향이 든다)" },
     ] },
     // 지구 속 — 구에서만. 땅을 비치게 하고 그 밑에 그린다. 모든 연대에 뜬다(가장 가까운 20 Myr 시점) (106)
     { group: "지구 속 (OPT1 모의)", layers: [
       { name: "mantle", title: "맨틀 슬랩·하부 더미", mantle: true, always: true,
-        src: "Müller et al. 2022 OPT1 · CC BY 4.0 — 모의 결과" },
+        src: "Müller et al. 2022 OPT1 · CC BY 4.0", note: "모의 결과" },
     ] },
     // 최근 빙기 — 1 ka–1 Ma 의 오늘의 지구에만 뜬다(`ka`). 25–1 ka 의 빙상 가장자리 (104)
     { group: "최근 빙기", layers: [
@@ -347,6 +347,11 @@
   var FAULT_CREDIT = "GEM Global Active Faults (Styron & Pagani 2020) · CC BY-SA 4.0";
   var IMPACT_CREDIT = "Wikidata (CC0)", LIP_CREDIT = "Johansson et al. 2018 · EarthByte GPlates 2.3 (CC BY 4.0)";
   var RGI_CREDIT = "Randolph Glacier Inventory 7.0 (RGI Consortium 2023, CC BY 4.0)";
+  /** 레이어 줄·카드의 출처 — `src`, 없으면 저작자 표시(자료에서 오는 칸 — 고생태·광상). 곁말(`note`)은 옮긴다 (wetherilli 360) */
+  function srcOf(l) {
+    var s = l.src || creditOf(l.name) || "";
+    return l.note ? s + " — " + T(l.note) : s;
+  }
   function creditOf(name) {
     if (name === "glaciers") return RGI_CREDIT;
     if (name === "impacts") return IMPACT_CREDIT;
@@ -2112,7 +2117,7 @@
       foot.append(range, num);
       var src = document.createElement("p");
       src.className = "active-src";
-      src.textContent = LAYER[e.name].src || "";
+      src.textContent = srcOf(LAYER[e.name]);
       if (e.name === "wind" || e.name === "cloud") li.append(head, windControls(e.name), foot, src);
       else if (e.name === "satcloud") {
         // 위성 구름 — 고를 것이 없다. 가장 새 장의 시각과, 비는 곳·속기 쉬운 곳을 적는다
@@ -2159,6 +2164,13 @@
     var label = document.createElement("label");
     label.htmlFor = box.id;
     label.textContent = T(l.title);
+    var from = srcOf(l);
+    if (from) {                                        // 출처를 제목 밑에 — 켜기 전에도 무엇을 얹는지 보인다 (wetherilli 360)
+      var src = document.createElement("small");
+      src.className = "src";
+      src.textContent = src.title = from;                // 잘려도 끝까지 읽게
+      label.appendChild(src);
+    }
     row.append(box, label);
     return row;
   }

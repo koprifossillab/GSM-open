@@ -23,7 +23,7 @@ from django.test.runner import DiscoverRunner
 REDIRECT = {name: f"GSM_{name}" for name in (
     "MOON_DIR", "CARIBBEAN_DIR", "MARS_DIR", "MERCURY_DIR", "EARTH_DIR", "WIND_DIR", "OCEAN_DIR", "GEOMAP_DIR", "NPOLAR_DIR",
     "USGS_DIR", "PENINSULA_DIR", "IBCSO_DIR", "ADMAP_DIR", "KOPRI_DIR", "TAIWAN_OPEN_DIR", "KIGAM_DATA_DIR", "SGB_DIR",
-    "KIGAM50K_DIR", "VERIFY_DIR", "TILE_CACHE_DIR")}
+    "KIGAM50K_DIR", "VERIFY_DIR", "SARAD_DIR", "TILE_CACHE_DIR")}
 #: 시험이 손대지 않는 설정 — 저장소 자리 자체, 비면 꺼지는 로그
 KEEP = {"BASE_DIR", "REPO_DIR", "LOG_DIR"}
 #: 저장소를 훑을 때 건너뛰는 것 — 바이트코드, git, 다른 세션의 worktree

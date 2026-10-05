@@ -544,7 +544,9 @@ EN = {
     "지열류 자료를 아직 굽지 않았다 (build_heatflow)": "Heat flow data not built yet (build_heatflow)",
     "최근 지진 (7 일, M2.5 이상)": "Recent earthquakes (7 days, M2.5+)",
     "속이 빈 고리 — 크기는 규모, 색은 지난 시간 (매시 받음)": "Hollow rings — size is magnitude, colour is time since (fetched hourly)",
-    "그 밖의 {n} 지역": "{n} more regions",          # 소개 화면의 지역 칩 (wetherilli 344)
+    "그 밖의 {n} 지역": "{n} more regions",
+    "산지 수(채집 편향이 든다)": "locality counts (sampling bias included)",   # 온 지구 레이어의 곁말 (wetherilli 360)
+    "모의 결과": "model result",          # 소개 화면의 지역 칩 (wetherilli 344)
     # 관리 화면의 마지막 레이어 대조 (wetherilli 314)
     "마지막 레이어 대조 {day} — 그림 {drawn} · 빈 그림 {empty} · 오류 {error} · 건너뜀 {skipped}":
         "Last layer check {day} — drawn {drawn} · empty {empty} · error {error} · skipped {skipped}",
@@ -2104,6 +2106,11 @@ PROP_EN = {
     "연구자": "Investigators",
     "지질시대": "Geologic age",
     "자력 이상 (nT)": "Magnetic anomaly (nT)",
+    "장소": "Locality",
+    "지구조 요소": "Tectonic element",
+    "칼륨 K (%)": "Potassium K (%)",
+    "토륨 eTh (ppm)": "Thorium eTh (ppm)",
+    "우라늄 eU (ppm)": "Uranium eU (ppm)",
     "시대": "Age",
     "도폭": "Map sheet",
     "도폭명": "Sheet name",

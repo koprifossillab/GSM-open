@@ -90,6 +90,60 @@ def get_feature_info(params: dict) -> dict:
                          for n, f in enumerate(data.get("features") or [])]}
 
 
+#: 보는 범위의 범례를 세우는 레이어 (wetherilli 357) — 피처 서비스가 단위마다 그림의 색을 `RGB` 열("93-168-115")로 들고 있다.
+#: 타일 범례(88 칸)와 대 보니 ±1 로 같았다. 그래서 통계 질의 한 번이면 이름·색·시대가 다 온다
+EXTENT_LEGENDS = ("ags:bedrock",)
+LEGEND_SPAN = 14.0         # 주 전체(가로 10°·세로 11°)가 든다
+
+
+def _ics(age: str) -> str:
+    # Map 600 은 `Upper`·`Lower` 를 쓴다 — ICS 의 Late·Early 로
+    return " ".join({"Upper": "Late", "Lower": "Early"}.get(w, w) for w in age.split())
+
+
+def extent_legend(name: str, bbox: tuple, lang: str = "ko") -> list:
+    """보는 범위 `(서, 남, 동, 북)`(위경도)에 든 단위 `[{"lithology", "color", "age", "count"}]`, 면이 많은 것부터"""
+    if name not in EXTENT_LEGENDS:
+        raise AgsError("범례가 없는 레이어다")
+    left = usage.paused()
+    if left:
+        raise AgsError(f"차단 조짐이 있어 {int(left)}초 동안 상류에 묻지 않는다")
+    try:
+        r = requests.get(settings.AGS_FEATURE_URL.rstrip("/") + "/query", params={
+            "geometry": ",".join(str(v) for v in bbox), "geometryType": "esriGeometryEnvelope", "inSR": "4326",
+            "spatialRel": "esriSpatialRelIntersects", "groupByFieldsForStatistics": "Unit_Name,RGB,Age",
+            "outStatistics": json.dumps([{"statisticType": "count", "onStatisticField": "FID", "outStatisticFieldName": "n"}]),
+            "returnGeometry": "false", "f": "json"},
+            timeout=settings.UPSTREAM_TIMEOUT, verify=settings.CA_BUNDLE or True, headers={"User-Agent": "GSM/0.1"})
+    except requests.RequestException as exc:
+        usage.record("ags", ok=False)
+        raise AgsError(f"앨버타에 닿지 못했다: {exc}") from exc
+    log.info("AGS %s -> %s", r.url, r.status_code)
+    usage.record("ags", ok=r.status_code == 200, blocked=usage.looks_blocked(r.status_code, r.content[:1000]), elapsed=r.elapsed)
+    try:
+        data = r.json()
+    except ValueError as exc:
+        raise AgsError("범례 통계가 JSON 이 아니다") from exc
+    if r.status_code != 200 or data.get("error"):
+        raise AgsError(f"범례 통계를 받지 못했다 (status={r.status_code})")
+    rows = {}
+    for f in data.get("features") or []:
+        a = f.get("attributes") or {}
+        unit = str(a.get("Unit_Name") or "").strip()
+        try:
+            color = "#" + "".join(f"{int(v):02x}" for v in str(a.get("RGB") or "").split("-"))
+        except ValueError:
+            continue
+        if not unit or len(color) != 7:
+            continue
+        age = str(a.get("Age") or "").strip()
+        ko = i18n.age_ko(_ics(age)) if lang == "ko" and age else age
+        row = rows.setdefault(unit, {"symbol": "", "lithology": unit, "color": color, "swatch": "",
+                                     "age": ko if ko != _ics(age) else age, "count": 0})
+        row["count"] += int(a.get("n") or 0)
+    return sorted(rows.values(), key=lambda row: -row["count"])
+
+
 def friendly(props: dict, lang: str = "ko") -> dict:
     """지층·암상·퇴적 환경은 영어 그대로, 시대(`Upper Cretaceous` 따위)만 옮긴다."""
     v = lambda k: str(props.get(k) or "").strip()          # noqa: E731

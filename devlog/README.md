@@ -397,6 +397,11 @@
 | wetherilli 353 | 2026-10-05 | [알래스카·하와이·푸에르토리코 지질 단위 범례 — SLD 의 색을 보는 범위의 그림에서 센다](20261005_wetherilli_353_us_unit_legends.md) |
 | wetherilli 354 | 2026-10-05 | [시험이 개발 캐시를 더럽히지 않게](20261005_wetherilli_354_tests_no_dev_cache.md) |
 | wetherilli 355 | 2026-10-05 | [지질 단위 범례 둘째 — 뉴질랜드 QMAP, 태즈메이니아·오스트리아는 칠하지 않아 범례가 필요 없다](20261005_wetherilli_355_unit_legends_2.md) |
+| wetherilli 356 | 2026-10-05 | [지역 지도를 투영마다 써 보기 — 나란히 보기를 끄면 지도가 깨지던 것](20261005_wetherilli_356_region_flows.md) |
+| wetherilli 357 | 2026-10-05 | [지질 단위 범례 셋째 — 노바스코샤·앨버타는 보는 범위, 도미니카공화국은 목록](20261005_wetherilli_357_unit_legends_3.md) |
+| wetherilli 358 | 2026-10-05 | [남호주 방사능 — 누르면 K·Th·U 값 (그리고 TODOs 다시 묶기)](20261005_wetherilli_358_sa_radiometric_values.md) |
+| wetherilli 359 | 2026-10-05 | [팝업 속성 이름의 영어를 시험으로 지킨다](20261005_wetherilli_359_prop_en_guard.md) |
+| wetherilli 360 | 2026-10-05 | [구 화면의 레이어 목록에 출처 — 켜기 전에도 무엇을 얹는지](20261005_wetherilli_360_globe_layer_sources.md) |
 | koprifossillab P01 | 2026-09-30 | [백업 — WegenersDream 의 틀로, 바뀌는 빠르기에 따라 넷으로 (계획)](20260930_koprifossillab_P01_backup_plan.md) |
 | koprifossillab 001 | 2026-09-30 | [매주 월요일 새벽: 운영 자료 백업과 KPDC 목록 갱신](20260930_koprifossillab_001_weekly_backup.md) |
 | koprifossillab 002 | 2026-09-30 | [`/healthz/` — 판·DB·백업 상태를 한 장으로](20260930_koprifossillab_002_healthz.md) |

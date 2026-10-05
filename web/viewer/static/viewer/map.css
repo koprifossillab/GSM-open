@@ -528,6 +528,10 @@ input[type=checkbox], input[type=range] { accent-color: var(--hi); }
 .layer-row { display: flex; align-items: flex-start; gap: 8px; padding: 4px 2px 4px 18px; }
 .layer-row label { flex: 1; font-size: 12.5px; color: var(--ink-soft); cursor: pointer; transition: color .12s; }
 .layer-row label:hover { color: var(--hi-ink); }
+/* 구 화면(온 지구·달·화성·수성)의 출처 줄 — 길면 한 줄로 자른다(휴대폰에서 넘치지 않게, wetherilli 360) */
+.layer-row label { min-width: 0; }
+.layer-row label .src { display: block; overflow: hidden; font-size: 10.5px; font-weight: 400; color: var(--ink-soft); opacity: .75;
+                        white-space: nowrap; text-overflow: ellipsis; }
 .layer-row input:checked + label { color: var(--ink); font-weight: 600; }
 .layer-row input[type=checkbox] { margin-top: 3px; }
 .layer-row .unverified { color: var(--gold-muted); cursor: help; }
@@ -900,6 +904,13 @@ body.panel-folded #panel { display: none; }
                   text-overflow: ellipsis; white-space: nowrap; font-size: 12px; color: var(--ink);
                   background: var(--glass); border: 1px solid var(--glass-line); border-radius: var(--radius); }
 #map-wrap.split .edge { display: none; }
+/* 휴대폰 — 이름표가 서로 겹치고(왼쪽이 가운데 선을 넘었다) 패널 손잡이·툴바 밑에 깔렸다. 손잡이 밑으로 내리고
+   왼쪽은 가운데 선 앞까지, 오른쪽은 툴바(56 px) 앞까지 (wetherilli 356) */
+@media (max-width: 760px) {
+  .split-tag { top: 30px; }
+  .split-tag.left { max-width: calc(50% - 64px); }
+  .split-tag.right { left: calc(50% + 8px); max-width: calc(50% - 72px); }
+}
 .mirror-dot { width: 14px; height: 14px; border: 2px solid #9e3b2a; border-radius: 50%;
               background: rgba(255, 255, 255, .6); box-shadow: 0 0 0 2px rgba(255,255,255,.8); }
 

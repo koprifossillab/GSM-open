@@ -1199,7 +1199,7 @@
       foot.append(range, num);
       var src = document.createElement("p");
       src.className = "active-src";
-      src.textContent = LAYER[e.name].src || "";
+      src.textContent = LAYER[e.name].src || creditOf(e.name) || "";
       li.append(head, foot, src);
       host.appendChild(li);
     });
@@ -1231,6 +1231,13 @@
     label.htmlFor = box.id;
     label.textContent = T(l.title);
     if (l.kind === "trek" && l.en !== l.title) label.title = l.en;
+    var from = l.src || creditOf(l.name);
+    if (from) {                                        // 출처를 제목 밑에 — 켜기 전에도 무엇을 얹는지 보인다 (wetherilli 360)
+      var src = document.createElement("small");
+      src.className = "src";
+      src.textContent = src.title = from;                // 잘려도 끝까지 읽게
+      label.appendChild(src);
+    }
     row.append(box, label);
     return row;
   }

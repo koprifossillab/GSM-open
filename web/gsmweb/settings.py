@@ -373,6 +373,8 @@ PENINSULA_DIR = env("GSM_PENINSULA_DIR") or str(_data_dir() / "peninsula")
 IBCSO_DIR = env("GSM_IBCSO_DIR") or str(_data_dir() / "ibcso")
 #: 남극 자력 이상 ADMAP-2 를 칠해 잘라 둔 것 (wetherilli 262). 원본은 NAS `sources/admap2/grid.zip`
 ADMAP_DIR = env("GSM_ADMAP_DIR") or str(_data_dir() / "admap2")
+#: 남호주 방사능 농도 격자(K·Th·U)를 골라 적은 것 — 누른 자리의 값 (wetherilli 358). 원본은 NAS `sources/australia/sa_radiometrics/`
+SARAD_DIR = env("GSM_SARAD_DIR") or str(_data_dir() / "sa_radiometrics")
 #: 극지연구소(KOPRI)에서 모아 둔 것 — 암석 시료 목록(`rock.json`)과 KPDC 자료 목록·상세(`kpdc.json`).
 #: `manage.py fetch_kopri` 가 천천히 모아 여기 쓴다(두 시간 남짓, 다음부터는 새 것만). 저장소·이미지에
 #: 두지 않는다. 없으면 그 레이어에 "자료가 없다" 가 뜰 뿐 뷰어는 돈다 (devlog 053·055). 기본은 `<DB 옆>/kopri/`.

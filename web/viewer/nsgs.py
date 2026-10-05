@@ -93,6 +93,58 @@ def get_legend(layer: str):
     raise NsgsError("노바스코샤 범례는 따로 받지 않는다")
 
 
+#: 보는 범위의 범례를 세우는 레이어 (wetherilli 357) — REST 의 칠하기 규칙(`AV_LEGEND` 225 칸)에 보는 범위의 통계 질의를 댄다
+EXTENT_LEGENDS = ("nsgs:11",)
+LEGEND_SPAN = 8.0          # 주 전체(가로 6° 남짓)가 든다
+
+
+def renderer(name: str) -> dict:
+    """칠하기 규칙 — `{값: [이름, "#rrggbb"]}`. 값은 `AV_LEGEND`("15350North Mountain Formation: …"), 이름은 규칙의 label"""
+    if name not in EXTENT_LEGENDS:
+        raise NsgsError("범례가 없는 레이어다")
+    r = _get(str(LAYERS[name][0]), {"f": "json"})
+    try:
+        rd = r.json()["drawingInfo"]["renderer"]
+    except (ValueError, KeyError, TypeError) as exc:
+        raise NsgsError("칠하기 규칙이 없다") from exc
+    out = {}
+    for info in rd.get("uniqueValueInfos") or []:
+        color = (info.get("symbol") or {}).get("color")
+        if color and color[3:4] != [0]:
+            out[str(info.get("value")).strip()] = [str(info.get("label") or "").strip(), "#" + "".join(f"{int(v):02x}" for v in color[:3])]
+    if not out:
+        raise NsgsError("칠하기 규칙이 없다")
+    return out
+
+
+def extent_legend(name: str, bbox: tuple, rules: dict, lang: str = "ko") -> list:
+    """보는 범위 `(서, 남, 동, 북)`(위경도)에 든 단위 `[{"lithology", "color", "age", "count"}]`, 면이 많은 것부터. 퀸즐랜드(`austates._gsq_legend`)의 꼴"""
+    import json
+    r = _get(f"{LAYERS[name][0]}/query", {
+        "geometry": ",".join(str(v) for v in bbox), "geometryType": "esriGeometryEnvelope", "inSR": "4326",
+        "spatialRel": "esriSpatialRelIntersects", "groupByFieldsForStatistics": "AV_LEGEND,AGE_DESC",
+        "outStatistics": json.dumps([{"statisticType": "count", "onStatisticField": "OBJECTID", "outStatisticFieldName": "n"}]),
+        "returnGeometry": "false", "f": "json"})
+    try:
+        data = r.json()
+    except ValueError as exc:
+        raise NsgsError("범례 통계가 JSON 이 아니다") from exc
+    if r.status_code != 200 or data.get("error"):
+        raise NsgsError(f"범례 통계를 받지 못했다 (status={r.status_code})")
+    rows = {}
+    for f in data.get("features") or []:
+        a = f.get("attributes") or {}
+        value = str(a.get("AV_LEGEND") or "").strip()
+        if value not in rules:
+            continue
+        label, color = rules[value]
+        age = str(a.get("AGE_DESC") or "").strip()
+        row = rows.setdefault(value, {"symbol": "", "lithology": label, "color": color, "swatch": "",
+                                      "age": i18n.age_ko(age) if lang == "ko" and age else age, "count": 0})
+        row["count"] += int(a.get("n") or 0)
+    return sorted(rows.values(), key=lambda row: -row["count"])
+
+
 def get_feature_info(params: dict) -> dict:
     name, layer = _one(params)
     if not queryable(name):

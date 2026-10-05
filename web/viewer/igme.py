@@ -19,7 +19,7 @@ import xml.etree.ElementTree as ET
 import requests
 from django.conf import settings
 
-from . import i18n, usage
+from . import i18n, tilecache, usage
 
 log = logging.getLogger(__name__)
 
@@ -110,6 +110,53 @@ def get_legend(layer: str):
     if r.status_code != 200 or not r.headers.get("content-type", "").startswith("image/"):
         raise IgmeError(f"범례가 아닌 것이 왔다 (status={r.status_code})")
     return r.content, r.headers.get("content-type")
+
+
+#: 목록 범례(`views.list_legend`) — 도미니카공화국 1:25만 지질 단위 (wetherilli 357). 범례 그림은 2 383×4 877 한 장이라 두지 않았는데,
+#: REST 의 칠하기 규칙은 77 칸(`Descriptio`)이다. 나라가 작아 보는 범위로 거르지 않고 전부 세운다 — 이 판의 REST 는 통계 질의도 받지 않는다
+LEGEND_LAYERS = ("igme:sgnrd:0",)
+#: WMS 번호 → REST 번호 (거꾸로다, 위 문서)
+_SGNRD_REST = {"0": "1"}
+
+
+def legend_rows(layer: str) -> list:
+    """REST 칠하기 규칙 → 화면의 줄 `[{"lithology", "color", "age"}]`. 이 서버는 이따금 한 분 가까이 걸려 한 번 받아 담는다"""
+    if layer not in LEGEND_LAYERS:
+        raise IgmeError("범례가 없는 레이어다")
+    key = tilecache.key_text("igme-renderer", layer)
+    held = tilecache.get(key, ".json")
+    if held:
+        import json
+        return json.loads(held)
+    sheet, name = split(layer)
+    left = usage.paused()
+    if left:
+        raise IgmeError(f"차단 조짐이 있어 {int(left)}초 동안 상류에 묻지 않는다")
+    base = settings.IGME_WMS_URL.rstrip("/").rsplit("/", 1)[0].replace("/gis/services", "/gis/rest/services")
+    try:
+        r = requests.get(f"{base}/{SHEETS[sheet]}/MapServer/{_SGNRD_REST[name]}", params={"f": "json"},
+                         timeout=settings.UPSTREAM_TIMEOUT, verify=settings.CA_BUNDLE or True, headers={"User-Agent": "GSM/0.1"})
+    except requests.RequestException as exc:
+        usage.record("igme", ok=False)
+        raise IgmeError(f"IGME 에 닿지 못했다: {exc}") from exc
+    log.info("IGME %s -> %s", r.url, r.status_code)
+    usage.record("igme", ok=r.status_code == 200, blocked=usage.looks_blocked(r.status_code, r.content[:1000]), elapsed=r.elapsed)
+    try:
+        infos = r.json()["drawingInfo"]["renderer"]["uniqueValueInfos"]
+    except (ValueError, KeyError, TypeError) as exc:
+        raise IgmeError(f"칠하기 규칙을 읽지 못했다 (status={r.status_code})") from exc
+    rows = []
+    for info in infos:
+        color = (info.get("symbol") or {}).get("color")
+        label = str(info.get("label") or info.get("value") or "").strip()
+        if color and label and color[3:4] != [0]:
+            rows.append({"symbol": "", "lithology": label, "age": "", "swatch": "",
+                         "color": "#" + "".join(f"{int(v):02x}" for v in color[:3])})
+    if not rows:
+        raise IgmeError("칠하기 규칙이 비었다")
+    import json
+    tilecache.put(key, json.dumps(rows, ensure_ascii=False).encode("utf-8"), ".json")
+    return rows
 
 
 def get_feature_info(params: dict) -> dict:

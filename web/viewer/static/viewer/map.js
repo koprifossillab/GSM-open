@@ -6913,6 +6913,7 @@
       map.getViewport().addEventListener("pointerleave", function () { mirror2.setPosition(undefined); });
       map2.getViewport().addEventListener("pointerleave", function () { mirror1.setPosition(undefined); });
     }
+    if (!map2.getTarget()) map2.setTarget("map2");                      // 끌 때 떼어 두었다 (`setCompare`)
     if (map2.getView() !== map.getView()) map2.setView(map.getView());   // 지역을 바꿨다
     if (map2Base) map2.removeLayer(map2Base);
     var spec = BASEMAPS[document.getElementById("basemap").value];
@@ -6945,6 +6946,9 @@
       b.classList.toggle("on", b.dataset.cmp === mode);
     });
     var wrap = document.getElementById("map-wrap");
+    // 나란히 보기를 끄면 오른쪽 지도를 떼어 둔다 — 보기를 나눠 쓰는 채로 숨으면 크기 0 칸이 보기의 해상도를 끝없이 키워
+    // 왼쪽 지도까지 깨졌다(축척 1:150 억, 줌이 비고 누른 자리가 엉뚱한 반구로, wetherilli 356). 다시 켜면 `buildMap2` 가 붙인다
+    if (mode !== "split" && map2) map2.setTarget(undefined);
     wrap.classList.toggle("split", mode === "split");
     document.getElementById("map2").hidden = mode !== "split";
     if (mode !== "swipe") unclip();
@@ -6952,7 +6956,7 @@
     if (mode !== "split" && mirror1) { mirror1.setPosition(undefined); mirror2.setPosition(undefined); }
     refreshCompare();
     // 지도 칸의 폭이 바뀌었으니 다시 잰다
-    setTimeout(function () { map.updateSize(); if (map2) map2.updateSize(); }, 0);
+    setTimeout(function () { map.updateSize(); if (map2 && compareMode === "split") map2.updateSize(); }, 0);
   }
 
   /** 비교 칸의 고르개를 지금 켠 레이어에 맞춘다. restack 이 부른다. */

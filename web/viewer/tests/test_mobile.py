@@ -322,6 +322,10 @@ class GlobeScreens(PhoneBase):
                 page = self.check_map_screen(path, settle=3000)
                 self.assertFalse(page.evaluate("document.getElementById('legend-dock').open"),
                                  f"{path}: 범례가 구를 덮는다")
+                # 레이어 목록의 줄마다 출처가 선다 — 켜기 전에도 무엇을 얹는지 보인다 (wetherilli 360)
+                bare = page.evaluate("[...document.querySelectorAll('#layer-catalog .layer-row')]"
+                                     ".filter(r => !(r.querySelector('.src') || {}).textContent).map(r => r.textContent.trim())")
+                self.assertEqual(bare, [], f"{path}: 출처가 빈 레이어")
                 # 화면마다 바로 닫는다 — 시험이 끝날 때까지 두면 앞의 구들이 소프트웨어 WebGL 로 계속 그려 CPU 를
                 # 다 먹고, 넷째 화면(수성)이 30 초 안에 뜨지 못한다 (wetherilli 145)
                 page.context.close()
@@ -513,3 +517,47 @@ class PointsetsAcrossProjections(PhoneBase):
         self.assertAlmostEqual(view["lon"], lon, delta=0.01, msg=region)
         self.assertAlmostEqual(view["lat"], lat, delta=0.01, msg=region)
         self.assertEqual(errors, [], region)
+
+
+class RegionCompare(PhoneBase):
+    """주제도 비교 — 나란히 보기를 켰다 끄면 왼쪽 지도까지 깨졌다(축척 1:150 억, 줌이 비고 누른 자리가 다른 반구로).
+    숨은 오른쪽 지도가 보기를 나눠 쥔 채 크기 0 으로 재어졌다. 이름표는 휴대폰에서 서로·손잡이·툴바와 겹쳤다 (wetherilli 356)"""
+
+    BOX = "(s) => { const e = document.querySelector(s); if (!e) return null; const b = e.getBoundingClientRect(); " \
+          "return b.width ? {left: b.left, top: b.top, right: b.right, bottom: b.bottom} : null; }"
+
+    def assertApart(self, a, b, what):
+        if a and b:
+            self.assertTrue(a["right"] <= b["left"] or b["right"] <= a["left"] or a["bottom"] <= b["top"] or b["bottom"] <= a["top"],
+                            f"{what}: 겹친다 {a} {b}")
+
+    def test_나란히_보기를_끄면_지도가_그대로다(self):
+        call_command("seed_catalog", stdout=open(os.devnull, "w"))
+        for region in ("svalbard", "canada"):
+            with self.subTest(region=region):
+                page, errors = self.open(f"map/?region={region}")
+                before = page.locator("#zoombadge").inner_text()
+                self.assertIn("줌", before)
+                page.tap("#panel-handle")
+                page.wait_for_timeout(300)
+                page.evaluate("document.querySelectorAll('#layer-catalog details').forEach(d => d.open = true)")
+                page.locator("#layer-catalog .layer-row:not(.on)").first.click()
+                page.wait_for_timeout(300)
+                page.locator('[data-cmp="split"]').click()
+                page.wait_for_timeout(800)
+                page.tap("#panel-handle")
+                page.wait_for_timeout(400)
+                left, right = page.evaluate(self.BOX, "#split-left"), page.evaluate(self.BOX, "#split-right")
+                self.assertApart(left, right, f"{region}: 두 이름표")
+                self.assertApart(left, page.evaluate(self.BOX, "#panel-handle"), f"{region}: 왼쪽 이름표와 손잡이")
+                self.assertApart(right, page.evaluate(self.BOX, "#panel-handle"), f"{region}: 오른쪽 이름표와 손잡이")
+                self.assertApart(right, page.evaluate(self.BOX, "#toolbar .tool-col"), f"{region}: 오른쪽 이름표와 툴바")
+                page.tap("#panel-handle")
+                page.wait_for_timeout(300)
+                page.locator('[data-cmp="off"]').click()
+                page.wait_for_timeout(800)
+                self.assertEqual(page.locator("#zoombadge").inner_text(), before, f"{region}: 나란히 보기를 끄니 줌이 바뀌었다(지도가 깨졌다)")
+                view = page.evaluate(f"JSON.parse(localStorage.getItem('gsm.view.{region}') || 'null')")
+                self.assertIsNotNone(view and view.get("zoom"), f"{region}: 저장된 줌이 비었다")
+                self.assertEqual(errors, [])
+                page.context.close()
