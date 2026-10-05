@@ -66,3 +66,16 @@ class Companies(TestCase):
     def test_회사_탐사_자료는_링크_열을_묻지_않는다(self):
         self.assertNotIn("link", grportal.LAYERS["grportal:geochem_companies"]["fields"])
         self.assertIn("link", grportal.LAYERS["grportal:geochem_soil"]["fields"])
+
+
+class SgbStructuresLegend(TestCase):
+    """브라질 구조선 1:250만은 상류의 그림 범례 (wetherilli 337)"""
+    def test_그림_범례(self):
+        from viewer import sgb
+        ok = mock.Mock(status_code=200, headers={"content-type": "image/png"}, content=png(), url="u", elapsed=None)
+        with mock.patch.object(sgb.requests, "get", return_value=ok) as get, mock.patch.object(sgb.usage, "paused", return_value=0):
+            content, ctype = sgb.get_legend("sgb:2500k_structures")
+        self.assertEqual(ctype, "image/png")
+        self.assertEqual(get.call_args[1]["params"]["request"], "GetLegendGraphic")
+        with self.assertRaises(sgb.SgbError):
+            sgb.get_legend("sgb:2500k")                                              # 단위 면은 보는 범위의 범례

@@ -118,7 +118,7 @@ class Views(TestCase):
         row = self.layers["sgb:1m"]
         self.assertEqual((row["projection"], row["minZoom"], row["legend"], row["legendUrl"]),
                          ("EPSG:3857", 6, "extent", "sgb/legend/"))
-        self.assertTrue(self.layers["sgb:2500k_structures"]["noLegend"])
+        self.assertNotIn("noLegend", self.layers["sgb:2500k_structures"])        # 구조선은 그림 범례 (wetherilli 337)
         self.assertIn("CC BY-NC", row["attribution"])
 
     def test_타일은_그_판의_서버로(self):

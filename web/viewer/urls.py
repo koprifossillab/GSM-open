@@ -172,7 +172,7 @@ urlpatterns = [
     path("ibcso/info/", views.ibcso_info, name="ibcso-info"),
     path("ibcso/depth/", views.ibcso_depth, name="ibcso-depth"),
     # 3D 가 쓰는 것 — 평면 격자(5179·5181·3031) 타일을 3857 로 다시 편다 (warp.py, 040)
-    re_path(r"^warp/(?P<upstream>peninsula|phyloserver|geomap|ibcso)/(?P<layer>[\w-]+)/(?P<z>\d{1,2})/(?P<x>\d{1,6})/(?P<y>\d{1,6})(?P<retina>@2x)?\.png$",
+    re_path(r"^warp/(?P<upstream>peninsula|phyloserver|geomap|ibcso|admap)/(?P<layer>[\w-]+)/(?P<z>\d{1,2})/(?P<x>\d{1,6})/(?P<y>\d{1,6})(?P<retina>@2x)?\.png$",
             views.warp_tile, name="warp-tile"),
     # 한반도 지질도 — phyloserver 의 카카오 격자 타일 (phyloserver.py, devlog 026)
     re_path(r"^phyloserver/(?P<layer>[\w-]+)/(?P<level>\d{1,2})/(?P<x>\d{1,5})_(?P<y>\d{1,5})\.png$",
@@ -205,6 +205,7 @@ urlpatterns = [
     path("mris/legend/", views.mris_legend, name="mris-legend"),
     # 사우디 — 보는 범위의 범례 (sgs.py, wetherilli 227)
     path("sgs/legend/", views.sgs_legend, name="sgs-legend"),
+    path("sigeom/legend/", views.sigeom_legend, name="sigeom-legend"),
     path("esdm/legend/", views.esdm_legend, name="esdm-legend"),
     # 동남아 — ArcGIS REST 범례를 목록으로, 문 여럿이 함께 (jmg.py·dmr.py, wetherilli 228)
     path("list/legend/", views.list_legend, name="list-legend"),

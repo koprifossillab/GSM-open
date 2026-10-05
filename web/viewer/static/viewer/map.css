@@ -495,6 +495,12 @@ input[type=checkbox], input[type=range] { accent-color: var(--hi); }
 .trek-filter input[type=search] { padding: 6px 8px; font: inherit; font-size: 12.5px; color: var(--ink);
                                   background: var(--panel-tint); border: 1px solid var(--line); border-radius: var(--radius); }
 .trek-filter label { display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--ink-soft); cursor: pointer; }
+/* 레이어 찾기 (wetherilli 332) — 찾는 동안은 목록 위에 맞는 줄만 */
+.layer-find { padding: 8px 2px 4px; }
+.layer-found { border-top: 1px solid var(--line-soft); padding-bottom: 6px; max-height: 42vh; overflow-y: auto; }
+.layer-found .found-count { margin: 6px 2px; font-size: 12px; color: var(--ink-faint); }
+.layer-found .layer-name { display: flex; flex-direction: column; min-width: 0; }
+.layer-found .found-where { font-size: 11px; color: var(--ink-faint); overflow-wrap: anywhere; }
 #trek-catalog .empty { padding: 6px 2px; font-size: 12px; color: var(--ink-faint); }
 .group { border-top: 1px solid var(--line-soft); }
 .group > summary {
@@ -528,43 +534,43 @@ input[type=checkbox], input[type=range] { accent-color: var(--hi); }
 
 /* 지도 화면의 레이어 목록 (wetherilli 133) — 줄을 눌러 켜고 끈다. 체크박스 자리에 상류 딱지,
    같은 상류가 이어지면 딱지 밑으로 줄을 그어 묶는다. 달·화성 화면의 목록(.moon-layer)은 그대로 체크박스다 */
-#layer-catalog .layer-row {
+:is(#layer-catalog, #layer-found) .layer-row {
   align-items: center; gap: 9px; padding: 0 6px 0 14px; min-height: 26px;
   border-radius: 6px; cursor: pointer; user-select: none; transition: background .12s;
 }
-#layer-catalog .group.more .layer-row { padding-left: 24px; }
-#layer-catalog .layer-row:hover { background: var(--gold-wash); }
-#layer-catalog .layer-row:focus-visible { outline: 2px solid var(--gold); outline-offset: -2px; }
-#layer-catalog .layer-name { flex: 1; font-size: 12.5px; line-height: 1.35; padding: 4px 0; color: var(--ink-soft); transition: color .12s; }
-#layer-catalog .layer-row:hover .layer-name { color: var(--hi-ink); }
-#layer-catalog .layer-row.on { background: var(--gold-wash); box-shadow: inset 3px 0 0 var(--gold); }
-#layer-catalog .layer-row.on .layer-name { color: var(--ink); font-weight: 600; }
-#layer-catalog .layer-row.on .layer-name::after { content: " ●"; font-size: 9px; color: var(--gold); vertical-align: 1px; }
+:is(#layer-catalog, #layer-found) .group.more .layer-row { padding-left: 24px; }
+:is(#layer-catalog, #layer-found) .layer-row:hover { background: var(--gold-wash); }
+:is(#layer-catalog, #layer-found) .layer-row:focus-visible { outline: 2px solid var(--gold); outline-offset: -2px; }
+:is(#layer-catalog, #layer-found) .layer-name { flex: 1; font-size: 12.5px; line-height: 1.35; padding: 4px 0; color: var(--ink-soft); transition: color .12s; }
+:is(#layer-catalog, #layer-found) .layer-row:hover .layer-name { color: var(--hi-ink); }
+:is(#layer-catalog, #layer-found) .layer-row.on { background: var(--gold-wash); box-shadow: inset 3px 0 0 var(--gold); }
+:is(#layer-catalog, #layer-found) .layer-row.on .layer-name { color: var(--ink); font-weight: 600; }
+:is(#layer-catalog, #layer-found) .layer-row.on .layer-name::after { content: " ●"; font-size: 9px; color: var(--gold); vertical-align: 1px; }
 
-#layer-catalog .up {
+:is(#layer-catalog, #layer-found) .up {
   --up-c: #8a7a62;
   position: relative; flex: 0 0 46px; height: 17px; align-self: stretch; margin: 4px 0;
   display: flex; align-items: center; justify-content: center;
   font-family: var(--font-mono); font-size: 9.5px; font-weight: 700; letter-spacing: .02em;
   color: #fff; background: var(--up-c); border-radius: 4px; opacity: .78;
 }
-#layer-catalog .layer-row.on .up, #layer-catalog .layer-row:hover .up { opacity: 1; }
-#layer-catalog .up.tie { background: none; margin: 0; height: auto; }
-#layer-catalog .up.tie::before { content: ""; position: absolute; left: 50%; top: 0; bottom: 0; border-left: 1.5px solid var(--up-c); }
-#layer-catalog .up.tie.end::before { bottom: 50%; }
-#layer-catalog .up.tie::after { content: ""; position: absolute; left: 50%; top: 50%; width: 11px; border-top: 1.5px solid var(--up-c); }
-#layer-catalog .up.lead::after { content: ""; position: absolute; left: 50%; top: 100%; height: 4px; border-left: 1.5px solid var(--up-c); }
-#layer-catalog .up-kigam { --up-c: #a8742a; }
-#layer-catalog .up-vworld { --up-c: #2f7d6d; }
-#layer-catalog .up-geus, #layer-catalog .up-grportal { --up-c: #b5442f; }
-#layer-catalog .up-npolar, #layer-catalog .up-janmayen { --up-c: #2c4f8c; }
-#layer-catalog .up-gsj { --up-c: #b0476e; }
-#layer-catalog .up-ccop { --up-c: #5d7d33; }
-#layer-catalog .up-geomap, #layer-catalog .up-ibcso { --up-c: #3e7f9c; }
-#layer-catalog .up-geo3al { --up-c: #6f6a5f; }
-#layer-catalog .up-kopri { --up-c: #1f8f8a; }
-#layer-catalog .up-pgc { --up-c: #7a5aa8; }
-#layer-catalog .up-phyloserver, #layer-catalog .up-peninsula { --up-c: #8c6239; }
+:is(#layer-catalog, #layer-found) .layer-row.on .up, :is(#layer-catalog, #layer-found) .layer-row:hover .up { opacity: 1; }
+:is(#layer-catalog, #layer-found) .up.tie { background: none; margin: 0; height: auto; }
+:is(#layer-catalog, #layer-found) .up.tie::before { content: ""; position: absolute; left: 50%; top: 0; bottom: 0; border-left: 1.5px solid var(--up-c); }
+:is(#layer-catalog, #layer-found) .up.tie.end::before { bottom: 50%; }
+:is(#layer-catalog, #layer-found) .up.tie::after { content: ""; position: absolute; left: 50%; top: 50%; width: 11px; border-top: 1.5px solid var(--up-c); }
+:is(#layer-catalog, #layer-found) .up.lead::after { content: ""; position: absolute; left: 50%; top: 100%; height: 4px; border-left: 1.5px solid var(--up-c); }
+:is(#layer-catalog, #layer-found) .up-kigam { --up-c: #a8742a; }
+:is(#layer-catalog, #layer-found) .up-vworld { --up-c: #2f7d6d; }
+:is(#layer-catalog, #layer-found) .up-geus, :is(#layer-catalog, #layer-found) .up-grportal { --up-c: #b5442f; }
+:is(#layer-catalog, #layer-found) .up-npolar, :is(#layer-catalog, #layer-found) .up-janmayen { --up-c: #2c4f8c; }
+:is(#layer-catalog, #layer-found) .up-gsj { --up-c: #b0476e; }
+:is(#layer-catalog, #layer-found) .up-ccop { --up-c: #5d7d33; }
+:is(#layer-catalog, #layer-found) .up-geomap, :is(#layer-catalog, #layer-found) .up-ibcso { --up-c: #3e7f9c; }
+:is(#layer-catalog, #layer-found) .up-geo3al { --up-c: #6f6a5f; }
+:is(#layer-catalog, #layer-found) .up-kopri { --up-c: #1f8f8a; }
+:is(#layer-catalog, #layer-found) .up-pgc { --up-c: #7a5aa8; }
+:is(#layer-catalog, #layer-found) .up-phyloserver, :is(#layer-catalog, #layer-found) .up-peninsula { --up-c: #8c6239; }
 
 /* 레이어군 머리의 모두 켜기·끄기 */
 #layer-catalog .group > summary .group-all {

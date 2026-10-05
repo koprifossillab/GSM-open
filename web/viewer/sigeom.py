@@ -165,3 +165,60 @@ def friendly(props: dict, lang: str = "ko") -> dict:
     if link:
         out["상세"] = {"text": "", "links": [{"url": link.group(1).replace("&amp;", "&"), "label": "열기"}]}
     return out
+
+
+# ── 보는 범위의 범례 (wetherilli 337) ─────────────────────────────────
+# WMS 의 GetLegendGraphic 은 28×18 한 칸뿐이다. 면마다 칠한 색(`COUL_REMPL_HEXA`)이 속성에 들어 있어, 같은 자료의 WFS 에 보는 범위의 면을
+# 기하 없이(`propertyName`) 받아 단위마다 센다 — 일반 지질 2.5° 네모에 62 KB·1.2 초(2026-10-05, 발도르)
+
+#: 레이어 → (WFS 이름, 기호 열, 이름 열, 범례를 뜨는 가장 넓은 범위(°))
+LEGEND = {
+    "sigeom:generale": ("SGM:Geologie_generale", "ZGQ_CODE_IDENT_ETIQU_LEGEN", "ZGQ_DESCR", 8.0),
+    "sigeom:regionale": ("SGM:Geologie_regionale", "NOM_ABRG_ETQT_LITH", "DESC_ZONE_GEOLG", 2.0),
+}
+LEGEND_FEATURES = 5000
+MAX_LEGEND = 60
+
+
+def legend_span(name: str) -> float:
+    return LEGEND[name][3]
+
+
+def extent_legend(name: str, bbox: tuple, lang: str = "ko") -> list:
+    """보는 범위 `(서, 남, 동, 북)`(위경도)의 단위 `[{"symbol", "lithology", "color", "age", "count"}]` — 면이 많은 것부터"""
+    if name not in LEGEND:
+        raise SigeomError("범례가 없는 레이어다")
+    typename, code_col, name_col, _ = LEGEND[name]
+    left = usage.paused()
+    if left:
+        raise SigeomError(f"차단 조짐이 있어 {int(left)}초 동안 상류에 묻지 않는다")
+    w, s, e, n = bbox
+    try:
+        r = requests.get(settings.SIGEOM_WFS_URL, params={
+            "SERVICE": "WFS", "VERSION": "1.1.0", "REQUEST": "GetFeature", "TYPENAME": typename,
+            "BBOX": f"{w!r},{s!r},{e!r},{n!r},EPSG:4326", "PROPERTYNAME": f"{code_col},{name_col},AGE,COUL_REMPL_HEXA",
+            "MAXFEATURES": str(LEGEND_FEATURES), "OUTPUTFORMAT": "application/json"},
+            timeout=max(settings.UPSTREAM_TIMEOUT, 30), verify=settings.CA_BUNDLE or True, headers={"User-Agent": "GSM/0.1"})
+    except requests.RequestException as exc:
+        usage.record("sigeom", ok=False)
+        raise SigeomError(f"SIGÉOM WFS 에 닿지 못했다: {exc}") from exc
+    log.info("SIGÉOM-WFS %s -> %s", r.url, r.status_code)
+    usage.record("sigeom", ok=r.status_code == 200, blocked=usage.looks_blocked(r.status_code, r.content[:1000]), elapsed=r.elapsed)
+    if r.status_code != 200:
+        raise SigeomError(f"범례를 받지 못했다 (status={r.status_code})")
+    try:
+        features = r.json().get("features") or []
+    except ValueError as exc:
+        raise SigeomError("범례가 JSON 이 아니다") from exc
+    rows = {}
+    for f in features:
+        p = f.get("properties") or {}
+        code, label = str(p.get(code_col) or "").strip(), str(p.get(name_col) or "").strip()
+        color = str(p.get("COUL_REMPL_HEXA") or "").strip()
+        if not (code or label):
+            continue
+        row = rows.setdefault((code, label, color), {"symbol": code, "lithology": label, "swatch": "",
+                                                     "color": color if color.startswith("#") else "#cccccc",
+                                                     "age": age(str(p.get("AGE") or "").strip(), lang) if p.get("AGE") else "", "count": 0})
+        row["count"] += 1
+    return sorted(rows.values(), key=lambda r: -r["count"])

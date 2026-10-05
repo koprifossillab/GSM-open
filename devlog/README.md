@@ -371,6 +371,12 @@
 | wetherilli 327 | 2026-10-05 | [독일 줌 9 앞의 축척 — BGR GK2000](20261005_wetherilli_327_bgr_mid_scale.md) |
 | wetherilli 329 | 2026-10-05 | [남호주 지구물리 — SARIG 의 영상 WMS 가 있었다 (306 을 바로잡는다)](20261005_wetherilli_329_sa_geophysics.md) |
 | wetherilli 330 | 2026-10-05 | [새 일거리 둘째 판 — 무엇을 셌고 왜 그 차례인가](20261005_wetherilli_330_new_work_survey_2.md) |
+| wetherilli 328 | 2026-10-05 | [대만 지질운 — 빈 칸 셋을 더 잘게 나눠 다시 받기](20261005_wetherilli_328_taiwan_holes.md) |
+| wetherilli 331 | 2026-10-05 | [온 지구의 점 레이어를 다른 지역 탭에도 — 묶음마다 네모 하나](20261005_wetherilli_331_earthpoints_regions.md) |
+| wetherilli 332 | 2026-10-05 | [레이어 찾기 — 모든 지역의 레이어를 칸 하나로](20261005_wetherilli_332_layer_search.md) |
+| wetherilli 333 | 2026-10-05 | [영어판 — 레이어 설명 341 개](20261005_wetherilli_333_layer_desc_en.md) |
+| wetherilli 335 | 2026-10-05 | [3D 에 남극 IBCSO 자료 출처·ADMAP, 북유럽 NGU·GTK](20261005_wetherilli_335_3d_more.md) |
+| wetherilli 337 | 2026-10-05 | [범례 없는 단위 면 — 퀘벡 지질, 브라질 구조선 (멕시코는 둘 것이 없었다)](20261005_wetherilli_337_legends_qc_br_mx.md) |
 | koprifossillab P01 | 2026-09-30 | [백업 — WegenersDream 의 틀로, 바뀌는 빠르기에 따라 넷으로 (계획)](20260930_koprifossillab_P01_backup_plan.md) |
 | koprifossillab 001 | 2026-09-30 | [매주 월요일 새벽: 운영 자료 백업과 KPDC 목록 갱신](20260930_koprifossillab_001_weekly_backup.md) |
 | koprifossillab 002 | 2026-09-30 | [`/healthz/` — 판·DB·백업 상태를 한 장으로](20260930_koprifossillab_002_healthz.md) |

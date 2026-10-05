@@ -410,6 +410,8 @@ MAP3D_WMS = ("kigam", "geus", "geusarc", "vworld", "ccop", "gsjows", "gsmma",
              "ispra", "lneg", "swisstopo",
              # 스웨덴 SGU(wetherilli 213) — 2D 는 3413 이지만 GeoServer 가 3857 도 그린다
              "sgu",
+             # 노르웨이 NGU·핀란드 GTK(wetherilli 335) — 2D 는 3575·3413 이지만 3857 도 그려 준다(2026-10-05 에 둘 다 재었다)
+             "ngu", "gtk",
              # 아이슬란드 NÍ(wetherilli 216) — 2D 는 3413 이지만 GeoServer 라 3857 도 그린다
              "natt",
              # 뉴질랜드·남빅토리아랜드 GNS(wetherilli 218) — GeoServer 라 3857 도 그린다
@@ -439,7 +441,7 @@ def map3d_view(request):
     """3D (devlog 015, 059 에서 실험을 벗었다). MapLibre + 공개 표고 타일 + 서버 중계 지질도."""
     lang = i18n.lang_of(request)
     # 3D 는 3857 타일만 얹는다 — 대개 `wms/` 의 WMS(`map3d.js` 의 `wmsTiles`), 일본은 z/x/y. 모양·점 레이어와, 우리가
-    # 굽거나(음영판) 극지 투영으로만 받는 것(NGU·GTK·phyloserver)은 뺀다. SGU 는 3857 도 그려 얹는다 — 목록에 두면 골라도 빈 화면이다
+    # 굽거나(음영판) 극지 투영으로만 받는 것(phyloserver)은 뺀다. NGU·GTK 는 3857 도 그려 `MAP3D_WMS` 에 든다(wetherilli 335). SGU 는 3857 도 그려 얹는다 — 목록에 두면 골라도 빈 화면이다
     # NPI(스발바르·드로닝모드랜드)는 `export` 가 3857 로도 그려 준다 — 극지 3D 에 얹는다(032)
     # GeoMAP(남극)은 우리가 굽는 3031 타일을 서버가 3857 로 다시 펴 준다(`warp/geomap/`, 040)
     # 대만(GSMMA)은 상류가 4326 만 받아 문이 4326 으로 받아 3857 로 편다(`gsmma.mercator_map`, wetherilli 141)
@@ -451,6 +453,8 @@ def map3d_view(request):
                               and (l.get("upstream") in MAP3D_WMS
                                    or (l.get("upstream") == "npolar" and npolar.knows(l["name"]))
                                    or (l.get("upstream") == "geomap" and l["name"] in geomap.LAYERS)
+                                   # IBCSO 자료 출처·ADMAP 자력 이상도 GeoMAP 처럼 서버가 3857 로 편다 (wetherilli 335)
+                                   or l["name"] in ("ibcso:tid", admap.NAME)
                                    or (l.get("upstream") in ("gsj", "gsitile", "ingemmet", "ags", "sim3534", "gsjows") and l.get("tiles")))])
               for g in catalog]
     # 커스텀 지질도 — 한반도 지질도 셋은 서버가 3857 로 다시 펴 주고(`warp/`), 암맥은
@@ -2678,6 +2682,17 @@ def _options_3d(layers: list):
     return mark_safe("".join(out))
 
 
+_HANGUL = re.compile(r"[가-힣]")
+
+
+def _abstract_en(layer) -> str:
+    """영어판의 레이어 설명 — `i18n.ABSTRACT_EN` 의 것, 없으면 한국어가 들지 않은 설명만 그대로(원어 제목뿐인 설명). 한국어가 든 설명은 숨긴다 (wetherilli 333)"""
+    text = i18n.ABSTRACT_EN.get(layer.name)
+    if text:
+        return text
+    return "" if not layer.abstract or _HANGUL.search(layer.abstract) else layer.abstract
+
+
 def _catalog(lang="ko"):
     """레이어 패널의 목록. 영어판이면 제목만 `i18n.LAYER_EN` 으로 바꾼다."""
     en = lang == "en"
@@ -2689,13 +2704,16 @@ def _catalog(lang="ko"):
         layers = [{
             "name": l.name,
             "title": i18n.LAYER_EN.get(l.name, l.title) if en else l.title,
+            # 다른 말의 제목 — 레이어 찾기 칸이 한국어로도 영어로도 찾게 (wetherilli 332)
+            **({"alt": alt} if (alt := (l.title if en else i18n.LAYER_EN.get(l.name, ""))) and alt != (
+                i18n.LAYER_EN.get(l.name, l.title) if en else l.title) else {}),
             "bbox": l.bbox,
             "queryable": l.queryable,
             # 대조할 상류가 없는 것(우리가 그리는 GeoMAP)은 "대조 안 함" 표를 달지 않는다
             "verified": bool(l.verified_at) or l.upstream in ("geomap", "janmayen", "geo3al", "peninsula", "kopri", "usgscarib", "stri", "sim3534", "vmme")
                         or twopen.knows(l.name),
-            # 설명은 상류가 한국어 제목을 되풀이한 것이라 영어판에서는 숨긴다
-            "abstract": "" if en else l.abstract,
+            # 영어판은 설명의 영어(`i18n.ABSTRACT_EN`, wetherilli 333) — 없으면 한국어가 든 설명을 숨긴다
+            "abstract": _abstract_en(l) if en else l.abstract,
             # 어느 상류인지 — 화면이 출처(`attributions`)를 붙인다. vector 면
             # 타일이 아니라 모양을 받아 그린다 (`map.js` 의 `vectorLayerFor`)
             "upstream": l.upstream,
@@ -3074,7 +3092,9 @@ def _layer_extra_base(layer, lang: str = "ko") -> dict:
         first, _ = door.zooms(layer.name)
         return {"attribution": door.ATTRIBUTION, "projection": "EPSG:3978", **({"minZoom": first} if first else {}),
                 **({} if door.queryable(layer.name) else {"queryable": False}),
-                **({"noLegend": True} if layer.upstream == "sigeom" else {})}
+                # 퀘벡 일반·지역 지질은 보는 범위의 범례(`sigeom/legend/`, wetherilli 337), 나머지는 없다
+                **({"legend": "extent", "legendUrl": "sigeom/legend/"} if layer.name in sigeom.LEGEND
+                   else {"noLegend": True} if layer.upstream == "sigeom" else {})}
     if layer.upstream in ("ispra", "lneg") and {"ispra": ispra, "lneg": lneg}[layer.upstream].knows(layer.name):
         # 이탈리아 ISPRA·포르투갈 LNEG(wetherilli 211) — ArcGIS WMS 를 3857 로. 가까이서만 그려 주는 판(1:10만·구조선)은 그 줌부터
         mod = {"ispra": ispra, "lneg": lneg}[layer.upstream]
@@ -3170,6 +3190,7 @@ def _layer_extra_base(layer, lang: str = "ko") -> dict:
         # 보는 범위의 범례를 뜬다(`sgb/legend/`) — 대만과 같은 꼴이다. 구조선은 범례가 없다
         first, last = sgb.zooms(layer.name)
         legend = ({"legend": "extent", "legendUrl": "sgb/legend/"} if layer.name in sgb.legend_layers()
+                  else {} if layer.name in sgb.IMAGE_LEGENDS            # 구조선 1:250만은 상류의 그림 범례 (wetherilli 337)
                   else {"noLegend": True})
         return {"attribution": sgb.ATTRIBUTION, "projection": "EPSG:3857", **legend,
                 **({"minZoom": first} if first else {}), **({"lastZoom": last} if last else {})}
@@ -3873,7 +3894,7 @@ def warp_tile(request, upstream, layer, z, x, y, retina=None):
     size = 512 if retina else 256
     name = layer if upstream == "geomap" else f"{upstream}:{layer}"
     lang = i18n.lang_of(request)
-    zooms = {"geomap": GEOMAP_WARP_ZOOMS, "ibcso": IBCSO_WARP_ZOOMS}.get(upstream, WARP_ZOOMS)
+    zooms = {"geomap": GEOMAP_WARP_ZOOMS, "ibcso": IBCSO_WARP_ZOOMS, "admap": IBCSO_WARP_ZOOMS}.get(upstream, WARP_ZOOMS)
     if _lab_only(name) or not (zooms[0] <= z <= zooms[1]) or not (0 <= x < 2 ** z and 0 <= y < 2 ** z):
         return JsonResponse({"error": i18n.t(msg("그런 타일은 없다"), lang)}, status=404)
     if name in peninsula.SHEETS:
@@ -3890,6 +3911,20 @@ def warp_tile(request, upstream, layer, z, x, y, retina=None):
         if not geomap.available():
             return _tile(tiles.notice_tile(size, size, tiles.NO_DATA), store=False)
         grid = warp.geomap_grid(lambda level, tx, ty: _geomap_png(name, level, tx, ty)[0])
+    elif name == "ibcso:tid":
+        # IBCSO 자료 출처(071) — 2D 의 타일(GeoMAP 격자) 그대로 편다 (wetherilli 335)
+        if warp.south_of(z, y) > elevation.IBCSO_NORTH:
+            return _tile(tiles.blank_tile(size, size))
+        if not ibcso.tid_available():
+            return _tile(tiles.notice_tile(size, size, tiles.NO_IBCSO), store=False)
+        grid = warp.polar_grid(ibcso.read_tid_tile, ibcso.MAX_ZOOM, ibcso.valid_tile)
+    elif name == admap.NAME:
+        # ADMAP-2 자력 이상(wetherilli 262) — 남위 60° 남쪽, 줌 4 까지 잘라 둔 WebP (wetherilli 335)
+        if warp.south_of(z, y) > GEOMAP_NORTH:
+            return _tile(tiles.blank_tile(size, size))
+        if not admap.available():
+            return _tile(tiles.notice_tile(size, size, msg("자력 이상 자료(ADMAP-2)가 서버에 없다")), store=False)
+        grid = warp.polar_grid(admap.read_tile, admap.MAX_ZOOM, admap.valid_tile)
     elif upstream == "ibcso" and name in ibcso.SHEETS:
         if warp.south_of(z, y) > elevation.IBCSO_NORTH:
             return _tile(tiles.blank_tile(size, size))
@@ -3929,6 +3964,10 @@ def _warp_key(name, upstream, z, x, y, size):
         version = geomap_version()
     elif upstream == "ibcso" and name in ibcso.SHEETS:
         version = _dir_version(ibcso.SHEETS[name].wide_dir())
+    elif name == "ibcso:tid":
+        version = _dir_version(ibcso.tid_tiles_dir())
+    elif name == admap.NAME:
+        version = _dir_version(admap.tiles_dir())
     else:
         return None
     if not version:
@@ -4352,6 +4391,36 @@ def esdm_legend(request):
         log.info("인도네시아 범례를 받지 못했다 (%s): %s", name, exc)
         return JsonResponse({"error": i18n.t(msg("범례를 받지 못했다"), lang), "rows": []}, status=502)
     shown = [esdm.legend_row(r, table, lang) for r in held["rows"][:esdm.MAX_LEGEND]]
+    return JsonResponse({"rows": shown, "more": max(0, len(held["rows"]) - len(shown))})
+
+
+@require_GET
+@browser_cached
+def sigeom_legend(request):
+    """`?layer=sigeom:generale&bbox=서,남,동,북` — 퀘벡 지질의 보는 범위 범례 (wetherilli 337). WFS 의 면 색(`COUL_REMPL_HEXA`)으로
+    단위를 센다(`sigeom.extent_legend`). 꼴은 사우디(`sgs_legend`)와 같다"""
+    lang = i18n.lang_of(request)
+    name = request.GET.get("layer", "")
+    if name not in sigeom.LEGEND:
+        return JsonResponse({"error": i18n.t(msg("범례가 없는 레이어다"), lang), "rows": []}, status=400)
+    parts = [_float(v) for v in (request.GET.get("bbox") or "").split(",")]
+    if len(parts) != 4 or None in parts:
+        return JsonResponse({"error": i18n.t(msg("bbox 가 없다"), lang), "rows": []}, status=400)
+    bbox = [round(v, 2) for v in parts]
+    span = sigeom.legend_span(name)
+    if bbox[2] - bbox[0] > span or bbox[3] - bbox[1] > span:
+        return JsonResponse({"error": i18n.t(msg("범위가 넓다 — 더 들어오면 범례가 뜬다"), lang), "rows": []},
+                            status=422)
+    key = tilecache.key_text("sigeom-legend", f"{name}/{bbox}/{lang}")
+    held = _cached_json(key)
+    if held is None:
+        try:
+            held = {"rows": sigeom.extent_legend(name, tuple(bbox), lang)}
+        except sigeom.SigeomError as exc:
+            log.info("퀘벡 범례를 받지 못했다 (%s): %s", name, exc)
+            return JsonResponse({"error": i18n.t(msg("범례를 받지 못했다"), lang), "rows": []}, status=502)
+        tilecache.put(key, json.dumps(held, ensure_ascii=False).encode("utf-8"), ".json")
+    shown = held["rows"][:sigeom.MAX_LEGEND]
     return JsonResponse({"rows": shown, "more": max(0, len(held["rows"]) - len(shown))})
 
 

@@ -125,9 +125,21 @@ def get_map(params: dict):
     return r.content, ctype
 
 
+#: 그림 범례를 그대로 내주는 레이어 — 구조선 1:250만은 규칙 열여섯(9 KB)이라 그림이 알맞다 (wetherilli 337)
+IMAGE_LEGENDS = ("sgb:2500k_structures",)
+
+
 def get_legend(layer: str):
-    """범례 그림은 225×46 700 이라 내주지 않는다 — 화면은 보는 범위의 범례(`sgb/legend/`)를 부른다."""
-    raise SgbError("SGB 범례는 보는 범위로만 뜬다")
+    """단위 면의 범례 그림은 225×46 700 이라 내주지 않는다 — 화면은 보는 범위의 범례(`sgb/legend/`)를 부른다.
+    구조선(`IMAGE_LEGENDS`)만 GetLegendGraphic 그림 그대로"""
+    if layer not in IMAGE_LEGENDS:
+        raise SgbError("SGB 범례는 보는 범위로만 뜬다")
+    server, upstream = LAYERS[layer][0], LAYERS[layer][1]
+    r = _get(server, {"service": "WMS", "version": "1.3.0", "request": "GetLegendGraphic", "format": "image/png", "layer": upstream})
+    ctype = r.headers.get("content-type", "")
+    if r.status_code != 200 or not ctype.startswith("image/"):
+        raise SgbError(f"범례가 아닌 것이 왔다 (status={r.status_code})")
+    return r.content, ctype
 
 
 def get_feature_info(params: dict) -> dict:

@@ -41,8 +41,8 @@ class Command(BaseCommand):
         sections.append(("레이어 제목 (`i18n.LAYER_EN`)", layers))
 
         abstracts = [f"`{l.name}` {l.abstract[:40]}…" for l in Layer.objects.all()
-                     if l.abstract and KOREAN.search(l.abstract)]
-        sections.append(("레이어 설명 — 상류가 한국어로 준다. 영어판에서는 숨긴다",
+                     if l.abstract and KOREAN.search(l.abstract) and l.name not in i18n.ABSTRACT_EN]
+        sections.append(("레이어 설명 (`i18n.ABSTRACT_EN`) — 없으면 영어판에서 숨긴다",
                          abstracts))
 
         md = options["markdown"]

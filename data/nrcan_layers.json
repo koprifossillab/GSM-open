@@ -27,7 +27,7 @@
    "name": "nrcan:cgmc",
    "title": "주·준주 지질도 편찬 (CGMC)",
    "group": "캐나다 지질도 편찬 (NRCan CGMC)",
-   "abstract": "Canada Geological Map Compilation — 주·준주의 기반암 지질도를 모은 래스터. 누르기는 없고 범례 그림",
+   "abstract": "Canada Geological Map Compilation — 주·준주의 기반암 지질도를 모은 래스터. 누르면 암상(wetherilli 320)",
    "bbox": [
     -141.1,
     41.6,

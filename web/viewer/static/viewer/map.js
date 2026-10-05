@@ -188,7 +188,9 @@
              home: [8126323, 1920825, 15139451, 7170156],
              basemap: "eox_terrain", example: "39.904, 116.407",
              base: ["geo3al:age", "geo3al:rock"],
-             first: "geo3al:age" },
+             first: "geo3al:age",
+              // 온 지구의 점(화석·화산·지진·지열류·고생태)은 묶음의 한 탭에 두고 빌린다 (wetherilli 331)
+              borrow: { japan: ["earth"] } },
     // ── 대만 (wetherilli 136) ──
     // 경제부 지질조사·광업관리중심(GSMMA)의 WMS 를 우리 서버가 중계한다. **상류가 4326 만 받아** 4326 격자로
     // 받고 OpenLayers 가 옮겨 그린다(`taiwanSource`). 누르면 지질운 API 의 지층(5만·25만)이 뜬다.
@@ -197,7 +199,9 @@
               home: [13277000, 2470000, 13617000, 2948000],
               basemap: "nlsc_grey", example: "25.033, 121.565",
               base: ["gsmma:geology_50k", "gsmma:drainage_50k", "gsmma:geology_250k", "gsmma:geology_500k", "gsmma:geology_1m"],
-              first: "gsmma:geology_50k" },
+              first: "gsmma:geology_50k",
+              // 온 지구의 점(화석·화산·지진·지열류·고생태)은 묶음의 한 탭에 두고 빌린다 (wetherilli 331)
+              borrow: { japan: ["earth"] } },
     // ── 몽골 (wetherilli 221) ──
     // 국가지질조사소 MonGeoCat 의 국가지질도첩 지질도와 1:50만 단층(ArcGIS WMS, 3857 로). 속성은 영어 열, 시대는 기호(러시아식
     // 층서 지수)에서 푼다. 동아시아 묶음에 든다 — 같은 3857 이고 중국(geo3al)과 맞닿는다
@@ -205,7 +209,9 @@
                 home: [9763000, 5086000, 13358000, 6836000],
                 basemap: "eox_terrain", example: "47.918, 106.917 · Ulaanbaatar",
                 base: ["mris:geology:1", "mris:faults:0"],
-                first: ["mris:geology:1", "mris:faults:0"] },
+                first: ["mris:geology:1", "mris:faults:0"],
+              // 온 지구의 점(화석·화산·지진·지열류·고생태)은 묶음의 한 탭에 두고 빌린다 (wetherilli 331)
+              borrow: { japan: ["earth"] } },
     // ── 인도 (wetherilli 226) ──
     // GSI 1:200만. GSI 의 지도 창(Bhukosh)이 나라 밖에서 닿지 않아, 그림은 BGS 가 OneGeology 로 여는 WMS, 누른 자리는 GSI 의
     // ArcGIS Online 피처 서비스에서 받는다(서버 문이 엮는다). 범례는 두지 않는다 — BGS 의 범례 그림은 번호뿐이다
@@ -221,7 +227,9 @@
              home: [3840000, 1844000, 5343000, 3784000],
              basemap: "eox_terrain", example: "21.485, 39.193 · Jeddah",
              base: ["sgs:geology"],
-             first: "sgs:geology" },
+             first: "sgs:geology",
+              // 온 지구의 점(화석·화산·지진·지열류·고생태)은 묶음의 한 탭에 두고 빌린다 (wetherilli 331)
+              borrow: { india: ["earth"] } },
     // ── 동남아 (wetherilli 228) ──
     // 나라 탭 넷과 묶음 "동남아"(남미·유럽과 같은 꼴, DB 에 없다). 모두 3857 이다. 인도네시아(ESDM 1:10만 편집)는 상류가 줌 10 너머를
     // 그리지 않아 그 위는 늘려 그린다. 말레이시아(JMG)는 주마다 레이어가 따로라 문이 열다섯을 한 장으로 묶는다(REST export).
@@ -236,17 +244,23 @@
                 home: [11087000, 89000, 13280000, 826000],
                 basemap: "eox_terrain", example: "3.139, 101.687 · Kuala Lumpur",
                 base: ["jmg:lithology", "jmg:age"],
-                first: "jmg:lithology" },
+                first: "jmg:lithology",
+              // 온 지구의 점(화석·화산·지진·지열류·고생태)은 묶음의 한 탭에 두고 빌린다 (wetherilli 331)
+              borrow: { indonesia: ["earth"] } },
     philippines: { title: "필리핀", proj: "EPSG:3857", center: [121.8, 12.8], zoom: 6, vworld: false,
                    home: [13013000, 513000, 14093000, 2404000],
                    basemap: "eox_terrain", example: "16.402, 120.596 · Baguio",
                    base: ["mgb:geology"],
-                   first: "mgb:geology" },
+                   first: "mgb:geology",
+              // 온 지구의 점(화석·화산·지진·지열류·고생태)은 묶음의 한 탭에 두고 빌린다 (wetherilli 331)
+              borrow: { indonesia: ["earth"] } },
     thailand: { title: "태국", proj: "EPSG:3857", center: [101.0, 13.0], zoom: 6, vworld: false,
                 home: [10831000, 624000, 11766000, 2332000],
                 basemap: "eox_terrain", example: "18.788, 98.985 · Chiang Mai",
                 base: ["dmr:rock_units"],
-                first: "dmr:rock_units" },
+                first: "dmr:rock_units",
+              // 온 지구의 점(화석·화산·지진·지열류·고생태)은 묶음의 한 탭에 두고 빌린다 (wetherilli 331)
+              borrow: { indonesia: ["earth"] } },
     southeast_asia: { title: "동남아", proj: "EPSG:3857", center: [114.0, 5.0], zoom: 5, vworld: false,
                       includes: ["thailand", "malaysia", "indonesia", "philippines"],
                       home: [10241000, -1243000, 15707000, 2452000],
@@ -278,7 +292,7 @@
               base: ["brgm:SCAN_F_GEOL1M", "brgm:SCAN_F_GEOL250", "brgm:SCAN_H_GEOL50", "brgm:LITHO_1M_SIMPLIFIEE"],
               first: "brgm:SCAN_F_GEOL1M",
               // 범유럽 1:100만(EGDI)·유럽 바다(EMODnet)는 영국 지역에 들어 있다 — 그 상류의 레이어군만 빌린다
-              borrow: { uk: ["egdi", "emodnet"], germany: ["bgr:igme5000:"], arctic_ocean: ["emodnet"] } },
+              borrow: { uk: ["egdi", "emodnet", "earth"], germany: ["bgr:igme5000:"], arctic_ocean: ["emodnet"] } },
     // ── 독일·스페인·아일랜드 (wetherilli 147) ──
     // BGR·IGME·GSI 를 중계한다. 판마다 그리는 줌이 좁아 넓게 볼 때는 EGDI 1:100만을 빌려 깐다. 아일랜드는 섬 전체 —
     // GSI 1:100만이 이미 섬 하나로 이어져 있고, 북아일랜드 1:25만(GSNI, BGS 서버)을 같은 레이어군에 둔다
@@ -287,20 +301,20 @@
                basemap: "eox_terrain", example: "51.31, 9.48 · Kassel",
                base: ["egdi:GeologicUnitView_Age", "bgr:gk1000:0", "bgr:guek250:7", "bgr:guek250:4"],
                first: ["egdi:GeologicUnitView_Age", "bgr:guek250:7"],
-               borrow: { uk: ["egdi", "emodnet"], arctic_ocean: ["emodnet"] } },
+               borrow: { uk: ["egdi", "emodnet", "earth"], arctic_ocean: ["emodnet"] } },
     spain: { title: "스페인", proj: "EPSG:3857", center: [-3.7, 40.2], zoom: 6, vworld: false,
              home: [-1046000, 4287000, 490000, 5450000],
              basemap: "eox_terrain", example: "40.417, -3.704 · Madrid",
              base: ["igme:geologico1m:0", "igme:magna50:0", "igme:magna50:2"],
              first: "igme:geologico1m:0",
-             borrow: { uk: ["egdi", "emodnet"], germany: ["bgr:igme5000:"], arctic_ocean: ["emodnet"] } },
+             borrow: { uk: ["egdi", "emodnet", "earth"], germany: ["bgr:igme5000:"], arctic_ocean: ["emodnet"] } },
     ireland: { title: "아일랜드", proj: "EPSG:3857", center: [-7.8, 53.4], zoom: 7, vworld: false,
                home: [-1191000, 6675000, -601000, 7460000],
                basemap: "eox_terrain", example: "53.35, -6.26 · Dublin",
                base: ["gsi:1m:IE_GSI_GSNI_Bedrock_Geology_1M_IE32_ITM", "gsi:100k:IE_GSI_Bedrock_Geology_100K_IE26_ITM",
                       "gsni:5"],
                first: "gsi:1m:IE_GSI_GSNI_Bedrock_Geology_1M_IE32_ITM",
-               borrow: { uk: ["egdi", "emodnet"], germany: ["bgr:igme5000:"], arctic_ocean: ["emodnet"] } },
+               borrow: { uk: ["egdi", "emodnet", "earth"], germany: ["bgr:igme5000:"], arctic_ocean: ["emodnet"] } },
     // ── 이탈리아·포르투갈·스위스 (wetherilli 211) ──
     // ISPRA 1:100만·1:10만, LNEG 1:50만, swisstopo 1:50만·GeoCover. EGDI 1:100만(과 바다를 낀 둘은 EMODnet)은 영국에서 빌린다
     italy: { title: "이탈리아", proj: "EPSG:3857", center: [12.5, 42.0], zoom: 6, vworld: false,
@@ -308,19 +322,19 @@
              basemap: "eox_terrain", example: "41.902, 12.496 · Roma",
              base: ["ispra:1m:0", "ispra:100k:1"],
              first: "ispra:1m:0",
-             borrow: { uk: ["egdi", "emodnet"], germany: ["bgr:igme5000:"], arctic_ocean: ["emodnet"] } },
+             borrow: { uk: ["egdi", "emodnet", "earth"], germany: ["bgr:igme5000:"], arctic_ocean: ["emodnet"] } },
     portugal: { title: "포르투갈", proj: "EPSG:3857", center: [-8.0, 39.6], zoom: 7, vworld: false,
                 home: [-1068667, 4425177, -679049, 5190986],
                 basemap: "eox_terrain", example: "38.722, -9.139 · Lisboa",
                 base: ["lneg:500k:2", "lneg:500k:4"],
                 first: "lneg:500k:2",
-                borrow: { uk: ["egdi", "emodnet"], germany: ["bgr:igme5000:"], arctic_ocean: ["emodnet"] } },
+                borrow: { uk: ["egdi", "emodnet", "earth"], germany: ["bgr:igme5000:"], arctic_ocean: ["emodnet"] } },
     switzerland: { title: "스위스", proj: "EPSG:3857", center: [8.2, 46.8], zoom: 8, vworld: false,
                    home: [656785, 5748357, 1168855, 6073646],
                    basemap: "eox_terrain", example: "46.948, 7.447 · Bern",
                    base: ["swisstopo:geologische_karte", "swisstopo:geocover"],
                    first: "swisstopo:geologische_karte",
-                   borrow: { uk: ["egdi"], germany: ["bgr:igme5000:"] } },
+                   borrow: { uk: ["egdi", "earth"], germany: ["bgr:igme5000:"] } },
     // ── 오스트리아·폴란드·네덜란드·벨기에 (wetherilli 237) ──
     // GeoSphere 1:100만, PIG-PIB 1:50만(세 층을 겹친다), TNO 지표 지질도, 벨기에는 플랑드르 DOV 와 왈로니아 SPW 를 한 탭에.
     // 넷 다 3857 이고 유럽 묶음에 든다. EGDI 1:100만은 영국에서 빌린다(바다를 낀 둘은 EMODnet 도)
@@ -329,25 +343,25 @@
                basemap: "eox_terrain", example: "47.561, 13.648 · Hallstatt",
                base: ["geosphere:geology", "geosphere:faults", "geosphere:units50k"],
                first: ["geosphere:geology", "geosphere:faults"],
-               borrow: { uk: ["egdi"], germany: ["bgr:igme5000:"] } },
+               borrow: { uk: ["egdi", "earth"], germany: ["bgr:igme5000:"] } },
     poland: { title: "폴란드", proj: "EPSG:3857", center: [19.2, 52.0], zoom: 6, vworld: false,
               home: [1570000, 6275000, 2694000, 7342000],
               basemap: "eox_terrain", example: "50.061, 19.937 · Kraków",
               base: ["pig:mgp500k", "pig:faults", "pig:smgp50k"],
               first: "pig:mgp500k",
-              borrow: { uk: ["egdi", "emodnet"], germany: ["bgr:igme5000:"], arctic_ocean: ["emodnet"] } },
+              borrow: { uk: ["egdi", "emodnet", "earth"], germany: ["bgr:igme5000:"], arctic_ocean: ["emodnet"] } },
     netherlands: { title: "네덜란드", proj: "EPSG:3857", center: [5.3, 52.2], zoom: 7, vworld: false,
                    home: [367000, 6568000, 813000, 7095000],
                    basemap: "eox_terrain", example: "52.090, 5.121 · Utrecht",
                    base: ["tno:geology"],
                    first: "tno:geology",
-                   borrow: { uk: ["egdi", "emodnet"], germany: ["bgr:igme5000:"], arctic_ocean: ["emodnet"] } },
+                   borrow: { uk: ["egdi", "emodnet", "earth"], germany: ["bgr:igme5000:"], arctic_ocean: ["emodnet"] } },
     belgium: { title: "벨기에", proj: "EPSG:3857", center: [4.5, 50.6], zoom: 8, vworld: false,
                home: [278000, 6352000, 718000, 6719000],
                basemap: "eox_terrain", example: "50.879, 4.701 · Leuven",
                base: ["dov:tertiair_50k", "dov:quartair_200k", "spw:geology", "spw:faults"],
                first: ["dov:tertiair_50k", "spw:geology"],
-               borrow: { uk: ["egdi", "emodnet"], germany: ["bgr:igme5000:"], arctic_ocean: ["emodnet"] } },
+               borrow: { uk: ["egdi", "emodnet", "earth"], germany: ["bgr:igme5000:"], arctic_ocean: ["emodnet"] } },
     // ── 남미 (wetherilli 188·191) ──
     // 나라 탭 둘(콜롬비아·브라질)과 묶음 "남미". SGC 가 내는 남미 1:500만(CGMW 2019)이 대륙 바탕이다 — 콜롬비아 지역에 두고
     // 브라질이 그 레이어군만 빌린다(`borrow` 의 `sgc:sa:` — 이름 앞머리로). 칠레·페루처럼 나라 판이 없는 곳은 묶음에서 1:500만이 메운다
@@ -355,7 +369,9 @@
                 home: [-8850000, -479000, -7436000, 1414000],
                 basemap: "eox_terrain", example: "4.711, -74.072 · Bogotá",
                 base: ["sgc:sa:8", "sgc:co:3"],
-                first: "sgc:co:3" },
+                first: "sgc:co:3",
+              // 온 지구의 점(화석·화산·지진·지열류·고생태)은 묶음의 한 탭에 두고 빌린다 (wetherilli 331)
+              borrow: { brazil: ["earth"] } },
     brazil: { title: "브라질", proj: "EPSG:3857", center: [-52.0, -14.0], zoom: 4, vworld: false,
               home: [-8260000, -4029000, -3852000, 602000],
               basemap: "eox_terrain", example: "-15.79, -47.88 · Brasília",
@@ -368,27 +384,27 @@
             basemap: "eox_terrain", example: "-12.046, -77.043 · Lima",
             base: ["sgc:sa:8", "ingemmet:100k", "ingemmet:50k", "ingemmet:50k_units"],
             first: "ingemmet:50k",
-            borrow: { colombia: ["sgc:sa:"] } },
+            borrow: { brazil: ["earth"], colombia: ["sgc:sa:"] } },
     // 아르헨티나 SEGEMAR·우루과이 DINAMIGE (wetherilli 196) — 브라질처럼 남미 1:500만만 콜롬비아에서 빌린다
     argentina: { title: "아르헨티나", proj: "EPSG:3857", center: [-65.0, -38.0], zoom: 4, vworld: false,
                  home: [-8250000, -7400000, -5900000, -2450000],
                  basemap: "eox_terrain", example: "-34.60, -58.38 · Buenos Aires",
                  base: ["sgc:sa:8", "segemar:e2.5M.UnidadesGeologicas", "segemar:e250K_UnidadGeologica"],
                  first: "segemar:e2.5M.UnidadesGeologicas",
-                 borrow: { colombia: ["sgc:sa:"] } },
+                 borrow: { brazil: ["earth"], colombia: ["sgc:sa:"] } },
     uruguay: { title: "우루과이", proj: "EPSG:3857", center: [-56.0, -32.6], zoom: 7, vworld: false,
                home: [-6510000, -4170000, -5920000, -3500000],
                basemap: "eox_terrain", example: "-34.90, -56.19 · Montevideo",
                base: ["sgc:sa:8", "dinamige:0"],
                first: "dinamige:0",
-               borrow: { colombia: ["sgc:sa:"] } },
+               borrow: { brazil: ["earth"], colombia: ["sgc:sa:"] } },
     // 에콰도르(wetherilli 198) — IIGE 일반 지질도. 남부는 거의 다, 북부는 도폭 조각만이라 1:500만이 밑을 채운다
     ecuador: { title: "에콰도르", proj: "EPSG:3857", center: [-78.5, -1.6], zoom: 7, vworld: false,
                home: [-9039000, -568000, -8360000, 167000],
                basemap: "eox_terrain", example: "-0.180, -78.468 · Quito",
                base: ["sgc:sa:8", "iige:geologia_general"],
                first: ["sgc:sa:8", "iige:geologia_general"],
-               borrow: { colombia: ["sgc:sa:"] } },
+               borrow: { brazil: ["earth"], colombia: ["sgc:sa:"] } },
     // ── 캐나다 (wetherilli 204) ──
     // NRCan 1:500만(Wheeler)을 바탕에, 온타리오 OGS 1:25만을 위에. 화면은 캐나다 람베르트(3978) — 서경 95° 가 위라 나라가 반듯하고
     // 북극 섬이 부풀지 않는다. 미국·멕시코가 들어오면 묶음 "북미"(`north_america`)가 이 탭을 품는다(유럽·남미와 같은 꼴)
@@ -396,7 +412,9 @@
               home: [-2400000, -900000, 3100000, 4600000],
               basemap: "eox_terrain", example: "45.42, -75.70 · Ottawa",
               base: ["nrcan:wheeler", "ags:bedrock", "skgs:2", "ogs:3", "ogs:1", "sigeom:generale", "sigeom:regionale", "nsgs:11", "ygs:47", "bcgs:bedrock"],
-              first: "nrcan:wheeler" },
+              first: "nrcan:wheeler",
+              // 온 지구의 점(화석·화산·지진·지열류·고생태)은 묶음의 한 탭에 두고 빌린다 (wetherilli 331)
+              borrow: { usa: ["earth"] } },
     // 북미 묶음(wetherilli 210) — 캐나다·미국·멕시코를 캐나다 람베르트(3978) 한 화면에 모은다. 알래스카와 북극 섬이 부풀지 않고 멕시코(북위
     // 15° 남짓)도 크게 비틀리지 않는다. 처음 켜는 것은 나라마다 넓게 봐도 그려지는 판 하나 — 캐나다 1:500만·미국 SGMC·멕시코 1:25만.
     // 셋은 국경에서만 겹친다. 주 판(온타리오·퀘벡·유콘)과 알래스카는 목록에서 켠다
@@ -416,7 +434,7 @@
                 basemap: "eox_terrain", example: "-25.282, -57.635 · Asunción",
                 base: ["sgc:sa:8", "usgscarib:sa:geology", "vmme:geology"],
                 first: "vmme:geology",
-                borrow: { colombia: ["sgc:sa:", "usgscarib:sa:"] } },
+                borrow: { brazil: ["earth"], colombia: ["sgc:sa:", "usgscarib:sa:"] } },
     south_america: { title: "남미", proj: "EPSG:3857", center: [-60.0, -15.0], zoom: 3, vworld: false,
                      includes: ["colombia", "ecuador", "peru", "brazil", "paraguay", "uruguay", "argentina"],
                      home: [-9128198, -7558416, -3784863, 1516914],
@@ -450,13 +468,17 @@
                    home: [18479000, -6041000, 19926000, -4029000],
                    basemap: "eox_terrain", example: "-41.289, 174.777 · Wellington",
                    base: ["gns:NZL_GNS_1M_geological_units", "gns:qmap", "gns:NZL_GNS_1M_faults"],
-                   first: ["gns:NZL_GNS_1M_geological_units", "gns:qmap"] },
+                   first: ["gns:NZL_GNS_1M_geological_units", "gns:qmap"],
+              // 온 지구의 점(화석·화산·지진·지열류·고생태)은 묶음의 한 탭에 두고 빌린다 (wetherilli 331)
+              borrow: { australia: ["earth"] } },
     // 누벨칼레도니(wetherilli 260) — 정부 Géorep 의 DIMENC 지질도. 축척마다 상류가 1:100만·1:20만·1:5만을 바꿔 그린다
     new_caledonia: { title: "누벨칼레도니", proj: "EPSG:3857", center: [165.8, -21.4], zoom: 8, vworld: false,
                      home: [18200000, -2608000, 18729000, -2216000],
                      basemap: "eox_terrain", example: "-22.276, 166.457 · Nouméa",
                      base: ["georep:geology"],
-                     first: "georep:geology" },
+                     first: "georep:geology",
+              // 온 지구의 점(화석·화산·지진·지열류·고생태)은 묶음의 한 탭에 두고 빌린다 (wetherilli 331)
+              borrow: { australia: ["earth"] } },
     // 프랑스령 폴리네시아(wetherilli 260) — BRGM 의 섬별 지질도 스캔. 줌 11 부터 그려 처음엔 타히티·무레아를 연다
     french_polynesia: { title: "폴리네시아", proj: "EPSG:3857", center: [-149.6, -17.62], zoom: 11, vworld: false,
                         home: [-16700000, -2010000, -16570000, -1940000],
@@ -494,7 +516,9 @@
               home: [-13191000, 1592000, -9629000, 3881000],
               basemap: "eox_terrain", example: "22.77, -102.58 · Zacatecas",
               base: ["sgm:8", "sgm:6", "sgm:7"],
-              first: "sgm:8" },
+              first: "sgm:8",
+              // 온 지구의 점(화석·화산·지진·지열류·고생태)은 묶음의 한 탭에 두고 빌린다 (wetherilli 331)
+              borrow: { usa: ["earth"] } },
     // ── 중앙아메리카·카리브 (wetherilli 242) ──
     // 니카라과 INETER(나라 지질도), 도미니카공화국 SGN 1:25만(IGME 서버, 영어판). 둘 다 3857 이다. 푸에르토리코는 미국 탭에 섰다(wetherilli 238) —
     // 묶음이 그 레이어군(`mrdata:pr:`)만 빌린다. 탭을 따로 두면 같은 레이어가 두 지역에 생긴다
@@ -504,12 +528,16 @@
                  home: [-9774000, 1187000, -9195000, 1701000],
                  basemap: "eox_terrain", example: "12.136, -86.251 · Managua",
                  base: ["ineter:geology", "ineter:faults"],
-                 first: "ineter:geology" },
+                 first: "ineter:geology",
+              // 온 지구의 점(화석·화산·지진·지열류·고생태)은 묶음의 한 탭에 두고 빌린다 (wetherilli 331)
+              borrow: { caribbean: ["earth"] } },
     dominican_republic: { title: "도미니카공화국", proj: "EPSG:3857", center: [-70.2, 18.8], zoom: 8, vworld: false,
                           home: [-8026000, 1967000, -7592000, 2273000],
                           basemap: "eox_terrain", example: "18.486, -69.931 · Santo Domingo",
                           base: ["igme:sgnrd:0", "igme:sgnrd:1"],
-                          first: ["igme:sgnrd:0", "igme:sgnrd:1"] },
+                          first: ["igme:sgnrd:0", "igme:sgnrd:1"],
+              // 온 지구의 점(화석·화산·지진·지열류·고생태)은 묶음의 한 탭에 두고 빌린다 (wetherilli 331)
+              borrow: { caribbean: ["earth"] } },
     // 카리브(wetherilli 248) — USGS 카리브 지질도(1:250만)를 면 한 덩이로 받아 화면이 그린다. 쿠바·아이티·자메이카·바하마·소앤틸리스와
     // 과테말라·온두라스·엘살바도르·벨리즈처럼 나라 지질도가 닫힌 곳을 거칠게나마 덮는다
     caribbean: { title: "카리브", proj: "EPSG:3857", center: [-75.5, 18.0], zoom: 5, vworld: false,
@@ -522,7 +550,9 @@
               home: [-9251000, 792000, -8583000, 1085000],
               basemap: "eox_terrain", example: "9.081, -79.593 · Panamá",
               base: ["stri:geology", "stri:faults"],
-              first: "stri:geology" },
+              first: "stri:geology",
+              // 온 지구의 점(화석·화산·지진·지열류·고생태)은 묶음의 한 탭에 두고 빌린다 (wetherilli 331)
+              borrow: { caribbean: ["earth"] } },
     central_america: { title: "중미·카리브", proj: "EPSG:3857", center: [-77.0, 15.5], zoom: 5, vworld: false,
                        includes: ["nicaragua", "panama", "dominican_republic", "caribbean"],
                        borrow: { usa: ["mrdata:pr:"] },
@@ -2845,6 +2875,123 @@
     if (hasGeonavi()) host.appendChild(geonaviFolder());
     syncRows();
   }
+
+  // ── 레이어 찾기 (wetherilli 332) ─────────────────────────────────
+  //
+  // 지역이 쉰 가까이 되어 "중력 이상이 어느 탭에 있나" 를 알려면 탭을 하나씩 열어야 했다. 카탈로그는 한 번에 실려 오므로
+  // (`catalog-data`) 화면이 모든 지역의 레이어를 훑는다 — 제목(두 말)·설명·레이어명·상류(딱지·기관 이름)·레이어군·지역.
+  // 낱말을 띄어 적으면 다 든 것만. 고르면 지금 탭에 있는 것은 켜고 끄며, 다른 지역의 것은 그 탭으로 옮겨 켠다(`switchRegion`).
+  // 아직 더하지 않은 지역이면 "그 외" 에 더한다
+  var FIND_LIMIT = 60;
+  var findIndex = null;           // [{layer, region, group, text}] — 처음 찾을 때 짓는다
+
+  function buildFindIndex() {
+    findIndex = [];
+    catalog.forEach(function (group) {
+      var where = group.region || "korea";
+      var spec = REGIONS[where];
+      group.layers.forEach(function (layer) {
+        var up = layer.upstream || "kigam";
+        var text = [layer.title, layer.alt, layer.abstract, layer.name, up, UPSTREAM_TAGS[up], UPSTREAM_NAMES[up],
+                    group.name, spec && spec.title, spec && T(spec.title)].join(" ").toLowerCase();
+        findIndex.push({ layer: layer, region: where, group: group.name, text: text });
+      });
+    });
+  }
+
+  function findLayers(q) {
+    var words = q.toLowerCase().split(/\s+/).filter(Boolean);
+    if (!words.length) return [];
+    if (!findIndex) buildFindIndex();
+    var here = {};
+    regionCatalog().forEach(function (g) { g.layers.forEach(function (l) { here[l.name] = true; }); });
+    var seen = {};
+    return findIndex.filter(function (e) {
+      if (seen[e.layer.name] || !REGIONS[e.region]) return false;
+      if (!words.every(function (w) { return e.text.indexOf(w) >= 0; })) return false;
+      seen[e.layer.name] = true;
+      return true;
+    }).map(function (e) {
+      var title = String(e.layer.title || "").toLowerCase();
+      // 지금 탭에 있는 것이 먼저, 그다음 제목에 든 것
+      var score = (here[e.layer.name] ? 0 : 2) + (title.indexOf(words[0]) >= 0 ? 0 : 1);
+      return { e: e, here: !!here[e.layer.name], score: score };
+    }).sort(function (a, b) { return a.score - b.score; });
+  }
+
+  function renderFound() {
+    var input = document.getElementById("layer-find");
+    var box = document.getElementById("layer-found");
+    if (!input || !box) return;
+    var q = input.value.trim();
+    box.innerHTML = "";
+    box.hidden = !q;
+    if (!q) return;
+    var hits = findLayers(q);
+    var head = document.createElement("p");
+    head.className = "found-count";
+    head.textContent = hits.length ? T("{n} 개 — 다른 지역의 것은 그 탭으로 옮겨 켠다", { n: hits.length }) : T("맞는 레이어가 없다");
+    box.appendChild(head);
+    hits.slice(0, FIND_LIMIT).forEach(function (hit) {
+      var layer = hit.e.layer, up = upstreamOf(layer.name);
+      var row = document.createElement("div");
+      row.className = "layer-row found" + (hit.here && isOn(layer.name) ? " on" : "");
+      row.dataset.layer = layer.name;
+      row.setAttribute("role", "button");
+      row.tabIndex = 0;
+      if (layer.abstract) row.title = layer.abstract;
+      var tag = document.createElement("span");
+      tag.className = "up up-" + up;
+      tag.textContent = UPSTREAM_TAGS[up] || up.toUpperCase();
+      tag.title = UPSTREAM_NAMES[up] || up;
+      var label = document.createElement("span");
+      label.className = "layer-name";
+      label.textContent = layer.title;
+      var where = document.createElement("span");
+      where.className = "found-where";
+      where.textContent = (hit.here ? T("이 탭") : T(REGIONS[hit.e.region].title)) + " · " + hit.e.group;
+      label.appendChild(where);
+      row.append(tag, label);
+      var pick = function () { pickFound(layer.name, hit.here ? region : hit.e.region); };
+      row.addEventListener("click", pick);
+      row.addEventListener("keydown", function (e) {
+        if (e.key === "Enter" || e.key === " ") { e.preventDefault(); pick(); }
+      });
+      box.appendChild(row);
+    });
+    if (hits.length > FIND_LIMIT) {
+      var more = document.createElement("p");
+      more.className = "found-count";
+      more.textContent = T("앞의 {n} 개만 보인다 — 낱말을 더 적어 좁힌다", { n: FIND_LIMIT });
+      box.appendChild(more);
+    }
+  }
+
+  function pickFound(name, where) {
+    if (where === region) {
+      toggleLayer(name);
+    } else {
+      if (PINNED.indexOf(where) < 0 && addedRegions.indexOf(where) < 0) addedRegions.push(where);
+      switchRegion(where);
+      if (!isOn(name)) addLayer(name);
+    }
+    syncRows();
+    renderFound();
+  }
+
+  (function () {
+    var input = document.getElementById("layer-find");
+    if (!input) return;
+    input.addEventListener("input", renderFound);
+    input.addEventListener("keydown", function (e) {
+      if (e.key === "Escape") { input.value = ""; renderFound(); }
+      // 맞는 것이 하나뿐이면 Enter 로 바로
+      if (e.key === "Enter") {
+        var rows = document.querySelectorAll("#layer-found .layer-row");
+        if (rows.length === 1) { e.preventDefault(); rows[0].click(); }
+      }
+    });
+  })();
 
   // ── 지질도Navi 판 (wetherilli 171) ───────────────────────────────
   //

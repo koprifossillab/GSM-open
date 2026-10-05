@@ -19,7 +19,25 @@ BOXES = {
     "korea": (123.0, 32.0, 132.5, 43.5),
     "antarctica": (-180.0, -90.0, 180.0, -60.0),
     "arctic": (-180.0, 58.0, 180.0, 90.0),
+    # 묶음마다 네모 하나 — 묶음의 한 탭(`HOSTS`)에 두고 나머지 나라 탭이 빌린다(`map.js` 의 `borrow`) (wetherilli 331)
+    "eastasia": (73.0, 18.0, 150.0, 54.0),
+    "southeast_asia": (92.0, -11.0, 141.0, 21.0),
+    "southasia": (34.0, 5.0, 98.0, 38.0),
+    "europe": (-25.0, 35.0, 41.0, 72.0),
+    "north_america": (-170.0, 14.0, -50.0, 84.0),
+    "central_america": (-93.0, 7.0, -59.0, 24.0),
+    "south_america": (-82.0, -56.0, -34.0, 13.0),
+    "oceania": (110.0, -48.0, 180.0, -8.0),
+    "africa": (-20.0, -36.0, 52.0, 38.0),
 }
+#: 네모 → 레이어를 두는 지역 탭, 제목에 붙일 이름. 한국·남극·북극은 앞 판 그대로 제목에 이름을 붙이지 않는다
+HOSTS = {"eastasia": ("japan", "동아시아"), "southeast_asia": ("indonesia", "동남아"), "southasia": ("india", "남·서아시아"),
+         "europe": ("uk", "유럽"), "north_america": ("usa", "북미"), "central_america": ("caribbean", "중미·카리브"),
+         "south_america": ("brazil", "남미"), "oceania": ("australia", "오세아니아"), "africa": ("africa", "아프리카")}
+#: 덩이 하나의 점이 이보다 많으면 가까운 점을 한 칸으로 모은다(`_merge`) — 유럽 화석 산지 7 만·북미 8 만 5 천은 화면이 받기 무겁다 (wetherilli 331)
+CAP = 20000
+#: 모으는 칸(°) — 가는 것부터 써서 `CAP` 밑으로 떨어지는 첫 칸
+MERGE_CELLS = (0.01, 0.05, 0.1, 0.2, 0.5)
 SOURCES = ("pbdb", "gvp", "quakes", "neotoma", "heatflow", "recentquakes")
 #: 레이어 이름 `earth:<자료>_<네모>` → (자료, 네모)
 LAYERS = {f"earth:{src}_{box}": (src, box) for src in SOURCES for box in BOXES}
@@ -109,7 +127,7 @@ def stamp(name: str) -> str:
 
 
 #: 덩이를 짓는 법 — 열·색·네모를 고치면 올린다. 판(`version`)에 들어 주소가 바뀐다
-RENDERER = "1"
+RENDERER = "2"                      # 2 — 넓은 네모의 점을 칸으로 모은다 (wetherilli 331)
 
 
 def version(name: str) -> str:
@@ -251,6 +269,39 @@ def _recent_quake_features(box, lang):
     return out, legend
 
 
+#: 칸 하나에 모일 때 남길 점 — 큰 것이 앞이다(화석 수·지열류·자료형 수·규모)
+_KEEP = {
+    "pbdb": lambda p: float(p.get("occs") or 0),
+    "heatflow": lambda p: float(p.get("q") or 0),
+    "neotoma": lambda p: len(str(p.get("types") or "").split(",")),
+    "quakes": lambda p: float(str(p.get("mag") or "0").split()[0]),
+    "gvp": lambda p: 0.0,
+    "recentquakes": lambda p: float(str(p.get("mag") or "0").split()[0]),
+}
+
+
+def _merge(src: str, features: list) -> list:
+    """점이 `CAP` 보다 많으면 `MERGE_CELLS` 의 첫 칸부터 같은 칸의 점을 하나로 — 그 칸에서 가장 큰 것(`_KEEP`)을 남기고
+    모인 수(`merged`)를 적는다. 같은 자리에 산지 여럿이 겹친 PBDB 가 많아 1 km 칸(0.01°)이면 유럽 7 만이 2 만 5 천이 된다"""
+    if len(features) <= CAP:
+        return features
+    keep = _KEEP[src]
+    for cell in MERGE_CELLS:
+        groups = {}
+        for f in features:
+            x, y = f["geometry"]["coordinates"]
+            groups.setdefault((round(x / cell), round(y / cell)), []).append(f)
+        if len(groups) <= CAP or cell == MERGE_CELLS[-1]:
+            break
+    out = []
+    for members in groups.values():
+        best = max(members, key=lambda f: keep(f["properties"]))
+        if len(members) > 1:
+            best = dict(best, properties=dict(best["properties"], merged=len(members)))
+        out.append(best)
+    return out
+
+
 _FEATURES = {"pbdb": _fossil_features, "gvp": _volcano_features, "quakes": _quake_features,
              "neotoma": _neotoma_features, "heatflow": _heatflow_features, "recentquakes": _recent_quake_features}
 
@@ -267,6 +318,7 @@ def body(name: str, lang: str = "ko") -> bytes:
 def _body(name: str, lang: str, _stamp: str) -> bytes:
     src = source_of(name)
     features, table = _FEATURES[src](box_of(name), lang)
+    features = _merge(src, features)
     counts = {}
     for f in features:
         code = f["properties"]["code"]
@@ -274,6 +326,7 @@ def _body(name: str, lang: str, _stamp: str) -> bytes:
     shape = "triangle" if src == "gvp" else "ring" if src == "recentquakes" else "dot"
     legend = [{"code": code, "label": str(label), "color": color, "shape": shape, "count": counts[code]}
               for code, label, color in table if counts.get(code)]
-    return json.dumps({"type": "FeatureCollection", "style": "class", "labels": LABELS[src], "links": list(LINKS),
+    labels = dict(LABELS[src], merged="같은 칸에 모인 수")
+    return json.dumps({"type": "FeatureCollection", "style": "class", "labels": labels, "links": list(LINKS),
                        "legend": legend, "features": features},
                       ensure_ascii=False, separators=(",", ":")).encode("utf-8")

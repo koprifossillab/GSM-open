@@ -227,6 +227,8 @@ NRCAN_WMS_URL = env("GSM_NRCAN_WMS_URL", "https://maps-cartes.services.geo.ca/se
 OGS_URL = env("GSM_OGS_URL", "https://ws.lioservices.lrc.gov.on.ca/arcgis1071a")
 #: 캐나다의 주 판 — 퀘벡 SIGÉOM(GeoServer 앞단, WMS 1.1.1)·유콘 YGS(ArcGIS WMS) (wetherilli 210). 열쇠가 없다
 SIGEOM_WMS_URL = env("GSM_SIGEOM_WMS_URL", "https://servicesvectoriels.atlas.gouv.qc.ca/IDS_SGM_WMS/service.svc/get")
+#: 같은 자료의 WFS — 보는 범위의 범례를 센다 (wetherilli 337)
+SIGEOM_WFS_URL = env("GSM_SIGEOM_WFS_URL", "https://servicesvectoriels.atlas.gouv.qc.ca/IDS_SGM_WFS/service.svc/get")
 YGS_WMS_URL = env("GSM_YGS_WMS_URL", "https://mapservices.gov.yk.ca/arcgis/services/GeoYukon/GY_Geological/MapServer/WMSServer")
 #: 캐나다의 주 판 둘째 — 사스카치원(ArcGIS WMS)·노바스코샤(ArcGIS REST)·앨버타(ArcGIS Online 피처 서비스, 타일은 화면이 곧장) (wetherilli 235)
 SKGS_WMS_URL = env("GSM_SKGS_WMS_URL", "https://gis.saskatchewan.ca/arcgis/services/Economy/Geology/MapServer/WMSServer")
@@ -660,7 +662,10 @@ PGC_CATALOG_SEEDS = tuple(REPO_DIR / "data" / f"pgc_{r}_layers.json" for r in ("
 KOPRI_CATALOG_SEEDS = [REPO_DIR / "data" / f"kopri_{region}_layers.json"
                        for region in ("antarctica", "svalbard", "greenland", "arctic_ocean")]
 #: 지구 자료 점 — 화석 산지·홀로세 화산·지진·고생태 산지를 지역 탭에 (wetherilli 185). 북극은 북극해에 두고 다른 탭이 빌린다
-EARTH_CATALOG_SEEDS = [REPO_DIR / "data" / f"earth_{region}_layers.json" for region in ("korea", "antarctica", "arctic_ocean")]
+EARTH_CATALOG_SEEDS = [REPO_DIR / "data" / f"earth_{region}_layers.json" for region in ("korea", "antarctica", "arctic_ocean",
+                       # 묶음마다 네모 하나 (wetherilli 331) — 씨앗의 `_지역` 이 그 네모를 두는 탭이다
+                       "eastasia", "southeast_asia", "southasia", "europe", "north_america", "central_america",
+                       "south_america", "oceania", "africa")]
 #: KIGAM 5만 구조 요소 — 화석산지·시료·광산·도폭 틀 (wetherilli 199, jikhanjung P01)
 KIGAM50K_CATALOG_SEED = REPO_DIR / "data" / "kigam50k_layers.json"
 GEOMAP_STYLES = REPO_DIR / "data" / "geomap_styles.json"

@@ -1,0 +1,80 @@
+{
+ "_주석": "지구 자료 점의 씨앗이다 — 동남아 네모(earthpoints.BOXES['southeast_asia']). indonesia 탭에 두고 묶음의 다른 나라 탭이 빌린다(map.js 의 borrow). 모아 둔 sqlite·JSON 에서 네모만 잘라 낸다 — 상류를 타지 않는다. 점이 2 만을 넘으면 가까운 것을 칸으로 모은다. 정적 판에는 싣지 않는다 (wetherilli 331).",
+ "_뽑은날": "2026-10-05",
+ "_지역": "indonesia",
+ "_상류": "earth",
+ "_레이어군차례": 40,
+ "레이어군순서": [
+  "화석·화산·지진",
+  "지구물리",
+  "움직이는 지구"
+ ],
+ "레이어": [
+  {
+   "name": "earth:pbdb_southeast_asia",
+   "title": "화석 산지 (PBDB) — 동남아",
+   "group": "화석·화산·지진",
+   "bbox": [
+    92.0,
+    -11.0,
+    141.0,
+    21.0
+   ]
+  },
+  {
+   "name": "earth:gvp_southeast_asia",
+   "title": "홀로세 화산 (GVP) — 동남아",
+   "group": "화석·화산·지진",
+   "bbox": [
+    92.0,
+    -11.0,
+    141.0,
+    21.0
+   ]
+  },
+  {
+   "name": "earth:quakes_southeast_asia",
+   "title": "지진 M5 이상 (USGS) — 동남아",
+   "group": "화석·화산·지진",
+   "bbox": [
+    92.0,
+    -11.0,
+    141.0,
+    21.0
+   ]
+  },
+  {
+   "name": "earth:neotoma_southeast_asia",
+   "title": "제4기 고생태 산지 (Neotoma) — 동남아",
+   "group": "화석·화산·지진",
+   "bbox": [
+    92.0,
+    -11.0,
+    141.0,
+    21.0
+   ]
+  },
+  {
+   "name": "earth:heatflow_southeast_asia",
+   "title": "지열류 (IHFC) — 동남아",
+   "group": "지구물리",
+   "bbox": [
+    92.0,
+    -11.0,
+    141.0,
+    21.0
+   ]
+  },
+  {
+   "name": "earth:recentquakes_southeast_asia",
+   "title": "최근 지진 (7 일, M2.5 이상) — 동남아",
+   "group": "움직이는 지구",
+   "bbox": [
+    92.0,
+    -11.0,
+    141.0,
+    21.0
+   ]
+  }
+ ]
+}

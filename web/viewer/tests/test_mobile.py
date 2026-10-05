@@ -192,6 +192,30 @@ class PhoneScreenTests(PhoneBase):
         self.assertTrue(page.locator("#regions .region-fold").inner_text().startswith("그 외"))
         self.assertEqual(errors, [])
 
+    def test_레이어_찾기(self):
+        """레이어 찾기 칸은 모든 지역을 훑고, 다른 지역의 레이어를 고르면 그 탭으로 옮겨 켠다. 맞는 줄이 휴대폰 화면 안에 선다 (wetherilli 332)"""
+        call_command("seed_catalog", stdout=open(os.devnull, "w"))
+        page, errors = self.open("map/")
+        page.tap("#panel-handle")
+        page.wait_for_timeout(300)
+        page.locator("#layer-find").fill("nrcan 리튬")
+        page.wait_for_timeout(200)
+        rows = page.locator("#layer-found .layer-row")
+        self.assertEqual(rows.count(), 1, "캐나다 리튬 유망도가 하나로 찾아지지 않는다")
+        self.assertFits(self.measure(page), "레이어 찾기")
+        name = rows.first.get_attribute("data-layer")
+        self.assertTrue(name.startswith("nrcan:"), name)
+        self.assertIn("캐나다", rows.first.inner_text())
+        rows.first.tap()
+        page.wait_for_timeout(800)
+        self.assertEqual(page.evaluate("document.documentElement.dataset.region"), "canada")
+        self.assertIn("on", page.locator(f'#layer-catalog .layer-row[data-layer="{name}"]').get_attribute("class"), "옮긴 탭에서 켜지지 않았다")
+        self.assertIn("canada", page.evaluate("JSON.parse(localStorage.getItem('gsm.regions'))"))
+        page.locator("#layer-find").fill("맞을리없는낱말")
+        page.wait_for_timeout(100)
+        self.assertEqual(page.locator("#layer-found .layer-row").count(), 0)
+        self.assertEqual(errors, [])
+
     def test_팝업이_화면_안에_선다(self):
         """속성 팝업 하나를 띄워 390 px 안에 서는지, 닫기 단추가 손에 닿는지 본다. 상류를 끊으므로 점묶음의 점을 지도
         한가운데(한국 탭의 처음 자리)에 두고 누른다"""

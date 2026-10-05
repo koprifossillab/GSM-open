@@ -212,6 +212,15 @@ def geomap_grid(fetch_tile) -> Grid:
                 fetch=fetch_tile, size=geomap.TILE, valid=geomap.valid_tile)
 
 
+def polar_grid(fetch_tile, max_zoom: int, valid) -> Grid:
+    """우리가 GeoMAP 격자(3031, 256 px)로 잘라 둔 남극 판 — IBCSO 자료 출처(TID)·ADMAP 자력 이상 (wetherilli 335).
+    `fetch_tile(z, x, y)` 는 잘라 둔 파일(PNG·WebP), 없으면 None"""
+    return Grid(levels=range(max_zoom + 1), res=geomap.resolution,
+                origin=lambda level: (geomap.ORIGIN_X, geomap.ORIGIN_Y),
+                project=lambda lat, lon: geomap.lonlat_to_3031(lon, lat),
+                fetch=fetch_tile, size=geomap.TILE, valid=valid)
+
+
 def ibcso_grid(sheet) -> Grid:
     """남극 해저·빙저 지형 IBCSO(047·051) 의 3D 배경 — 원본의 9354 격자 그대로 잘라 둔 WebP."""
     from . import ibcso

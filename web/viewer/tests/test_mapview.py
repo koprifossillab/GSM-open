@@ -94,14 +94,17 @@ class Map3dView(TestCase):
     def test_3857_타일_레이어만_고른다(self):
         group = LayerGroup.objects.create(name="시험")
         Layer.objects.create(name="L_250K_Geology_Map", title="25만", group=group, upstream="kigam")
-        # 일본 GSJ 는 3857 z/x/y 라 그대로 얹는다(wetherilli 187). 극지 투영으로 받는 NGU 와 모양(벡터)은 뺀다
+        # 일본 GSJ 는 3857 z/x/y 라 그대로 얹는다(wetherilli 187). 극지 투영으로만 받는 PGC 와 모양(벡터)은 뺀다.
+        # 노르웨이 NGU 는 3857 도 그려 얹는다(wetherilli 335)
         Layer.objects.create(name="gsj:geology", title="일본", group=group, upstream="gsj")
         Layer.objects.create(name="ngu:Berggrunn_nasjonal_bergartsenheter", title="노르웨이", group=group, upstream="ngu")
+        Layer.objects.create(name="pgc:greenland_slope", title="경사", group=group, upstream="pgc")
         Layer.objects.create(name="lt_l_gimsfault", title="단층", group=group, upstream="vworld", kind="vector")
         html = self.client.get(reverse("viewer:map3d")).content.decode()
         self.assertIn('value="L_250K_Geology_Map"', html)
         self.assertIn('value="gsj:geology"', html)
-        self.assertNotIn('value="ngu:Berggrunn_nasjonal_bergartsenheter"', html)
+        self.assertIn('value="ngu:Berggrunn_nasjonal_bergartsenheter"', html)
+        self.assertNotIn('value="pgc:greenland_slope"', html)
         self.assertNotIn('value="lt_l_gimsfault"', html)
 
 

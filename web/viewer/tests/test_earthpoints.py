@@ -160,3 +160,27 @@ class Catalog(TestCase):
         with override_settings(STATIC_SITE=spec):
             names = [l["name"] for g in views._static_catalog(views._catalog("ko")) for l in g["layers"]]
         self.assertFalse([n for n in names if n.startswith("earth:")])
+
+
+class Regions(TestCase):
+    """묶음마다 네모 하나 (wetherilli 331) — 씨앗·빌리기·모으기"""
+    def test_씨앗과_빌리기(self):
+        import json as _json
+        import re as _re
+        from pathlib import Path
+        from django.conf import settings
+        js = (Path(earthpoints.__file__).parent / "static/viewer/map.js").read_text(encoding="utf-8")
+        for box, (host, _) in earthpoints.HOSTS.items():
+            seed = _json.loads((settings.REPO_DIR / "data" / f"earth_{box}_layers.json").read_text(encoding="utf-8"))
+            self.assertEqual(seed["_지역"], host)
+            self.assertEqual({l["name"] for l in seed["레이어"]}, {f"earth:{s}_{box}" for s in earthpoints.SOURCES})
+            self.assertTrue(_re.search(host + r': \[[^\]]*"earth"', js) or host == "africa", host)    # 묶음의 다른 탭이 빌린다(아프리카는 탭이 하나)
+
+    def test_많으면_칸으로_모은다(self):
+        from unittest import mock
+        feats = [earthpoints._point(10 + (i % 3) * 0.001, 50, {"code": "p0", "occs": i}, i) for i in range(9)]
+        with mock.patch.object(earthpoints, "CAP", 5):
+            got = earthpoints._merge("pbdb", feats)
+        self.assertEqual(len(got), 1)                                               # 0.01° 칸 하나에 다 든다
+        self.assertEqual((got[0]["properties"]["occs"], got[0]["properties"]["merged"]), (8, 9))
+        self.assertEqual(earthpoints._merge("pbdb", feats[:3]), feats[:3])          # 적으면 그대로

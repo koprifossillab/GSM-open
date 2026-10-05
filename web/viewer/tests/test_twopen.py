@@ -113,3 +113,44 @@ class Body(TestCase):
             call_command("fetch_taiwan_open", api="CGPS", stdout=io.StringIO())
         saved = json.loads(Path(self.dir, "CGPS.geojson").read_text(encoding="utf-8"))
         self.assertEqual((len(saved["features"]), saved["holes"]), (1, [[121.75, 24.75, 122.06, 25.13]]))
+
+
+class Holes(TestCase):
+    """구멍만 다시 받기 (wetherilli 328) — 더 잘게 나눠 받은 것을 보태고, 남은 작은 구멍을 다시 적는다"""
+
+    def setUp(self):
+        self.dir = tempfile.mkdtemp(prefix="gsm-twopen-holes-")
+        patch = override_settings(TAIWAN_OPEN_DIR=self.dir)
+        patch.enable()
+        self.addCleanup(patch.disable)
+        old = feature({"type": "Point", "coordinates": [121.0, 24.0]}, ACTIVITY="A新崩塌")
+        Path(self.dir, "RockFall.geojson").write_text(json.dumps({"type": "FeatureCollection", "fetched": "2026-10-05",
+                                                                  "holes": [[120.7, 22.5, 120.8, 22.6]], "features": [old]},
+                                                                 ensure_ascii=False), encoding="utf-8")
+        self.old = old
+
+    def test_보태고_남은_구멍을_적는다(self):
+        new = feature({"type": "Point", "coordinates": [120.75, 22.55]}, ACTIVITY="B偶爾")
+
+        def fake(api, box, gap, log, holes, splits):
+            self.assertEqual((api, box, splits), ("RockFall", (120.7, 22.5, 120.8, 22.6), 3))
+            holes.append([120.70, 22.55, 120.71, 22.56])
+            return [self.old, new]                                 # 이미 있는 것은 한 번만
+        with mock.patch.object(gsmma, "fetch_open", side_effect=fake):
+            call_command("fetch_taiwan_open", api="RockFall", holes=True, stdout=io.StringIO())
+        saved = json.loads(Path(self.dir, "RockFall.geojson").read_text(encoding="utf-8"))
+        self.assertEqual(len(saved["features"]), 2)
+        self.assertEqual(saved["holes"], [[120.70, 22.55, 120.71, 22.56]])
+        self.assertIn("holes_refetched", saved)
+
+    def test_나누기_횟수를_넘겨받는다(self):
+        calls = []
+
+        def get(url, params, **kw):
+            calls.append(params["bbox"])
+            raise requests.Timeout("120 초")
+        holes = []
+        with mock.patch.object(gsmma.requests, "get", side_effect=get), \
+             mock.patch.object(usage, "record"), mock.patch.object(usage, "paused", return_value=0):
+            gsmma.fetch_open("RockFall", (120.7, 22.5, 120.8, 22.6), sleep=lambda s: None, holes=holes, splits=1)
+        self.assertEqual((len(calls), len(holes)), (5, 4))         # 한 번 나눈 넷이 다 끊기면 구멍 넷

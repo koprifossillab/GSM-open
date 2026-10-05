@@ -14,7 +14,7 @@
    "name": "bcgs:bedrock",
    "title": "기반암 (BC Digital Geology)",
    "group": "브리티시컬럼비아 지질도 (BCGS)",
-   "abstract": "GEOL_BEDROCK_UNIT_POLY_SVW — 1:5만–1:25만 합본. 줌 11 부터(상류가 1:50만 너머를 칠하지 않는다)",
+   "abstract": "GEOL_BEDROCK_UNIT_POLY_SVW — 1:5만–1:25만 합본. 줌 5 부터 — 1:50만보다 넓으면 줄인 우리 스타일을 보낸다(wetherilli 317)",
    "bbox": [
     -139.1,
     48.2,

@@ -55,6 +55,18 @@ class Coverage(SimpleTestCase):
                     missing.append(f"{path.name}: {row['name']}")
         self.assertEqual(missing, [], "i18n.LAYER_EN 에 영어 제목을 적는다:\n" + "\n".join(missing))
 
+    def test_씨앗의_한국어_설명은_모두_영어가_있다(self):
+        """레이어 설명에 한국어가 들면 `ABSTRACT_EN` 에 영어를 적는다 — 없으면 영어판에서 숨는다 (wetherilli 333)"""
+        import json
+        missing = []
+        for path in sorted((HERE.parent.parent / "data").glob("*_layers.json")):
+            data = json.loads(path.read_text(encoding="utf-8"))
+            for row in data.get("레이어", []) if isinstance(data, dict) else []:
+                if KOREAN.search(row.get("abstract", "")) and row["name"] not in i18n.ABSTRACT_EN:
+                    missing.append(f"{path.name}: {row['name']}")
+        self.assertEqual(missing, [], "i18n.ABSTRACT_EN 에 영어 설명을 적는다:\n" + "\n".join(missing))
+        self.assertFalse([k for k, v in i18n.ABSTRACT_EN.items() if KOREAN.search(v)], "영어 설명에 한글이 남았다")
+
     def test_자리표가_짝이_맞는다(self):
         for ko, en in i18n.EN.items():
             self.assertEqual(sorted(re.findall(r"\{(\w+)\}", ko)),

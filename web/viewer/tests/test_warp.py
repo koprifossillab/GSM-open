@@ -118,3 +118,46 @@ class GeomapWarpView(TestCase):
     def test_모르는_레이어와_먼_줌은_404(self):
         self.assertEqual(self.client.get("/GSM/warp/geomap/nope/5/27/28.png").status_code, 404)
         self.assertEqual(self.client.get("/GSM/warp/geomap/geomap_faults/2/1/3.png").status_code, 404)
+
+
+def _io_bytes():
+    import io as _io
+    return _io.BytesIO()
+
+
+class PolarMore(TestCase):
+    """IBCSO 자료 출처·ADMAP 자력 이상도 3D 에 — GeoMAP 격자의 남극 판을 3857 로 편다 (wetherilli 335)"""
+    def setUp(self):
+        import tempfile
+        from django.test import override_settings
+        from PIL import Image as _Image
+        root = tempfile.mkdtemp(prefix="gsm-admap-warp-")
+        buf = _io_bytes()
+        _Image.new("RGBA", (256, 256), (200, 40, 40, 255)).save(buf, "WEBP")
+        for z in range(5):                                                       # 펴는 법이 땅 해상도에 맞는 단계를 고른다 — 다 둔다
+            for x in range(2 ** z):
+                tdir = __import__("pathlib").Path(root) / "tiles" / str(z) / str(x)
+                tdir.mkdir(parents=True)
+                for y in range(2 ** z):
+                    (tdir / f"{y}.webp").write_bytes(buf.getvalue())
+        for patch in (override_settings(ADMAP_DIR=root), override_settings(TILE_CACHE_DIR=tempfile.mkdtemp(prefix="gsm-admap-tc-"))):
+            patch.enable()
+            self.addCleanup(patch.disable)
+
+    def test_ADMAP_을_편다(self):
+        import io as _io
+        from PIL import Image as _Image
+        got = self.client.get("/GSM/warp/admap/anomaly/2/1/3.png")              # 남극을 덮는 3857 칸
+        self.assertEqual(got.status_code, 200)
+        px = _Image.open(_io.BytesIO(got.content)).convert("RGBA").getpixel((128, 200))
+        self.assertTrue(all(abs(a - b) <= 3 for a, b in zip(px[:3], (200, 40, 40))), px)   # WebP 는 손실 압축이다
+        self.assertEqual(self.client.get("/GSM/warp/admap/anomaly/2/1/1.png").content[:8], b"\x89PNG\r\n\x1a\n")   # 북쪽은 빈 타일
+
+    def test_3D_목록에_선다(self):
+        from django.core.management import call_command
+        call_command("seed_catalog", stdout=open("/dev/null", "w"))
+        html = self.client.get("/GSM/3d/?region=antarctica").content.decode()
+        self.assertIn('value="admap:anomaly"', html)
+        self.assertIn('value="ibcso:tid"', html)
+        from viewer import views as _views
+        self.assertTrue({"ngu", "gtk"} <= set(_views.MAP3D_WMS))
