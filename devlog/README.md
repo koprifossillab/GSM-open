@@ -120,6 +120,7 @@
 | jikhanjung 011 | 2026-10-06 | [자료원 명세 — `sources.json` 과 씨앗 (P02 1 단계)](20261006_jikhanjung_011_source_spec.md) |
 | jikhanjung 012 | 2026-10-06 | [받은 차례의 기록 — `store.sqlite` 의 `fetch_log` (P02 2 단계)](20261006_jikhanjung_012_fetch_log.md) |
 | jikhanjung 013 | 2026-10-06 | [관리 화면 "데이터소스" 탭 (P02 3 단계)](20261006_jikhanjung_013_manage_sources.md) |
+| jikhanjung 014 | 2026-10-06 | [데이터소스 탭 — #373 검토의 "나중에" 넷](20261006_jikhanjung_014_sources_followup.md) |
 | wetherilli 078 | 2026-09-30 | [3D 극지 지형을 미리 받는다](20260930_wetherilli_078_polar_dem_prewarm.md) |
 | wetherilli 079 | 2026-09-30 | [화성 — USGS 지역 지질도를 옛 지질도에 얹는다](20260930_wetherilli_079_mars_regional_geology.md) |
 | wetherilli 080 | 2026-09-30 | [화성 — NASA Trek 판 목록을 화성 화면에](20260930_wetherilli_080_mars_trek_catalog.md) |
@@ -442,3 +443,4 @@
 | koprifossillab 018 | 2026-10-01 | [바람·해류의 빠르기 범례](20261001_koprifossillab_018_flow_legend.md) |
 | koprifossillab 019 | 2026-10-06 | [아라온호 받기가 DNS 로 22 시간 멈춘 것 — 호스트 /etc/hosts 에 고정](20261006_koprifossillab_019_araon_dns.md) |
 | koprifossillab 020 | 2026-10-06 | [시험이 /tmp 에 흘린 것 — tempfile 의 기본 자리를 러너의 임시 자리로](20261006_koprifossillab_020_test_tmp_leak.md) |
+| koprifossillab 021 | 2026-10-06 | [지난 바람 ERA5 를 8 TB 하드로 — 루트 SSD 를 비운다](20261006_koprifossillab_021_era5_on_data.md) |

@@ -324,3 +324,97 @@ class Overview(Base):
         self.assertEqual(data["sources"]["late"], 1)
         self.assertEqual(data["sources"]["failed"], 1)
         self.assertEqual(data["sources"]["total"], 2)
+
+
+class Followup(Base):
+    """#373 검토의 "나중에" 넷 — 영어판의 코드 값·늦음의 빈틈·성능·자잘한 것."""
+
+    databases = {"default"}
+
+    def test_시간대가_달라도_때의_순서로(self):
+        """검토 6 — 글자로 정렬해 호스트(+09:00)와 컨테이너(UTC)가 섞이면 순서가 틀렸다"""
+        fetchlog.write({"source": "demo", "started_at": "2026-10-06T10:00:00+09:00", "result": "ok"})    # 01:00Z
+        fetchlog.write({"source": "demo", "started_at": "2026-10-06T02:00:00+00:00", "result": "fail"})  # 02:00Z — 나중
+        got = fetchlog.latest()["demo"]
+        self.assertEqual(got["last"]["result"], "fail")
+        self.assertEqual(got["first"]["result"], "ok")
+        self.assertEqual([h["result"] for h in fetchlog.history("demo")], ["fail", "ok"])
+
+    def test_건너뜀은_된_것으로_치지_않는다(self):
+        """검토 6 — skip 을 된 것으로 쳐 늦음이 가려질 수 있었다"""
+        fetchlog.write({"source": "wind", "started_at": "2026-10-06T00:00:00+09:00", "result": "skip"})
+        self.assertIsNone(fetchlog.latest()["wind"]["last_ok"])
+
+    def test_한_번도_된_적_없는_매시_일은_첫_차례부터_잰다(self):
+        """검토 6 — 처음부터 깨진 매시 일은 깨짐으로만 떠 늦음에 안 잡혔다"""
+        from datetime import datetime, timedelta
+        now = datetime.now().astimezone()
+        for hours in (10, 0.2):
+            fetchlog.write({"source": "wind", "started_at": (now - timedelta(hours=hours)).isoformat(timespec="seconds"),
+                            "result": "fail"})
+        ov = {r["row"]["id"]: r for r in sources.overview(sync=False)["rows"]}
+        self.assertTrue(ov["wind"]["late"])
+        self.assertTrue(ov["wind"]["failed"])
+        self.assertFalse(sources.is_late({"schedule": "hourly"}, None,
+                                         first={"started_at": (now - timedelta(hours=1)).isoformat()}))
+
+    def test_지난_차례는_한_번에(self):
+        """검토 7 — 데이터소스마다 연결을 열었다"""
+        for i in range(25):
+            fetchlog.write({"source": "demo", "started_at": f"2026-10-{1 + i % 9:02d}T{i % 24:02d}:00:00+09:00", "result": "ok"})
+        fetchlog.write({"source": "wind", "started_at": "2026-10-06T00:00:00+09:00", "result": "ok"})
+        got = fetchlog.history_many(["demo", "wind", "없음"], 20)
+        self.assertEqual(len(got["demo"]), 20)
+        self.assertEqual(got["demo"], fetchlog.history("demo", 20))
+        self.assertEqual(len(got["wind"]), 1)
+        self.assertNotIn("없음", got)
+        with mock.patch.object(fetchlog, "reader", wraps=fetchlog.reader) as opened:
+            sources.overview(sync=False)
+        self.assertLessEqual(opened.call_count, 2)          # latest 하나·지난 차례 하나
+
+    def test_healthz_는_구운_파일을_보지_않는다(self):
+        """검토 7 — healthz 가 datastatus.rows() 를 두 번 불렀다"""
+        from viewer import datastatus
+        with mock.patch.object(datastatus, "rows", wraps=datastatus.rows) as rows:
+            self.client.get("/GSM/healthz/")
+        rows.assert_not_called()
+
+    def test_영어판은_코드_값과_고정_문장을_옮긴다(self):
+        """검토 4 — origin·result·seed 와 장부가 한국어로 적은 고정 문장이 그대로 떴다"""
+        fetchlog.write({"source": "wind", "started_at": "2026-10-06T00:00:00+09:00", "result": "ok", "origin": "hourly",
+                        "note": "마지막으로 된 차례"})
+        fetchlog.write({"source": "_spec", "started_at": "2026-10-06T00:00:00+09:00", "result": "ok", "origin": "spec",
+                        "note": "명세가 바뀌었다 — 20261006-abc.json"})
+        self.assertEqual(str(fetchlog.note_text("명세가 바뀌었다 — a.json")), "명세가 바뀌었다 — a.json")
+        ko = self.client.get("/GSM/manage/").content.decode()
+        self.assertIn("매시 차례", ko)
+        self.assertIn("저장소의 씨앗", ko)                    # 시험의 명세는 씨앗에서 읽었다
+        en = self.client.get("/GSM/manage/", HTTP_COOKIE="gsm_lang=en").content.decode()
+        for text in ("Last successful run", "hourly run", "the repository seed", ">ok<"):
+            self.assertIn(text, en)
+        for text in ('mg-said">마지막으로 된 차례', "<small>hourly ·", "seed 을"):    # 페이지에 실린 번역표에는 원문이 있다
+            self.assertNotIn(text, en)
+
+    def test_명세가_없으면_안내가_뜬다(self):
+        """검토 8 — origin 이 none 이면 빈 표만 섰다"""
+        with override_settings(SOURCES_SEED=self.dir / "없는씨앗.json"):
+            sources._cache.update(key=None, spec=None)
+            page = self.client.get("/GSM/manage/").content.decode()
+        sources._cache.update(key=None, spec=None)
+        self.assertIn("manage.py sources_seed", page)
+
+    def test_펼치는_줄과_산출물의_설명(self):
+        """검토 8 — aria-expanded, 산출물 칸에 datastatus 의 무엇·만드는 명령"""
+        live = self.dir / "live.json"
+        rows = json.loads((self.dir / "seed.json").read_text())["sources"]
+        rows[0]["outputs"] = ["earth/pbdb.sqlite"]
+        live.write_text(json.dumps({"sources": rows}), encoding="utf-8")
+        with override_settings(SOURCES_PATH=str(live)):
+            sources._cache.update(key=None, spec=None)
+            page = self.client.get("/GSM/manage/").content.decode()
+        sources._cache.update(key=None, spec=None)
+        self.assertIn('class="mg-src-toggle" aria-expanded="false" aria-controls="mg-src-more-demo"', page)
+        self.assertNotIn('role="button"', page)            # 표의 줄은 줄로 둔다 — 펼치는 것은 이름 칸의 단추 (#375 검토)
+        self.assertIn('id="mg-src-more-demo"', page)
+        self.assertIn('class="mg-out-what"', page)
+        self.assertIn('← <span class="mono">fetch_pbdb', page)          # 만드는 명령은 펼친 줄에 — title 은 휴대폰에서 볼 길이 없다 (#375 검토)

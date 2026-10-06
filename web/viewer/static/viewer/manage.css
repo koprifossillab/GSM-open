@@ -190,12 +190,18 @@ body.manage { display: block; height: auto; min-height: 100vh; overflow: visible
 .mg-sources tr.mg-src:hover td, .mg-sources tr.mg-src.open td { background: var(--panel-tint); }
 .mg-sources tr.mg-src.bad td:first-child { box-shadow: inset 3px 0 0 #d4523a; }
 .mg-src-name b { display: block; }
+/* 펼치는 단추 — 이름 그대로 보이게, 단추 모양은 지운다 (#375 검토) */
+.mg-src-toggle { display: block; padding: 0; border: 0; background: none; color: inherit; font: inherit; font-weight: bold;
+                 text-align: left; cursor: pointer; }
+.mg-src-toggle:focus-visible { outline: 2px solid var(--accent, currentColor); outline-offset: 2px; }
+.mg-out-by { display: block; color: var(--ink-faint); }
 .mg-flag { display: inline-block; padding: 0 5px; font-size: 10.5px; font-weight: 700; color: var(--on-hi); background: var(--gold-muted); border-radius: 4px; }
 .mg-res { display: inline-block; padding: 0 5px; font-size: 10.5px; font-weight: 700; border-radius: 4px; color: var(--on-hi); background: var(--good); }
 .mg-res.fail { background: #d4523a; }
 .mg-res.skip { background: var(--ink-faint); }
 .mg-said { max-width: 28em; overflow-wrap: anywhere; }
 .mg-out { white-space: nowrap; }
+.mg-out-what { color: var(--ink-faint); white-space: normal; }
 .mg-src-more td { background: var(--panel-tint); }
 .mg-src-meta { margin: 2px 0 6px; font-size: 12px; color: var(--ink-soft); }
 .mg-hist { margin: 0; padding-left: 1.4em; font-size: 12px; }

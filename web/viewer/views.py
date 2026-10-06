@@ -273,7 +273,7 @@ def healthz(request):
     # 무엇인지는 관리 화면의 "데이터소스" 탭이 말한다. **읽기만 한다** — 공개 GET 마다 장부에 쓰면 명령이 장부를 잡은 동안
     # 막힌다(#373 검토 2). 호스트가 남긴 것은 `hourly.sh` 끝의 `sources_log --sync-only` 와 관리 화면이 옮겨 적는다
     try:
-        info["sources"] = sources.overview(sync=False, history=False)["counts"]
+        info["sources"] = sources.overview(sync=False, history=False, files=False)["counts"]
     except Exception:                            # noqa: BLE001 — 장부가 깨져도 healthz 는 답한다
         info["sources"] = None
 
@@ -351,6 +351,14 @@ def _sources_view(lang):
     def when(r):
         return (r or {}).get("started_at", "")[:16].replace("T", " ")
 
+    def said(note):
+        # 경로·열쇠를 거르고(검토 1), 장부가 스스로 적은 고정 문장만 옮긴다(검토 4) — 명령의 말은 그대로
+        text = fetchlog.note_text(fetchlog.shown(note or ""))
+        return (i18n.t(text, lang) if isinstance(text, i18n.Msg) else text)[:160]
+
+    def label(table, code):
+        return i18n.t(table[code], lang) if code in table else code
+
     rows = []
     for item in ov["rows"]:
         row, last = item["row"], item["last"]
@@ -358,6 +366,9 @@ def _sources_view(lang):
         for o in item["outputs"]:
             d = {"key": o["key"], "kind": o["kind"]}
             if o["kind"] == "file":
+                # 옛 "구운 자료" 탭이 보이던 무엇·만드는 명령 (#373 검토 8)
+                d.update(what=i18n.t(o["what"], lang) if o.get("what") else "",
+                         made_by=i18n.t(o["command"], lang) if isinstance(o.get("command"), i18n.Msg) else (o.get("command") or ""))
                 d.update(exists=o["exists"], needed=o["needed"], version=o["version"],
                          date=f"{o['modified']:%Y-%m-%d}" if o["modified"] else "",
                          size=datastatus.human_size(o["size"]) if o["size"] is not None
@@ -374,17 +385,21 @@ def _sources_view(lang):
             "schedule": i18n.t(sources.SCHEDULE_LABELS[row["schedule"]], lang),
             "runs_on": i18n.t(sources.RUNS_ON_LABELS[row["runs_on"]], lang),
             "commands": " ".join(row.get("commands", [])), "note": row.get("note", ""),
-            "last": when(last), "result": (last or {}).get("result", ""), "estimated": bool((last or {}).get("estimated")),
-            "seconds": (last or {}).get("seconds"), "said": fetchlog.shown((last or {}).get("note") or "")[:160],
+            "last": when(last), "result": (last or {}).get("result", ""),
+            "result_label": label(sources.RESULT_LABELS, (last or {}).get("result", "")),
+            "estimated": bool((last or {}).get("estimated")),
+            "seconds": (last or {}).get("seconds"), "said": said((last or {}).get("note")),
             "ok": when(item["last_ok"]), "late": item["late"], "failed": item["failed"], "unknown": item["unknown"],
             "counts": counts, "outputs": outs,
-            "history": [{"at": when(h), "origin": h["origin"], "result": h["result"], "seconds": h.get("seconds"),
-                         "expected": h.get("expected"), "rows": h.get("rows"), "raw": h.get("raw_path") or "",
-                         "said": fetchlog.shown(h.get("note") or "")[:160], "estimated": bool(h.get("estimated"))}
+            "history": [{"at": when(h), "origin": label(sources.ORIGIN_LABELS, h["origin"]), "result": h["result"],
+                         "result_label": label(sources.RESULT_LABELS, h["result"]), "seconds": h.get("seconds"),
+                         "expected": h.get("expected"), "rows": h.get("rows"), "raw": fetchlog.shown(h.get("raw_path") or ""),
+                         "said": said(h.get("note")), "estimated": bool(h.get("estimated"))}
                         for h in item["history"]],
         })
     problems = [(where, "; ".join(i18n.t(m, lang) for m in found)) for where, found in ov["problems"]]
     return {"rows": rows, "counts": ov["counts"], "problems": problems, "origin": ov["origin"],
+            "origin_label": label(sources.SPEC_ORIGIN_LABELS, ov["origin"]),
             "spec_changed": when(ov["spec_changed"])}
 
 

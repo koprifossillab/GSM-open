@@ -342,6 +342,7 @@ class PhoneScreenTests(PhoneBase):
         first.tap()
         page.wait_for_timeout(300)
         self.assertTrue(page.locator(f'#mg-sources tr.mg-src-more[data-for="{src}"]').is_visible(), "눌러도 펼쳐지지 않는다")
+        self.assertEqual(first.locator(".mg-src-toggle").get_attribute("aria-expanded"), "true")
         self.assertFits(self.measure(page), "manage sources")
         self.assertEqual(errors, [])
 

@@ -205,7 +205,7 @@
     </div>
   </section>
 
-  {% comment %}구운 자료 (wetherilli 312) — `manage.py data_status` 와 같은 표. 읽기만 한다. 경로는 서버의 자료 폴더 아래 이름뿐이다{% endcomment %}
+  {% comment %}데이터소스 (jikhanjung P02 3 단계) — 명세·기록 표·구운 파일을 한 줄로. "구운 자료" 탭(wetherilli 312)을 녹였다. 읽기만 하고 경로는 서버의 자료 폴더 아래 이름뿐이다{% endcomment %}
   <section class="mg-body" id="tab-sources">
     <div class="box">
       <h2 class="box-head">{% t "받아 두는 데이터소스" %} <span class="count">{{ src.counts.total|default:0 }}</span>
@@ -219,8 +219,9 @@
           {% if src.counts.failed %}<b class="bad">{% t "깨짐 {n}" n=src.counts.failed %}</b>{% endif %}
           {% if src.counts.unknown %}<span>{% t "기록 없음 {n}" n=src.counts.unknown %}</span>{% endif %}
           {% if src.spec_changed %}<span>{% t "명세를 고친 때 {when}" when=src.spec_changed %}</span>{% endif %}
-          {% if src.origin != "file" %}<b class="bad">{% t "운영 명세가 아니라 {origin} 을 읽었다" origin=src.origin %}</b>{% endif %}
+          {% if src.origin != "file" and src.origin != "none" %}<b class="bad">{% t "운영 명세가 아니라 {origin} 을 읽었다" origin=src.origin_label %}</b>{% endif %}
         </p>
+        {% if src.origin == "none" %}<p class="mg-src-warn bad">{% t "명세가 없다 — 서버에서 manage.py sources_seed 를 부르면 저장소의 씨앗을 놓는다" %}</p>{% endif %}
         {% for where, why in src.problems %}
         <p class="mg-src-warn bad">{% t "명세에서 건너뛴 줄" %} <span class="mono">{{ where|default:"—" }}</span> — {{ why }}</p>
         {% endfor %}
@@ -230,26 +231,27 @@
           </thead>
           <tbody>
             {% for r in src.rows %}
-            <tr class="mg-src{% if r.late or r.failed %} bad{% endif %}" data-src="{{ r.id }}" tabindex="0">
-              <td class="mg-src-name"><b>{{ r.name }}</b><small>{{ r.org }}</small><small class="mono">{{ r.id }}</small></td>
+            <tr class="mg-src{% if r.late or r.failed %} bad{% endif %}" data-src="{{ r.id }}">
+              <td class="mg-src-name"><button type="button" class="mg-src-toggle" aria-expanded="false" aria-controls="mg-src-more-{{ r.id }}">{{ r.name }}</button><small>{{ r.org }}</small><small class="mono">{{ r.id }}</small></td>
               <td data-label="{% t "조건" %}">{{ r.license }}{% for f in r.flags %} <span class="mg-flag">{{ f }}</span>{% endfor %}</td>
               <td data-label="{% t "주기" %}">{{ r.schedule }}<small>{{ r.runs_on }}</small></td>
               <td data-label="{% t "마지막" %}">{% if r.last %}<span class="num">{{ r.last }}</span>{% if r.estimated %} <span class="mg-flag" title="{% t "산출물 파일의 고친 날로 어림했다" %}">~</span>{% endif %}
-                <span class="mg-res {{ r.result }}">{{ r.result }}</span>{% if r.seconds is not None %} <small class="num">{{ r.seconds }} s</small>{% endif %}
+                <span class="mg-res {{ r.result }}">{{ r.result_label }}</span>{% if r.seconds is not None %} <small class="num">{{ r.seconds }} s</small>{% endif %}
                 {% if r.counts %}<small class="num{% if r.counts.short %} bad{% endif %}">{% t "센 수 {e} · 받은 수 {n}" e=r.counts.expected n=r.counts.rows %}</small>{% endif %}
                 {% if r.said %}<small class="mg-said">{{ r.said }}</small>{% endif %}
                 {% elif r.unknown %}<span class="faint">{% t "기록 없음" %}</span>{% else %}<span class="faint">—</span>{% endif %}</td>
               <td data-label="{% t "된 때" %}">{% if r.ok %}<span class="num">{{ r.ok }}</span>{% else %}—{% endif %}{% if r.late %} <b class="bad">{% t "늦음" %}</b>{% endif %}</td>
               <td data-label="{% t "산출물" %}">{% for o in r.outputs %}<small class="mg-out">
-                <span class="mono">{{ o.key }}</span>
+                <span class="mono">{{ o.key }}</span>{% if o.what %} <span class="mg-out-what">{{ o.what }}</span>{% endif %}
                 {% if o.kind == "file" %}{% if o.exists %} {{ o.size }} · {{ o.date }}{% if o.version %} · <span class="mono">{{ o.version }}</span>{% endif %}
                 {% elif o.needed %} <b class="bad">{% t "없다" %}</b>{% else %} <span class="faint">{% t "없다 (밖에 연 판에는 두지 않는다)" %}</span>{% endif %}
                 {% elif o.kind == "repo" %} <span class="faint">{% t "저장소" %}</span>{% endif %}</small>{% empty %}<span class="faint">—</span>{% endfor %}</td>
             </tr>
-            <tr class="mg-src-more" data-for="{{ r.id }}" hidden><td colspan="6">
+            <tr class="mg-src-more" id="mg-src-more-{{ r.id }}" data-for="{{ r.id }}" hidden><td colspan="6">
               <p class="mg-src-meta"><span class="mono">{{ r.commands|default:"—" }}</span>{% if r.note %} — {{ r.note }}{% endif %}</p>
+              {% for o in r.outputs %}{% if o.made_by %}<small class="mg-out-by"><span class="mono">{{ o.key }}</span> ← <span class="mono">{{ o.made_by }}</span></small>{% endif %}{% endfor %}
               {% if r.history %}<ol class="mg-hist">{% for h in r.history %}
-                <li><span class="num">{{ h.at }}</span> <span class="mg-res {{ h.result }}">{{ h.result }}</span>
+                <li><span class="num">{{ h.at }}</span> <span class="mg-res {{ h.result }}">{{ h.result_label }}</span>
                   <small>{{ h.origin }}{% if h.estimated %} ~{% endif %}{% if h.seconds is not None %} · {{ h.seconds }} s{% endif %}{% if h.expected is not None or h.rows is not None %} · {% t "센 수 {e} · 받은 수 {n}" e=h.expected n=h.rows %}{% endif %}{% if h.raw %} · <span class="mono">{{ h.raw }}</span>{% endif %}</small>
                   {% if h.said %}<small class="mg-said">{{ h.said }}</small>{% endif %}</li>{% endfor %}</ol>
               {% else %}<p class="faint">{% t "받은 차례가 아직 없다" %}</p>{% endif %}

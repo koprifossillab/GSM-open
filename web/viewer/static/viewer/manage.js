@@ -748,19 +748,20 @@
   P.onChange(function () { if ($("tab-stored").classList.contains("on")) renderStored(); });
 
   // ── 데이터소스 (jikhanjung P02 3 단계) — 줄을 누르면 지난 차례가 펼쳐진다 ─────────────
+  // 펼치는 것은 이름 칸의 단추다(키보드·낭독기) — 줄의 다른 곳을 눌러도 같은 일을 한다
   document.querySelectorAll("#mg-sources tr.mg-src").forEach(function (tr) {
+    var button = tr.querySelector(".mg-src-toggle");
     function toggle() {
       var more = document.querySelector('#mg-sources tr.mg-src-more[data-for="' + tr.dataset.src + '"]');
       if (!more) return;
       more.hidden = !more.hidden;
       tr.classList.toggle("open", !more.hidden);
+      if (button) button.setAttribute("aria-expanded", String(!more.hidden));
     }
+    if (button) button.addEventListener("click", toggle);
     tr.addEventListener("click", function (e) {
       if (e.target.closest("a, button")) return;
       toggle();
-    });
-    tr.addEventListener("keydown", function (e) {
-      if (e.key === "Enter" || e.key === " ") { e.preventDefault(); toggle(); }
     });
   });
 

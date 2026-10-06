@@ -24,6 +24,8 @@ from pathlib import Path
 
 from django.conf import settings
 
+from .i18n import msg
+
 SCHEMA = """
 CREATE TABLE IF NOT EXISTS fetch_log (
     id               INTEGER PRIMARY KEY,
@@ -363,40 +365,95 @@ def shown(text: str) -> str:
 
 # ── 읽기 ────────────────────────────────────────────────────────────
 
-_LAST = """
+#: 차례의 순서 — 글자가 아니라 때로 (#373 검토 6). `started_at` 은 시간대를 단 ISO 라 호스트(+09:00)와 컨테이너(UTC)가 섞이면
+#: 글자 순서가 틀린다. SQLite 의 `julianday` 가 `+HH:MM` 을 읽는다. 때로 못 읽는 글(시험의 맨 글자)은 글자 순서로 뒤에
+ORDER = "julianday(started_at) {d}, started_at {d}, id {d}"
+
+_PICK = """
 SELECT * FROM (
-    SELECT *, ROW_NUMBER() OVER (PARTITION BY source ORDER BY started_at DESC, id DESC) AS rn
+    SELECT *, ROW_NUMBER() OVER (PARTITION BY source ORDER BY {order}) AS rn
     FROM fetch_log {where}
-) WHERE rn = 1
+) WHERE rn {cut}
 """
 
 
+def _rows(db, where="", desc=True, cut="= 1", args=()):
+    order = ORDER.format(d="DESC" if desc else "ASC")
+    for row in db.execute(_PICK.format(order=order, where=where, cut=cut), args):
+        d = dict(row)
+        d.pop("rn", None)
+        yield d
+
+
 def latest() -> dict:
-    """데이터소스마다 마지막 줄과 마지막으로 된(ok·skip) 줄 — {id: {"last": row, "last_ok": row}}. 파일이 없으면 빈 것."""
+    """데이터소스마다 마지막 줄·마지막으로 된(`ok`) 줄·첫 줄 — {id: {"last", "last_ok", "first"}}. 파일이 없으면 빈 것.
+
+    `skip` 은 된 것으로 치지 않는다 — 치면 건너뛰기만 거듭하는 일의 늦음이 가려진다(#373 검토 6). 첫 줄은 한 번도 된 적 없는
+    일이 언제부터 그랬는지 재려고 둔다.
+    """
     out = {}
     try:
         with reader() as db:
             if db is None:
                 return out
-            for row in db.execute(_LAST.format(where="")):
-                d = dict(row)
-                d.pop("rn", None)
-                out[d["source"]] = {"last": d, "last_ok": None}
-            for row in db.execute(_LAST.format(where="WHERE result IN ('ok', 'skip')")):
-                d = dict(row)
-                d.pop("rn", None)
-                out.setdefault(d["source"], {"last": None, "last_ok": None})["last_ok"] = d
+            for d in _rows(db):
+                out[d["source"]] = {"last": d, "last_ok": None, "first": None}
+            for d in _rows(db, where="WHERE result = 'ok'"):
+                out[d["source"]]["last_ok"] = d
+            for d in _rows(db, desc=False):
+                out[d["source"]]["first"] = d
     except (sqlite3.Error, OSError):
         return {}
     return out
 
 
 def history(source: str, limit: int = 20) -> list:
+    return history_many([source], limit).get(source, [])
+
+
+def history_many(sources, limit: int = 20) -> dict:
+    """여러 데이터소스의 지난 차례를 연결 하나·질의 하나로 — {id: [줄 …]} (#373 검토 7: 화면 한 번에 연결이 100 남짓이었다)."""
+    ids = list(dict.fromkeys(sources))
+    if not ids:
+        return {}
+    out = {}
     try:
         with reader() as db:
             if db is None:
-                return []
-            return [dict(r) for r in db.execute(
-                "SELECT * FROM fetch_log WHERE source = ? ORDER BY started_at DESC, id DESC LIMIT ?", (source, limit))]
+                return {}
+            where = f"WHERE source IN ({', '.join('?' * len(ids))})"
+            for d in _rows(db, where=where, cut="<= ?", args=(*ids, limit)):
+                out.setdefault(d["source"], []).append(d)
     except (sqlite3.Error, OSError):
-        return []
+        return {}
+    for rows in out.values():            # ROW_NUMBER 가 차례를 정했지만 바깥 SELECT 는 순서를 지키지 않는다
+        rows.sort(key=lambda r: (_when(r["started_at"]), r["started_at"], r["id"]), reverse=True)
+    return out
+
+
+def _when(text):
+    try:
+        return datetime.fromisoformat(text).timestamp()
+    except (TypeError, ValueError):
+        return float("-inf")
+
+
+# ── 화면에 낼 때 ────────────────────────────────────────────────────
+
+#: 장부가 스스로 적는 고정 문장 — 장부에는 한국어 원문으로 두고 화면이 옮긴다 (#373 검토 4)
+NOTE_TEXTS = {m.template: m for m in (
+    msg("마지막으로 된 차례"),
+    msg("마지막으로 된 차례 — 끝난 때 (걸린 초는 모른다)"),
+    msg("산출물 파일의 고친 날로 어림했다"),
+)}
+SPEC_NOTE = "명세가 바뀌었다 — "
+
+
+def note_text(text: str):
+    """장부의 note 를 화면의 글로 — 고정 문장은 `msg` 로 돌려 영어판이 옮기게, 그 밖의 것(명령의 말)은 그대로."""
+    text = text or ""
+    if text in NOTE_TEXTS:
+        return NOTE_TEXTS[text]
+    if text.startswith(SPEC_NOTE):
+        return msg("명세가 바뀌었다 — {name}", name=text[len(SPEC_NOTE):])
+    return text

@@ -306,6 +306,12 @@ SCHEDULE_LABELS = {"hourly": msg("매시"), "weekly": msg("매주"), "monthly-fi
                    "manual": msg("사람이"), "once": msg("한 번")}
 RUNS_ON_LABELS = {"container": msg("컨테이너"), "host": msg("호스트"), "person": msg("사람 손")}
 FLAG_LABELS = {"nc": msg("비상업"), "sold": msg("판매"), "lab_only": msg("내부용"), "no_store": msg("담지 않음")}
+#: 장부의 코드 값 — 화면에는 이 이름으로 (#373 검토 4)
+RESULT_LABELS = {"ok": msg("됨"), "fail": msg("실패"), "skip": msg("건너뜀")}
+ORIGIN_LABELS = {"container": msg("컨테이너"), "hourly": msg("매시 차례"), "host": msg("호스트"),
+                 "backfill": msg("어림"), "spec": msg("명세")}
+#: 명세를 어디서 읽었나 — `file` 이 아니면 탭 머리에 띄운다
+SPEC_ORIGIN_LABELS = {"seed": msg("저장소의 씨앗"), "history": msg("마지막으로 떠 둔 판"), "none": msg("빈 명세")}
 
 
 def _parse_time(text):
@@ -315,18 +321,24 @@ def _parse_time(text):
         return None
 
 
-def is_late(row: dict, last_ok, now=None) -> bool:
-    """주기보다 오래 된 적이 없다. 기록이 아예 없는 것은 늦은 것이 아니라 "모름" 이다."""
+def is_late(row: dict, last_ok, now=None, first=None) -> bool:
+    """주기보다 오래 된 적이 없다. 기록이 아예 없는 것은 늦은 것이 아니라 "모름" 이다.
+
+    **한 번도 된 적이 없으면 첫 차례부터 잰다** — 매시 일이 처음부터 깨져 있으면 "깨짐" 으로만 떠 늦음에 안 잡혔다(#373 검토 6).
+    """
     hours = LATE_HOURS.get(row.get("schedule"))
-    when = _parse_time((last_ok or {}).get("started_at"))
+    when = _parse_time((last_ok or first or {}).get("started_at"))
     if not hours or when is None:
         return False
     now = now or datetime.now(when.tzinfo)
     return (now - when).total_seconds() > hours * 3600
 
 
-def overview(sync: bool = True, history: bool = True) -> dict:
-    """명세·기록 표·구운 파일을 엮은 한 장 — 관리 화면과 healthz 가 읽는다. 경로는 `<DB 옆>` 아래 이름만."""
+def overview(sync: bool = True, history: bool = True, files: bool = True) -> dict:
+    """명세·기록 표·구운 파일을 엮은 한 장 — 관리 화면과 healthz 가 읽는다. 경로는 `<DB 옆>` 아래 이름만.
+
+    healthz 는 수만 쓰므로 `history=False, files=False` — 지난 차례도 구운 파일의 stat 도 하지 않는다(#373 검토 7).
+    """
     from . import datastatus, fetchlog
 
     spec = load()
@@ -336,14 +348,14 @@ def overview(sync: bool = True, history: bool = True) -> dict:
         except Exception:                     # noqa: BLE001 — 옮겨 적기가 깨져도 화면은 선다
             pass
     latest = fetchlog.latest()
-    files = {r["key"]: r for r in datastatus.rows()}
+    files = {r["key"]: r for r in datastatus.rows()} if files else {}
     # 밖에 연 판(`GSM_PUBLIC`)에서는 연구실 내부용을 내리지 않는다 — 이름·지난 차례·마지막 말까지 (#373 검토 5, `views.LAB_ONLY`)
     shown = [r for r in spec.rows if not (settings.PUBLIC and "lab_only" in r.get("flags", []))]
     rows, counts = [], {"total": len(shown), "late": 0, "failed": 0, "unknown": 0, "invalid": len(spec.problems)}
     for row in shown:
         got = latest.get(row["id"]) or {}
         last, last_ok = got.get("last"), got.get("last_ok")
-        late = is_late(row, last_ok)
+        late = is_late(row, last_ok, first=got.get("first"))
         failed = bool(last and last["result"] == "fail")
         unknown = last is None and row.get("kind") != "file"
         counts["late"] += late
@@ -357,7 +369,11 @@ def overview(sync: bool = True, history: bool = True) -> dict:
             else:
                 outputs.append({"key": key, "kind": "file", **f})
         rows.append({"row": row, "last": last, "last_ok": last_ok, "late": late, "failed": failed, "unknown": unknown,
-                     "history": fetchlog.history(row["id"], 20) if (last and history) else [], "outputs": outputs})
+                     "history": [], "outputs": outputs})
+    if history:
+        past = fetchlog.history_many([r["row"]["id"] for r in rows if r["last"]], 20)
+        for r in rows:
+            r["history"] = past.get(r["row"]["id"], [])
     spec_change = (latest.get("_spec") or {}).get("last")
     return {"rows": rows, "counts": counts, "problems": spec.problems, "origin": spec.origin,
             "spec_changed": spec_change}
