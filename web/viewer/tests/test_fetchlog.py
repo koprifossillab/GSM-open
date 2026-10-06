@@ -418,3 +418,11 @@ class Followup(Base):
         self.assertIn('id="mg-src-more-demo"', page)
         self.assertIn('class="mg-out-what"', page)
         self.assertIn('← <span class="mono">fetch_pbdb', page)          # 만드는 명령은 펼친 줄에 — title 은 휴대폰에서 볼 길이 없다 (#375 검토)
+
+    def test_결과는_따로_칸(self):
+        """성공·실패는 마지막 실행 칸에 섞지 않고 따로 칸에 (사람, 2026-10-06)"""
+        fetchlog.write({"source": "demo", "started_at": "2026-10-06T00:00:00+09:00", "result": "fail", "note": "상류 500"})
+        page = self.client.get("/GSM/manage/").content.decode()
+        self.assertIn('<th>마지막 실행</th><th>결과</th><th>마지막 성공</th>', page)
+        self.assertRegex(page, r'<td data-label="결과"><span class="mg-res fail">실패</span>\s*<small class="mg-said">상류 500')
+        self.assertIn('colspan="7"', page)

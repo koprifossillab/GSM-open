@@ -307,7 +307,7 @@ SCHEDULE_LABELS = {"hourly": msg("매시"), "weekly": msg("매주"), "monthly-fi
 RUNS_ON_LABELS = {"container": msg("컨테이너"), "host": msg("호스트"), "person": msg("사람 손")}
 FLAG_LABELS = {"nc": msg("비상업"), "sold": msg("판매"), "lab_only": msg("내부용"), "no_store": msg("담지 않음")}
 #: 장부의 코드 값 — 화면에는 이 이름으로 (#373 검토 4)
-RESULT_LABELS = {"ok": msg("됨"), "fail": msg("실패"), "skip": msg("건너뜀")}
+RESULT_LABELS = {"ok": msg("성공"), "fail": msg("실패"), "skip": msg("건너뜀")}
 ORIGIN_LABELS = {"container": msg("컨테이너"), "hourly": msg("매시 차례"), "host": msg("호스트"),
                  "backfill": msg("어림"), "spec": msg("명세")}
 #: 명세를 어디서 읽었나 — `file` 이 아니면 탭 머리에 띄운다

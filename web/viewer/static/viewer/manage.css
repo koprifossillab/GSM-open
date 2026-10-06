@@ -179,8 +179,10 @@ body.manage { display: block; height: auto; min-height: 100vh; overflow: visible
 .mg-sources td { vertical-align: top; white-space: normal; }
 .mg-sources td.mg-src-name { min-width: 11em; }
 .mg-sources td:nth-child(2) { min-width: 8em; }
-.mg-sources td:nth-child(3), .mg-sources td:nth-child(5) { white-space: nowrap; }
-.mg-sources td:nth-child(4) { min-width: 12em; }
+/* 마지막 실행·마지막 성공(때)은 꺾지 않는다. 결과 칸은 마지막 말이, 산출물 칸은 경로가 들어 넓게 */
+.mg-sources td:nth-child(4), .mg-sources td:nth-child(6) { white-space: nowrap; }
+.mg-sources td:nth-child(5) { min-width: 12em; }
+.mg-sources td:nth-child(7) { min-width: 16em; }
 .mg-sources td small { display: block; color: var(--ink-faint); font-size: 11px; }
 .mg-sources td small.bad, .mg-sources .bad { color: #d4523a; font-weight: 600; }
 .mg-sources .num { font-variant-numeric: tabular-nums; white-space: nowrap; }
@@ -200,7 +202,8 @@ body.manage { display: block; height: auto; min-height: 100vh; overflow: visible
 .mg-res.fail { background: #d4523a; }
 .mg-res.skip { background: var(--ink-faint); }
 .mg-said { max-width: 28em; overflow-wrap: anywhere; }
-.mg-out { white-space: nowrap; }
+.mg-out { white-space: normal; }
+.mg-out .mono { overflow-wrap: anywhere; }   /* 원본 판 글이 길다(GVP·DOI 주소) — 꺾지 않으면 칸이 화면 밖으로 */
 .mg-out-what { color: var(--ink-faint); white-space: normal; }
 .mg-src-more td { background: var(--panel-tint); }
 .mg-src-meta { margin: 2px 0 6px; font-size: 12px; color: var(--ink-soft); }

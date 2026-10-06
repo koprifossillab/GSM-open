@@ -227,7 +227,7 @@
         {% endfor %}
         <div class="mg-scroll"><table class="mg-table mg-sources" id="mg-sources">
           <thead>
-            <tr><th>{% t "데이터소스" %}</th><th>{% t "조건" %}</th><th>{% t "주기" %}</th><th>{% t "마지막" %}</th><th>{% t "된 때" %}</th><th>{% t "산출물" %}</th></tr>
+            <tr><th>{% t "데이터소스" %}</th><th>{% t "조건" %}</th><th>{% t "주기" %}</th><th>{% t "마지막 실행" %}</th><th>{% t "결과" %}</th><th>{% t "마지막 성공" %}</th><th>{% t "산출물" %}</th></tr>
           </thead>
           <tbody>
             {% for r in src.rows %}
@@ -235,19 +235,21 @@
               <td class="mg-src-name"><button type="button" class="mg-src-toggle" aria-expanded="false" aria-controls="mg-src-more-{{ r.id }}">{{ r.name }}</button><small>{{ r.org }}</small><small class="mono">{{ r.id }}</small></td>
               <td data-label="{% t "조건" %}">{{ r.license }}{% for f in r.flags %} <span class="mg-flag">{{ f }}</span>{% endfor %}</td>
               <td data-label="{% t "주기" %}">{{ r.schedule }}<small>{{ r.runs_on }}</small></td>
-              <td data-label="{% t "마지막" %}">{% if r.last %}<span class="num">{{ r.last }}</span>{% if r.estimated %} <span class="mg-flag" title="{% t "산출물 파일의 고친 날로 어림했다" %}">~</span>{% endif %}
-                <span class="mg-res {{ r.result }}">{{ r.result_label }}</span>{% if r.seconds is not None %} <small class="num">{{ r.seconds }} s</small>{% endif %}
+              <td data-label="{% t "마지막 실행" %}">{% if r.last %}<span class="num">{{ r.last }}</span>{% if r.estimated %} <span class="mg-flag" title="{% t "산출물 파일의 고친 날로 어림했다" %}">~</span>{% endif %}
+                {% if r.seconds is not None %}<small class="num">{{ r.seconds }} s</small>{% endif %}
+                {% elif r.unknown %}<span class="faint">{% t "기록 없음" %}</span>{% else %}<span class="faint">—</span>{% endif %}</td>
+              <td data-label="{% t "결과" %}">{% if r.last %}<span class="mg-res {{ r.result }}">{{ r.result_label }}</span>
                 {% if r.counts %}<small class="num{% if r.counts.short %} bad{% endif %}">{% t "센 수 {e} · 받은 수 {n}" e=r.counts.expected n=r.counts.rows %}</small>{% endif %}
                 {% if r.said %}<small class="mg-said">{{ r.said }}</small>{% endif %}
-                {% elif r.unknown %}<span class="faint">{% t "기록 없음" %}</span>{% else %}<span class="faint">—</span>{% endif %}</td>
-              <td data-label="{% t "된 때" %}">{% if r.ok %}<span class="num">{{ r.ok }}</span>{% else %}—{% endif %}{% if r.late %} <b class="bad">{% t "늦음" %}</b>{% endif %}</td>
+                {% else %}<span class="faint">—</span>{% endif %}</td>
+              <td data-label="{% t "마지막 성공" %}">{% if r.ok %}<span class="num">{{ r.ok }}</span>{% else %}—{% endif %}{% if r.late %} <b class="bad">{% t "늦음" %}</b>{% endif %}</td>
               <td data-label="{% t "산출물" %}">{% for o in r.outputs %}<small class="mg-out">
                 <span class="mono">{{ o.key }}</span>{% if o.what %} <span class="mg-out-what">{{ o.what }}</span>{% endif %}
                 {% if o.kind == "file" %}{% if o.exists %} {{ o.size }} · {{ o.date }}{% if o.version %} · <span class="mono">{{ o.version }}</span>{% endif %}
                 {% elif o.needed %} <b class="bad">{% t "없다" %}</b>{% else %} <span class="faint">{% t "없다 (밖에 연 판에는 두지 않는다)" %}</span>{% endif %}
                 {% elif o.kind == "repo" %} <span class="faint">{% t "저장소" %}</span>{% endif %}</small>{% empty %}<span class="faint">—</span>{% endfor %}</td>
             </tr>
-            <tr class="mg-src-more" id="mg-src-more-{{ r.id }}" data-for="{{ r.id }}" hidden><td colspan="6">
+            <tr class="mg-src-more" id="mg-src-more-{{ r.id }}" data-for="{{ r.id }}" hidden><td colspan="7">
               <p class="mg-src-meta"><span class="mono">{{ r.commands|default:"—" }}</span>{% if r.note %} — {{ r.note }}{% endif %}</p>
               {% for o in r.outputs %}{% if o.made_by %}<small class="mg-out-by"><span class="mono">{{ o.key }}</span> ← <span class="mono">{{ o.made_by }}</span></small>{% endif %}{% endfor %}
               {% if r.history %}<ol class="mg-hist">{% for h in r.history %}
