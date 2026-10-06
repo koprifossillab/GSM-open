@@ -350,3 +350,11 @@ def irgm_get_feature_info(params: dict) -> dict:
 
 
 IRGM = _NS(get_map=irgm_get_map, get_feature_info=irgm_get_feature_info, get_legend=irgm_get_legend)
+
+
+#: 이 파일이 여는 상류 — `doors.py` 가 모아 views·prewarm·화면의 표를 짓는다 (wetherilli 371)
+REGISTRY = [
+    {"upstream": "brgm", "tag": "BRGM", "title": "프랑스 지질광물조사소", "relay": True, "projected": True, "globe": True},
+    {"upstream": "cgmw", "tag": "CGMW", "title": "세계지질도위원회·프랑스 지질광물조사소", "relay": CGMW, "projected": True, "globe": True},
+    {"upstream": "irgm", "tag": "IRGM", "title": "카메룬 지질광업연구소", "relay": IRGM, "projected": True},
+]

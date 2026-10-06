@@ -330,3 +330,9 @@ def _body(name: str, lang: str, _stamp: str) -> bytes:
     return json.dumps({"type": "FeatureCollection", "style": "class", "labels": labels, "links": list(LINKS),
                        "legend": legend, "features": features},
                       ensure_ascii=False, separators=(",", ":")).encode("utf-8")
+
+
+#: 이 파일이 여는 상류 — `doors.py` 가 모아 views·prewarm·화면의 표를 짓는다 (wetherilli 371)
+REGISTRY = [
+    {"upstream": "earth", "tag": "EARTH", "title": "온 지구 화면에 모아 둔 자료 — PBDB·GVP·USGS·Neotoma"},
+]

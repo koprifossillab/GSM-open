@@ -269,3 +269,9 @@ def friendly(props: dict, lang: str = "ko") -> dict:
     if age:
         out["지질시대"] = i18n.age_ko(age) if lang == "ko" else age
     return out
+
+
+#: 이 파일이 여는 상류 — `doors.py` 가 모아 views·prewarm·화면의 표를 짓는다 (wetherilli 371)
+REGISTRY = [
+    {"upstream": "mris", "tag": "NGS", "title": "몽골 국가지질조사소 (MonGeoCat)", "relay": True, "projected": True, "globe": True},
+]

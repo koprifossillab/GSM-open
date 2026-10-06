@@ -214,3 +214,9 @@ def friendly(props: dict, lang: str = "ko") -> dict:
     if old or young:
         out["연대 (Ma)"] = f"{young}–{old}" if old and young and old != young else str(old or young)
     return out
+
+
+#: 이 파일이 여는 상류 — `doors.py` 가 모아 views·prewarm·화면의 표를 짓는다 (wetherilli 371)
+REGISTRY = [
+    {"upstream": "segemar", "tag": "SEGEMAR", "title": "아르헨티나 지질광업조사소", "relay": True, "projected": True, "globe": True},
+]

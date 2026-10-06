@@ -7,8 +7,10 @@
 - **토석류**(DebrisFlowDeposition 퇴적 298·Fan 선상 214·Track 유동구 1 046) — 한 레이어에 갈래 셋. 10 MB 라 약 5 m 로 줄여 1.8 MB(gzip 0.4 MB)
 - **낙석**(RockFall, 면 1 만 6 천) — 활동(`ACTIVITY`)의 앞 글자(A 새·잦음, B 옛·가끔, C 없음)로 칠한다. 32 MB 라 약 6 m 로 줄여 6.6 MB(gzip 0.8 MB)
 - **GPS 상시 관측소**(CGPS, 점 65)
-- **암체 강도 등급**(RockMassClassification, 면 3 084) — 등급 I–VII. 지질운이 등급의 뜻을 적지 않아 **값 그대로 갈래 색**으로 칠한다(차례를 뜻하는
-  색띠를 쓰지 않는다). 같은 면의 "암석 강도"(RockMassStrength, A–H)는 모양이 똑같아 받지 않았다. 28 MB 라 약 20 m 로 줄여 3.5 MB(gzip 0.7 MB). 줄이다 사라질 작은 면은 줄이지 않는다
+- **암체 강도 등급**(RockMassClassification, 면 3 084, 지질운의 이름 "岩體強度分級") — 등급 I–VII. 지질운은 등급의 뜻을 적지 않는다. 등급과 암상을 대 보면
+  **I 이 가장 단단한 쪽**이다(wetherilli 370 — I 안산암·현무암, II–III 사암, IV–V 사암·셰일 호층·이암, VI 자갈층·미고결층). 그래서 **차례 색**(진한 갈색 → 옅은 노랑)으로
+  칠하고 범례 끝 칸에 "가장 단단한 쪽·가장 무른 쪽" 을 적는다. 수치(일축 압축 강도 따위)는 자료에 없어 적지 않는다. 같은 면의 "암석 강도"(RockMassStrength, A–H)는
+  모양이 똑같아 받지 않았다. 28 MB 라 약 20 m 로 줄여 3.5 MB(gzip 0.7 MB). 줄이다 사라질 작은 면은 줄이지 않는다
 - 값(중국어)은 옮기지 않는다 — 속성 값이다. 팝업의 이름만 옮긴다
 - 조건: 지질운 소개(`geohome/Introduction`) — "지질 자료는 공공재, 사성급 열린자료로 공급". 출처를 밝힌다(wetherilli 136·263)
 """
@@ -41,15 +43,19 @@ LAYERS = {
                         "fields": {"CGPS_ID": "관측소", "NAME": "이름", "CGPS_TYPE": "갈래", "UNIT": "기관", "TWD97H": "높이 (m)",
                                    "REMARK": "비고"}},
     "gsmma:open:rockmass": {"apis": ["RockMassClassification"], "style": "unit", "tolerance": 0.0002,
-                            "fields": {"強度分級": "강도 등급", "ST_C": "지층", "ABBREV": "기호", "LITH_C": "암상"}},
+                            "fields": {"強度分級": "강도 등급", "ST_C": "지층", "ABBREV": "기호", "LITH_C": "암상", "CHAR_C": "특성"}},
 }
 #: 토석류 갈래 → (색, 범례 이름)
 DEBRIS = {"DebrisFlowDeposition": ("#b35806", "토석류 퇴적 구역"), "DebrisFlowFan": ("#f1a340", "토석류 선상 구역"),
           "DebrisFlowTrack": ("#7f3b08", "토석류 유동 구역")}
 #: 낙석 활동의 앞 글자 → 색. 이름은 자료의 값(중국어) 그대로 범례에 쓴다
 ROCKFALL = {"A": "#d73027", "B": "#fc8d59", "C": "#91bfdb", "D": "#4575b4"}
-#: 암체 강도 등급 → 색 (갈래 색 — 차례를 뜻하지 않는다)
-ROCKMASS = {"I": "#1b9e77", "II": "#d95f02", "III": "#7570b3", "IV": "#e7298a", "V": "#66a61e", "VI": "#e6ab02", "VII": "#a6761d"}
+#: 암체 강도 등급 → 색. 차례 색이다 — I(가장 단단한 쪽)이 진하고 VII(가장 무른 쪽)이 옅다(ColorBrewer YlOrBr, wetherilli 370)
+ROCKMASS = {"I": "#662506", "II": "#993404", "III": "#cc4c02", "IV": "#ec7014", "V": "#fe9929", "VI": "#fec44f", "VII": "#fee391"}
+#: 범례 끝 칸의 곁말 — 차례의 방향. **짐작이라는 것을 적는다** — 지질운이 적은 뜻이 아니다. 공식 뜻을 찾으면 바꾼다(TODOs)
+ROCKMASS_ENDS = {"I": "등급 {grade} — 가장 단단한 쪽 (암상으로 짐작)", "VII": "등급 {grade} — 가장 무른 쪽 (암상으로 짐작)"}
+#: 팝업에 함께 세우는 차례의 풀이 — 등급 값(I–VII)은 상류가 적은 그대로 둔다
+ROCKMASS_ORDER = "I 단단 → VII 무름 (암상으로 짐작)"
 
 
 def knows(name: str) -> bool:
@@ -137,7 +143,7 @@ def _legend(name: str, counts: dict, t) -> list:
     if name == "gsmma:open:rockfall":
         return [{"code": k, "label": t("활동 적지 않음") if k == "?" else k, "color": ROCKFALL.get(k[:1], "#888888"), "count": n}
                 for k, n in sorted(counts.items(), key=lambda kv: (kv[0] == "?", kv[0]))]
-    rows = [{"code": k, "label": t("등급 {grade}", grade=k), "color": ROCKMASS[k], "count": counts.get(k, 0)}
+    rows = [{"code": k, "label": t(ROCKMASS_ENDS.get(k, "등급 {grade}"), grade=k), "color": ROCKMASS[k], "count": counts.get(k, 0)}
             for k in ROCKMASS if counts.get(k)]
     if counts.get("?"):
         rows.append({"code": "?", "label": t("등급 없음"), "color": "#cccccc", "count": counts["?"]})
@@ -164,6 +170,8 @@ def _body(name: str, lang: str, mtime: float) -> bytes:
             props = {"code": code}
             if name == "gsmma:open:rockmass":
                 props["color"] = ROCKMASS.get(code, "#cccccc")
+                if code in ROCKMASS:
+                    props["order"] = t(ROCKMASS_ORDER)
             for key in spec["fields"]:
                 value = _value(raw.get(key))
                 if value:
@@ -175,6 +183,9 @@ def _body(name: str, lang: str, mtime: float) -> bytes:
     labels = {k: (PROP_EN.get(v, v) if lang == "en" else v) for k, v in spec["fields"].items()}
     if name == "gsmma:open:debris":
         labels = {"kind": PROP_EN.get("갈래", "갈래") if lang == "en" else "갈래", **labels}
+    if name == "gsmma:open:rockmass":            # 등급 바로 밑에 차례의 풀이 (wetherilli 370)
+        labels = dict(list(labels.items())[:1] + [("order", PROP_EN.get("등급의 차례", "등급의 차례") if lang == "en" else "등급의 차례")]
+                      + list(labels.items())[1:])
     out = {"type": "FeatureCollection", "labels": labels, "style": spec["style"], "legend": _legend(name, counts, t),
            "fetched": fetched, "features": items}
     return json.dumps(out, ensure_ascii=False, separators=(",", ":")).encode("utf-8")

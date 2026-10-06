@@ -419,3 +419,9 @@ def friendly(props: dict, lang: str = "ko") -> dict:
             ("연대 (Ma)", _ma(props.get("E_MAX_MA"), props.get("E_MIN_MA"))), ("암석", v("LITOLOGIA")),
             ("설명", v("DESCRIP")), ("도폭", v("HOJA")), ("문헌", v("REFERENCIA")))
     return {k: x for k, x in rows if x}
+
+
+#: 이 파일이 여는 상류 — `doors.py` 가 모아 views·prewarm·화면의 표를 짓는다 (wetherilli 371)
+REGISTRY = [
+    {"upstream": "ingemmet", "tag": "INGEMMET", "title": "페루 지질광업야금연구소", "relay": True},
+]

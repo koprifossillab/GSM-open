@@ -331,6 +331,8 @@ class UpstreamDay(models.Model):
     t7 = models.PositiveIntegerField(default=0, db_default=0)
     t8 = models.PositiveIntegerField(default=0, db_default=0)
     t9 = models.PositiveIntegerField(default=0, db_default=0)
+    # 그 가운데 화면이 아니라 손으로 부른 명령(대조·미리 데우기·받기)이 낸 것 (wetherilli 363) — 대조 하루는 화면 하루보다 수가 커서 덮였다(347)
+    batch = models.PositiveIntegerField("명령이 낸 것", default=0, db_default=0)
 
     class Meta:
         ordering = ["-day", "upstream"]

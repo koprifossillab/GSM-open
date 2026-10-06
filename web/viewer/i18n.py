@@ -544,9 +544,14 @@ EN = {
     "지열류 자료를 아직 굽지 않았다 (build_heatflow)": "Heat flow data not built yet (build_heatflow)",
     "최근 지진 (7 일, M2.5 이상)": "Recent earthquakes (7 days, M2.5+)",
     "속이 빈 고리 — 크기는 규모, 색은 지난 시간 (매시 받음)": "Hollow rings — size is magnitude, colour is time since (fetched hourly)",
-    "그 밖의 {n} 지역": "{n} more regions",
+    "그 밖의 {n} 지역": "{n} more regions",          # 소개 화면의 지역 칩 (wetherilli 344)
+    "범례 {n}": "legends {n}",                   # 관리 화면의 대조 줄 (wetherilli 367)
+    "깨진 범례 {n}": "broken legends {n}",
     "산지 수(채집 편향이 든다)": "locality counts (sampling bias included)",   # 온 지구 레이어의 곁말 (wetherilli 360)
-    "모의 결과": "model result",          # 소개 화면의 지역 칩 (wetherilli 344)
+    "모의 결과": "model result",
+    "명령 {n}": "commands {n}",                 # 관리 화면의 상류 표 (wetherilli 363)
+    "괄호 안의 명령은 화면이 아니라 서버의 명령(레이어 대조·미리 데우기·자료 받기)이 낸 호출이다 — 화면 쓰임은 건수에서 그것을 뺀 것이다.":
+        "Commands in brackets are calls made by server commands (layer checks, prewarming, data fetches), not by the viewer — viewer use is the count minus that.",
     # 관리 화면의 마지막 레이어 대조 (wetherilli 314)
     "마지막 레이어 대조 {day} — 그림 {drawn} · 빈 그림 {empty} · 오류 {error} · 건너뜀 {skipped}":
         "Last layer check {day} — drawn {drawn} · empty {empty} · error {error} · skipped {skipped}",
@@ -635,6 +640,9 @@ EN = {
     "토석류 유동 구역": "Debris-flow track zone",
     "등급 {grade}": "Class {grade}",
     "등급 없음": "No class",
+    "등급 {grade} — 가장 단단한 쪽 (암상으로 짐작)": "Class {grade} — strongest (inferred from lithology)",   # 대만 암체 강도 등급 (wetherilli 370)
+    "등급 {grade} — 가장 무른 쪽 (암상으로 짐작)": "Class {grade} — weakest (inferred from lithology)",
+    "I 단단 → VII 무름 (암상으로 짐작)": "I strong → VII weak (inferred from lithology)",
     "활동 적지 않음": "Activity not recorded",
     "대만 지질운 열린자료가 서버에 없다": "Taiwan Geology Cloud open data is not on the server",
     "대만 지질운 열린자료를 읽지 못했다": "Could not read Taiwan Geology Cloud open data",
@@ -1359,6 +1367,10 @@ EN = {
     "남극 지질도 자료(GeoMAP)가 서버에 없다": "The Antarctic geology data (GeoMAP) is not on the server",
     # 얀마옌 지질도 (janmayen.py, map.js 의 dataLegend)
     "얀마옌 지질도 자료(NPI)가 서버에 없다": "The Jan Mayen geology data (NPI) is not on the server",
+    "노던테리토리 지질도 자료(NTGS)가 서버에 없다": "The Northern Territory geology data (NTGS) is not on the server",
+    "노던테리토리 지질도 자료(NTGS)를 읽지 못했다": "Could not read the Northern Territory geology data (NTGS)",
+    "해석 단층 (지구물리)": "Interpreted fault (geophysics)",
+    "지도의 단층": "Mapped fault",
     "얀마옌 지질도 자료(NPI)를 읽지 못했다": "Could not read the Jan Mayen geology data (NPI)",
     "원본 자료 — Norsk Polarinstitutt, CC BY 4.0": "Source dataset — Norsk Polarinstitutt, CC BY 4.0",
     "그런 타일은 없다": "No such tile",
@@ -1474,6 +1486,21 @@ EN = {
     "범례가 없는 레이어다": "This layer has no legend",
     "범례 열기": "Open legend",
     "bbox 가 없다": "bbox is missing",
+    # 자료원 명세의 검사 (jikhanjung P02)
+    "줄이 객체가 아니다": "The row is not an object",
+    "id 가 없거나 꼴이 틀렸다 (영어 소문자·숫자·밑줄)": "id is missing or malformed (lowercase letters, digits, underscore)",
+    "name 에 ko·en 이 다 있어야 한다": "name needs both ko and en",
+    "{key} 는 {allowed} 가운데 하나다": "{key} must be one of {allowed}",
+    "commands 는 명령 이름의 목록이다": "commands must be a list of command names",
+    "받거나 굽는 자료원인데 commands 가 비었다": "A fetched or built source has no commands",
+    "license 가 없다": "license is missing",
+    "flags 는 {allowed} 가운데서 고른다": "flags must be chosen from {allowed}",
+    "{key} 는 글의 목록이다": "{key} must be a list of strings",
+    "{key} 는 글이다": "{key} must be a string",
+    "id 가 겹친다": "Duplicate id",
+    "맨 위에 sources 목록이 있어야 한다": "The top level needs a sources list",
+    "명세 파일을 JSON 으로 읽지 못했다 — 마지막으로 떠 둔 판을 쓴다": "Could not read the spec file as JSON — using the last saved copy",
+    "명세도 씨앗도 없다": "Neither the spec nor the seed exists",
     # 5만 지질도의 자세 기호 — 커서와 팝업 (jikhanjung 004)
     "미상": "unknown",
     "경사 방향과 원문 사분면이 맞지 않는다 — 기호는 경사 방향대로 그렸다":
@@ -1981,6 +2008,8 @@ EN = {
 # 모았다. 영문 열(`symnum`·`GRAY_INDEX` …)은 그대로 둔다.
 
 PROP_EN = {
+    "특성": "Characteristics",                 # 대만 암체 강도 등급의 지층 특성 (wetherilli 370)
+    "등급의 차례": "Class order",
     # 호주 확인 자원·수리지질도 (wetherilli 325)
     "자원량 칸": "Resource size class",
     "대수층": "Aquifer",
@@ -2106,6 +2135,7 @@ PROP_EN = {
     "연구자": "Investigators",
     "지질시대": "Geologic age",
     "자력 이상 (nT)": "Magnetic anomaly (nT)",
+    "변형대": "Deformation zone",
     "장소": "Locality",
     "지구조 요소": "Tectonic element",
     "칼륨 K (%)": "Potassium K (%)",
@@ -3335,7 +3365,7 @@ GROUP_EN = {
     "브라질 광물 자원 (SGB)": "Brazil mineral resources (SGB)", "콜롬비아 금속광상·지구물리 (SGC)": "Colombia metallogeny and geophysics (SGC)",
     "아르헨티나 광상 (SEGEMAR 1:25만)": "Argentina mineral deposits (SEGEMAR 1:250k)",
     "퀸즐랜드 광물·지구물리 (GSQ)": "Queensland minerals and geophysics (GSQ)", "빅토리아 광상 (GSV)": "Victoria mineral deposits (GSV)", "빅토리아 지구물리 (GSV)": "Victoria geophysics (GSV)",
-    "태즈메이니아 지질도 (MRT)": "Tasmania geology (MRT)", "뉴사우스웨일스 광물 (GSNSW)": "New South Wales minerals (GSNSW)",
+    "태즈메이니아 지질도 (MRT)": "Tasmania geology (MRT)", "뉴사우스웨일스 광물 (GSNSW)": "New South Wales minerals (GSNSW)", "노던테리토리 지질도 (NTGS)": "Northern Territory geology (NTGS)",
     "남호주 광물 산지 (GSSA)": "South Australia mineral occurrences (GSSA)", "남호주 지구물리 (SARIG)": "South Australia geophysics (SARIG)", "뉴질랜드 지구물리 (GNS)": "New Zealand geophysics (GNS)",
     "일본 지질도·중력 (GSJ)": "Japan geology and gravity (GSJ)", "일본 지구화학도 (GSJ, 하천 퇴적물)": "Japan geochemical map (GSJ, stream sediments)",
     "일본 지구화학도 — 나머지 원소 (GSJ)": "Japan geochemical map — other elements (GSJ)", "일본 자기 이상도 (GSJ 지질도Navi)": "Japan magnetic anomaly maps (GSJ Geological Map Navi)",
@@ -3579,11 +3609,13 @@ LAYER_EN = {
     "gsq:gravity": "Complete Bouguer gravity anomaly", "gsv:mineral": "Mineral deposits (polygons)", "gsv:mineralp": "Mineral deposits (points)",
     "gsv:gravity": "Gravity stations",
     "mrt:250k": "Tasmania geology (1:250k compilation)", "mrt:25k": "Tasmania geology (1:25k)",
+    "ntgs:geology": "Northern Territory geology 1:2.5M (interpreted)", "ntgs:faults": "Northern Territory faults 1:2.5M",
     "gsnsw:minocc": "New South Wales mineral occurrences", "gsnsw:mines": "New South Wales mines", "gsv:lin_tmi": "Magnetic lineaments (TMI)", "gsv:lin_gravity": "Gravity lineaments",
     "gsv:lin_radio": "Radiometric lineaments",
     "gssa:minocc": "Mineral occurrences (SARIG)", "gssa:tmi_rtp": "Total magnetic intensity (reduced to pole)", "gssa:tmi_rtp_1vd": "TMI first vertical derivative",
     "gssa:tmi_tilt": "TMI tilt derivative", "gssa:grav": "Bouguer gravity", "gssa:grav_1vd": "Gravity first vertical derivative",
-    "gssa:rad_rgb": "Radiometric ternary (K·Th·U)", "gns:gravity": "Gravity anomaly",
+    "gssa:rad_rgb": "Radiometric ternary (K·Th·U)", "gssa:rad_k": "Radiometric potassium (K)", "gssa:rad_th": "Radiometric thorium (eTh)",
+    "gssa:rad_u": "Radiometric uranium (eU)", "gssa:rad_tc": "Radiometric total count", "gns:gravity": "Gravity anomaly",
     # GSJ 의 다른 WMS (wetherilli 255)
     "gsjows:japan2m": "Geological map of Japan (1:2M)", "gsjows:gravity": "Bouguer gravity anomaly (density 2.67)",
     "gsjows:geochem:Al2O3": "Aluminium (Al₂O₃) — geochemical map",
@@ -4444,6 +4476,8 @@ ABSTRACT_EN = {
     "mris:ree": "Atlas 12_REE — 6 deposits, 280 mineralised points, 85 occurrences",
     "mrt:250k": "Geological polygons and lines 250K — statewide edition compiling the 1:50k and 1:63k map series at 1:250k",
     "mrt:25k": "Geological polygons and lines 25K — surveyed areas only",
+    "ntgs:geology": "Northern Territory Geological Map (Interp) 2500K — 1 975 polygons; symbol, stratigraphic unit, rock, region and age",
+    "ntgs:faults": "Northern Territory Geological Faults 2500K — 849; interpreted (geophysics) and mapped faults",
     "ni:ni_j100v_austurland_berggrunnur_1utg_fl": "Jarðfræði Austurland berggrunnur — the Eastern Fjords",
     "ni:ni_j100v_vesturgosbelti_berggrunnur_1utg_fl": "Jarðfræði Vesturgosbelti berggrunnur — around Langjökull",
     "ni:ni_j600v_berg_2_jardlog_2utg_fl": "Berggrunnur jarðlög — 1:600 000, 2. útgáfa (Haukur Jóhannesson 2014). The whole island",

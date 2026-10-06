@@ -201,3 +201,9 @@ def friendly(props: dict, lang: str = "ko") -> dict:
     rows = (("기호", props.get("NotasiFormasi", "")), ("이름", props.get("NamaFormasi", "")),
             ("설명", props.get("Keterangan", "")), ("지질시대", age(props.get("UmurFormasi", ""), lang)))
     return {k: str(v).strip() for k, v in rows if str(v or "").strip()}
+
+
+#: 이 파일이 여는 상류 — `doors.py` 가 모아 views·prewarm·화면의 표를 짓는다 (wetherilli 371)
+REGISTRY = [
+    {"upstream": "esdm", "tag": "ESDM", "title": "인도네시아 지질청 (ESDM)", "relay": True, "projected": True, "globe": True},
+]

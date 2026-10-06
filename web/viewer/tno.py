@@ -58,3 +58,9 @@ def friendly(props: dict, lang: str = "ko") -> dict:
     rows = (("기호", props.get("CODE")), ("이름", props.get("NAAM1") or props.get("LITHOSTRAT")), ("설명", props.get("OMSCHRIJVI")),
             ("지질시대", age), ("층서 명명집", props.get("VERWIJZING")))
     return {k: str(v).strip() for k, v in rows if str(v or "").strip()}
+
+
+#: 이 파일이 여는 상류 — `doors.py` 가 모아 views·prewarm·화면의 표를 짓는다 (wetherilli 371)
+REGISTRY = [
+    {"upstream": "tno", "tag": "TNO", "title": "네덜란드 지질조사부 (TNO)", "relay": True, "projected": True, "globe": True},
+]

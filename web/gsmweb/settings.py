@@ -373,6 +373,8 @@ PENINSULA_DIR = env("GSM_PENINSULA_DIR") or str(_data_dir() / "peninsula")
 IBCSO_DIR = env("GSM_IBCSO_DIR") or str(_data_dir() / "ibcso")
 #: 남극 자력 이상 ADMAP-2 를 칠해 잘라 둔 것 (wetherilli 262). 원본은 NAS `sources/admap2/grid.zip`
 ADMAP_DIR = env("GSM_ADMAP_DIR") or str(_data_dir() / "admap2")
+#: 노던테리토리 1:250만 지질도·단층 셰이프 ZIP 둘을 그대로 둔다 (wetherilli 361). 원본은 NAS `sources/australia/nt_geology/`
+NTGEO_DIR = env("GSM_NTGEO_DIR") or str(_data_dir() / "nt_geology")
 #: 남호주 방사능 농도 격자(K·Th·U)를 골라 적은 것 — 누른 자리의 값 (wetherilli 358). 원본은 NAS `sources/australia/sa_radiometrics/`
 SARAD_DIR = env("GSM_SARAD_DIR") or str(_data_dir() / "sa_radiometrics")
 #: 극지연구소(KOPRI)에서 모아 둔 것 — 암석 시료 목록(`rock.json`)과 KPDC 자료 목록·상세(`kpdc.json`).
@@ -390,6 +392,10 @@ SGB_DIR = env("GSM_SGB_DIR") or str(_data_dir() / "sgb")
 #: KIGAM 5만 지질도의 층리·엽리·절리 등 — GeoServer WFS 에서 한 번 받아 둔 것(`raw/<YYYYMMDD>/`).
 #: 저장소·이미지에 두지 않는다. 없으면 자세 기호에 커서가 안 바뀔 뿐 뷰어는 돈다 (jikhanjung 004).
 KIGAM50K_DIR = env("GSM_KIGAM50K_DIR") or str(_data_dir() / "kigam50k")
+#: 받아 두는 자료원의 명세 — 사람이 정하는 것(조건·주기·돌리는 곳·명령·산출물). 서버에서 손으로 고친다(관리 화면에 계정이 없다).
+#: 저장소의 씨앗(`SOURCES_SEED`)은 없는 id 만 덧붙인다 — `manage.py sources_seed` (jikhanjung P02)
+SOURCES_PATH = env("GSM_SOURCES_PATH") or str(_data_dir() / "sources.json")
+SOURCES_SEED = REPO_DIR / "data" / "sources.seed.json"
 
 # 문서화된 주소. 제품이 타는 곳은 여기뿐이다.
 WMS_URL = env("GSM_WMS_URL", "https://data.kigam.re.kr/openapi/wms")
@@ -631,6 +637,7 @@ GSSA_CATALOG_SEED = REPO_DIR / "data" / "gssa_layers.json"
 #: 태즈메이니아 MRT 지질·뉴사우스웨일스 GSNSW 광물 (wetherilli 318)
 MRT_CATALOG_SEED = REPO_DIR / "data" / "mrt_layers.json"
 GSNSW_CATALOG_SEED = REPO_DIR / "data" / "gsnsw_layers.json"
+NTGS_CATALOG_SEED = REPO_DIR / "data" / "ntgs_layers.json"
 #: 뉴질랜드, 남극 남빅토리아랜드 (wetherilli 218)
 GNS_CATALOG_SEED = REPO_DIR / "data" / "gns_layers.json"
 GNS_ANTARCTICA_CATALOG_SEED = REPO_DIR / "data" / "gns_antarctica_layers.json"

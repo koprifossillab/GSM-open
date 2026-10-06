@@ -264,3 +264,8 @@ def points_body(name: str, lang: str = "ko") -> bytes:
     out = {"type": "FeatureCollection", "style": "class", "labels": OCC_LABELS, "legend": legend, "features": items}
     return json.dumps(out, ensure_ascii=False, separators=(",", ":")).encode("utf-8")
 
+
+#: 이 파일이 여는 상류 — `doors.py` 가 모아 views·prewarm·화면의 표를 짓는다 (wetherilli 371)
+REGISTRY = [
+    {"upstream": "ags", "tag": "AGS", "title": "앨버타 지질조사소", "relay": True},
+]

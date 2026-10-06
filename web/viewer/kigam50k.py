@@ -415,3 +415,9 @@ def _frames(folder) -> list:
         if _frame_cache["folder"] != folder:
             _frame_cache.update(folder=folder, rows=_features("frame"))
         return _frame_cache["rows"]
+
+
+#: 이 파일이 여는 상류 — `doors.py` 가 모아 views·prewarm·화면의 표를 짓는다 (wetherilli 371)
+REGISTRY = [
+    {"upstream": "kigam50k", "tag": "KIGAM", "title": "한국지질자원연구원 5만 수치지질도"},
+]

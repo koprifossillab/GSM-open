@@ -167,3 +167,9 @@ def legend_row(row: dict, table: dict) -> dict:
     """화면이 그리는 한 칸 — 일본·대만·브라질·페루의 칸과 같은 이름이다. 시대가 없다."""
     return {"color": table.get(row["value"], "#cccccc"), "symbol": row["value"], "swatch": "",
             "lithology": row["name"] or row["value"], "age": ""}
+
+
+#: 이 파일이 여는 상류 — `doors.py` 가 모아 views·prewarm·화면의 표를 짓는다 (wetherilli 371)
+REGISTRY = [
+    {"upstream": "iige", "tag": "IIGE", "title": "에콰도르 지질·에너지 연구소", "relay": True, "projected": True, "globe": True},
+]

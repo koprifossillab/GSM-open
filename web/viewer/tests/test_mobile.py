@@ -14,6 +14,8 @@
 """
 import os
 import re
+import sys
+import time
 import unittest
 from pathlib import Path
 
@@ -21,6 +23,7 @@ from django.contrib.staticfiles.testing import StaticLiveServerTestCase
 from django.core.management import call_command
 
 try:
+    from playwright.sync_api import TimeoutError as PlaywrightTimeout
     from playwright.sync_api import sync_playwright
 except ImportError:            # 운영 이미지·기본 시험에는 없다
     sync_playwright = None
@@ -101,6 +104,9 @@ class PhoneBase(StaticLiveServerTestCase):
         page = ctx.new_page()
         errors = []
         page.on("pageerror", lambda e: errors.append(str(e)))
+        # 깨졌을 때 까닭을 적으려고 콘솔도 받아 둔다 — 검사하지는 않는다 (jikhanjung 010)
+        page.gsm_console = []
+        page.on("console", lambda m: page.gsm_console.append(f"{m.type}: {m.text}"[:200]))
         base = self.live_server_url + "/GSM/"
 
         def route(r):
@@ -304,12 +310,61 @@ class PhoneScreenTests(PhoneBase):
         self.assertGreater(m["parts"]["#panel3d"]["height"], 200)
         self.assertFits(m, "3d/ (편 판)")
 
+    def test_저장_탭은_카드로_단추가_보인다(self):
+        """저장 탭의 표는 칸이 일곱이라 지우기·내려받기 단추가 가로로 굴려야 보였다 — 휴대폰에서는 카드로 세운다 (wetherilli 369)"""
+        page, errors = self.open("manage/")
+        page.tap("#mg-ex-try")
+        page.wait_for_timeout(800)
+        page.tap("#mg-save")
+        page.wait_for_timeout(800)
+        page.tap('#mg-tabs [data-tab="stored"]')
+        page.wait_for_selector("#mg-layers .mg-row-acts button", timeout=15000)   # IndexedDB 저장·다시 그리기를 기다린다 — 고정 대기는 느린 CI 에서 깨진다
+        buttons = page.evaluate("""() => [...document.querySelectorAll('#mg-layers .mg-row-acts button')].map(b => {
+            const r = b.getBoundingClientRect(); return [b.textContent, r.left, r.right]; })""")
+        self.assertTrue(buttons, "저장한 개인 레이어의 단추가 없다")
+        for text, left, right in buttons:
+            self.assertGreaterEqual(left, 0, f"'{text}' 단추가 왼쪽 밖이다")
+            self.assertLessEqual(right, 390, f"'{text}' 단추가 굴려야 보인다")
+        scroll = page.evaluate("(() => { const e = document.getElementById('mg-layers').closest('.mg-scroll'); return [e.scrollWidth, e.clientWidth]; })()")
+        self.assertLessEqual(scroll[0], scroll[1] + 1, "저장 탭의 표가 가로로 구른다")
+        self.assertFits(self.measure(page), "manage stored")
+        self.assertEqual(errors, [])
+
     def test_관리와_소개(self):
         for path in ("manage/", ""):
             with self.subTest(path=path or "intro"):
                 page, errors = self.open(path)
                 self.assertEqual(errors, [], f"{path}: 페이지 오류")
                 self.assertFits(self.measure(page), path or "intro")
+
+    def test_소개는_휴대폰에서도_언어를_바꾼다(self):
+        """머리줄의 언어 단추는 휴대폰에서 숨는다(자리가 없다) — 그러면 바꿀 길이 없었다. 끝에 같은 단추가 선다 (wetherilli 365)"""
+        page, errors = self.open("")
+        other = page.locator('.langs button[data-lang="en"]:visible')
+        self.assertEqual(other.count(), 1, "휴대폰에서 언어를 바꿀 단추가 보이지 않는다")
+        other.scroll_into_view_if_needed()
+        other.tap()
+        page.wait_for_load_state("load")
+        page.wait_for_timeout(500)
+        self.assertEqual(page.evaluate("document.documentElement.lang"), "en")
+        self.assertEqual(page.locator('.langs button[data-lang="ko"]:visible').count(), 1, "영어판에서 한국어로 돌아올 단추가 없다")
+        self.assertFits(self.measure(page), "intro en")
+        self.assertEqual(errors, [])
+
+    def test_관리_화면의_상자_제목은_한_줄이다(self):
+        """제목 옆의 안내 글이 제목을 밀어 "개인 레이 / 어" 처럼 꺾였다 — 휴대폰에서 안내는 다음 줄로 (wetherilli 365)"""
+        page, errors = self.open("manage/")
+        for tab in ("import", "stored", "upstream", "data"):
+            page.tap(f'#mg-tabs [data-tab="{tab}"]')
+            page.wait_for_timeout(300)
+            lines = page.evaluate("""() => [...document.querySelectorAll('.mg-body.on .box-head')].map(h => {
+                const t = [...h.childNodes].find(n => n.nodeType === 3 && n.textContent.trim()); if (!t) return null;
+                const r = document.createRange(); r.selectNodeContents(t); const n = r.getClientRects().length;
+                return n ? [t.textContent.trim(), n] : null; }).filter(Boolean)""")
+            for title, n in lines:
+                self.assertEqual(n, 1, f"{tab}: 상자 제목 '{title}' 이 꺾였다")
+            self.assertFits(self.measure(page), f"manage {tab}")
+        self.assertEqual(errors, [])
 
 
 
@@ -561,3 +616,74 @@ class RegionCompare(PhoneBase):
                 self.assertIsNotNone(view and view.get("zoom"), f"{region}: 저장된 줌이 비었다")
                 self.assertEqual(errors, [])
                 page.context.close()
+
+
+class Phone3D(PhoneBase):
+    """3D(MapLibre)를 손가락으로 — 점묶음의 점을 누르면 팝업이 화면 안에 선다. 최대 폭 320 px 이면 390 px 화면에서
+    MapLibre 가 어느 쪽에 붙여도 넘쳤다(오른쪽으로 85 px, wetherilli 362)"""
+
+    #: 3D 의 첫 화면(`map.on("load")`)을 기다리는 시간. 휴대폰 job 이 이것을 넘겨 가끔 깨졌는데(10/05–06), 느린 러너
+    #: 탓이 아니라 MapLibre 가 늦게 실패한 타일 뒤에 `load` 를 쏘지 않던 것이었다 — 60 초를 줘도 깨졌다. `map3d.js` 가
+    #: 실패마다 다시 그리게 고쳤다. 기다림은 원래대로 두고, 넘기면 까닭을 적는다 (jikhanjung 010)
+    READY_TIMEOUT = 15
+
+    def wait_ready(self, page, started):
+        """3D 가 뜰 때까지. 넘기면 상태·콘솔을 실패 글에 적고, 화면을 열기 시작한 때(`started`)부터 걸린 초는 늘
+        기록에 남긴다 — 다음에 느려지면 견줄 수 있게."""
+        try:
+            page.wait_for_function("window.__gsm3dReady", timeout=self.READY_TIMEOUT * 1000)
+        except PlaywrightTimeout:
+            state = page.evaluate("""() => { const m = window.__gsm3d;
+                return { map: !!m, styleLoaded: m ? m.isStyleLoaded() : null, loaded: m ? m.loaded() : null,
+                         webgl: !!document.createElement("canvas").getContext("webgl") }; }""")
+            self.fail(f"3D 가 {self.READY_TIMEOUT} 초 안에 뜨지 않았다 — 상태 {state}, "
+                      f"콘솔 끝 {getattr(page, 'gsm_console', [])[-8:]}")
+        print(f"\n3D 첫 화면 {time.monotonic() - started:.1f} 초", file=sys.stderr, flush=True)
+
+    def test_늦게_실패한_타일에도_3D_가_뜬다(self):
+        """마지막 타일이 마지막 그리기보다 늦게 실패하면 MapLibre 가 `load` 를 쏘지 않았다 — 실패한 타일은 다시
+        그리기를 부르지 않기 때문이다. 휴대폰 job 이 가끔 깨진 까닭이 이것이었다(`loaded()` 는 참인데 신호가 없다).
+        지형 타일의 실패를 첫 그리기 뒤로 미뤄 그 순서를 늘 만든다 (jikhanjung 010)"""
+        ctx = self.browser.new_context(**PHONE)
+        self.addCleanup(ctx.close)
+        page = ctx.new_page()
+        base = self.live_server_url + "/GSM/"
+        held = []
+
+        def route(r):
+            url = r.request.url
+            rest = url[len(base):] if url.startswith(base) else None
+            if rest is not None and (r.request.resource_type == "document" or rest.startswith(("static/", "pointsets/"))):
+                return r.continue_()
+            if not held and ("terrarium" in url or "/dem/" in url):
+                held.append(url)
+                time.sleep(2.5)     # 동기 API 라 이 사이 다른 요청도 줄을 선다 — 다 함께 늦게 실패한다
+            return r.abort()
+
+        page.route("**/*", route)
+        page.goto(base + "3d/?lat=36.36&lon=127.39&z=12&region=korea", wait_until="load")
+        started = time.monotonic()
+        self.wait_ready(page, started)
+        self.assertTrue(held, "지형 타일을 부르지 않았다 — 시험이 경합을 만들지 못했다")
+
+    def test_점을_누르면_팝업이_화면_안이다(self):
+        from viewer.models import Point, PointSet
+        ps = PointSet.objects.create(name="대전 시료", color="#e4572e")
+        Point.objects.create(pointset=ps, label="시료 1", lat=36.35, lon=127.38,
+                             props={"암석": "화강암", "비고": "설명이 긴 시료라 팝업이 넓어진다 " * 4})
+        started = time.monotonic()
+        page, errors = self.open("3d/?lat=36.36&lon=127.39&z=12&region=korea", settle=3000)
+        self.wait_ready(page, started)
+        page.wait_for_timeout(1500)
+        x, y = page.evaluate("(() => { const p = window.__gsm3d.project([127.38, 36.35]); return [p.x, p.y]; })()")
+        self.assertTrue(0 < x < 390 and 0 < y < 844, "점이 화면 밖이다")
+        page.touchscreen.tap(x, y)
+        page.wait_for_timeout(1000)
+        popup = page.locator(".maplibregl-popup")
+        self.assertEqual(popup.count(), 1, "점을 눌렀는데 팝업이 뜨지 않는다")
+        self.assertIn("화강암", popup.inner_text())
+        box = popup.bounding_box()
+        self.assertGreaterEqual(box["x"], -1, "3D 팝업이 왼쪽으로 넘친다")
+        self.assertLessEqual(box["x"] + box["width"], 391, "3D 팝업이 오른쪽으로 넘친다")
+        self.assertFits(self.measure(page), "3d 팝업")
+        self.assertEqual(errors, [])

@@ -163,3 +163,9 @@ def friendly(props: dict, lang: str = "ko") -> dict:
             out["지질시대"] = value
             break
     return out
+
+
+#: 이 파일이 여는 상류 — `doors.py` 가 모아 views·prewarm·화면의 표를 짓는다 (wetherilli 371)
+REGISTRY = [
+    {"upstream": "dinamige", "tag": "DINAMIGE", "title": "우루과이 광업지질국", "relay": True, "projected": True, "globe": True},
+]

@@ -156,3 +156,9 @@ def friendly(props: dict, lang: str = "ko") -> dict:
             value = i18n.age_ko(value)            # `Statherian 1 (1800-1770 Ma)` 처럼 숫자가 섞이면 원문이다
         out[label] = value
     return out
+
+
+#: 이 파일이 여는 상류 — `doors.py` 가 모아 views·prewarm·화면의 표를 짓는다 (wetherilli 371)
+REGISTRY = [
+    {"upstream": "gtk", "tag": "GTK", "title": "핀란드 지질조사소", "relay": True, "projected": True, "globe": True},
+]

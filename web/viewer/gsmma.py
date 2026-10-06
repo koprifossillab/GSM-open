@@ -678,3 +678,9 @@ def fetch_sensitive(*, gap=2.0, log=None, sleep=None, done=frozenset(), missing=
                 out.append({"kind": "L", "code": code, "name": meta.get("name") or county, "town": town,
                             "date": meta.get("date", ""), "doc": meta.get("doc", ""), "geometry": f.get("geometry")})
             yield key, out
+
+
+#: 이 파일이 여는 상류 — `doors.py` 가 모아 views·prewarm·화면의 표를 짓는다 (wetherilli 371)
+REGISTRY = [
+    {"upstream": "gsmma", "tag": "GSMMA", "title": "대만 지질조사·광업관리중심", "relay": DOOR, "globe": True},
+]

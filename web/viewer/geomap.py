@@ -1036,3 +1036,9 @@ def get_map(params: dict):
 
 def get_legend(layer: str):
     return legend(layer), "image/png"
+
+
+#: 이 파일이 여는 상류 — `doors.py` 가 모아 views·prewarm·화면의 표를 짓는다 (wetherilli 371)
+REGISTRY = [
+    {"upstream": "geomap", "tag": "GeoMAP", "title": "GeoMAP (SCAR)", "relay": True, "ready": available, "local": True},
+]

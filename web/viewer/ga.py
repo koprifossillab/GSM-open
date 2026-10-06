@@ -314,3 +314,9 @@ def extent_legend(name: str, bbox: tuple) -> tuple:
 def legend_row(row: dict, table: dict, lang: str = "ko") -> dict:
     return {"color": table.get(row["value"], "#cccccc"), "symbol": row["value"], "swatch": "",
             "lithology": f"{row['value']} {row['name']}".strip(), "age": history(row["age"], lang)}
+
+
+#: 이 파일이 여는 상류 — `doors.py` 가 모아 views·prewarm·화면의 표를 짓는다 (wetherilli 371)
+REGISTRY = [
+    {"upstream": "ga", "tag": "GA", "title": "Geoscience Australia", "relay": True, "projected": True, "globe": True},
+]

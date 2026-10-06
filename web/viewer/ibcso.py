@@ -585,3 +585,9 @@ def tid_legend(lang: str = "ko") -> dict:
                 for code, (label, rgb) in sorted(TID_CLASSES.items()) if lo <= code < hi]
         groups.append({"name": i18n.t(name, lang), "rows": rows})
     return {"groups": groups, "attribution": ATTRIBUTION}
+
+
+#: 이 파일이 여는 상류 — `doors.py` 가 모아 views·prewarm·화면의 표를 짓는다 (wetherilli 371)
+REGISTRY = [
+    {"upstream": "ibcso", "tag": "IBCSO", "title": "IBCSO"},
+]

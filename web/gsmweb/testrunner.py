@@ -4,6 +4,9 @@
   개발 장비에 자료가 있든 없든 CI 와 같은 판에서 돈다 — 자료가 있어야 하는 시험은 제 임시 자리에 만들어 쓴다
 - 타일 캐시는 **시험마다** 새 빈 디렉터리다 — 앞 시험이 담은 것이 뒤 시험의 캐시 적중이 되지 않게
 - 다 돌고 나서 저장소 안에 새로 생긴 파일이 있으면 깨진다 — 시험이 제 임시 자리 밖에 쓰면 여기서 잡힌다
+- **`tempfile` 의 기본 자리(`TMPDIR`)도 그 임시 자리 안으로 돌린다** — 시험이 `mkdtemp()` 로 만들고 지우지 않은 것이 `/tmp` 에 쌓이지 않고
+  다 돌면 함께 지워진다. 2026-10-06 에 `/tmp` 에 시험이 흘린 것이 31 만 개였고, 정적 판 시험의 것(한 벌 24 MB)만 707 벌 17 GB 였다
+  (koprifossillab 020). 시험이 부르는 하위 프로세스(정적 판 굽기)도 환경변수로 물려받는다
 
 `settings.TEST_RUNNER` 가 이것을 가리킨다. 병렬(`--parallel`)은 fork 로 갈라지므로 여기서 바꾼 것을 일꾼이 물려받는다.
 spawn 으로 뜨는 일꾼을 위해 환경변수에도 적는다.
@@ -23,7 +26,7 @@ from django.test.runner import DiscoverRunner
 REDIRECT = {name: f"GSM_{name}" for name in (
     "MOON_DIR", "CARIBBEAN_DIR", "MARS_DIR", "MERCURY_DIR", "EARTH_DIR", "WIND_DIR", "OCEAN_DIR", "GEOMAP_DIR", "NPOLAR_DIR",
     "USGS_DIR", "PENINSULA_DIR", "IBCSO_DIR", "ADMAP_DIR", "KOPRI_DIR", "TAIWAN_OPEN_DIR", "KIGAM_DATA_DIR", "SGB_DIR",
-    "KIGAM50K_DIR", "VERIFY_DIR", "SARAD_DIR", "TILE_CACHE_DIR")}
+    "KIGAM50K_DIR", "VERIFY_DIR", "SARAD_DIR", "NTGEO_DIR", "TILE_CACHE_DIR")}
 #: 시험이 손대지 않는 설정 — 저장소 자리 자체, 비면 꺼지는 로그
 KEEP = {"BASE_DIR", "REPO_DIR", "LOG_DIR"}
 #: 저장소를 훑을 때 건너뛰는 것 — 바이트코드, git, 다른 세션의 worktree
@@ -56,6 +59,11 @@ class GSMTestRunner(DiscoverRunner):
     def setup_test_environment(self, **kwargs):
         super().setup_test_environment(**kwargs)
         self._root = Path(tempfile.mkdtemp(prefix="gsm-test-"))
+        scratch = self._root / "tmp"
+        scratch.mkdir()
+        self._tmp = (tempfile.tempdir, os.environ.get("TMPDIR"))
+        tempfile.tempdir = str(scratch)
+        os.environ["TMPDIR"] = str(scratch)
         values = {name: str(self._root / name.lower()) for name in REDIRECT}
         for name, env in REDIRECT.items():
             os.environ[env] = values[name]
@@ -78,6 +86,11 @@ class GSMTestRunner(DiscoverRunner):
     def teardown_test_environment(self, **kwargs):
         SimpleTestCase.__call__ = self._call
         self._override.disable()
+        tempfile.tempdir, old = self._tmp
+        if old is None:
+            os.environ.pop("TMPDIR", None)
+        else:
+            os.environ["TMPDIR"] = old
         shutil.rmtree(self._root, ignore_errors=True)
         super().teardown_test_environment(**kwargs)
 

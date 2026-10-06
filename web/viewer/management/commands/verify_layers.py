@@ -5,6 +5,7 @@
     manage.py verify_layers --upstream sgm,sgc    # 그 상류만
     manage.py verify_layers --only geology --redo
     manage.py verify_layers --redo --skip geus    # 멈춘 상류를 빼고 이어 간다
+    manage.py verify_layers --legends             # 타일 대신 보는 범위·목록 범례의 길만 (wetherilli 367)
 
 레이어마다 **그 레이어의 범위 한가운데 칸 하나**를 화면이 받는 꼴 그대로 문으로 받는다 — 꼴은 미리 데우기의 계획(`prewarm.plan_for`)을
 빌린다(3857 WMS·지역 투영 WMS·GSJ z/x/y·INGEMMET 타일 캐시·우리가 굽는 GeoMAP). 받은 것을 셋으로 가른다.
@@ -23,6 +24,11 @@ KIGAM 만은 예전처럼 안 그려지면 `enabled=False` 로 내리고, 그려
 
 끝에 한 번 더 — `/openapi/wms` 가 `GetFeatureInfo` 를 열었는지 찔러본다(`kigam.probe_openapi_feature_info`, 006). 키가 있을 때만.
 `--probe-info` 는 대조를 건너뛰고 이것만 부른다.
+
+**범례 길**(`--legends`, wetherilli 367) — 보는 범위·목록 범례(문마다 갈래가 다른 `…/legend/` 길, 백 남짓)를 화면이 부르는 꼴 그대로 우리 뷰에 묻는다.
+**캐시를 끄고** 묻는다 — 담아 둔 범례가 상류가 깨진 것을 가리지 않게. 칸이 서면 그림, 없으면 다음 자리(타일과 같은 차례), 다 비면 빈 그림이다.
+기록은 같은 날 파일에 `legend:<레이어>` 로 — 타일과 같은 말로 적어 "새로 깨진 것" 이 그대로 견준다. `verified_at` 은 건드리지 않는다.
+그림 범례(GetLegendGraphic 한 길, 오백여)는 길이 하나라 보지 않는다.
 """
 import io
 import math
@@ -35,6 +41,7 @@ from django.core.management.base import BaseCommand, CommandError
 from django.utils import timezone
 
 from django.test import RequestFactory
+from django.test.utils import override_settings
 from django.urls import resolve, reverse
 
 from viewer import ags, bas, elevation, geomap, gsj, ingemmet, kigam, tilegrid, usage, verifylog, views, vworld
@@ -162,6 +169,52 @@ def _call(path: str, **query):
     return response.status_code, response
 
 
+#: 범례 대조의 네모 반너비(°) — 보는 범위 범례는 넓으면 422 라 작게, 그래도 422 면 더 작게 (wetherilli 367)
+LEGEND_HALF = (0.25, 0.05)
+
+
+def legend_rows() -> list:
+    """보는 범위·목록 범례를 내는 레이어의 카탈로그 행 — `[(Layer, 행)]`. 그림 범례(GetLegendGraphic 한 길)와 범례 없는 것은 뺀다"""
+    rows = {l["name"]: l for g in views._catalog("ko") for l in g["layers"]
+            if l.get("legend") in ("extent", "list") and l.get("legendUrl")}
+    return [(layer, rows[layer.name]) for layer in Layer.objects.filter(name__in=list(rows)).order_by("upstream", "name")]
+
+
+def check_legend(layer, row, delay: float) -> tuple:
+    """범례 길 하나를 캐시 없이 — (갈래, 기록). 갈래는 타일과 같은 말(그림·빈 그림·오류)로 적어 `verifylog.diff` 가 그대로 견준다.
+    보는 범위 범례는 자료가 있는 자리(`VERIFY_AT`)·한가운데·네 귀퉁이 쪽 차례로 작은 네모를 묻고, 칸이 하나라도 서면 그만둔다"""
+    path = _base() + row["legendUrl"]
+    if row["legend"] == "list":
+        status, response = _call(path, layer=layer.name)
+        return _legend_kind(status, response, "목록")
+    bbox = tuple(layer.bbox) if layer.bbox else WORLD
+    last = ("빈 그림", "모든 자리에서 칸이 없다")
+    for lon, lat in points(bbox, layer.name):
+        for half in LEGEND_HALF:
+            started = time.monotonic()
+            box = f"{lon - half:.2f},{lat - half:.2f},{lon + half:.2f},{lat + half:.2f}"
+            status, response = _call(path, layer=layer.name, bbox=box)
+            time.sleep(max(0.0, delay - (time.monotonic() - started)))
+            if status != 422:
+                break
+        last = _legend_kind(status, response, box)
+        if last[0] != "빈 그림":
+            return last
+    return last
+
+
+def _legend_kind(status, response, where) -> tuple:
+    import json
+    try:
+        data = json.loads(response.content)
+    except (ValueError, AttributeError):
+        data = {}
+    if status != 200:
+        return "오류", f"{where} {status} {str(data.get('error') or '')[:100]}".strip()
+    n = len(data.get("rows") or []) + int(data.get("more") or 0)
+    return ("그림", f"{where} {n}칸") if n else ("빈 그림", f"{where} 칸이 없다")
+
+
 def _features(response) -> int:
     import json
     try:
@@ -269,12 +322,17 @@ class Command(BaseCommand):
         parser.add_argument("--redo", action="store_true", help="이미 확인한 것도 다시 본다")
         parser.add_argument("--diff", action="store_true",
                             help="대조는 건너뛰고 마지막 기록(<DB 옆>/verify/)에서 앞의 기록보다 새로 깨진 것만 본다")
+        parser.add_argument("--legends", action="store_true",
+                            help="타일 대신 보는 범위·목록 범례의 길만 대조한다 — 캐시를 거치지 않고, 기록은 `legend:<레이어>` 로 (wetherilli 367)")
         parser.add_argument("--probe-info", action="store_true",
                             help="대조는 건너뛰고 /openapi/wms 의 GetFeatureInfo 만 찔러본다")
 
     def handle(self, *args, **o):
         if o["diff"]:
             self._diff()
+            return
+        if o["legends"]:
+            self._legends(o)
             return
         if o["probe_info"]:
             if not kigam.has_key():
@@ -335,6 +393,41 @@ class Command(BaseCommand):
         self._diff()
         if kigam.has_key():
             self._probe_info()
+
+    def _legends(self, o):
+        """범례 길 대조 (wetherilli 367). 타일 대조처럼 상류를 거르고 차단 조짐이면 멈춘다. `verified_at` 은 건드리지 않는다"""
+        pairs = legend_rows()
+        ups = [u.strip() for u in o["upstream"].split(",") if u.strip()]
+        skips = [u.strip() for u in o["skip"].split(",") if u.strip()]
+        pairs = [(l, r) for l, r in pairs if (not ups or l.upstream in ups) and l.upstream not in skips
+                 and (not o["only"] or o["only"].lower() in l.name.lower())]
+        if not pairs:
+            self.stdout.write("대조할 범례가 없다.")
+            return
+        self.stdout.write(f"범례 {len(pairs)}개를 대조한다 — 캐시를 거치지 않는다, 한 번 사이 {o['delay']:g} 초.")
+        table, broken, results = defaultdict(Counter), [], {}
+        # 캐시를 끈다 — 담아 둔 범례가 상류가 깨진 것을 가리지 않게. 문이 안에서 담는 칠하기 규칙(SLD·REST)도 다시 받는다
+        with override_settings(TILE_CACHE_DIR=""):
+            for layer, row in pairs:
+                if views._lab_only(layer.name):
+                    kind, note = "건너뜀", "연구실 내부용 — 밖에 연 판이다"
+                else:
+                    try:
+                        kind, note = check_legend(layer, row, o["delay"])
+                    except Exception as exc:          # 뷰가 놓친 상류 오류 — 한 레이어 때문에 멈추지 않는다
+                        kind, note = "오류", str(exc)[:150]
+                results[f"legend:{layer.name}"] = {"upstream": layer.upstream, "kind": kind, "note": note}
+                table[layer.upstream][kind] += 1
+                if kind in ("빈 그림", "오류"):
+                    broken.append((layer.upstream, layer.name, kind, note))
+                    self.stdout.write(self.style.WARNING(f"  {layer.upstream} {layer.name} — {kind}: {note}"))
+                if usage.paused():
+                    self.stderr.write(self.style.ERROR("차단 조짐 — 멈춘다"))
+                    break
+        self._report(table, broken, set())
+        path = verifylog.record(results)
+        self.stdout.write(f"기록: {path}")
+        self._diff()
 
     def _diff(self):
         """마지막 기록에서 앞의 기록보다 새로 깨진 것과 고쳐진 것 (wetherilli 314)"""

@@ -294,3 +294,10 @@ def arc_friendly(props: dict, lang: str = "ko") -> dict:
 
 
 ARC = _NS(get_map=arc_get_map, get_feature_info=arc_get_feature_info, get_legend=arc_get_legend)
+
+
+#: 이 파일이 여는 상류 — `doors.py` 가 모아 views·prewarm·화면의 표를 짓는다 (wetherilli 371)
+REGISTRY = [
+    {"upstream": "geus", "tag": "GEUS", "title": "덴마크·그린란드 지질조사소", "relay": True, "globe": True},
+    {"upstream": "geusarc", "tag": "GEUS", "title": "덴마크·그린란드 지질조사소", "relay": ARC, "projected": True, "globe": True},
+]

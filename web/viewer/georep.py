@@ -182,3 +182,9 @@ def friendly(props: dict, lang: str = "ko") -> dict:
     if ics:
         out["지질시대"] = i18n.age_ko(ics) if lang == "ko" else ics
     return out
+
+
+#: 이 파일이 여는 상류 — `doors.py` 가 모아 views·prewarm·화면의 표를 짓는다 (wetherilli 371)
+REGISTRY = [
+    {"upstream": "georep", "tag": "NC", "title": "누벨칼레도니 정부 (Géorep)", "relay": True, "projected": True, "globe": True},
+]

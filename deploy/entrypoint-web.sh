@@ -34,6 +34,8 @@ python manage.py migrate --noinput
 
 # 카탈로그가 비어 있으면 저장소에 든 씨앗으로 채운다. 상류를 타지 않는다.
 python manage.py seed_catalog || echo "씨앗을 넣지 못했다 — 화면은 뜬다"
+# 받아 두는 자료원의 명세 — 운영에 없는 id 만 덧붙인다 (jikhanjung P02)
+python manage.py sources_seed || echo "자료원 명세를 놓지 못했다 — 화면은 뜬다"
 
 # ── 기록 ──────────────────────────────────────────────────────────────
 # 판을 다시 띄우면 docker logs 가 사라진다 — 붙은 자리(DB 옆)에 하루 한 장씩 남긴다. 30 일, 하루 한 장 50 MB 까지 (wetherilli 351)

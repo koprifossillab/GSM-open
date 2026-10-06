@@ -120,3 +120,9 @@ def probe_tile(url: str):
     """화면이 곧장 부르는 타일 한 장을 대조가 받아 본다 (`verify_layers`, wetherilli 311). (상태, content-type, 바이트)"""
     r = _get(url, {})
     return r.status_code, r.headers.get("content-type", ""), r.content
+
+
+#: 이 파일이 여는 상류 — `doors.py` 가 모아 views·prewarm·화면의 표를 짓는다 (wetherilli 371)
+REGISTRY = [
+    {"upstream": "bas", "tag": "BAS", "title": "영국 남극조사소"},
+]

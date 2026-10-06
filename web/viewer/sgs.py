@@ -221,3 +221,9 @@ def friendly(props: dict, lang: str = "ko") -> dict:
             ("암석", _value(props, "Main_Litho")), ("지질시대", i18n.age_ko(period) if lang == "ko" and period else period),
             ("연대", _value(props, "Age_Ma")), ("지구조 구역", terrane), ("도폭", _value(props, "Map_Name")))
     return {k: v for k, v in rows if v}
+
+
+#: 이 파일이 여는 상류 — `doors.py` 가 모아 views·prewarm·화면의 표를 짓는다 (wetherilli 371)
+REGISTRY = [
+    {"upstream": "sgs", "tag": "SGS", "title": "사우디 지질조사소", "relay": True, "projected": True, "globe": True},
+]

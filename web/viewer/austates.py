@@ -292,10 +292,17 @@ GSSA_LAYERS = {
     "gssa:grav": ("grav", None, False),
     "gssa:grav_1vd": ("grav_1vd", None, False),
     "gssa:rad_rgb": ("rad_rgb", None, False),
+    # 방사능 원소별 낱장과 총계수 (wetherilli 366) — 원소별은 받아 둔 농도 격자로 누른다. 총계수는 격자를 받지 않아 누르지 않는다
+    "gssa:rad_k": ("rad_k", None, False),
+    "gssa:rad_th": ("rad_th", None, False),
+    "gssa:rad_u": ("rad_u", None, False),
+    "gssa:rad_tc": ("rad_tc", None, False),
 }
 #: 지구물리 영상 레이어 — 주소가 다르다
-SARAD_LAYER = "gssa:rad_rgb"
-GSSA_IMAGERY = ("gssa:tmi_rtp", "gssa:tmi_rtp_1vd", "gssa:tmi_tilt", "gssa:grav", "gssa:grav_1vd", "gssa:rad_rgb")
+#: 받아 둔 농도 격자(`sarad.py`)로 누르는 레이어 → 앞에 세울 원소(삼색은 차례 그대로)
+SARAD_LAYERS = {"gssa:rad_rgb": None, "gssa:rad_k": "k", "gssa:rad_th": "th", "gssa:rad_u": "u"}
+GSSA_IMAGERY = ("gssa:tmi_rtp", "gssa:tmi_rtp_1vd", "gssa:tmi_tilt", "gssa:grav", "gssa:grav_1vd", "gssa:rad_rgb",
+                "gssa:rad_k", "gssa:rad_th", "gssa:rad_u", "gssa:rad_tc")
 #: 뉴사우스웨일스 GSNSW(wetherilli 318) — 광물 산지(EarthResourceML 라이트)·광산. 지질도는 이 GeoServer 에 없다
 GSNSW_ATTRIBUTION = ('<a href="https://www.regional.nsw.gov.au/meg/geoscience" target="_blank" rel="noopener">'
                      '© State of New South Wales</a> (Geological Survey of NSW, CC BY 4.0)')
@@ -368,8 +375,11 @@ def _clicked_lonlat(params: dict):
 def _gs_get_feature_info(upstream: str, params: dict) -> dict:
     url, layers, columns = _gs(upstream)
     name = _one(params, layers, "query_layers", "layers")
-    if name == SARAD_LAYER:
+    if name in SARAD_LAYERS:
         props = sarad.value_at(*reversed(_clicked_lonlat(params)))
+        first = SARAD_LAYERS[name] and sarad.ELEMENTS[SARAD_LAYERS[name]][2]
+        if first in props:                  # 원소 낱장이면 그 원소를 앞에 — 나머지 둘도 곁에 둔다
+            props = {first: props[first], **{k: v for k, v in props.items() if k != first}}
         return {"features": [{"id": "sarad.0", "properties": props}] if props else []}
     params = dict(params, service="WMS", request="GetFeatureInfo", layers=layers[name][0], query_layers=layers[name][0],
                   styles="", info_format="application/json", feature_count=3, propertyName=LAYER_PROPERTIES.get(name, columns))
@@ -576,7 +586,7 @@ NO_LEGEND = ("mrt:250k", "mrt:25k")
 
 
 def queryable(upstream: str, name: str) -> bool:
-    if name == SARAD_LAYER:
+    if name in SARAD_LAYERS:
         return sarad.available()
     spec = UPSTREAMS[upstream][1][name]
     if upstream == "mrt":
@@ -585,7 +595,7 @@ def queryable(upstream: str, name: str) -> bool:
 
 
 def is_unit(upstream: str, name: str) -> bool:
-    return queryable(upstream, name) and name not in RESOURCES and name not in NO_LEGEND and name != SARAD_LAYER
+    return queryable(upstream, name) and name not in RESOURCES and name not in NO_LEGEND and name not in SARAD_LAYERS
 
 
 def extent_legend(upstream: str, name: str, bbox: tuple, lang: str = "ko") -> list:
@@ -624,3 +634,13 @@ def knows(upstream: str, name: str) -> bool:
 def first_zoom(upstream: str, name: str):
     spec = UPSTREAMS[upstream][1][name]
     return spec[2] if upstream in ("gsq", "mrt") else spec[1]
+
+
+#: 이 파일이 여는 상류 — `doors.py` 가 모아 views·prewarm·화면의 표를 짓는다 (wetherilli 371)
+REGISTRY = [
+    {"upstream": "gsnsw", "tag": "GSNSW", "title": "뉴사우스웨일스 지질조사소", "relay": GSNSW, "projected": True, "globe": True},
+    {"upstream": "gsq", "tag": "GSQ", "title": "퀸즐랜드 지질조사소", "relay": GSQ, "projected": True, "globe": True},
+    {"upstream": "gssa", "tag": "GSSA", "title": "남호주 지질조사소", "relay": GSSA, "projected": True, "globe": True},
+    {"upstream": "gsv", "tag": "GSV", "title": "빅토리아 지질조사소", "relay": GSV, "projected": True, "globe": True},
+    {"upstream": "mrt", "tag": "MRT", "title": "태즈메이니아 광물자원청", "relay": TAS, "projected": True, "globe": True},
+]

@@ -27,6 +27,8 @@
   var I18N = JSON.parse((document.getElementById("i18n-data") || {}).textContent || "{}");
   // 화면이 주소를 짓는 우리 타일의 판 (wetherilli 183) — `?v=` 를 붙이면 서버가 길게(immutable) 캐시하게 한다. 판이 바뀌면 주소가 바뀐다
   var TILE_V = JSON.parse((document.getElementById("tile-versions") || {}).textContent || "{}");
+  //: 상류 이름 -> [딱지, 기관 이름(한국어 원문), 투영으로 받나] — 문마다 제 파일의 `REGISTRY` 가 적는다(`doors.py`, wetherilli 371)
+  var UPSTREAMS = JSON.parse((document.getElementById("upstreams") || {}).textContent || "{}");
   function vq(kind) { return TILE_V[kind] ? "?v=" + TILE_V[kind] : ""; }
 
   function T(text, vars) {
@@ -1081,12 +1083,11 @@
   //: 타일 레이어를 짓는 손 — **상류마다 하나다.** 상류가 주는 꼴이 달라서다
   //  (KIGAM·GEUS·VWorld 는 WMS, GeoMAP 은 우리가 구운 타일). `info` 가 없으면 그
   //  레이어는 눌러도 속성을 묻지 않는다. 벡터·점(`kind`)은 `makeLayer` 가 따로 짓는다
-  //  — 그린란드 포털(grportal)이 그렇다. 상류가 새로 오면 여기 한 줄을 더한다.
+  //  — 그린란드 포털(grportal)이 그렇다. 카탈로그 행의 투영으로 문을 거쳐 받는 상류(`npolarSource`)는 여기 적지 않는다 —
+  //  문의 `REGISTRY` 에 `projected` 를 적으면 `layerKind` 가 그 손을 쓴다(wetherilli 371). 손이 다른 상류만 여기 한 줄을 더한다.
   var LAYER_KINDS = {
     kigam: { source: wmsSource, info: wmsInfoUrl },
     geus: { source: wmsSource, info: wmsInfoUrl },
-    // GEUS 의 ArcGIS — 자력 편찬·DTU 부게 중력·지질구(wetherilli 259). 카탈로그 행의 투영(3413)으로
-    geusarc: { source: npolarSource, info: wmsInfoUrl },
     vworld: { source: wmsSource, info: wmsInfoUrl },
     geomap: { source: geomapSource, info: geomapInfoUrl },
     grportal: { source: null, info: null },
@@ -1101,11 +1102,10 @@
     sim3534: { source: gsjSource, info: sim3534InfoUrl },
     stri: { source: null, info: null },       // 파나마 — STRI 면·단층 한 덩이씩 (wetherilli 253)
     vmme: { source: null, info: null },       // 파라과이 — VMME 면 한 덩이 (wetherilli 256)
+    ntgs: { source: null, info: null },       // 노던테리토리 — 열린자료 셰이프를 한 덩이로 (wetherilli 361)
     npolar: { source: npolarSource, info: wmsInfoUrl },
     // 극지연구소 KPDC 지도 서버(057) — NPI 처럼 3031 로 곧장 받는다
     kopri: { source: npolarSource, info: wmsInfoUrl },
-    // PGC 경사·등고선(wetherilli 099) — NPI 처럼 지역의 투영으로 곧장 받는다. 누르면 그 자리의 값
-    pgc: { source: npolarSource, info: wmsInfoUrl },
     gsj: { source: gsjSource, info: gsjInfoUrl },
     // 지질도Navi 판(wetherilli 171) — 브라우저가 tiles.gsj.jp 를 곧장. 속성은 없다(그림 판이다)
     geonavi: { source: geonaviSource, info: null },
@@ -1118,105 +1118,12 @@
     gsjows: { source: function (name) { return (byName[name] || {}).tiles ? geonaviSource(name) : wmsSource(name); }, info: wmsInfoUrl },
     // 대만 지질도(wetherilli 136) — 4326 WMS. 속성은 서버의 문(gsmma.py)이 지질운 API 로 바꿔 묻는다
     gsmma: { source: taiwanSource, info: wmsInfoUrl },
-    // EMODnet 해저 지질(wetherilli 135) — NPI 처럼 3413 으로 곧장 받는다
-    emodnet: { source: npolarSource, info: wmsInfoUrl },
-    // 노르웨이 NGU(3575)·핀란드 GTK(3413) 기반암(wetherilli 140) — 카탈로그 행의 투영으로 받는다
-    ngu: { source: npolarSource, info: wmsInfoUrl },
-    gtk: { source: npolarSource, info: wmsInfoUrl },
-    // 스웨덴 SGU(wetherilli 213) — GeoServer 가 3413 을 그린다. 레이어 하나가 1:100만·5만 판을 함께 부른다
-    sgu: { source: npolarSource, info: wmsInfoUrl },
-    // 영국 BGS·프랑스 BRGM·범유럽 EGDI(wetherilli 143) — 3857 이지만 출처를 카탈로그 행에서 받으려고 같은 틀을 쓴다
-    bgs: { source: npolarSource, info: wmsInfoUrl },
-    // 영국 GeoIndex — 자력·중력·광산·광물 산지(wetherilli 258)
-    bgsgi: { source: npolarSource, info: wmsInfoUrl },
-    brgm: { source: npolarSource, info: wmsInfoUrl },
-    egdi: { source: npolarSource, info: wmsInfoUrl },
-    // 독일 BGR·스페인 IGME(1:100만은 4326)·아일랜드 GSI·북아일랜드 GSNI(wetherilli 147) — 카탈로그 행의 투영으로 받는다
-    bgr: { source: npolarSource, info: wmsInfoUrl },
-    igme: { source: npolarSource, info: wmsInfoUrl },
-    gsi: { source: npolarSource, info: wmsInfoUrl },
-    gsni: { source: npolarSource, info: wmsInfoUrl },
-    // 남미·콜롬비아 SGC(wetherilli 188) — ArcGIS WMS 를 3857 로
-    sgc: { source: npolarSource, info: wmsInfoUrl },
-    // 아르헨티나·우루과이(wetherilli 196) — 유럽 문처럼 카탈로그 행의 투영(3857)으로 서버 문을 거쳐 받는다
-    segemar: { source: npolarSource, info: wmsInfoUrl },
-    dinamige: { source: npolarSource, info: wmsInfoUrl },
-    // 브라질 SGB(wetherilli 191) — GeoServer WMS 를 3857 로. 범례는 보는 범위의 것(`sgb/legend/`)
-    sgb: { source: npolarSource, info: wmsInfoUrl },
     // 페루 INGEMMET(wetherilli 195) — 우리 서버가 중계하는 REST 캐시의 z/x/y. 그리는 손은 일본의 것과 같다
     ingemmet: { source: gsjSource, info: ingemmetInfoUrl },
-    // 에콰도르 IIGE(wetherilli 198) — ArcGIS WMS 를 3857 로
-    iige: { source: npolarSource, info: wmsInfoUrl },
-    // 미국 USGS mrdata(wetherilli 205) — MapServer WMS 를 3857 로. 본토의 속성은 서버가 WFS 로 바꿔 묻는다
-    mrdata: { source: npolarSource, info: wmsInfoUrl },
-    // 멕시코 SGM(wetherilli 206) — 화면에는 3857 WMS 와 같다. 서버의 문이 REST export·identify 로 옮긴다
-    sgm: { source: npolarSource, info: wmsInfoUrl },
-    // 아프리카(wetherilli 207) — 카탈로그 행의 투영(3857)으로 서버 문을 거쳐 받는다
-    cgmw: { source: npolarSource, info: wmsInfoUrl },
-    aga: { source: npolarSource, info: wmsInfoUrl },
-    // 아프리카 나라 판(wetherilli 209) — 남아공 CGS(서버가 REST export 로 옮긴다)·나미비아 GSN
-    cgs: { source: npolarSource, info: wmsInfoUrl },
-    gsn: { source: npolarSource, info: wmsInfoUrl },
-    // 부르키나파소 BUMIGEB(BGS)·카메룬 IRGM(BRGM, 4326 으로 받아 옮겨 그린다) 1:100만 (wetherilli 246)
-    bumigeb: { source: npolarSource, info: wmsInfoUrl },
-    irgm: { source: npolarSource, info: wmsInfoUrl },
-    // 캐나다 NRCan·온타리오 OGS(wetherilli 204) — 카탈로그 행의 투영(3978)으로 서버 문을 거쳐 받는다. OGS 속성은 문이 REST identify 로 바꾼다
-    nrcan: { source: npolarSource, info: wmsInfoUrl },
-    ogs: { source: npolarSource, info: wmsInfoUrl },
-    // 퀘벡 SIGÉOM·유콘 YGS(wetherilli 210) — 카탈로그 행의 투영(3978)으로 서버 문을 거쳐 받는다. 퀘벡은 Origin 을 보내면 403 이라 문으로만
-    sigeom: { source: npolarSource, info: wmsInfoUrl },
-    ygs: { source: npolarSource, info: wmsInfoUrl },
-    // 사스카치원(WMS)·노바스코샤(문이 REST export 로)는 3978 로, 앨버타는 ArcGIS Online 의 3857 타일을 곧장 받아 옮겨 그린다 (wetherilli 235)
-    skgs: { source: npolarSource, info: wmsInfoUrl },
-    nsgs: { source: npolarSource, info: wmsInfoUrl },
+    // 앨버타 — ArcGIS Online 의 3857 타일을 곧장 받아 옮겨 그린다 (wetherilli 235)
     ags: { source: gsiTileSource, info: pointInfoUrl },
     // 남극 Bedmap3(wetherilli 261) — BAS 의 Esri 극 격자 타일을 곧장. 누르기는 없다
     bas: { source: esriGridSource, info: null },
-    // 호주 GA(wetherilli 212) — ArcGIS WMS 를 3857 로. 범례는 보는 범위의 것(`ga/legend/`)
-    ga: { source: npolarSource, info: wmsInfoUrl },
-    // 호주의 주 판(wetherilli 225) — 퀸즐랜드(REST export 를 문이 옮긴다)·빅토리아·남호주, 모두 3857
-    gsq: { source: npolarSource, info: wmsInfoUrl },
-    gsv: { source: npolarSource, info: wmsInfoUrl },
-    gssa: { source: npolarSource, info: wmsInfoUrl },
-    // 태즈메이니아(theLIST REST, 문이 옮긴다)·뉴사우스웨일스 광물(wetherilli 318) — 3857
-    mrt: { source: npolarSource, info: wmsInfoUrl },
-    gsnsw: { source: npolarSource, info: wmsInfoUrl },
-    // 이탈리아 ISPRA·포르투갈 LNEG·스위스 swisstopo(wetherilli 211) — 유럽 문처럼 카탈로그 행의 투영(3857)으로 서버 문을 거친다
-    ispra: { source: npolarSource, info: wmsInfoUrl },
-    lneg: { source: npolarSource, info: wmsInfoUrl },
-    swisstopo: { source: npolarSource, info: wmsInfoUrl },
-    // 아이슬란드 NÍ(wetherilli 216) — 카탈로그 행의 투영(3413)으로 서버 문을 거쳐 받는다
-    natt: { source: npolarSource, info: wmsInfoUrl },
-    // 뉴질랜드·남빅토리아랜드 GNS(wetherilli 218) — 카탈로그 행의 투영(3857·3031)으로 서버 문을 거쳐 받는다
-    gns: { source: npolarSource, info: wmsInfoUrl },
-    // 몽골 MonGeoCat(wetherilli 221) — 카탈로그 행의 투영(3857)으로 서버 문을 거친다. 범례는 목록(`mris/legend/`)
-    mris: { source: npolarSource, info: wmsInfoUrl },
-    // 인도 GSI(wetherilli 226) — 그림은 BGS WMS(3857), 누른 자리는 서버 문이 GSI 피처 서비스로 옮긴다
-    gsiindia: { source: npolarSource, info: wmsInfoUrl },
-    // 사우디 SGS(wetherilli 227) — 카탈로그 행의 투영(3857)으로 서버 문을 거친다. 범례는 보는 범위의 것(`sgs/legend/`)
-    sgs: { source: npolarSource, info: wmsInfoUrl },
-    // 동남아(wetherilli 228) — 카탈로그 행의 투영(3857)으로 서버 문을 거친다. 말레이시아는 문이 REST export 로 옮긴다
-    // 브리티시컬럼비아 BCGS·캘리포니아 CGS(wetherilli 231) — 카탈로그 행의 투영(3978)으로 서버 문을 거친다
-    // 오스트리아·폴란드·네덜란드·벨기에(wetherilli 237) — 카탈로그 행의 투영(3857)으로 서버 문을 거친다
-    // 니카라과 INETER(wetherilli 242) — 카탈로그 행의 투영(3857)으로 서버 문을 거친다
-    ineter: { source: npolarSource, info: wmsInfoUrl },
-    georep: { source: npolarSource, info: wmsInfoUrl },     // 누벨칼레도니 — 속성은 문이 REST identify 로 (wetherilli 260)
-    geosphere: { source: npolarSource, info: wmsInfoUrl },
-    pig: { source: npolarSource, info: wmsInfoUrl },
-    tno: { source: npolarSource, info: wmsInfoUrl },
-    dov: { source: npolarSource, info: wmsInfoUrl },
-    spw: { source: npolarSource, info: wmsInfoUrl },
-    bcgs: { source: npolarSource, info: wmsInfoUrl },
-    calgs: { source: npolarSource, info: wmsInfoUrl },
-    // 네바다·워싱턴·오리건(wetherilli 291) — 캘리포니아와 같은 길
-    nbmg: { source: npolarSource, info: wmsInfoUrl },
-    wadnr: { source: npolarSource, info: wmsInfoUrl },
-    dogami: { source: npolarSource, info: wmsInfoUrl },
-    dggs: { source: npolarSource, info: wmsInfoUrl },
-    esdm: { source: npolarSource, info: wmsInfoUrl },
-    jmg: { source: npolarSource, info: wmsInfoUrl },
-    mgb: { source: npolarSource, info: wmsInfoUrl },
-    dmr: { source: npolarSource, info: wmsInfoUrl },
     phyloserver: { source: phyloserverSource, info: null },
     peninsula: { source: peninsulaSource, info: null },
     // 남극 IBCSO 자료 출처(071) — GeoMAP 과 같은 3031 격자에 우리가 잘라 둔 것
@@ -1236,7 +1143,8 @@
       var kinds = window.GSM_STATIC_KINDS || {};
       if (kinds[up]) return kinds[up];
     }
-    return LAYER_KINDS[up] || LAYER_KINDS.kigam;
+    if (LAYER_KINDS[up]) return LAYER_KINDS[up];
+    return (UPSTREAMS[up] || [])[2] ? { source: npolarSource, info: wmsInfoUrl } : LAYER_KINDS.kigam;
   }
 
   /** 정적 판에 구워 실은 것(`bake_static`, wetherilli 160·165) — `static_site.py` 가 manifest 에서 옮겨 적는다.
@@ -2699,41 +2607,9 @@
   // 같은 상류가 이어지는 줄은 딱지 밑으로 줄을 그어 묶는다(어느 레이어가 어느 기관 것인지 한눈에). 레이어군 머리에는
   // "모두 켜기" — 그 군을 다 켜고, 다 켜져 있으면 "모두 끄기" 가 된다.
 
-  //: 상류의 짧은 이름 — 기관 이름이라 옮기지 않는다
-  var UPSTREAM_TAGS = {
-    kigam: "KIGAM", vworld: "VWorld", geus: "GEUS", geusarc: "GEUS", grportal: "GRL", npolar: "NPI", janmayen: "NPI",
-    gsj: "GSJ", gsitile: "GSIJ", geonavi: "GSJ", gsjows: "GSJ", ccop: "CCOP", gsmma: "GSMMA", emodnet: "EMOD", ngu: "NGU", gtk: "GTK", sgu: "SGU", natt: "NÍ", bgs: "BGS", bgsgi: "BGS", brgm: "BRGM", egdi: "EGDI", bgr: "BGR", igme: "IGME", gsi: "GSI", gsni: "GSNI", sgc: "SGC", sgb: "SGB", ingemmet: "INGEMMET", iige: "IIGE", cgmw: "CGMW", aga: "BGS", cgs: "CGS", gsn: "GSN", bumigeb: "BUMIGEB", irgm: "IRGM", mrdata: "USGS", sgm: "SGM", nrcan: "NRCan", ogs: "OGS", sigeom: "SIGÉOM", ygs: "YGS", skgs: "SGS-SK", nsgs: "NSNRR", ags: "AGS", bcgs: "BCGS", calgs: "CGS", nbmg: "NBMG", wadnr: "WGS", dogami: "DOGAMI", dggs: "DGGS", geosphere: "GSA", georep: "NC", ineter: "INETER", usgscarib: "USGS", bas: "BAS", sim3534: "USGS", stri: "STRI", vmme: "VMME", pig: "PIG", tno: "TNO", dov: "DOV", spw: "SPW", ga: "GA", gsq: "GSQ", gsv: "GSV", gssa: "GSSA", mrt: "MRT", gsnsw: "GSNSW", gns: "GNS", mris: "NGS", gsiindia: "GSI-IN", sgs: "SGS", esdm: "ESDM", jmg: "JMG", mgb: "MGB", dmr: "DMR", ispra: "ISPRA", lneg: "LNEG", swisstopo: "swisstopo", segemar: "SEGEMAR", dinamige: "DINAMIGE", geomap: "GeoMAP", geo3al: "USGS", kopri: "KOPRI", pgc: "PGC", ibcso: "IBCSO", admap: "ADMAP",
-    phyloserver: "LAB", peninsula: "LAB",
-    // 지구 자료 점(wetherilli 185) — 기관이 넷이라 딱지는 하나로 두고 이름은 레이어 제목이 적는다
-    earth: "EARTH",
-    kigam50k: "KIGAM",
-  };
-  var UPSTREAM_NAMES = {
-    kigam: T("한국지질자원연구원"), vworld: T("브이월드(국토교통부)"), geus: T("덴마크·그린란드 지질조사소"), geusarc: T("덴마크·그린란드 지질조사소"), grportal: T("그린란드 정부 포털"),
-    npolar: T("노르웨이 극지연구소"), janmayen: T("노르웨이 극지연구소"), gsj: T("일본 지질조사종합센터"), gsitile: T("일본 국토지리원"), gsjows: T("일본 지질조사종합센터"), geonavi: T("일본 지질조사종합센터"), ccop: "CCOP",
-    gsmma: T("대만 지질조사·광업관리중심"),
-    emodnet: "EMODnet Geology",
-    ngu: T("노르웨이 지질조사소"), gtk: T("핀란드 지질조사소"), sgu: T("스웨덴 지질조사소"),
-    bgs: T("영국 지질조사소"), bgsgi: T("영국 지질조사소"), brgm: T("프랑스 지질광물조사소"), egdi: "EGDI (EuroGeoSurveys)",
-    bgr: T("독일 연방 지구과학·자원청"), igme: T("스페인 지질광물연구소"), gsi: T("아일랜드 지질조사소"),
-    sgc: T("콜롬비아 지질조사소"), sgb: T("브라질 지질조사소"), ingemmet: T("페루 지질광업야금연구소"), iige: T("에콰도르 지질·에너지 연구소"), mrdata: T("미국 지질조사국"), sgm: T("멕시코 지질조사소"),
-    nrcan: T("캐나다 천연자원부"), ogs: T("온타리오 지질조사소"), sigeom: T("퀘벡 지질 광업 정보 체계"), ygs: T("유콘 지질조사소"), bcgs: T("브리티시컬럼비아 지질조사소"),
-    georep: T("누벨칼레도니 정부 (Géorep)"),
-    ineter: T("니카라과 국토연구원 (INETER)"), usgscarib: T("미국 지질조사국"), bas: T("영국 남극조사소"), sim3534: T("미국 지질조사국"), stri: T("스미스소니언 열대연구소 (STRI)"), vmme: T("파라과이 광업·에너지 차관실 (VMME)"), geosphere: "GeoSphere Austria", pig: T("폴란드 지질연구소 (PIG-PIB)"), tno: T("네덜란드 지질조사부 (TNO)"), dov: T("플랑드르 지하 자료은행 (DOV)"), spw: T("왈로니아 공공서비스 (SPW)"), calgs: T("캘리포니아 지질조사소"), nbmg: T("네바다 광산지질국"), wadnr: T("워싱턴 지질조사소"), dogami: T("오리건 지질광물산업부"), dggs: T("알래스카 지질·지구물리조사소"),
-    skgs: T("사스카치원 지질조사소"), nsgs: T("노바스코샤 자연자원·재생에너지부"), ags: T("앨버타 지질조사소"),
-    ispra: T("이탈리아 지질조사소 (ISPRA)"), lneg: T("포르투갈 국립 에너지·지질연구소"), swisstopo: T("스위스 연방 지형청"), natt: T("아이슬란드 자연사연구소"), gns: T("뉴질랜드 지질·핵과학연구소 (GNS)"), mris: T("몽골 국가지질조사소 (MonGeoCat)"), gsiindia: T("인도 지질조사소 (그림: BGS)"), sgs: T("사우디 지질조사소"),
-    esdm: T("인도네시아 지질청 (ESDM)"), jmg: T("말레이시아 광물지구과학국"), mgb: T("필리핀 광산지질국"), dmr: T("태국 광물자원국"),
-    segemar: T("아르헨티나 지질광업조사소"), dinamige: T("우루과이 광업지질국"),
-    cgmw: T("세계지질도위원회·프랑스 지질광물조사소"), aga: T("영국 지질조사소 — 아프리카 지하수 지도책"),
-    cgs: T("남아프리카공화국 지질조사소"), gsn: T("나미비아 지질조사소"), bumigeb: T("부르키나파소 지질광업국"), irgm: T("카메룬 지질광업연구소"), ga: "Geoscience Australia",
-    gsq: T("퀸즐랜드 지질조사소"), gsv: T("빅토리아 지질조사소"), gssa: T("남호주 지질조사소"),
-    mrt: T("태즈메이니아 광물자원청"), gsnsw: T("뉴사우스웨일스 지질조사소"),
-    gsni: T("북아일랜드 지질조사소"),
-    geomap: "GeoMAP (SCAR)", geo3al: T("미국 지질조사국"), kopri: T("극지연구소"), pgc: T("미네소타대 극지공간정보센터"),
-    ibcso: "IBCSO", admap: "ADMAP-2", phyloserver: T("연구실 자료"), peninsula: T("연구실 자료"),
-    earth: T("온 지구 화면에 모아 둔 자료 — PBDB·GVP·USGS·Neotoma"),
-    kigam50k: T("한국지질자원연구원 5만 수치지질도"),
-  };
+  //: 상류의 짧은 이름(기관 이름이라 옮기지 않는다)과 기관 이름 — 문의 `REGISTRY` 에서 온다(wetherilli 371)
+  function upstreamTag(up) { return (UPSTREAMS[up] || [])[0] || up.toUpperCase(); }
+  function upstreamName(up) { var title = (UPSTREAMS[up] || [])[1]; return title ? T(title) : up; }
 
   function upstreamOf(name) { return (byName[name] && byName[name].upstream) || "kigam"; }
   function isOn(name) { return active.some(function (e) { return e.name === name; }); }
@@ -2772,8 +2648,8 @@
       var tag = document.createElement("span");
       tag.className = "up up-" + up + (tie ? " tie" : "") + (last ? " end" : "") + (lead ? " lead" : "");
       if (!tie) {
-        tag.textContent = UPSTREAM_TAGS[up] || up.toUpperCase();
-        tag.title = UPSTREAM_NAMES[up] || up;
+        tag.textContent = upstreamTag(up);
+        tag.title = upstreamName(up);
       }
 
       var label = document.createElement("span");
@@ -2892,7 +2768,7 @@
       var spec = REGIONS[where];
       group.layers.forEach(function (layer) {
         var up = layer.upstream || "kigam";
-        var text = [layer.title, layer.alt, layer.abstract, layer.name, up, UPSTREAM_TAGS[up], UPSTREAM_NAMES[up],
+        var text = [layer.title, layer.alt, layer.abstract, layer.name, up, upstreamTag(up), upstreamName(up),
                     group.name, spec && spec.title, spec && T(spec.title)].join(" ").toLowerCase();
         findIndex.push({ layer: layer, region: where, group: group.name, text: text });
       });
@@ -2942,8 +2818,8 @@
       if (layer.abstract) row.title = layer.abstract;
       var tag = document.createElement("span");
       tag.className = "up up-" + up;
-      tag.textContent = UPSTREAM_TAGS[up] || up.toUpperCase();
-      tag.title = UPSTREAM_NAMES[up] || up;
+      tag.textContent = upstreamTag(up);
+      tag.title = upstreamName(up);
       var label = document.createElement("span");
       label.className = "layer-name";
       label.textContent = layer.title;

@@ -8,7 +8,7 @@
 #
 # 바뀌는 빠르기대로 넷으로 가른다 — 한 tar 에 다 넣으면 주 2.7 GB 가운데 2.6 GB 가 안 바뀐 것이다.
 #   ① 주간 tar   /data/GSM/backups/GSM.<YYYYMMDD>.tar.gz — 다시 못 얻는 것. 모두 둔다
-#                GSM.db(sqlite 사본) · 스위치(dev_direct_wms·public, 있으면) · kopri/ · kigam50k/ · earth/pbdb_collections.csv(있으면)
+#                GSM.db(sqlite 사본) · 스위치(dev_direct_wms·public, 있으면) · kopri/ · kigam50k/ · sources.json·sources_history/(자료원 명세, jikhanjung P02) · earth/pbdb_collections.csv(있으면)
 #                · docker-compose.yml · manifest-built.txt(② 의 목록, sha256)
 #   ② 구운 것    /data/GSM/backups/GSM-built.<YYYYMMDD>.tar — db/ 의 나머지. **목록이 지난번과 다를 때만** 뜬다.
 #                압축하지 않는다(webp·tif 가 대부분). 30 일까지 전부, 그 뒤 달마다 가장 새 것 하나
@@ -51,7 +51,7 @@ MODE=${1:-all}
 SECRETS='^\./(kigam_key|vworld_key|secret_key|geus_whoami|allowed_hosts|backup_status\.json|hourly_status\.json|wind/gfs/.*|wind/gmgsi/.*|earth/quakes_recent\.json|logs/.*)$'
 # ① 에 드는 것. ② 의 목록에서 뺀다. pbdb.sqlite 는 CSV 로 다시 굽는다. 스위치 파일을 ② 에 두면 켜고 끌 때마다
 # 1.4 GB 를 새로 뜬다
-WEEKLY='^\./(GSM\.db.*|dev_direct_wms|public|kopri/.*|kigam50k/.*|earth/pbdb_collections\.csv|earth/pbdb\.sqlite)$'
+WEEKLY='^\./(GSM\.db.*|dev_direct_wms|public|kopri/.*|kigam50k/.*|sources\.json|sources_history/.*|earth/pbdb_collections\.csv|earth/pbdb\.sqlite)$'
 
 case "$MODE" in all|--backup-only|--no-fetch) ;; *) echo "모르는 선택: $MODE" >&2; exit 2 ;; esac
 
@@ -134,7 +134,7 @@ dst.close(); src.close()
 EOF
 cp "$COMPOSE" "$STAGE/docker-compose.yml" || fail "compose 를 못 읽었다"
 extra=()
-for p in dev_direct_wms public kopri kigam50k earth/pbdb_collections.csv; do [ -e "$DB/$p" ] && extra+=("$p"); done
+for p in dev_direct_wms public kopri kigam50k sources.json sources_history earth/pbdb_collections.csv; do [ -e "$DB/$p" ] && extra+=("$p"); done
 
 ARCHIVE=$BACKUPS/GSM.$DAY.tar.gz
 args=(-C "$STAGE" GSM.db docker-compose.yml manifest-built.txt)

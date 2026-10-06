@@ -454,3 +454,9 @@ def units_along(name: str, points: list, lang: str = "ko") -> list:
         else:
             out.append(None)
     return out
+
+
+#: 이 파일이 여는 상류 — `doors.py` 가 모아 views·prewarm·화면의 표를 짓는다 (wetherilli 371)
+REGISTRY = [
+    {"upstream": "geo3al", "tag": "USGS", "title": "미국 지질조사국"},
+]

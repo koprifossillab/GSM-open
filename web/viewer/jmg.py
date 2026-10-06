@@ -157,3 +157,9 @@ def friendly(props: dict, lang: str = "ko") -> dict:
             ("지질시대", i18n.age_ko(age) if lang == "ko" and age else age),
             ("주", _value(props, "STATE") or _value(props, "NAM")))
     return {k: v for k, v in rows if v}
+
+
+#: 이 파일이 여는 상류 — `doors.py` 가 모아 views·prewarm·화면의 표를 짓는다 (wetherilli 371)
+REGISTRY = [
+    {"upstream": "jmg", "tag": "JMG", "title": "말레이시아 광물지구과학국", "relay": True, "projected": True, "globe": True},
+]

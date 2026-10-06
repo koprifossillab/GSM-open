@@ -118,6 +118,54 @@
     141.5,
     -25.5
    ]
+  },
+  {
+   "name": "gssa:rad_k",
+   "title": "방사능 칼륨 (K)",
+   "group": "남호주 지구물리 (SARIG)",
+   "abstract": "Radiometric potassium — K %",
+   "bbox": [
+    128.5,
+    -38.1,
+    141.5,
+    -25.5
+   ]
+  },
+  {
+   "name": "gssa:rad_th",
+   "title": "방사능 토륨 (eTh)",
+   "group": "남호주 지구물리 (SARIG)",
+   "abstract": "Radiometric thorium — eTh ppm",
+   "bbox": [
+    128.5,
+    -38.1,
+    141.5,
+    -25.5
+   ]
+  },
+  {
+   "name": "gssa:rad_u",
+   "title": "방사능 우라늄 (eU)",
+   "group": "남호주 지구물리 (SARIG)",
+   "abstract": "Radiometric uranium — eU ppm",
+   "bbox": [
+    128.5,
+    -38.1,
+    141.5,
+    -25.5
+   ]
+  },
+  {
+   "name": "gssa:rad_tc",
+   "title": "방사능 총계수",
+   "group": "남호주 지구물리 (SARIG)",
+   "abstract": "Radiometric total count",
+   "bbox": [
+    128.5,
+    -38.1,
+    141.5,
+    -25.5
+   ]
   }
  ]
 }

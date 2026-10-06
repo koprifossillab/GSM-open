@@ -110,6 +110,7 @@ class Command(BaseCommand):
                 (settings.GSSA_CATALOG_SEED, "남호주 (GSSA)", "australia", "gssa"),
                 (settings.MRT_CATALOG_SEED, "태즈메이니아 (MRT)", "australia", "mrt"),
                 (settings.GSNSW_CATALOG_SEED, "뉴사우스웨일스 (GSNSW)", "australia", "gsnsw"),
+                (settings.NTGS_CATALOG_SEED, "노던테리토리 (NTGS)", "australia", "ntgs"),
                 # 뉴질랜드 GNS QMAP 1:25만·1:100만, 같은 서버의 남극 남빅토리아랜드 1:25만 (wetherilli 218)
                 (settings.GNS_CATALOG_SEED, "뉴질랜드 (GNS)", "new_zealand", "gns"),
                 (settings.GNS_ANTARCTICA_CATALOG_SEED, "남빅토리아랜드 (GNS)", "antarctica", "gns"),

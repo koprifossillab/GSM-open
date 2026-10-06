@@ -382,3 +382,9 @@ def _padded(images: list) -> list:
 
 def legend_span(name: str) -> float:
     return LEGENDS[name][2]
+
+
+#: 이 파일이 여는 상류 — `doors.py` 가 모아 views·prewarm·화면의 표를 짓는다 (wetherilli 371)
+REGISTRY = [
+    {"upstream": "sgm", "tag": "SGM", "title": "멕시코 지질조사소", "relay": True, "projected": True, "globe": True},
+]

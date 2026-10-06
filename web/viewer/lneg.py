@@ -189,3 +189,9 @@ def friendly(props: dict, lang: str = "ko") -> dict:
         if value and value.lower() != "null" and label not in out:
             out[label] = value
     return out
+
+
+#: 이 파일이 여는 상류 — `doors.py` 가 모아 views·prewarm·화면의 표를 짓는다 (wetherilli 371)
+REGISTRY = [
+    {"upstream": "lneg", "tag": "LNEG", "title": "포르투갈 국립 에너지·지질연구소", "relay": True, "projected": True, "globe": True},
+]

@@ -149,3 +149,27 @@ class Click(SimpleTestCase):
         self.assertAlmostEqual((lat, lon)[1], 136.55)
         with self.assertRaises(austates.AuStatesError):
             austates.GSSA.get_feature_info(dict(params, crs="EPSG:3031"))
+
+
+class Elements(SimpleTestCase):
+    """원소 낱장(wetherilli 366) — 누르면 그 원소를 앞에, 총계수는 격자가 없어 누르지 않는다"""
+    VALUES = {"칼륨 K (%)": 1.5, "토륨 eTh (ppm)": 12.0, "우라늄 eU (ppm)": 3.0}
+    PARAMS = {"crs": "EPSG:4326", "version": "1.1.1", "bbox": "136,-31,137,-30", "width": "10", "height": "10", "x": "5", "y": "5"}
+
+    def test_누른_원소를_앞에(self):
+        for name, first in (("gssa:rad_th", "토륨 eTh (ppm)"), ("gssa:rad_u", "우라늄 eU (ppm)"), ("gssa:rad_rgb", "칼륨 K (%)")):
+            with self.subTest(name=name), mock.patch.object(sarad, "value_at", return_value=dict(self.VALUES)):
+                props = austates.GSSA.get_feature_info(dict(self.PARAMS, layers=name))["features"][0]["properties"]
+            self.assertEqual(next(iter(props)), first)
+            self.assertEqual(props, self.VALUES)                    # 셋 다 곁에
+
+    def test_총계수는_누르지_않고_영상은_상류로_그린다(self):
+        with mock.patch.object(sarad, "available", return_value=True):
+            self.assertFalse(austates.queryable("gssa", "gssa:rad_tc"))
+            self.assertTrue(austates.queryable("gssa", "gssa:rad_k"))
+            self.assertFalse(austates.is_unit("gssa", "gssa:rad_k"))
+        with mock.patch.object(austates.requests, "get") as get:
+            get.return_value = mock.Mock(status_code=200, headers={"content-type": "image/png"}, content=b"png", url="u", elapsed=None)
+            austates.GSSA.get_map(dict(self.PARAMS, layers="gssa:rad_u"))
+        self.assertTrue(get.call_args.args[0].startswith(austates.settings.GSSA_IMAGERY_URL))
+        self.assertEqual(get.call_args.kwargs["params"]["layers"], "rad_u")

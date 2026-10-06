@@ -195,3 +195,9 @@ def friendly(props: dict) -> dict:
         if value and label not in out:                   # 형성 연대는 단일 값이 있으면 그것을, 없으면 "Fra … til …"
             out[label] = value
     return out
+
+
+#: 이 파일이 여는 상류 — `doors.py` 가 모아 views·prewarm·화면의 표를 짓는다 (wetherilli 371)
+REGISTRY = [
+    {"upstream": "ngu", "tag": "NGU", "title": "노르웨이 지질조사소", "relay": True, "projected": True, "globe": True},
+]

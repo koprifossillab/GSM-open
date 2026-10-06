@@ -133,3 +133,9 @@ def friendly(props: dict, lang: str = "ko") -> dict:
             ("암석", v("SHORT_DESCRIPTION") or v("ROCK_MAJOR")), ("암석 분류", v("ROCK_CLASS")), ("지질시대", _age(props, lang)),
             ("연대 (Ma)", ma), ("지구조 요소", v("TECTONIC_ELEMENT")), ("지괴", v("TERRANE")))
     return {k: x for k, x in rows if x}
+
+
+#: 이 파일이 여는 상류 — `doors.py` 가 모아 views·prewarm·화면의 표를 짓는다 (wetherilli 371)
+REGISTRY = [
+    {"upstream": "ygs", "tag": "YGS", "title": "유콘 지질조사소", "relay": True, "projected": True, "globe": True},
+]

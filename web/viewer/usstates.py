@@ -232,3 +232,12 @@ def _door(upstream: str) -> _NS:
 
 NBMG, WADNR, DOGAMI, DGGS = _door("nbmg"), _door("wadnr"), _door("dogami"), _door("dggs")
 DOORS = {"nbmg": NBMG, "wadnr": WADNR, "dogami": DOGAMI, "dggs": DGGS}
+
+
+#: 이 파일이 여는 상류 — `doors.py` 가 모아 views·prewarm·화면의 표를 짓는다 (wetherilli 371)
+REGISTRY = [
+    {"upstream": "dggs", "tag": "DGGS", "title": "알래스카 지질·지구물리조사소", "relay": DOORS["dggs"], "projected": True, "globe": True},
+    {"upstream": "dogami", "tag": "DOGAMI", "title": "오리건 지질광물산업부", "relay": DOORS["dogami"], "projected": True, "globe": True},
+    {"upstream": "nbmg", "tag": "NBMG", "title": "네바다 광산지질국", "relay": DOORS["nbmg"], "projected": True, "globe": True},
+    {"upstream": "wadnr", "tag": "WGS", "title": "워싱턴 지질조사소", "relay": DOORS["wadnr"], "projected": True, "globe": True},
+]

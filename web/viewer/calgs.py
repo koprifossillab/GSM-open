@@ -173,3 +173,9 @@ def friendly(props: dict, lang: str = "ko") -> dict:
     rows = (("기호", props.get("PTYPE")), ("암석 갈래", props.get("GENERAL_LITHOLOGY")),
             ("설명", props.get("DESCRIPTION")), ("지질시대", i18n.age_ko(age) if lang == "ko" and age else age))
     return {k: str(v).strip() for k, v in rows if str(v or "").strip() and str(v).strip().lower() != "null"}
+
+
+#: 이 파일이 여는 상류 — `doors.py` 가 모아 views·prewarm·화면의 표를 짓는다 (wetherilli 371)
+REGISTRY = [
+    {"upstream": "calgs", "tag": "CGS", "title": "캘리포니아 지질조사소", "relay": True, "projected": True, "globe": True},
+]

@@ -222,3 +222,9 @@ def friendly(props: dict, lang: str = "ko") -> dict:
             ("지구조 구역", " · ".join(x for x in (_value(props, "TERRANE_NAME"), _value(props, "MORPHOTECTONIC_BELT")) if x)),
             ("편집", _value(props, "AUTHOR_NAMES")))
     return {k: v for k, v in rows if v}
+
+
+#: 이 파일이 여는 상류 — `doors.py` 가 모아 views·prewarm·화면의 표를 짓는다 (wetherilli 371)
+REGISTRY = [
+    {"upstream": "bcgs", "tag": "BCGS", "title": "브리티시컬럼비아 지질조사소", "relay": True, "projected": True, "globe": True},
+]

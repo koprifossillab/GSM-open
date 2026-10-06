@@ -1,5 +1,7 @@
 """시험 러너가 개발 캐시·자료 자리를 빈 임시 자리로 돌리는지 (wetherilli 354)."""
+import os
 import re
+import tempfile
 from pathlib import Path
 
 from django.conf import settings
@@ -21,6 +23,13 @@ class Redirect(SimpleTestCase):
         for name in testrunner.REDIRECT:
             with self.subTest(name=name):
                 self.assertNotIn(repo, Path(getattr(settings, name)).resolve().parents)
+
+    def test_임시_파일도_러너의_자리_안이다(self):
+        # 시험이 mkdtemp() 로 만들고 지우지 않아도 /tmp 에 쌓이지 않는다 — 러너가 다 돌고 함께 지운다 (koprifossillab 020)
+        root = Path(settings.TILE_CACHE_DIR).resolve().parents[1]
+        here = Path(tempfile.mkdtemp()).resolve()
+        self.assertIn(root, here.parents)
+        self.assertEqual(os.environ.get("TMPDIR"), tempfile.gettempdir())
 
     def test_타일_캐시는_시험마다_비었다(self):
         self.assertEqual(tilecache.stats()["count"], 0)

@@ -401,3 +401,9 @@ def data_detail(dataset_id: str) -> dict:
     if not re.fullmatch(r"[0-9a-f-]{36}", dataset_id or ""):
         raise UpstreamError("자료 번호의 꼴이 아니다")
     return _data_get(f"{DATA_URL}/{dataset_id}")
+
+
+#: 이 파일이 여는 상류 — `doors.py` 가 모아 views·prewarm·화면의 표를 짓는다 (wetherilli 371)
+REGISTRY = [
+    {"upstream": "kigam", "tag": "KIGAM", "title": "한국지질자원연구원", "relay": True, "globe": True, "ready": has_key},
+]

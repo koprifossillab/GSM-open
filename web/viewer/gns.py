@@ -256,3 +256,9 @@ def friendly(props: dict, lang: str = "ko") -> dict:
     if ma:
         out["연대"] = ma
     return out
+
+
+#: 이 파일이 여는 상류 — `doors.py` 가 모아 views·prewarm·화면의 표를 짓는다 (wetherilli 371)
+REGISTRY = [
+    {"upstream": "gns", "tag": "GNS", "title": "뉴질랜드 지질·핵과학연구소 (GNS)", "relay": True, "projected": True, "globe": True},
+]

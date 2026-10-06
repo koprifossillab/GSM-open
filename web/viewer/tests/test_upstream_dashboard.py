@@ -44,4 +44,4 @@ class Rollback(TestCase):
         with connection.cursor() as c:
             c.execute("INSERT INTO viewer_upstreamday (day, upstream, ok, fail, blocked) VALUES (%s, %s, 1, 0, 0)", ["2026-10-05", "old"])
         row = UpstreamDay.objects.get(upstream="old")
-        self.assertEqual((row.timed, row.seconds, row.t9), (0, 0.0, 0))
+        self.assertEqual((row.timed, row.seconds, row.t9, row.batch), (0, 0.0, 0, 0))   # 명령이 낸 수도 (wetherilli 363)

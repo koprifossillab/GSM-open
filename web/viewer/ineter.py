@@ -77,3 +77,9 @@ def friendly(props: dict, lang: str = "ko") -> dict:
     shown = (i18n.age_ko(ics) if lang == "ko" else ics) if ics else (v("serie") or v("sistema"))
     rows = (("기호", v("nomencla")), ("이름", v("formacion")), ("암석", v("litologia")), ("지질시대", shown))
     return {k: x for k, x in rows if x}
+
+
+#: 이 파일이 여는 상류 — `doors.py` 가 모아 views·prewarm·화면의 표를 짓는다 (wetherilli 371)
+REGISTRY = [
+    {"upstream": "ineter", "tag": "INETER", "title": "니카라과 국토연구원 (INETER)", "relay": True, "projected": True, "globe": True},
+]

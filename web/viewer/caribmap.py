@@ -378,3 +378,9 @@ def extent_legend(west: float, south: float, east: float, north: float, lang: st
                                               "count": 0})
         row["count"] += 1
     return sorted(rows.values(), key=lambda r: -r["count"])
+
+
+#: 이 파일이 여는 상류 — `doors.py` 가 모아 views·prewarm·화면의 표를 짓는다 (wetherilli 371)
+REGISTRY = [
+    {"upstream": "sim3534", "tag": "USGS", "title": "미국 지질조사국"},
+]

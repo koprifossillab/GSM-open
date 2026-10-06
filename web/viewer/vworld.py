@@ -792,3 +792,9 @@ def get_wmts_tile(layer: str, z: int, y: int, x: int):
     if r.status_code == 200:
         return None
     raise VWorldError(f"배경지도 타일을 받지 못했다 ({where}, status={r.status_code})")
+
+
+#: 이 파일이 여는 상류 — `doors.py` 가 모아 views·prewarm·화면의 표를 짓는다 (wetherilli 371)
+REGISTRY = [
+    {"upstream": "vworld", "tag": "VWorld", "title": "브이월드(국토교통부)", "relay": True, "globe": True, "ready": enabled},
+]

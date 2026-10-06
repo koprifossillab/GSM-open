@@ -758,3 +758,9 @@ def body(name: str, features_json: bytes) -> bytes:
     return json.dumps({"type": "FeatureCollection", "labels": arcpoints.labels(spec),
                        "links": arcpoints.links(spec), "style": "class", "legend": legend,
                        "features": features}, ensure_ascii=False, separators=(",", ":")).encode("utf-8")
+
+
+#: 이 파일이 여는 상류 — `doors.py` 가 모아 views·prewarm·화면의 표를 짓는다 (wetherilli 371)
+REGISTRY = [
+    {"upstream": "grportal", "tag": "GRL", "title": "그린란드 정부 포털"},
+]

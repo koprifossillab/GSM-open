@@ -135,3 +135,9 @@ def friendly(props: dict, lang: str = "ko") -> dict:
             value = f"1:{int(float(value)):,}" if str(value).replace(".", "", 1).isdigit() else value
         out[label] = value
     return out
+
+
+#: 이 파일이 여는 상류 — `doors.py` 가 모아 views·prewarm·화면의 표를 짓는다 (wetherilli 371)
+REGISTRY = [
+    {"upstream": "emodnet", "tag": "EMOD", "title": "EMODnet Geology", "relay": True, "projected": True, "globe": True},
+]

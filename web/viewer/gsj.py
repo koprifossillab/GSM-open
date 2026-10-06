@@ -651,3 +651,13 @@ def probe_tile(url: str):
         raise GsjError(f"GSJ 타일에 닿지 못했다: {exc}") from exc
     usage.record("gsjows", ok=r.status_code in (200, 404), blocked=usage.looks_blocked(r.status_code, r.content[:1000]), elapsed=r.elapsed)
     return r.status_code, r.headers.get("content-type", ""), r.content
+
+
+#: 이 파일이 여는 상류 — `doors.py` 가 모아 views·prewarm·화면의 표를 짓는다 (wetherilli 371)
+REGISTRY = [
+    {"upstream": "ccop", "tag": "CCOP", "title": "CCOP", "relay": CCOP, "globe": True},
+    {"upstream": "geonavi", "tag": "GSJ", "title": "일본 지질조사종합센터"},
+    {"upstream": "gsitile", "tag": "GSIJ", "title": "일본 국토지리원"},
+    {"upstream": "gsj", "tag": "GSJ", "title": "일본 지질조사종합센터"},
+    {"upstream": "gsjows", "tag": "GSJ", "title": "일본 지질조사종합센터", "relay": OWS, "globe": True},
+]

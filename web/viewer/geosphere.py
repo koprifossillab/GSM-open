@@ -168,3 +168,9 @@ def friendly(props: dict, lang: str = "ko") -> dict:
     age = (i18n.age_ko(ics) if lang == "ko" else ics) if ics else age.strip()
     rows = (("암석", rock.strip()), ("지질시대", age), ("지구조 구역", str(props.get("Tektonik") or "").strip()))
     return {k: v for k, v in rows if v}
+
+
+#: 이 파일이 여는 상류 — `doors.py` 가 모아 views·prewarm·화면의 표를 짓는다 (wetherilli 371)
+REGISTRY = [
+    {"upstream": "geosphere", "tag": "GSA", "title": "GeoSphere Austria", "relay": True, "projected": True, "globe": True},
+]

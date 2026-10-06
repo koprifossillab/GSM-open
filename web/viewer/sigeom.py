@@ -222,3 +222,9 @@ def extent_legend(name: str, bbox: tuple, lang: str = "ko") -> list:
                                                      "age": age(str(p.get("AGE") or "").strip(), lang) if p.get("AGE") else "", "count": 0})
         row["count"] += 1
     return sorted(rows.values(), key=lambda r: -r["count"])
+
+
+#: 이 파일이 여는 상류 — `doors.py` 가 모아 views·prewarm·화면의 표를 짓는다 (wetherilli 371)
+REGISTRY = [
+    {"upstream": "sigeom", "tag": "SIGÉOM", "title": "퀘벡 지질 광업 정보 체계", "relay": True, "projected": True, "globe": True},
+]

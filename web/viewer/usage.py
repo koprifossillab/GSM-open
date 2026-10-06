@@ -14,6 +14,7 @@
 세는 일이 실패해도 **지도는 멈추지 않는다** — 세는 것은 덤이다.
 """
 import logging
+import sys
 import threading
 import time
 from collections import deque
@@ -29,6 +30,14 @@ PAUSE_SECONDS = 600     # 이만큼 쉰다
 
 #: 걸린 시간의 칸 — 위 끝(초). 마지막 칸(`t9`)은 34 초 너머다. `UpstreamDay.t0`…`t9`
 TIME_BUCKETS = (0.5, 1, 2, 3, 5, 8, 13, 21, 34)
+
+#: 화면에서 온 요청이 아닌 프로세스 — `manage.py <명령>` 으로 뜬 대조(`verify_layers`)·미리 데우기(`prewarm`)·받기(`fetch_*`) 따위 (wetherilli 363).
+#: 화면은 gunicorn(운영)·`runserver`(개발)로 돌고, 명령은 늘 제 프로세스로 뜨므로 프로세스 하나에 한 번 정한다. 시험은 화면 쪽으로 친다
+def _is_batch(argv) -> bool:
+    return len(argv) > 1 and str(argv[0]).endswith("manage.py") and argv[1] not in ("runserver", "test")
+
+
+BATCH = _is_batch(sys.argv)
 
 _lock = threading.Lock()
 _recent_blocks = deque()
@@ -84,6 +93,8 @@ def record(upstream: str, ok: bool, blocked: bool = False, count: int = 1, elaps
         row, _ = UpstreamDay.objects.get_or_create(day=timezone.localdate(), upstream=upstream)
         field = "blocked" if blocked else ("ok" if ok else "fail")
         changes = {field: F(field) + count}
+        if BATCH:
+            changes["batch"] = F("batch") + count
         took = seconds_of(elapsed)
         if took is not None:
             slot = f"t{bucket(took)}"
@@ -125,15 +136,16 @@ def mean(seconds, timed) -> str:
 
 def summary(days: int = 7) -> list:
     """상류마다 오늘과 지난 `days` 일(오늘 포함)의 건수·실패·잰 건수·평균·p95 — 지난 기간의 평균이 느린 차례(잰 것이 없으면 뒤).
-    `[{"name", "today": {...}, "span": {...}}]` — 칸은 `count`(성공+실패+차단)·`fail`(실패+차단)·`timed`·`mean`·`p95`. 이름과 수뿐이다"""
+    `[{"name", "today": {...}, "span": {...}}]` — 칸은 `count`(성공+실패+차단)·`fail`(실패+차단)·`timed`·`mean`·`p95`·`batch`(그 가운데 명령이 낸 것,
+    wetherilli 363). 이름과 수뿐이다"""
     import datetime
     from .models import UpstreamDay
     today = timezone.localdate()
     since = today - datetime.timedelta(days=days - 1)
     out = {}
     for r in UpstreamDay.objects.filter(day__gte=since):
-        row = out.setdefault(r.upstream, {"today": [0, 0, 0, 0.0, [0] * len(BUCKET_FIELDS)],
-                                          "span": [0, 0, 0, 0.0, [0] * len(BUCKET_FIELDS)]})
+        row = out.setdefault(r.upstream, {"today": [0, 0, 0, 0.0, [0] * len(BUCKET_FIELDS), 0],
+                                          "span": [0, 0, 0, 0.0, [0] * len(BUCKET_FIELDS), 0]})
         counts = [getattr(r, f) for f in BUCKET_FIELDS]
         for part in (["today", "span"] if r.day == today else ["span"]):
             agg = row[part]
@@ -142,10 +154,11 @@ def summary(days: int = 7) -> list:
             agg[2] += r.timed
             agg[3] += r.seconds
             agg[4] = [a + b for a, b in zip(agg[4], counts)]
+            agg[5] += r.batch
 
     def shape(agg):
-        count, fail, timed, seconds, counts = agg
-        return {"count": count, "fail": fail, "timed": timed, "mean": mean(seconds, timed), "p95": p95(counts),
+        count, fail, timed, seconds, counts, batch = agg
+        return {"count": count, "fail": fail, "timed": timed, "mean": mean(seconds, timed), "p95": p95(counts), "batch": batch,
                 "_sort": seconds / timed if timed else -1.0}
     rows = [{"name": name, "today": shape(v["today"]), "span": shape(v["span"])} for name, v in out.items()]
     rows.sort(key=lambda r: (-r["span"]["_sort"], r["name"]))

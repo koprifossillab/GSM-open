@@ -559,14 +559,16 @@
     nameCell.appendChild(name);
     tr.appendChild(nameCell);
 
-    tr.appendChild(el("td", "", kindText(rec.kind)));
-    tr.appendChild(el("td", "mono", rec.drawn === rec.count ? String(rec.count) : T("{n} (좌표 {m})", { n: rec.count, m: rec.drawn })));
-    tr.appendChild(rec.link ? linkCell(rec) : el("td", "", rec.file ? rec.file.name : ""));
-    tr.appendChild(el("td", "mono", localTime(rec.imported)));
+    // 칸마다 머리줄의 이름을 단다 — 휴대폰은 머리줄을 숨기고 줄을 카드로 세워 이 이름을 칸 앞에 적는다(manage.css, wetherilli 369)
+    var labelled = function (td, label) { td.dataset.label = label; return td; };
+    tr.appendChild(labelled(el("td", "", kindText(rec.kind)), T("종류")));
+    tr.appendChild(labelled(el("td", "mono", rec.drawn === rec.count ? String(rec.count) : T("{n} (좌표 {m})", { n: rec.count, m: rec.drawn })), T("행")));
+    tr.appendChild(labelled(rec.link ? linkCell(rec) : el("td", "", rec.file ? rec.file.name : ""), T("원본 파일")));
+    tr.appendChild(labelled(el("td", "mono", localTime(rec.imported)), T("반입한 날")));
     var size = P.sizeOf(rec);
     var sizeCell = el("td", "mono" + (size > P.LIMITS.layer ? " mg-big" : ""), bytes(size));
     if (size > P.LIMITS.layer) sizeCell.title = T("지도가 느려질 수 있다");
-    tr.appendChild(sizeCell);
+    tr.appendChild(labelled(sizeCell, T("크기")));
 
     var acts = el("td", "mg-row-acts");
     var json = el("button", "btn quiet", "JSON");

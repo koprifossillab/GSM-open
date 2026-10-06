@@ -213,6 +213,7 @@ devlog 까지 적는다). "(사람) 읽을 것" 은 조건을 아직 읽지 않�
 | `ga` | Geoscience Australia | CC BY 4.0 |  |
 | `gsq` · `gsv` · `gssa` | 퀸즐랜드·빅토리아·남호주 | CC BY 4.0 (주 열린자료·Capabilities) |  |
 | `gsnsw` | 뉴사우스웨일스 지질조사소 | CC BY 4.0 (GeoServer AccessConstraints) |  |
+| `ntgs` | 노던테리토리 지질조사소 (열린자료 파일) | CC BY (data.nt.gov.au — 판 번호를 적지 않았다) |  |
 | `mrt` | 태즈메이니아 광물자원청 (theLIST) | **(사람) 읽을 것** — theLIST 웹 서비스 약관, 레이어의 저작권 칸이 비었다 |  |
 | `gns` | GNS Science (뉴질랜드·남빅토리아랜드) | CC BY 3.0 NZ (AccessConstraints) |  |
 | `georep` | 누벨칼레도니 정부 Géorep | Licence Ouverte (내려받기 목록) — 약관의 "허락 없이 배포 금지" 와 갈려 보였다 |  |

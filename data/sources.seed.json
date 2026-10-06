@@ -1,0 +1,1142 @@
+{
+ "_주석": "받아 두는 자료원의 명세 씨앗 (jikhanjung P02). 운영 명세는 <DB 옆>/sources.json 이고 사람이 서버에서 고친다 — 이 씨앗은 운영에 없는 id 만 덧붙인다(manage.py sources_seed). 칸의 뜻은 web/viewer/sources.py. 처음 줄들은 docs/외부_자료원.md·datastatus.ITEMS·docs/상류_조건표.md·hourly.sh·weekly_backup.sh 와 명령의 머리글에서 옮겼다. '(사람) 읽을 것' 은 조건을 아직 읽지 않은 것이다.",
+ "_뽑은날": "2026-10-06",
+ "sources": [
+  {
+   "id": "pbdb",
+   "name": {
+    "ko": "화석 산지 PBDB",
+    "en": "PBDB fossil collections"
+   },
+   "org": "Paleobiology Database",
+   "kind": "fetch",
+   "commands": [
+    "fetch_pbdb"
+   ],
+   "runs_on": "container",
+   "schedule": "monthly-first-monday",
+   "license": "CC BY 4.0",
+   "flags": [],
+   "outputs": [
+    "earth/pbdb.sqlite"
+   ],
+   "raw": "earth/pbdb_collections.csv",
+   "docs": [
+    "wetherilli 098"
+   ],
+   "note": "주간 백업이 매달 첫 월요일에 부른다(weekly_backup.sh)"
+  },
+  {
+   "id": "gvp",
+   "name": {
+    "ko": "화산 GVP (홀로세·플라이스토세)",
+    "en": "Volcanoes GVP (Holocene·Pleistocene)"
+   },
+   "org": "Smithsonian Global Volcanism Program",
+   "kind": "fetch",
+   "commands": [
+    "fetch_gvp"
+   ],
+   "runs_on": "container",
+   "schedule": "manual",
+   "license": "비상업·인용 조건 (GVP)",
+   "flags": [
+    "nc"
+   ],
+   "outputs": [
+    "earth/gvp_volcanoes.json",
+    "earth/gvp_pleistocene.json"
+   ],
+   "docs": [
+    "wetherilli 134",
+    "wetherilli 194"
+   ],
+   "note": "GVP 가 판을 올리면(1 년에 한두 번) 다시 부른다"
+  },
+  {
+   "id": "usgs_quakes",
+   "name": {
+    "ko": "지진 USGS M5 이상",
+    "en": "Earthquakes USGS M5+"
+   },
+   "org": "USGS",
+   "kind": "fetch",
+   "commands": [
+    "fetch_quakes"
+   ],
+   "runs_on": "container",
+   "schedule": "manual",
+   "license": "공공 도메인",
+   "flags": [],
+   "outputs": [
+    "earth/quakes.sqlite"
+   ],
+   "raw": "earth/quakes.csv",
+   "docs": [
+    "wetherilli 138"
+   ]
+  },
+  {
+   "id": "usgs_quakes_recent",
+   "name": {
+    "ko": "최근 지진 (지난 7 일 M2.5 이상)",
+    "en": "Recent earthquakes (past 7 days, M2.5+)"
+   },
+   "org": "USGS",
+   "kind": "fetch",
+   "commands": [
+    "fetch_recent_quakes"
+   ],
+   "runs_on": "host",
+   "schedule": "hourly",
+   "license": "공공 도메인",
+   "flags": [],
+   "outputs": [
+    "earth/quakes_recent.json"
+   ],
+   "docs": [
+    "wetherilli 292"
+   ],
+   "note": "호스트 cron hourly.sh"
+  },
+  {
+   "id": "neotoma",
+   "name": {
+    "ko": "제4기 고생태 산지 Neotoma",
+    "en": "Neotoma palaeoecology sites"
+   },
+   "org": "Neotoma Paleoecology Database",
+   "kind": "fetch",
+   "commands": [
+    "fetch_neotoma"
+   ],
+   "runs_on": "container",
+   "schedule": "manual",
+   "license": "CC BY 4.0",
+   "flags": [],
+   "outputs": [
+    "earth/neotoma.sqlite"
+   ],
+   "raw": "earth/neotoma_datasets.jsonl",
+   "docs": [
+    "wetherilli 139"
+   ]
+  },
+  {
+   "id": "kopri",
+   "name": {
+    "ko": "극지연구소 암석 시료·KPDC·운석",
+    "en": "KOPRI rock samples·KPDC·meteorites"
+   },
+   "org": "극지연구소",
+   "kind": "fetch",
+   "commands": [
+    "fetch_kopri"
+   ],
+   "runs_on": "container",
+   "schedule": "weekly",
+   "license": "(사람) 읽을 것 — KPDC 공개 정책",
+   "flags": [],
+   "outputs": [
+    "kopri/rock.json",
+    "kopri/kpdc.json"
+   ],
+   "docs": [
+    "053",
+    "055"
+   ],
+   "note": "주간 백업 뒤에 매주. 처음 뒤로는 새 것만"
+  },
+  {
+   "id": "araon",
+   "name": {
+    "ko": "아라온호 위치",
+    "en": "Icebreaker Araon position"
+   },
+   "org": "극지연구소",
+   "kind": "fetch",
+   "commands": [
+    "fetch_araon"
+   ],
+   "runs_on": "host",
+   "schedule": "hourly",
+   "license": "(사람) 읽을 것 — KPDC 공개 정책",
+   "flags": [],
+   "outputs": [
+    "kopri/araon.jsonl",
+    "kopri/araon_past.json"
+   ],
+   "docs": [
+    "koprifossillab 004",
+    "koprifossillab 009"
+   ],
+   "note": "호스트 cron hourly.sh. 지난 1 년은 --past 로 한 번"
+  },
+  {
+   "id": "kigam_data",
+   "name": {
+    "ko": "KIGAM 자료 목록 (/openapi/data)",
+    "en": "KIGAM data catalogue (/openapi/data)"
+   },
+   "org": "한국지질자원연구원",
+   "kind": "fetch",
+   "commands": [
+    "fetch_kigam_data"
+   ],
+   "runs_on": "container",
+   "schedule": "manual",
+   "license": "CC BY-NC (자료마다, 오픈플랫폼)",
+   "flags": [
+    "nc"
+   ],
+   "outputs": [
+    "kigam_data/data.json"
+   ],
+   "docs": [
+    "wetherilli 169"
+   ]
+  },
+  {
+   "id": "kigam50k",
+   "name": {
+    "ko": "KIGAM 5만 구조 요소 (WFS)",
+    "en": "KIGAM 1:50K structures (WFS)"
+   },
+   "org": "한국지질자원연구원",
+   "kind": "fetch",
+   "commands": [
+    "fetch_kigam50k"
+   ],
+   "runs_on": "container",
+   "schedule": "manual",
+   "license": "CC BY-NC — (사람) 읽을 것",
+   "flags": [
+    "nc"
+   ],
+   "outputs": [
+    "kigam50k/raw"
+   ],
+   "raw": "kigam50k/raw",
+   "docs": [
+    "jikhanjung P01",
+    "wetherilli 199",
+    "wetherilli 208"
+   ],
+   "note": "문서에 없는 GeoServer 주소 — 사람이 가끔(반년쯤), cron 에 두지 않는다"
+  },
+  {
+   "id": "sgb_units",
+   "name": {
+    "ko": "브라질 지질 단위 이름표",
+    "en": "Brazil SGB unit labels"
+   },
+   "org": "브라질 지질조사소(SGB)",
+   "kind": "fetch",
+   "commands": [
+    "fetch_sgb_units"
+   ],
+   "runs_on": "container",
+   "schedule": "manual",
+   "license": "CC BY-NC 4.0 (GeoSGB)",
+   "flags": [
+    "nc"
+   ],
+   "outputs": [
+    "sgb/units.json"
+   ],
+   "docs": [
+    "wetherilli 191"
+   ]
+  },
+  {
+   "id": "taiwan_open",
+   "name": {
+    "ko": "대만 지질운 열린자료",
+    "en": "Taiwan geology cloud open data"
+   },
+   "org": "대만 경제부 지질조사·광업관리중심",
+   "kind": "once",
+   "commands": [
+    "fetch_taiwan_open"
+   ],
+   "runs_on": "container",
+   "schedule": "once",
+   "license": "정부 자료 개방 선언 — 출처 표시",
+   "flags": [],
+   "outputs": [
+    "taiwan_open"
+   ],
+   "docs": [
+    "wetherilli 305",
+    "wetherilli 336"
+   ]
+  },
+  {
+   "id": "grportal_points",
+   "name": {
+    "ko": "그린란드 정부 포털·NPI 점 미리 받기",
+    "en": "Greenland portal·NPI points (warm-up)"
+   },
+   "org": "그린란드 정부 광물자원 포털 · 노르웨이 극지연구소",
+   "kind": "fetch",
+   "commands": [
+    "fetch_grportal"
+   ],
+   "runs_on": "container",
+   "schedule": "manual",
+   "license": "포털은 적힌 것 없음(다이아몬드만 CC BY 4.0) · NPI CC BY 4.0",
+   "flags": [],
+   "outputs": [],
+   "docs": [
+    "019",
+    "029"
+   ],
+   "note": "결과는 타일 캐시에 담는다 — 처음 켜는 사람이 기다리지 않게"
+  },
+  {
+   "id": "gsj_geonavi",
+   "name": {
+    "ko": "GSJ 지질도Navi 판 목록",
+    "en": "GSJ Geology Navi layer list"
+   },
+   "org": "산총연 지질조사종합센터(GSJ)",
+   "kind": "fetch",
+   "commands": [
+    "fetch_geonavi"
+   ],
+   "runs_on": "container",
+   "schedule": "manual",
+   "license": "정부표준이용규약 2.0",
+   "flags": [],
+   "outputs": [
+    "data/gsj_geonavi_layers.json"
+   ],
+   "docs": [
+    "wetherilli 171"
+   ],
+   "note": "저장소의 씨앗에 적는다"
+  },
+  {
+   "id": "trek_catalog",
+   "name": {
+    "ko": "NASA Trek 판 목록 (달·화성·수성)",
+    "en": "NASA Trek layer catalogue (Moon·Mars·Mercury)"
+   },
+   "org": "NASA Solar System Treks",
+   "kind": "fetch",
+   "commands": [
+    "fetch_trek_catalog"
+   ],
+   "runs_on": "container",
+   "schedule": "manual",
+   "license": "NASA — 공개",
+   "flags": [],
+   "outputs": [
+    "data/moon_trek_layers.json",
+    "data/mars_trek_layers.json",
+    "data/mercury_trek_layers.json"
+   ],
+   "docs": [
+    "060",
+    "wetherilli 080"
+   ],
+   "note": "저장소의 씨앗에 적는다"
+  },
+  {
+   "id": "trek_places",
+   "name": {
+    "ko": "달·화성·수성 지명",
+    "en": "Moon·Mars·Mercury place names"
+   },
+   "org": "NASA Solar System Treks (IAU 지명)",
+   "kind": "fetch",
+   "commands": [
+    "fetch_moon_places"
+   ],
+   "runs_on": "container",
+   "schedule": "manual",
+   "license": "공개 영역 (IAU 이름)",
+   "flags": [],
+   "outputs": [
+    "data/moon_places.json",
+    "data/mars_places.json",
+    "data/mercury_places.json"
+   ],
+   "docs": [
+    "036",
+    "058"
+   ],
+   "note": "저장소에 담는다"
+  },
+  {
+   "id": "gfs",
+   "name": {
+    "ko": "지금의 바람·구름 GFS",
+    "en": "Current wind·clouds GFS"
+   },
+   "org": "NOAA",
+   "kind": "fetch",
+   "commands": [
+    "fetch_gfs_wind"
+   ],
+   "runs_on": "host",
+   "schedule": "hourly",
+   "license": "공공 도메인",
+   "flags": [],
+   "outputs": [
+    "wind/gfs"
+   ],
+   "docs": [
+    "koprifossillab P02",
+    "koprifossillab 008",
+    "koprifossillab 011"
+   ],
+   "note": "호스트 cron hourly.sh, 전용 venv"
+  },
+  {
+   "id": "gmgsi",
+   "name": {
+    "ko": "위성 구름 GMGSI",
+    "en": "Satellite clouds GMGSI"
+   },
+   "org": "NOAA (AWS 공개 버킷)",
+   "kind": "fetch",
+   "commands": [
+    "fetch_gmgsi"
+   ],
+   "runs_on": "host",
+   "schedule": "hourly",
+   "license": "공공 도메인",
+   "flags": [],
+   "outputs": [
+    "wind/gmgsi"
+   ],
+   "docs": [
+    "koprifossillab 012"
+   ],
+   "note": "호스트 cron hourly.sh, 전용 venv"
+  },
+  {
+   "id": "era5",
+   "name": {
+    "ko": "지난 바람 ERA5",
+    "en": "Past wind ERA5"
+   },
+   "org": "ECMWF · ARCO-ERA5 (Google Cloud 공개 버킷)",
+   "kind": "build",
+   "commands": [
+    "build_era5_wind"
+   ],
+   "runs_on": "host",
+   "schedule": "manual",
+   "license": "Copernicus 라이선스 — 출처 표시",
+   "flags": [],
+   "outputs": [
+    "wind/era5"
+   ],
+   "docs": [
+    "koprifossillab P02"
+   ]
+  },
+  {
+   "id": "ecco2",
+   "name": {
+    "ko": "해류 ECCO2",
+    "en": "Ocean currents ECCO2"
+   },
+   "org": "NASA ECCO",
+   "kind": "build",
+   "commands": [
+    "build_ecco2"
+   ],
+   "runs_on": "host",
+   "schedule": "manual",
+   "license": "NASA — 공개",
+   "flags": [],
+   "outputs": [
+    "ocean/ecco2"
+   ],
+   "docs": [
+    "koprifossillab 014",
+    "koprifossillab 015"
+   ]
+  },
+  {
+   "id": "admap2",
+   "name": {
+    "ko": "남극 자력 이상 ADMAP-2",
+    "en": "Antarctic magnetic anomaly ADMAP-2"
+   },
+   "org": "PANGAEA 892723",
+   "kind": "build",
+   "commands": [
+    "build_admap"
+   ],
+   "runs_on": "person",
+   "schedule": "manual",
+   "license": "CC BY 4.0",
+   "flags": [],
+   "outputs": [
+    "admap2/meta.json"
+   ],
+   "docs": [
+    "wetherilli 262"
+   ]
+  },
+  {
+   "id": "geomap",
+   "name": {
+    "ko": "남극 GeoMAP",
+    "en": "Antarctic GeoMAP"
+   },
+   "org": "SCAR",
+   "kind": "file",
+   "commands": [],
+   "runs_on": "person",
+   "schedule": "manual",
+   "license": "CC BY 4.0",
+   "flags": [],
+   "outputs": [
+    "geomap/*.gpkg"
+   ],
+   "docs": [
+    "018"
+   ],
+   "note": "gpkg 를 손으로 둔다"
+  },
+  {
+   "id": "ibcso",
+   "name": {
+    "ko": "남극 해저·빙저 지형 IBCSO v2",
+    "en": "Antarctic bathymetry IBCSO v2"
+   },
+   "org": "PANGAEA",
+   "kind": "build",
+   "commands": [
+    "build_ibcso"
+   ],
+   "runs_on": "person",
+   "schedule": "manual",
+   "license": "CC BY 4.0",
+   "flags": [],
+   "outputs": [
+    "ibcso/tiles-bed"
+   ],
+   "docs": [
+    "047",
+    "051",
+    "071"
+   ]
+  },
+  {
+   "id": "janmayen",
+   "name": {
+    "ko": "얀마옌 지질도",
+    "en": "Jan Mayen geological map"
+   },
+   "org": "노르웨이 극지연구소",
+   "kind": "file",
+   "commands": [],
+   "runs_on": "person",
+   "schedule": "manual",
+   "license": "CC BY 4.0",
+   "flags": [],
+   "outputs": [
+    "npolar/NP_J250_Geologi"
+   ],
+   "docs": [
+    "022"
+   ],
+   "note": "GeoJSON 을 손으로 둔다"
+  },
+  {
+   "id": "caribbean",
+   "name": {
+    "ko": "카리브 대앤틸리스 지질도 SIM 3534",
+    "en": "Caribbean Greater Antilles map SIM 3534"
+   },
+   "org": "USGS",
+   "kind": "build",
+   "commands": [
+    "build_caribbean"
+   ],
+   "runs_on": "person",
+   "schedule": "manual",
+   "license": "공공 도메인",
+   "flags": [],
+   "outputs": [
+    "caribbean/sim3534.sqlite"
+   ],
+   "docs": [
+    "wetherilli 254"
+   ]
+  },
+  {
+   "id": "sa_radiometrics",
+   "name": {
+    "ko": "남호주 방사능 농도 K·Th·U",
+    "en": "South Australia radiometrics K·Th·U"
+   },
+   "org": "남호주 지질조사소(SARIG)",
+   "kind": "build",
+   "commands": [
+    "build_sa_radiometrics"
+   ],
+   "runs_on": "person",
+   "schedule": "manual",
+   "license": "CC BY 4.0",
+   "flags": [],
+   "outputs": [
+    "sa_radiometrics"
+   ],
+   "docs": [
+    "wetherilli 358"
+   ]
+  },
+  {
+   "id": "peninsula",
+   "name": {
+    "ko": "한반도 지질도 음영판·민판",
+    "en": "Korean Peninsula map (shaded·plain)"
+   },
+   "org": "(출처 모름)",
+   "kind": "build",
+   "commands": [
+    "build_peninsula"
+   ],
+   "runs_on": "person",
+   "schedule": "manual",
+   "license": "모름 — 밖에 열지 않는다",
+   "flags": [
+    "lab_only"
+   ],
+   "outputs": [
+    "peninsula/tiles",
+    "peninsula/tiles-plain"
+   ],
+   "docs": [
+    "027",
+    "028"
+   ]
+  },
+  {
+   "id": "geo3al",
+   "name": {
+    "ko": "중국 USGS geo3al",
+    "en": "China USGS geo3al"
+   },
+   "org": "USGS",
+   "kind": "file",
+   "commands": [],
+   "runs_on": "person",
+   "schedule": "manual",
+   "license": "내부 용도만, 가공물 포함 재배포 금지",
+   "flags": [
+    "lab_only"
+   ],
+   "outputs": [
+    "usgs/geo3al"
+   ],
+   "docs": [
+    "025"
+   ],
+   "note": "셰이프파일을 손으로 둔다"
+  },
+  {
+   "id": "japan_muni",
+   "name": {
+    "ko": "일본 시군구 코드표",
+    "en": "Japan municipality codes"
+   },
+   "org": "국토지리원 (지리원 지도의 muni.js)",
+   "kind": "build",
+   "commands": [
+    "build_japan_muni"
+   ],
+   "runs_on": "person",
+   "schedule": "manual",
+   "license": "지리원 지도용 — 예고 없이 바뀔 수 있다",
+   "flags": [],
+   "outputs": [
+    "static/viewer/japan-muni.json"
+   ],
+   "docs": [
+    "wetherilli 230"
+   ],
+   "note": "사람이 받아 넘긴다 — 명령은 상류를 부르지 않는다"
+  },
+  {
+   "id": "paleocoast",
+   "name": {
+    "ko": "옛 해안선 PaleoCoastlines v7.1",
+    "en": "Paleocoastlines v7.1"
+   },
+   "org": "Zenodo 4297693",
+   "kind": "build",
+   "commands": [
+    "build_paleocoastlines"
+   ],
+   "runs_on": "person",
+   "schedule": "manual",
+   "license": "CC BY 4.0",
+   "flags": [],
+   "outputs": [
+    "earth/paleocoastlines_v7.json"
+   ],
+   "docs": [
+    "wetherilli 097"
+   ]
+  },
+  {
+   "id": "mantle",
+   "name": {
+    "ko": "맨틀 슬랩 Müller 2022 OPT1",
+    "en": "Mantle slabs Müller 2022 OPT1"
+   },
+   "org": "Zenodo 6622194",
+   "kind": "build",
+   "commands": [
+    "build_mantle"
+   ],
+   "runs_on": "person",
+   "schedule": "manual",
+   "license": "CC BY 4.0",
+   "flags": [],
+   "outputs": [
+    "earth/mantle"
+   ],
+   "docs": [
+    "wetherilli 106"
+   ]
+  },
+  {
+   "id": "seafloor",
+   "name": {
+    "ko": "해양 지각 연대·해저 퇴적층 두께",
+    "en": "Ocean crust age·seafloor sediment"
+   },
+   "org": "Seton 2020 · GlobSed v3",
+   "kind": "build",
+   "commands": [
+    "build_seafloor"
+   ],
+   "runs_on": "person",
+   "schedule": "manual",
+   "license": "CC BY 4.0 · 이용 제약 없음",
+   "flags": [],
+   "outputs": [
+    "earth/seafloor_age.json",
+    "earth/seafloor_sediment.json"
+   ],
+   "docs": [
+    "wetherilli 264"
+   ]
+  },
+  {
+   "id": "heatflow",
+   "name": {
+    "ko": "지열류 IHFC 2024",
+    "en": "Heat flow IHFC 2024"
+   },
+   "org": "GFZ Data Services",
+   "kind": "build",
+   "commands": [
+    "build_heatflow"
+   ],
+   "runs_on": "person",
+   "schedule": "manual",
+   "license": "CC BY 4.0",
+   "flags": [],
+   "outputs": [
+    "earth/heatflow.sqlite"
+   ],
+   "docs": [
+    "wetherilli 267"
+   ]
+  },
+  {
+   "id": "stress",
+   "name": {
+    "ko": "지각 응력 World Stress Map 2025",
+    "en": "World Stress Map 2025"
+   },
+   "org": "GFZ Data Services",
+   "kind": "build",
+   "commands": [
+    "build_stress"
+   ],
+   "runs_on": "person",
+   "schedule": "manual",
+   "license": "CC BY 4.0",
+   "flags": [],
+   "outputs": [
+    "earth/stress.sqlite"
+   ],
+   "docs": [
+    "wetherilli 273"
+   ]
+  },
+  {
+   "id": "minerals",
+   "name": {
+    "ko": "세계 광상 USGS",
+    "en": "World mineral deposits USGS"
+   },
+   "org": "USGS mrdata",
+   "kind": "build",
+   "commands": [
+    "build_minerals"
+   ],
+   "runs_on": "person",
+   "schedule": "manual",
+   "license": "공공 도메인",
+   "flags": [],
+   "outputs": [
+    "earth/minerals.sqlite"
+   ],
+   "docs": [
+    "wetherilli 276"
+   ]
+  },
+  {
+   "id": "faults",
+   "name": {
+    "ko": "세계 활성단층 GEM",
+    "en": "GEM Global Active Faults"
+   },
+   "org": "GEM Foundation",
+   "kind": "build",
+   "commands": [
+    "build_faults"
+   ],
+   "runs_on": "person",
+   "schedule": "manual",
+   "license": "CC BY-SA 4.0 — 구운 것도 같은 조건",
+   "flags": [],
+   "outputs": [
+    "earth/earth_faults.json"
+   ],
+   "docs": [
+    "wetherilli 279"
+   ]
+  },
+  {
+   "id": "glaciers",
+   "name": {
+    "ko": "세계 빙하 RGI 7.0",
+    "en": "World glaciers RGI 7.0"
+   },
+   "org": "GLIMS · RGI",
+   "kind": "build",
+   "commands": [
+    "build_glaciers"
+   ],
+   "runs_on": "person",
+   "schedule": "manual",
+   "license": "CC BY 4.0",
+   "flags": [],
+   "outputs": [
+    "earth/glaciers.sqlite"
+   ],
+   "docs": [
+    "wetherilli 289"
+   ]
+  },
+  {
+   "id": "crust",
+   "name": {
+    "ko": "지각 두께 CRUST 2.0",
+    "en": "Crustal thickness CRUST 2.0"
+   },
+   "org": "EarthByte (GPlates 2.3)",
+   "kind": "build",
+   "commands": [
+    "build_crust"
+   ],
+   "runs_on": "person",
+   "schedule": "manual",
+   "license": "CC BY 4.0",
+   "flags": [],
+   "outputs": [
+    "data/crust2_thickness.json"
+   ],
+   "docs": [
+    "wetherilli 101"
+   ],
+   "note": "저장소에 굽는다"
+  },
+  {
+   "id": "glim",
+   "name": {
+    "ko": "세계 암상 GLiM 0.5°",
+    "en": "World lithology GLiM 0.5°"
+   },
+   "org": "PANGAEA 788537",
+   "kind": "build",
+   "commands": [
+    "build_glim"
+   ],
+   "runs_on": "person",
+   "schedule": "manual",
+   "license": "CC BY 3.0",
+   "flags": [],
+   "outputs": [
+    "data/glim_05deg.json"
+   ],
+   "docs": [
+    "wetherilli 267"
+   ],
+   "note": "저장소에 굽는다"
+  },
+  {
+   "id": "tectonics",
+   "name": {
+    "ko": "판 경계·세계 지질구 Hasterok 2022",
+    "en": "Plate boundaries·provinces Hasterok 2022"
+   },
+   "org": "Zenodo 5093930",
+   "kind": "build",
+   "commands": [
+    "build_tectonics"
+   ],
+   "runs_on": "person",
+   "schedule": "manual",
+   "license": "CC BY 4.0",
+   "flags": [],
+   "outputs": [
+    "data/earth_tectonics.json"
+   ],
+   "docs": [
+    "wetherilli 272"
+   ],
+   "note": "저장소에 굽는다"
+  },
+  {
+   "id": "impacts",
+   "name": {
+    "ko": "충돌구·거대 화성암 지대",
+    "en": "Impact structures·LIPs"
+   },
+   "org": "Wikidata · Johansson 2018",
+   "kind": "build",
+   "commands": [
+    "build_impacts"
+   ],
+   "runs_on": "person",
+   "schedule": "manual",
+   "license": "CC0 · CC BY 4.0",
+   "flags": [],
+   "outputs": [
+    "data/earth_impacts.json"
+   ],
+   "docs": [
+    "wetherilli 283"
+   ],
+   "note": "저장소에 굽는다"
+  },
+  {
+   "id": "natural_earth",
+   "name": {
+    "ko": "지명·강·호수·빙하 Natural Earth",
+    "en": "Natural Earth names·rivers·lakes·glaciers"
+   },
+   "org": "Natural Earth",
+   "kind": "build",
+   "commands": [
+    "build_natural_earth"
+   ],
+   "runs_on": "person",
+   "schedule": "manual",
+   "license": "공공 도메인",
+   "flags": [],
+   "outputs": [
+    "data/earth_places.json",
+    "data/earth_water.json",
+    "data/earth_ice.json"
+   ],
+   "docs": [
+    "wetherilli 102"
+   ],
+   "note": "저장소에 굽는다"
+  },
+  {
+   "id": "ice_margins",
+   "name": {
+    "ko": "빙상 가장자리 NADI-1·DATED-1",
+    "en": "Ice-sheet margins NADI-1·DATED-1"
+   },
+   "org": "Zenodo",
+   "kind": "build",
+   "commands": [
+    "build_ice_margins"
+   ],
+   "runs_on": "person",
+   "schedule": "manual",
+   "license": "CC BY 4.0",
+   "flags": [],
+   "outputs": [
+    "data/ice_margins.json"
+   ],
+   "docs": [
+    "wetherilli 104"
+   ],
+   "note": "저장소에 굽는다"
+  },
+  {
+   "id": "paleomap",
+   "name": {
+    "ko": "판 회전 PALEOMAP 2016",
+    "en": "Plate rotations PALEOMAP 2016"
+   },
+   "org": "Zenodo 10251792 (Scotese)",
+   "kind": "build",
+   "commands": [
+    "build_paleomap"
+   ],
+   "runs_on": "person",
+   "schedule": "manual",
+   "license": "CC BY 4.0",
+   "flags": [],
+   "outputs": [
+    "data/paleomap2016.json"
+   ],
+   "docs": [
+    "wetherilli 087"
+   ],
+   "note": "저장소에 굽는다"
+  },
+  {
+   "id": "moon_originals",
+   "name": {
+    "ko": "달 지질도 원도 6 장",
+    "en": "Moon geologic originals (6 maps)"
+   },
+   "org": "USGS",
+   "kind": "build",
+   "commands": [
+    "build_moon_originals"
+   ],
+   "runs_on": "person",
+   "schedule": "manual",
+   "license": "공공 도메인",
+   "flags": [],
+   "outputs": [
+    "moon/moon_originals.sqlite"
+   ],
+   "docs": [
+    "039"
+   ]
+  },
+  {
+   "id": "moon_spa",
+   "name": {
+    "ko": "남극–에이트켄 분지 지질도",
+    "en": "South Pole–Aitken basin geologic map"
+   },
+   "org": "Zenodo (Iqbal 2026)",
+   "kind": "file",
+   "commands": [],
+   "runs_on": "person",
+   "schedule": "manual",
+   "license": "(사람) 읽을 것",
+   "flags": [],
+   "outputs": [
+    "moon/spa_geomap_iqbal2026.tif"
+   ],
+   "docs": [
+    "wetherilli 081"
+   ],
+   "note": "Zenodo GeoMap.tif.zip 을 풀어 이름만 바꿔 둔다"
+  },
+  {
+   "id": "mars_craters",
+   "name": {
+    "ko": "화성 크레이터 Robbins 2012",
+    "en": "Mars craters Robbins 2012"
+   },
+   "org": "USGS (PIGWAD)",
+   "kind": "build",
+   "commands": [
+    "build_mars_craters"
+   ],
+   "runs_on": "person",
+   "schedule": "manual",
+   "license": "USGS 배포",
+   "flags": [],
+   "outputs": [
+    "mars/mars_craters.sqlite"
+   ],
+   "docs": [
+    "067"
+   ]
+  },
+  {
+   "id": "mars_originals",
+   "name": {
+    "ko": "화성 옛 지질도·지역도",
+    "en": "Mars legacy geologic maps"
+   },
+   "org": "USGS",
+   "kind": "build",
+   "commands": [
+    "build_mars_originals"
+   ],
+   "runs_on": "person",
+   "schedule": "manual",
+   "license": "공공 도메인",
+   "flags": [],
+   "outputs": [
+    "mars/mars_originals.sqlite"
+   ],
+   "docs": [
+    "068",
+    "wetherilli 079"
+   ]
+  },
+  {
+   "id": "mercury_geology",
+   "name": {
+    "ko": "수성 지질도 1:500만 합본",
+    "en": "Mercury 1:5M geologic map"
+   },
+   "org": "USGS",
+   "kind": "build",
+   "commands": [
+    "build_mercury_geology"
+   ],
+   "runs_on": "person",
+   "schedule": "manual",
+   "license": "공공 도메인",
+   "flags": [],
+   "outputs": [
+    "mercury/mercury_geology.sqlite"
+   ],
+   "docs": [
+    "wetherilli 144"
+   ]
+  },
+  {
+   "id": "zhurong",
+   "name": {
+    "ko": "주룽 로버 경로",
+    "en": "Zhurong rover traverse"
+   },
+   "org": "figshare (Zhang 외 2026)",
+   "kind": "build",
+   "commands": [
+    "build_zhurong"
+   ],
+   "runs_on": "person",
+   "schedule": "manual",
+   "license": "CC BY 4.0",
+   "flags": [],
+   "outputs": [
+    "data/mars_zhurong.json"
+   ],
+   "docs": [
+    "066"
+   ],
+   "note": "끝난 임무 — 다시 구울 일이 거의 없다"
+  }
+ ]
+}

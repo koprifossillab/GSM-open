@@ -727,3 +727,14 @@ def geoindex_friendly(props: dict, lang: str = "ko") -> dict:
 
 
 GEOINDEX = _NS(get_map=geoindex_get_map, get_feature_info=geoindex_get_feature_info, get_legend=geoindex_get_legend)
+
+
+#: 이 파일이 여는 상류 — `doors.py` 가 모아 views·prewarm·화면의 표를 짓는다 (wetherilli 371)
+REGISTRY = [
+    {"upstream": "aga", "tag": "BGS", "title": "영국 지질조사소 — 아프리카 지하수 지도책", "relay": AGA, "projected": True, "globe": True},
+    {"upstream": "bgs", "tag": "BGS", "title": "영국 지질조사소", "relay": True, "projected": True, "globe": True},
+    {"upstream": "bgsgi", "tag": "BGS", "title": "영국 지질조사소", "relay": GEOINDEX, "projected": True, "globe": True},
+    {"upstream": "bumigeb", "tag": "BUMIGEB", "title": "부르키나파소 지질광업국", "relay": BUMIGEB, "projected": True, "globe": True},
+    {"upstream": "gsn", "tag": "GSN", "title": "나미비아 지질조사소", "relay": GSN, "projected": True, "globe": True},
+    {"upstream": "gsni", "tag": "GSNI", "title": "북아일랜드 지질조사소", "relay": GSNI, "projected": True, "globe": True},
+]

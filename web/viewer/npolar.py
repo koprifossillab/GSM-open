@@ -587,3 +587,9 @@ def body(name: str, features_json: bytes) -> bytes:
 def match_places(features: list, query: str, limit: int = 20) -> list:
     """받아 둔 지명 가운데 `query` 에 맞는 것 — 틀은 `arcpoints.match_index` 에 있다 (wetherilli 096)."""
     return arcpoints.match_index(arcpoints.name_index(features, ("name",), ("area",)), query, limit)
+
+
+#: 이 파일이 여는 상류 — `doors.py` 가 모아 views·prewarm·화면의 표를 짓는다 (wetherilli 371)
+REGISTRY = [
+    {"upstream": "npolar", "tag": "NPI", "title": "노르웨이 극지연구소", "relay": True},
+]

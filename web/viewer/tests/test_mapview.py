@@ -11,7 +11,7 @@ from django.conf import settings
 from django.test import SimpleTestCase, TestCase, override_settings
 from django.urls import reverse
 
-from viewer import views
+from viewer import doors, views
 from viewer.models import Layer, LayerGroup
 
 
@@ -80,11 +80,11 @@ class PolarProjectionTests(TestCase):
         self.assertEqual(rows["L_50K_Geology_Map"]["upstream"], "kigam")
 
     def test_every_seed_upstream_has_a_layer_maker(self):
-        """씨앗의 상류(`_상류`)가 map.js 의 `LAYER_KINDS` 에 없으면 그 레이어는
-        KIGAM WMS 로 잘못 불린다. 씨앗을 새로 더해도 여기서 걸린다."""
+        """씨앗의 상류(`_상류`)가 map.js 의 `LAYER_KINDS` 에도, 문의 `REGISTRY` 의 `projected` 에도 없으면 그 레이어는
+        KIGAM WMS 로 잘못 불린다. 씨앗을 새로 더해도 여기서 걸린다 (wetherilli 371)."""
         js = (Path(views.__file__).parent / "static/viewer/map.js").read_text(encoding="utf-8")
         block = re.search(r"var LAYER_KINDS = \{(.*?)\n  \};", js, re.S).group(1)
-        kinds = set(re.findall(r"^\s*(\w+):", block, re.M))
+        kinds = set(re.findall(r"^\s*(\w+):", block, re.M)) | set(doors.names("projected"))
         used = {"kigam"}
         for seed in (settings.REPO_DIR / "data").glob("*_layers.json"):
             used.add(json.loads(seed.read_text(encoding="utf-8")).get("_상류", "kigam"))

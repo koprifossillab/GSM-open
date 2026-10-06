@@ -146,3 +146,9 @@ def friendly(props: dict, lang: str = "ko") -> dict:
     if props.get("Litho2") and out.get("암석"):
         out["암석"] = f"{out['암석']}, {str(props['Litho2']).strip()}"
     return out
+
+
+#: 이 파일이 여는 상류 — `doors.py` 가 모아 views·prewarm·화면의 표를 짓는다 (wetherilli 371)
+REGISTRY = [
+    {"upstream": "ispra", "tag": "ISPRA", "title": "이탈리아 지질조사소 (ISPRA)", "relay": True, "projected": True, "globe": True},
+]

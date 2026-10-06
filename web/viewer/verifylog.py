@@ -13,6 +13,8 @@ from pathlib import Path
 from django.conf import settings
 
 BROKEN = ("빈 그림", "오류")
+#: 범례 대조의 기록 이름 앞머리 — `verify_layers --legends` (wetherilli 367)
+LEGEND_PREFIX = "legend:"
 
 
 def root() -> Path:
@@ -75,7 +77,11 @@ def summary() -> dict:
     paths = files()
     if not paths:
         return None
-    counts = Counter(row.get("kind") for row in load(paths[-1]).get("layers", {}).values())
+    layers = load(paths[-1]).get("layers", {})
+    # 범례 대조(`legend:` 로 시작, wetherilli 367)는 타일의 수에 섞지 않는다 — 새로 깨진 것에는 든다
+    counts = Counter(row.get("kind") for name, row in layers.items() if not name.startswith(LEGEND_PREFIX))
+    legends = Counter(row.get("kind") for name, row in layers.items() if name.startswith(LEGEND_PREFIX))
     got = diff(paths)
     return {"day": paths[-1].stem, "drawn": counts["그림"], "empty": counts["빈 그림"], "error": counts["오류"],
-            "skipped": counts["건너뜀"], "newly": len(got["newly"]), "fixed": len(got["fixed"])}
+            "skipped": counts["건너뜀"], "newly": len(got["newly"]), "fixed": len(got["fixed"]),
+            "legends": legends["그림"], "legend_broken": legends["빈 그림"] + legends["오류"]}

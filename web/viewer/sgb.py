@@ -354,3 +354,9 @@ def legend_row(row: dict, units: dict, lang: str = "ko") -> dict:
     return {"color": row["color"], "symbol": row["symbol"], "swatch": "",
             "lithology": f"{row['symbol']} {unit[0]}".strip() if unit and unit[0] else row["symbol"],
             "age": _span(unit[1], unit[2], lang) if unit else ""}
+
+
+#: 이 파일이 여는 상류 — `doors.py` 가 모아 views·prewarm·화면의 표를 짓는다 (wetherilli 371)
+REGISTRY = [
+    {"upstream": "sgb", "tag": "SGB", "title": "브라질 지질조사소", "relay": True, "projected": True, "globe": True},
+]

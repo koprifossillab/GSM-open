@@ -271,3 +271,9 @@ def body(name: str, features_json: bytes) -> bytes:
     head = json.dumps({"type": "FeatureCollection", "labels": LABELS, "links": ["link"],
                        "style": LAYERS[name]["style"]}, ensure_ascii=False)
     return head[:-1].encode("utf-8") + b', "features": ' + features_json + b"}"
+
+
+#: 이 파일이 여는 상류 — `doors.py` 가 모아 views·prewarm·화면의 표를 짓는다 (wetherilli 371)
+REGISTRY = [
+    {"upstream": "phyloserver", "tag": "LAB", "title": "연구실 자료"},
+]

@@ -392,3 +392,9 @@ def friendly(props: dict, lang: str = "ko") -> dict:
         rows = (("주", v("state")), ("기호", v("orig_label")), ("암상", v("generalize")),
                 ("단위 설명", _link(v("url"))), ("원도", _link(v("src_url"))))
     return {k: x for k, x in rows if x}
+
+
+#: 이 파일이 여는 상류 — `doors.py` 가 모아 views·prewarm·화면의 표를 짓는다 (wetherilli 371)
+REGISTRY = [
+    {"upstream": "mrdata", "tag": "USGS", "title": "미국 지질조사국", "relay": True, "projected": True, "globe": True},
+]

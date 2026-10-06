@@ -177,3 +177,9 @@ def friendly(props: dict, lang: str = "ko") -> dict:
     rows = (("기호", v("TXT_LABEL")), ("지층", v("UNIT_NAME")), ("상위 단위", v("PARENT")), ("서열", v("UNIT_RANK")),
             ("지질시대", i18n.age_ko(age) if lang == "ko" and age else age), ("암석", v("UNIT_DESC")))
     return {k: x for k, x in rows if x and x.lower() not in ("none", "null")}
+
+
+#: 이 파일이 여는 상류 — `doors.py` 가 모아 views·prewarm·화면의 표를 짓는다 (wetherilli 371)
+REGISTRY = [
+    {"upstream": "nsgs", "tag": "NSNRR", "title": "노바스코샤 자연자원·재생에너지부", "relay": True, "projected": True, "globe": True},
+]

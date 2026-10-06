@@ -173,3 +173,9 @@ def body(name: str, lang: str = "ko") -> bytes:
         legend.append({"code": code, "label": label, "color": color_of(code), "count": n})
     out = {"type": "FeatureCollection", "labels": LABELS, "style": "unit", "legend": legend, "features": items}
     return json.dumps(out, ensure_ascii=False, separators=(",", ":")).encode("utf-8")
+
+
+#: 이 파일이 여는 상류 — `doors.py` 가 모아 views·prewarm·화면의 표를 짓는다 (wetherilli 371)
+REGISTRY = [
+    {"upstream": "usgscarib", "tag": "USGS", "title": "미국 지질조사국"},
+]

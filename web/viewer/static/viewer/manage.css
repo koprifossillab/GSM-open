@@ -99,6 +99,24 @@ body.manage { display: block; height: auto; min-height: 100vh; overflow: visible
 .mg-right { margin-left: auto; }
 
 @media (max-width: 640px) {
+  /* 상자 제목 옆의 안내 글이 제목을 밀어 "개인 레이 / 어"·"상류 응답 / 시간" 처럼 꺾였다 — 안내는 다음 줄로 (wetherilli 365) */
+  .box-head { flex-wrap: wrap; row-gap: 2px; }
+  .box-head .hint { flex-basis: 100%; margin-left: 0; font-weight: 400; }
+  /* 저장 탭의 표는 카드로 — 칸이 일곱이라 지우기·내려받기 단추가 가로로 굴려야 보였다 (wetherilli 369).
+     머리줄은 숨기고 칸 앞에 그 이름(`data-label`)을 적는다. 첫 줄은 보이기·색·이름, 끝 줄은 단추 */
+  .mg-layers thead { display: none; }
+  .mg-layers, .mg-layers tbody { display: block; }
+  .mg-layers tr { display: grid; grid-template-columns: auto 1fr; gap: 4px 10px; align-items: center; padding: 10px 4px;
+                  border-bottom: 1px solid var(--line-soft); }
+  .mg-layers tr:last-child { border-bottom: 0; }
+  .mg-layers td { display: block; padding: 0; border: 0; white-space: normal; min-width: 0; }
+  .mg-layers td.mg-name-cell { display: flex; gap: 6px; align-items: center; }
+  .mg-layers td.mg-name-cell input[type=text] { flex: 1; min-width: 0; width: auto; }
+  .mg-layers td[data-label] { grid-column: 2; font-size: 12px; overflow-wrap: anywhere; }
+  .mg-layers td[data-label]::before { content: attr(data-label); display: inline-block; min-width: 5.5em; margin-right: 6px;
+                                      color: var(--ink-faint); font-family: var(--font-sans, inherit); }
+  .mg-layers td.mg-row-acts { grid-column: 1 / -1; display: flex; flex-wrap: wrap; gap: 6px; margin-top: 4px; }
+  .mg-layers td.empty { grid-column: 1 / -1; }
   .mg-head { flex-wrap: wrap; gap: 8px; padding: 10px 16px; }
   .mg-back { margin-left: 0; }
   .mg-main { padding: 14px 16px 40px; }

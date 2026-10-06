@@ -87,3 +87,9 @@ def friendly(props: dict, lang: str = "ko") -> dict:
             ("암석", props.get("Lithology", "")), ("설명", props.get("Lithologydescription", "")),
             ("지질시대", i18n.age_ko(age) if lang == "ko" and age else age))
     return {k: str(v).strip() for k, v in rows if str(v or "").strip()}
+
+
+#: 이 파일이 여는 상류 — `doors.py` 가 모아 views·prewarm·화면의 표를 짓는다 (wetherilli 371)
+REGISTRY = [
+    {"upstream": "mgb", "tag": "MGB", "title": "필리핀 광산지질국", "relay": True, "projected": True, "globe": True},
+]

@@ -447,6 +447,11 @@
     <p>{% t "자료의 주인은 저마다의 기관입니다 — 한국지질자원연구원, 국토교통부(VWorld), GEUS, 노르웨이 극지연구소, SCAR GeoMAP, 일본 산업기술종합연구소, USGS, NASA, 극지연구소 KPDC 등. 이 쪽의 그림은 대돌여지도 화면을 찍은 것입니다." %}</p>
     <p>{% t "만든 곳 — 극지연구소 고생물진화연구실" %} · {% t "만든 이 — 극지연구소 이승찬 · 극지연구소 정직한" %}</p>
     <p>{% t "코드는 AGPL-3.0" %} · <a href="{{ source_url }}">{% t "소스" %}</a> · GSM v{{ version }}</p>
+    {% comment %}휴대폰은 머리줄에 언어 단추를 둘 자리가 없다(영어판은 제목이 두 줄이다) — 끝에 같은 단추를 둔다 (wetherilli 365){% endcomment %}
+    <nav class="langs foot-langs" aria-label="{% t "언어" %}">
+      <button type="button" data-lang="ko" {% if lang == "ko" %}aria-current="true"{% endif %}>한국어</button>
+      <button type="button" data-lang="en" {% if lang == "en" %}aria-current="true"{% endif %}>English</button>
+    </nav>
   </footer>
 </section>
 

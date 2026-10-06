@@ -4,7 +4,8 @@
     manage.py upstream_stats --days 60
 
 **한계를 재지 않고 지켜보는 자리다** (devlog 010). 걸린 시간(wetherilli 290)도 — 날마다 평균과 p95(칸에서 어림한 위 끝),
-맨 끝에 기간을 합친 상류별 평균이 느린 차례로 선다. 느린 상류를 메타타일(wetherilli 287)로 돌릴 때 본다. 차단 조짐(403·429·방화벽의
+맨 끝에 기간을 합친 상류별 평균이 느린 차례로 선다. **명령** 칸은 그 가운데 화면이 아니라 `manage.py` 명령(대조·미리 데우기·받기)이 낸 수다
+(wetherilli 363) — 화면 쓰임은 성공+실패+차단에서 이것을 뺀 것이다. 느린 상류를 메타타일(wetherilli 287)로 돌릴 때 본다. 차단 조짐(403·429·방화벽의
 `Request Blocked`)이 한 번이라도 있었으면 맨 끝에 적는다 — 그때는 미리
 데우기를 멈추고 까닭을 본다.
 """
@@ -33,13 +34,13 @@ class Command(BaseCommand):
         if not rows:
             self.stdout.write("센 것이 없다.")
             return
-        self.stdout.write(f"{'날짜':<12}{'상류':<12}{'성공':>8}{'실패':>6}{'차단':>6}{'평균초':>8}{'p95초':>8}")
+        self.stdout.write(f"{'날짜':<12}{'상류':<12}{'성공':>8}{'실패':>6}{'차단':>6}{'평균초':>8}{'p95초':>8}{'명령':>6}")
         blocked_days = []
         totals = {}
         for r in rows:
             counts = [getattr(r, f) for f in BUCKET_FIELDS]
             self.stdout.write(f"{r.day!s:<12}{r.upstream:<12}{r.ok:>8}{r.fail:>6}{r.blocked:>6}"
-                              f"{mean(r.seconds, r.timed):>8}{p95(counts):>8}")
+                              f"{mean(r.seconds, r.timed):>8}{p95(counts):>8}{r.batch:>6}")
             if r.blocked:
                 blocked_days.append(f"{r.day} {r.upstream}")
             if r.timed:

@@ -289,3 +289,9 @@ def encode(tile) -> bytes:
 
 class PeninsulaError(RuntimeError):
     pass
+
+
+#: 이 파일이 여는 상류 — `doors.py` 가 모아 views·prewarm·화면의 표를 짓는다 (wetherilli 371)
+REGISTRY = [
+    {"upstream": "peninsula", "tag": "LAB", "title": "연구실 자료"},
+]

@@ -194,3 +194,9 @@ def friendly(props: dict, lang: str = "ko") -> dict:
     if label:
         out["기호"] = label
     return out
+
+
+#: 이 파일이 여는 상류 — `doors.py` 가 모아 views·prewarm·화면의 표를 짓는다 (wetherilli 371)
+REGISTRY = [
+    {"upstream": "cgs", "tag": "CGS", "title": "남아프리카공화국 지질조사소", "relay": True, "projected": True, "globe": True},
+]

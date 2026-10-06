@@ -66,3 +66,6 @@ mercury/
 **/geo3al.shx
 **/geo3al.dbf
 **/geo3al.prj
+# 자료원 명세(운영 판)와 그 이력 (jikhanjung P02) — 운영은 /srv/GSM/db/
+/sources.json
+sources_history/

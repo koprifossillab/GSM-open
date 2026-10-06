@@ -7,7 +7,7 @@
 
 ## 작업 방식 (2026-09-30 부터)
 
-**브랜치** `main` = `0.69.0`(2026-10-05 배포). 코드 작업은 각자 자기 계정에서 `feature/<기능 이름>` 브랜치를 `main` 에서 만들고, 끝나면 PR 을 만든다.
+**브랜치** `main` = `0.70.0`(2026-10-06 배포). 코드 작업은 각자 자기 계정에서 `feature/<기능 이름>` 브랜치를 `main` 에서 만들고, 끝나면 PR 을 만든다.
 **PR 병합과 판 올리기·배포는 판 세션(gsm-31)이 한다** — 다른 세션은 PR 을 열고 알린다. 판은 몇 PR 이 모이면 따로 올린다. 문서만 고치는 것은 `main` 에 바로. devlog 는 글쓴이마다 번호를 센다 — CLAUDE.md "커밋과 PR"·"devlog",
 [devlog/README.md](devlog/README.md). WegenersDream 과 같은 규약이다.
 
@@ -68,7 +68,8 @@
 | `wind/`·`ocean/` | 바람·구름(GFS·GMGSI·ERA5)·해류(ECCO2) PNG | 호스트 cron 의 `hourly.sh`, 지난 것은 사람이 `build_era5_wind`·`build_ecco2` (koprifossillab P02·005·014) |
 | `kigam_data/` | KIGAM `/openapi/data` 의 시료·분석·주제도·조사 | `manage.py fetch_kigam_data` (wetherilli 169) |
 | `kopri/` | 극지연구소 목록·상세 | `manage.py fetch_kopri` — 가끔, 새 것만 받는다 (053) |
-| `kigam50k/` | KIGAM 5만 지질도 층리·엽리·절리·단층 등 19 레이어(WFS, 2026-09-30). 0.25.1 부터 자세 기호의 커서·팝업이 읽는다 | 지금은 손으로 받아 둔 `raw/20260930/`. 받는 명령은 jikhanjung P01 |
+| `kigam50k/` | KIGAM 5만 지질도 구조 요소 19 레이어(WFS) — 층리·엽리 기호·장미도·레이어군 "지질 구조 (5만)" 이 읽는다. 지금은 `raw/20260930/` 하나 (jikhanjung 004·005, wetherilli 197·199·202·223) | `manage.py fetch_kigam50k` — 사람이 가끔. 같으면 새 폴더 없이 확인한 날만 (wetherilli 199·208) |
+| `sources.json`·`sources_history/` | 받아 두는 자료원의 명세 — 조건·주기·돌리는 곳·명령·산출물, 그리고 바뀐 판마다 떠 둔 것 | 컨테이너가 뜰 때 `sources_seed` 가 씨앗(`data/sources.seed.json`)의 없는 id 만 덧붙인다. 고치는 것은 사람이 서버에서 (jikhanjung P02·011) |
 
 그 밖에 가끔 돌리는 것 — `data_status`(위 표의 파일마다 있는지·크기·고친 날·원본 판, wetherilli 312), `fetch_grportal`(그린란드 시료·NPI 점·지명), `verify_layers --probe-info`
 (`/openapi/wms` 가 속성을 열었는지), `upstream_stats`(얼마나 묻는지).
@@ -164,7 +165,9 @@ Django 가 붙인다. `kigam.clean_params()` 가 브라우저가 보낸 `key` �
 `/srv/GSM` 은 배포한 사람(root)의 것이라 **`.env` 도 `docker-compose.yml` 도
 못 고친다.** 쓸 수 있는 것은 `db/` 뿐이다(고칠 때는 사람이 sudo 로). 타일 캐시는 2026-09-30 에
 `/data/GSM/tiles`(8 TB 하드)로 옮겼다 — 컨테이너 안의 경로는 그대로 `/srv/GSM/tiles` 다 (wetherilli 082). 서버 DNS 가
-kopri.re.kr 을 못 찾아 compose 에 KPDC 주소를 `extra_hosts` 로 박아 둔다 — 서버 DNS 가 고쳐지면 지운다 (wetherilli 095). 2026-09-23 에 이것이
+kopri.re.kr 을 못 찾아 compose 에 KPDC 주소를 `extra_hosts` 로 박아 둔다 — 서버 DNS 가 고쳐지면 지운다 (wetherilli 095).
+호스트 cron 의 아라온호 받기는 그 설정을 타지 않아 **호스트 `/etc/hosts` 에 `203.250.180.137 live.kopri.re.kr`** 을 넣었다(2026-10-06,
+koprifossillab 019) — DNS 가 고쳐지면 함께 지운다. 2026-09-23 에 이것이
 세 번 걸렸다 — 빈 `SECRET_KEY` 로 기동 실패, `ALLOWED_HOSTS` 에 `paleolab` 이
 없어 400, 그리고 임시 스위치.
 
@@ -215,6 +218,8 @@ venv 는 requirements 가 바뀌면 스스로 다시 만든다. cron 은 **두 �
 - 새 상류가 생기면 운영 장비에서 그 주소로 나갈 수 있는지 먼저 본다 (KOPRI 망의 TLS 는 위)
 - 올린 뒤 `deploy/host/smoke.sh`
 
-## 걸린 것 — 없음
+## 걸린 것
 
-지금 막힌 것은 없다.
+- **휴대폰 job 이 가끔 깨진다 — 고침이 PR #366 에서 병합을 기다린다**(2026-10-06, jikhanjung 010). 3D 가 늦게 실패한 타일 뒤에
+  `load` 를 쏘지 않는 MapLibre 경합이었다(운영에도 걸린다). **판 세션은 #366 을 먼저 병합하고, #364·#365(판 0.70.0)의
+  휴대폰 job 을 다시 돌린다** — 둘의 실패는 이것이다. 병합하면 이 줄을 지운다

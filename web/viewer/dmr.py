@@ -169,3 +169,8 @@ def friendly(props: dict, lang: str = "ko") -> dict:
             ("지질시대", i18n.age_ko(age) if lang == "ko" and age else age), ("편집 연도", props.get(YEAR, "")))
     return {k: str(v).strip() for k, v in rows if str(v or "").strip()}
 
+
+#: 이 파일이 여는 상류 — `doors.py` 가 모아 views·prewarm·화면의 표를 짓는다 (wetherilli 371)
+REGISTRY = [
+    {"upstream": "dmr", "tag": "DMR", "title": "태국 광물자원국", "relay": True, "projected": True, "globe": True},
+]

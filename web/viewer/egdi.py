@@ -135,3 +135,9 @@ def friendly(props: dict, lang: str = "ko") -> dict:
     if "-" in ident.split(".", 1)[0]:
         out["제공 기관"] = ident.split(".", 1)[0]
     return out
+
+
+#: 이 파일이 여는 상류 — `doors.py` 가 모아 views·prewarm·화면의 표를 짓는다 (wetherilli 371)
+REGISTRY = [
+    {"upstream": "egdi", "tag": "EGDI", "title": "EGDI (EuroGeoSurveys)", "relay": True, "projected": True, "globe": True},
+]

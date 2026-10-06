@@ -128,3 +128,9 @@ def friendly(props: dict, lang: str = "ko") -> dict:
         if value and value not in ("-", "null") and label not in out:
             out[label] = value
     return out
+
+
+#: 이 파일이 여는 상류 — `doors.py` 가 모아 views·prewarm·화면의 표를 짓는다 (wetherilli 371)
+REGISTRY = [
+    {"upstream": "swisstopo", "tag": "swisstopo", "title": "스위스 연방 지형청", "relay": True, "projected": True, "globe": True},
+]

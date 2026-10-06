@@ -88,12 +88,30 @@ class Body(TestCase):
         self.assertEqual(en["labels"]["PROT_TARG"], "Protected targets")
         self.assertEqual(en["legend"][0]["label"], "Debris-flow deposition zone")
 
-    def test_암체_등급은_값_그대로의_색(self):
+    def test_암체_등급은_차례_색이고_짐작이라고_적는다(self):
+        """I 이 단단한 쪽 — 지질운이 적은 뜻이 아니라 암상으로 짐작한 차례다 (wetherilli 370)"""
+        write(self.dir, "RockMassClassification", [
+            feature(SQUARE, **{"強度分級": "III", "ST_C": "沖積層", "LITH_C": None, "CHAR_C": "厚層粉砂岩層"}),
+            feature(SQUARE, **{"強度分級": "I", "LITH_C": "安山岩"}),
+            feature(SQUARE, **{"強度分級": "VII", "LITH_C": "頁岩"}),
+            feature(SQUARE, **{"強度分級": None, "LITH_C": "水體"})])
+        twopen.forget()
         data = json.loads(twopen.body("gsmma:open:rockmass"))
         props = data["features"][0]["properties"]
-        self.assertEqual((props["code"], props["color"]), ("III", twopen.ROCKMASS["III"]))
+        self.assertEqual((props["code"], props["color"], props["CHAR_C"]), ("III", twopen.ROCKMASS["III"], "厚層粉砂岩層"))
         self.assertNotIn("LITH_C", props)                              # 빈 값은 싣지 않는다
-        self.assertEqual(data["legend"][0]["label"], "등급 III")
+        self.assertEqual(props["order"], "I 단단 → VII 무름 (암상으로 짐작)")
+        self.assertNotIn("order", data["features"][3]["properties"])   # 등급 없는 면에는 풀이도 없다
+        self.assertEqual(list(data["labels"])[:2], ["強度分級", "order"])   # 등급 바로 밑
+        legend = {r["code"]: r["label"] for r in data["legend"]}
+        self.assertEqual(legend, {"I": "등급 I — 가장 단단한 쪽 (암상으로 짐작)", "III": "등급 III",
+                                  "VII": "등급 VII — 가장 무른 쪽 (암상으로 짐작)", "?": "등급 없음"})
+        # 차례 색 — I 이 가장 진하고 VII 이 가장 옅다
+        light = [sum(int(c[i:i + 2], 16) for i in (1, 3, 5)) for c in twopen.ROCKMASS.values()]
+        self.assertEqual(light, sorted(light))
+        en = json.loads(twopen.body("gsmma:open:rockmass", "en"))
+        self.assertEqual((en["labels"]["order"], en["labels"]["CHAR_C"]), ("Class order", "Characteristics"))
+        self.assertIn("inferred from lithology", en["features"][0]["properties"]["order"])
 
     def test_화면과_주소(self):
         call_command("seed_catalog", stdout=io.StringIO())

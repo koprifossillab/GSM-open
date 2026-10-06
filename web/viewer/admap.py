@@ -304,3 +304,9 @@ def value_at(lat: float, lon: float):
         return None
     n = struct.unpack("<h", raw)[0]
     return None if n == NODATA else n
+
+
+#: 이 파일이 여는 상류 — `doors.py` 가 모아 views·prewarm·화면의 표를 짓는다 (wetherilli 371)
+REGISTRY = [
+    {"upstream": "admap", "tag": "ADMAP", "title": "ADMAP-2"},
+]

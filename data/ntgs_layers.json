@@ -1,0 +1,27 @@
+{
+ "_주석": "노던테리토리 지질도 씨앗이다 — NTGS 가 주 열린자료(data.nt.gov.au)에 둔 1:250만 해석 지질도·단층 셰이프 ZIP(CC BY)을 web/viewer/ntgeo.py 가 우리 디스크에서 읽어 한 덩이로 화면에 준다. 지도 서비스가 없다. 한글 제목과 레이어군은 사람이 붙였다 (wetherilli 361).",
+ "_뽑은날": "2026-10-05",
+ "_출처": "https://data.nt.gov.au/dataset/strike---northern-territory-geological-map-interp-2500k",
+ "_지역": "australia",
+ "_상류": "ntgs",
+ "_레이어군차례": 15,
+ "레이어군순서": [
+  "노던테리토리 지질도 (NTGS)"
+ ],
+ "레이어": [
+  {
+   "name": "ntgs:geology",
+   "title": "지질도 1:250만 (해석)",
+   "group": "노던테리토리 지질도 (NTGS)",
+   "abstract": "Northern Territory Geological Map (Interp) 2500K — 면 1 975, 기호·층서 단위·암석·지질구·시대",
+   "bbox": [129.0, -26.0, 138.0, -10.9]
+  },
+  {
+   "name": "ntgs:faults",
+   "title": "단층 1:250만",
+   "group": "노던테리토리 지질도 (NTGS)",
+   "abstract": "Northern Territory Geological Faults 2500K — 849, 해석(지구물리)·지도의 단층",
+   "bbox": [129.0, -26.0, 138.0, -10.9]
+  }
+ ]
+}

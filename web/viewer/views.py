@@ -29,12 +29,12 @@ from django.views.decorators.http import require_GET, require_POST
 
 from gsmweb.version import VERSION
 
-from . import (coords, crs, datastatus, geo3al, geomap, geus, grportal, gsj, gsmma, i18n, ibcso, janmayen, kigam, kopri, npolar,
+from . import (coords, crs, datastatus, geo3al, geomap, geus, grportal, gsj, gsmma, i18n, ibcso, janmayen, kigam, kopri, npolar, ntgeo,
                patchnotes, elevation, moonmap, peninsula, phyloserver, pointsets, tilecache, tiles, trek, vworld, warp,
                marscraters, marsmap, mercurymap, zhurong)
 from . import admap, arcpoints, caribmap, crust, glaciers, impacts, faults, minerals, stress, tectonics, seafloor, glim, heatflow, fossils, gvp, icemargins, kigam50k, macrostrat, mantle, metatile, naturalearth, neotoma, paleo, paleoeco, paleocoast, pbdb, quakes, recentquakes, verifylog, spamap, ocean, usgs, volcanoes, wind
 from . import ags, austates, bas, basemaps, bcgs, bgr, bgs, brgm, calgs, cgs, dinamige, dmr, dov, egdi, emodnet, esdm, ga, georep, geosphere, gns, gsi, gsiindia, gtk, igme, iige, ineter, ingemmet, ispra, jmg, linked, lneg, mgb, mrdata, mris, natt, ngu, nrcan, nsgs, ogs, pig, segemar, sgb, sgc, sgm, sgs, sgu, sigeom, skgs, spw, stri, swisstopo, tno, twopen, usage, usgscarib, usstates, vmme, ygs
-from . import earthpoints, pointvalues, profileband, static_tables, tilegrid
+from . import doors, earthpoints, pointvalues, profileband, static_tables, tilegrid
 from .i18n import msg
 from .models import Layer, LayerGroup, Point, PointSet, PointSetDeletion, Shape
 
@@ -384,6 +384,8 @@ def map_view(request):
         "static_tables": _script_json(static_tables.tables()) if settings.STATIC_SITE else "",
         # 화면이 주소를 짓는 우리 타일(IBCSO 배경)의 판 (wetherilli 183). 정적 판은 구운 파일이라 싣지 않는다
         "tile_versions": "{}" if settings.STATIC_SITE else _script_json(tile_versions("map")),
+        # 상류의 딱지·기관 이름·투영으로 받나 — 문마다 `REGISTRY` 가 적는다 (`doors.py`, wetherilli 371)
+        "upstreams": _script_json(doors.client()),
         "has_key": kigam.has_key(),
         "dev_direct": settings.DEV_DIRECT_WMS,
         # 브라우저가 직접 VWorld 를 부른다. 까닭은 settings.VWORLD_KEY.
@@ -395,59 +397,9 @@ def map_view(request):
     })
 
 
-#: 3D 가 `wms/` 의 3857 타일로 얹는 상류 (`map3d.js` 의 `wmsTiles`)
-MAP3D_WMS = ("kigam", "geus", "geusarc", "vworld", "ccop", "gsjows", "gsmma",
-             "emodnet", "bgs", "bgsgi", "gsni", "brgm", "egdi", "bgr", "igme", "gsi",
-             # 남미 SGC(wetherilli 188)·브라질 SGB(191)·아르헨티나 SEGEMAR·우루과이 DINAMIGE(196) — 3857 로 그린다
-             "sgc", "sgb", "segemar", "dinamige",
-             # 에콰도르 IIGE(wetherilli 198) — ArcGIS WMS 가 3857 로 그린다
-             "iige",
-             # 미국 USGS mrdata(wetherilli 205) — MapServer WMS 가 3857 로 그린다
-             "mrdata",
-             # 멕시코 SGM(wetherilli 206) — 문이 WMS 변수를 REST export 로 옮긴다
-             "sgm",
-             # 아프리카 CGMW–BRGM·BGS 지하수 지도책(wetherilli 207), 남아공 CGS·나미비아 GSN(209) — 서버 캐시에 담지 않는 둘도 3D 는 그때그때 받는다
-             "cgmw", "aga", "cgs", "gsn",
-             # 부르키나파소 BUMIGEB(wetherilli 246) — BGS 의 MapServer, 3857. 카메룬 IRGM 은 4326 만 그려 3D 에 없다
-             "bumigeb",
-             # 캐나다 NRCan·온타리오 OGS(wetherilli 204) — 2D 는 3978 이지만 3D 는 3857 로 묻는다(둘 다 그려 준다)
-             "nrcan", "ogs",
-             # 퀘벡 SIGÉOM·유콘 YGS(wetherilli 210) — 둘 다 3857 도 그린다
-             "sigeom", "ygs",
-             # 사스카치원·노바스코샤(wetherilli 235) — 3857 로도 그린다
-             "skgs", "nsgs",
-             # 호주 GA(wetherilli 212) — ArcGIS WMS 가 3857 로 그린다. 주 판 셋(225)도 3857 이다
-             "ga", "gsq", "gsv", "gssa", "mrt", "gsnsw",
-             # 이탈리아 ISPRA·포르투갈 LNEG·스위스 swisstopo(wetherilli 211) — 3857 로 그린다
-             "ispra", "lneg", "swisstopo",
-             # 스웨덴 SGU(wetherilli 213) — 2D 는 3413 이지만 GeoServer 가 3857 도 그린다
-             "sgu",
-             # 노르웨이 NGU·핀란드 GTK(wetherilli 335) — 2D 는 3575·3413 이지만 3857 도 그려 준다(2026-10-05 에 둘 다 재었다)
-             "ngu", "gtk",
-             # PGC ArcticDEM·REMA 경사·등고선(wetherilli 338) — ImageServer 가 3857 로도 다시 그려 준다
-             "pgc",
-             # 아이슬란드 NÍ(wetherilli 216) — 2D 는 3413 이지만 GeoServer 라 3857 도 그린다
-             "natt",
-             # 뉴질랜드·남빅토리아랜드 GNS(wetherilli 218) — GeoServer 라 3857 도 그린다
-             "gns",
-             # 몽골 MonGeoCat(wetherilli 221) — ArcGIS WMS 가 3857 로 그린다
-             "mris",
-             # 인도 GSI(wetherilli 226) — BGS 의 MapServer WMS 가 3857 로 그린다
-             "gsiindia",
-             # 사우디 SGS(wetherilli 227) — 원본이 3857 이다
-             "sgs",
-             # 동남아(wetherilli 228) — 인도네시아·필리핀·태국은 ArcGIS WMS, 말레이시아는 문이 REST export 로 옮긴다. 다 3857 로 그린다
-             "esdm", "jmg", "mgb", "dmr",
-             # 브리티시컬럼비아 BCGS·캘리포니아 CGS(wetherilli 231) — 2D 는 3978 이지만 3D 는 3857 로 묻는다(둘 다 그려 준다)
-             "bcgs", "calgs",
-             # 네바다·워싱턴·오리건(wetherilli 291) — 캘리포니아처럼 문이 REST export 로, 3D 는 3857
-             "nbmg", "wadnr", "dogami", "dggs",
-             # 오스트리아·폴란드·네덜란드·벨기에(wetherilli 237) — 3857 로 그린다
-             "geosphere", "pig", "tno", "dov", "spw",
-             # 니카라과 INETER(wetherilli 242) — GeoServer 라 3857 로 그린다
-             "ineter",
-             # 누벨칼레도니 Géorep(wetherilli 260) — 3857 로 다시 그려 준다
-             "georep")
+#: 3D 가 `wms/` 의 3857 타일로 얹는 상류 (`map3d.js` 의 `wmsTiles`) — 문마다 `REGISTRY` 의 `globe` 로 적는다 (`doors.py`, wetherilli 371).
+#: 2D 가 극지·람베르트로 받아도 상류가 3857 을 그려 주면 선다(NGU·GTK·PGC·NÍ·GNS 따위, 대개 재어 보고 정했다)
+MAP3D_WMS = doors.names("globe")
 
 
 @require_GET
@@ -2724,7 +2676,7 @@ def _catalog(lang="ko"):
             "bbox": l.bbox,
             "queryable": l.queryable,
             # 대조할 상류가 없는 것(우리가 그리는 GeoMAP)은 "대조 안 함" 표를 달지 않는다
-            "verified": bool(l.verified_at) or l.upstream in ("geomap", "janmayen", "geo3al", "peninsula", "kopri", "usgscarib", "stri", "sim3534", "vmme")
+            "verified": bool(l.verified_at) or l.upstream in ("geomap", "janmayen", "geo3al", "peninsula", "kopri", "usgscarib", "stri", "sim3534", "vmme", "ntgs")
                         or twopen.knows(l.name),
             # 영어판은 설명의 영어(`i18n.ABSTRACT_EN`, wetherilli 333) — 없으면 한국어가 든 설명을 숨긴다
             "abstract": _abstract_en(l) if en else l.abstract,
@@ -2752,6 +2704,11 @@ def _point_fields(layer) -> dict:
     타일이 아니므로 `/wms/`·`/featureinfo/`·`/legend/` 를 부르지 않는다 —
     `queryable` 을 끄고, 받을 곳과 출처를 따로 적는다 (devlog 019·021).
     """
+    if layer.upstream == "ntgs" and ntgeo.knows(layer.name):
+        # 노던테리토리 1:250만(wetherilli 361) — 지도 서비스가 없어 열린자료 셰이프를 얀마옌처럼 한 덩이로, 색은 ICS 로 우리가 붙인다
+        unit = layer.name == ntgeo.UNITS
+        return {"kind": "points", "queryable": False, "style": "unit" if unit else "line", "render": "image" if unit else None,
+                "source": ntgeo.SOURCE_URL, "attribution": ntgeo.ATTRIBUTION, "opacity": 0.75 if unit else 1}
     if layer.upstream == "janmayen" and janmayen.knows(layer.name):
         # 얀마옌 지질도(022) — 점 말고 선·면도 이 길로 간다. 색은 자료가 준다
         return {"kind": "points", "queryable": False, "style": janmayen.LAYERS[layer.name]["style"],
@@ -3341,16 +3298,8 @@ def catalog_json(request):
 # VWorld(`vworld.py`), 그린란드는 GEUS(`geus.py`). 캐시·옛것 내주기·안내
 # 타일은 셋이 같이 쓴다.
 
-UPSTREAM_ERRORS = (kigam.UpstreamError, geus.GeusError, vworld.VWorldError, geomap.GeomapError,
-                   npolar.NpolarError, kopri.KopriError, elevation.ElevationError, gsj.GsjError,
-                   gsmma.GsmmaError, emodnet.EmodnetError, ngu.NguError, gtk.GtkError, sgu.SguError,
-                   bgs.BgsError, brgm.BrgmError, egdi.EgdiError,
-                   bgr.BgrError, igme.IgmeError, gsi.GsiError, sgc.SgcError, sgb.SgbError, cgs.CgsError, ingemmet.IngemmetError,
-                   segemar.SegemarError, dinamige.DinamigeError, iige.IigeError, mrdata.MrdataError, sgm.SgmError, nrcan.NrcanError, ogs.OgsError, sigeom.SigeomError, ygs.YgsError, skgs.SkgsError, nsgs.NsgsError, ags.AgsError, ga.GaError, austates.AuStatesError,
-                   ispra.IspraError, lneg.LnegError, swisstopo.SwisstopoError, natt.NattError, gns.GnsError, mris.MrisError, gsiindia.GsiIndiaError, sgs.SgsError,
-                   esdm.EsdmError, jmg.JmgError, mgb.MgbError, dmr.DmrError, bcgs.BcgsError, calgs.CalgsError, usstates.UsStatesError, bas.BasError,
-                   geosphere.GeosphereError, pig.PigError, tno.TnoError, dov.DovError, spw.SpwError, ineter.IneterError, georep.GeorepError,
-                   basemaps.BasemapError)
+#: 상류가 못 줄 때의 예외 — 문마다 제 파일의 `REGISTRY` 로 모인다(`doors.py`, wetherilli 371). 배경은 문 표에 없어 따로 더한다
+UPSTREAM_ERRORS = doors.errors() + (basemaps.BasemapError,)
 
 
 def _upstream_of(layers: str) -> str:
@@ -3377,93 +3326,19 @@ class _Door:
     판을 갈면 곧바로 새 것이 보인다.
     """
 
-    MODULES = {"kigam": kigam, "geus": geus, "geusarc": geus.ARC, "vworld": vworld, "geomap": geomap, "npolar": npolar, "kopri": kopri,
-               # PGC 경사·등고선(wetherilli 099) — 문은 표고와 같은 elevation.py 다
-               "pgc": elevation,
-               # CCOP 200만 지질도(wetherilli 108) — GSJ 새 호스트의 WMS. 문은 gsj.py 다
-               "ccop": gsj.CCOP,
-               # GSJ 의 다른 WMS — 1:200만·중력·지구화학도(wetherilli 255)
-               "gsjows": gsj.OWS,
-               # 대만 지질도(wetherilli 136) — 그림은 4326 WMS, 속성은 지질운 GeoJSON. 문은 gsmma.py 다
-               "gsmma": gsmma.DOOR,
-               # EMODnet 해저 지질(wetherilli 135) — 북극해. NPI 처럼 3413 으로 곧장 받는다
-               "emodnet": emodnet,
-               # 노르웨이·핀란드 기반암(wetherilli 140)
-               "ngu": ngu, "gtk": gtk, "sgu": sgu,
-               # 영국·프랑스·범유럽(wetherilli 143)
-               "bgs": bgs, "brgm": brgm, "egdi": egdi,
-               # 영국 GeoIndex — 자력·중력·광산·광물 산지(wetherilli 258)
-               "bgsgi": bgs.GEOINDEX,
-               # 독일·스페인·아일랜드(wetherilli 147). GSNI 는 BGS 서버가 내주어 문이 bgs.py 다
-               "bgr": bgr, "igme": igme, "gsi": gsi, "gsni": bgs.GSNI,
-               # 남미·콜롬비아(wetherilli 188)·브라질(191)
-               "sgc": sgc, "sgb": sgb,
-               # 페루(wetherilli 195) — 그림은 타일 캐시라 이 문의 WMS 길은 오류를 낸다. 눌러 묻는 것도 따로다(`ingemmet_info`)
-               "ingemmet": ingemmet,
-               # 아르헨티나·우루과이(wetherilli 196)
-               "segemar": segemar, "dinamige": dinamige,
-               # 에콰도르(wetherilli 198)
-               "iige": iige,
-               # 미국(wetherilli 205)
-               "mrdata": mrdata,
-               # 멕시코(wetherilli 206)
-               "sgm": sgm,
-               # 아프리카(wetherilli 207) — CGMW–BRGM 은 brgm.py, 지하수 지도책은 bgs.py 안에 따로 둔 상류다(GSNI 와 같은 꼴)
-               "cgmw": brgm.CGMW, "aga": bgs.AGA,
-               # 아프리카 나라 판(wetherilli 209) — 남아공은 새 문, 나미비아는 BGS 가 내주어 bgs.py 안에
-               "cgs": cgs, "gsn": bgs.GSN,
-               # 부르키나파소·카메룬 1:100만(wetherilli 246) — BGS·BRGM 이 대신 내준다
-               "bumigeb": bgs.BUMIGEB, "irgm": brgm.IRGM,
-               # 캐나다(wetherilli 204)
-               "nrcan": nrcan, "ogs": ogs,
-               # 퀘벡·유콘(wetherilli 210)
-               "sigeom": sigeom, "ygs": ygs,
-               # 사스카치원·노바스코샤·앨버타(wetherilli 235)
-               "skgs": skgs, "nsgs": nsgs, "ags": ags,
-               # 호주(wetherilli 212)
-               "ga": ga,
-               # 호주의 주 판(wetherilli 225) — 한 파일(`austates.py`)에 문 셋
-               "gsq": austates.GSQ, "gsv": austates.GSV, "gssa": austates.GSSA,
-               # 태즈메이니아·뉴사우스웨일스 (wetherilli 318)
-               "mrt": austates.TAS, "gsnsw": austates.GSNSW,
-               # 이탈리아·포르투갈·스위스(wetherilli 211)
-               "ispra": ispra, "lneg": lneg, "swisstopo": swisstopo,
-               # 아이슬란드(wetherilli 216)
-               "natt": natt,
-               # 뉴질랜드·남빅토리아랜드(wetherilli 218)
-               "gns": gns,
-               # 몽골(wetherilli 221)
-               "mris": mris,
-               # 인도(wetherilli 226)
-               "gsiindia": gsiindia,
-               # 사우디아라비아(wetherilli 227)
-               "sgs": sgs,
-               # 동남아(wetherilli 228)
-               "esdm": esdm, "jmg": jmg, "mgb": mgb, "dmr": dmr,
-               # 브리티시컬럼비아·캘리포니아(wetherilli 231)
-               "bcgs": bcgs, "calgs": calgs,
-               # 네바다·워싱턴·오리건(wetherilli 291) — 한 파일(`usstates.py`)에 문 셋
-               **usstates.DOORS,
-               # 오스트리아·폴란드·네덜란드·벨기에(wetherilli 237)
-               "geosphere": geosphere, "pig": pig, "tno": tno, "dov": dov, "spw": spw,
-               # 니카라과(wetherilli 242)
-               "ineter": ineter, "georep": georep}
+    #: 상류 이름 -> 문. 문마다 제 파일 끝의 `REGISTRY` 가 적는다 — 새 상류는 여기를 고치지 않는다 (`doors.py`, wetherilli 371)
+    MODULES = doors.relays()
 
     def __init__(self, upstream):
         self.name = upstream if upstream in self.MODULES else "kigam"
         mod = self.MODULES[self.name]
+        spec = doors.specs()[self.name]
         self.get_map, self.get_feature_info, self.get_legend = mod.get_map, mod.get_feature_info, mod.get_legend
-        self.local = self.name == "geomap"
+        self.local = spec.local
         #: 받은 것을 서버 캐시에 담지 않는다 — 우리가 그리는 것(GeoMAP)과, 자료를 파는 상류(`NO_STORE`, wetherilli 209)
         self.nostore = self.local or self.name in NO_STORE
-        if self.name in ("geus", "geusarc", "npolar", "kopri", "pgc", "ccop", "gsjows", "gsmma", "emodnet", "ngu", "gtk", "bgs", "bgsgi", "brgm", "egdi", "bgr", "igme", "gsi", "gsni", "sgc", "sgb", "ingemmet", "segemar", "dinamige", "iige", "mrdata", "sgm", "cgmw", "aga", "cgs", "gsn", "bumigeb", "irgm", "nrcan", "ogs", "sigeom", "ygs", "skgs", "nsgs", "ags", "ga", "gsq", "gsv", "gssa", "mrt", "gsnsw", "ispra", "lneg", "swisstopo", "sgu", "natt", "gns", "mris", "gsiindia", "sgs", "esdm", "jmg", "mgb", "dmr", "bcgs", "calgs", "nbmg", "wadnr", "dogami", "dggs", "geosphere", "pig", "tno", "dov", "spw", "ineter", "georep"):    # 열쇠가 없는 공개 서비스다
-            self.ready = True
-        elif self.name == "vworld":
-            self.ready = vworld.enabled()
-        elif self.local:
-            self.ready = geomap.available()
-        else:
-            self.ready = kigam.has_key()
+        # `ready` 가 없으면 열쇠가 없는 공개 서비스다 — KIGAM 은 인증키, VWorld 는 열쇠, GeoMAP 은 파일이 있어야 한다
+        self.ready = spec.ready() if spec.ready else True
 
     def not_ready_message(self):
         if self.local:
@@ -5435,6 +5310,8 @@ def point_layer(request):
         return JsonResponse({"error": i18n.t(msg("그런 점 레이어가 없다"), lang)}, status=404)
     if janmayen.knows(name):
         return _janmayen_layer(name, lang)
+    if ntgeo.knows(name):
+        return _ntgeo_layer(name, lang)
     if geo3al.knows(name):
         return _geo3al_layer(name, lang)
     if usgscarib.knows(name):
@@ -5524,6 +5401,21 @@ def place_names(request):
     if failed == len(sources):
         return JsonResponse({"error": i18n.t(msg("상류에서 받지 못했다"), lang)}, status=502)
     return JsonResponse({"results": arcpoints.match_index(index, query)})
+
+
+def _ntgeo_layer(name, lang):
+    """노던테리토리 지질도 한 덩이 (wetherilli 361). 꼴은 `_janmayen_layer` 와 같다"""
+    if not ntgeo.available(name):
+        return JsonResponse({"error": i18n.t(msg("노던테리토리 지질도 자료(NTGS)가 서버에 없다"), lang)}, status=503)
+    try:
+        content = ntgeo.body(name, lang)
+    except (ntgeo.NtGeoError, OSError, ValueError) as exc:
+        log.warning("노던테리토리 지질도를 읽지 못했다 (%s): %s", name, exc)
+        return JsonResponse({"error": i18n.t(msg("노던테리토리 지질도 자료(NTGS)를 읽지 못했다"), lang)}, status=500)
+    response = HttpResponse(content, content_type="application/geo+json")
+    if settings.TILE_CACHE_SECONDS > 0:
+        response["Cache-Control"] = f"public, max-age={settings.TILE_CACHE_SECONDS}"
+    return response
 
 
 def _janmayen_layer(name, lang):

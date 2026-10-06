@@ -59,3 +59,6 @@ geo3al.dbf
 /mercury/
 # 레이어 대조의 기록 — 기본 자리 <DB 옆>/verify/ (wetherilli 314)
 /verify/
+# 자료원 명세(운영 판)와 그 이력 — 기본 자리 <DB 옆>. 저장소에는 씨앗 data/sources.seed.json 만 든다 (jikhanjung P02)
+/sources.json
+/sources_history/

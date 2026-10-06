@@ -74,3 +74,9 @@ def friendly(props: dict, lang: str = "ko") -> dict:
             ("설명", _value(props, "Description générale")), ("지질시대", age), ("도폭", sheet),
             ("편집", _value(props, "Auteurs")), ("층 설명", _value(props, "Description de la notice")))
     return {k: v for k, v in rows if v}
+
+
+#: 이 파일이 여는 상류 — `doors.py` 가 모아 views·prewarm·화면의 표를 짓는다 (wetherilli 371)
+REGISTRY = [
+    {"upstream": "spw", "tag": "SPW", "title": "왈로니아 공공서비스 (SPW)", "relay": True, "projected": True, "globe": True},
+]

@@ -54,3 +54,9 @@ def friendly(props: dict, lang: str = "ko") -> dict:
     rows = (("기호", props.get("code")), ("이름", props.get("formatie")), ("부층", props.get("lid")),
             ("설명", props.get("beschrijving")), ("단면", props.get("profiel")))
     return {k: str(v).strip() for k, v in rows if str(v or "").strip() and str(v).strip().lower() != "null"}
+
+
+#: 이 파일이 여는 상류 — `doors.py` 가 모아 views·prewarm·화면의 표를 짓는다 (wetherilli 371)
+REGISTRY = [
+    {"upstream": "dov", "tag": "DOV", "title": "플랑드르 지하 자료은행 (DOV)", "relay": True, "projected": True, "globe": True},
+]
