@@ -118,6 +118,8 @@
 | jikhanjung 010 | 2026-10-06 | [3D 가 늦게 실패한 타일 뒤에 뜨지 않던 것 — 휴대폰 시험이 가끔 깨진 까닭](20261006_jikhanjung_010_phone3d_cold_start.md) |
 | jikhanjung P02 | 2026-10-06 | [외부 자료원을 한 장부로 — 명세·기록 표·관리 화면 "자료원" 탭 (계획)](20261006_jikhanjung_P02_source_registry.md) |
 | jikhanjung 011 | 2026-10-06 | [자료원 명세 — `sources.json` 과 씨앗 (P02 1 단계)](20261006_jikhanjung_011_source_spec.md) |
+| jikhanjung 012 | 2026-10-06 | [받은 차례의 기록 — `store.sqlite` 의 `fetch_log` (P02 2 단계)](20261006_jikhanjung_012_fetch_log.md) |
+| jikhanjung 013 | 2026-10-06 | [관리 화면 "데이터소스" 탭 (P02 3 단계)](20261006_jikhanjung_013_manage_sources.md) |
 | wetherilli 078 | 2026-09-30 | [3D 극지 지형을 미리 받는다](20260930_wetherilli_078_polar_dem_prewarm.md) |
 | wetherilli 079 | 2026-09-30 | [화성 — USGS 지역 지질도를 옛 지질도에 얹는다](20260930_wetherilli_079_mars_regional_geology.md) |
 | wetherilli 080 | 2026-09-30 | [화성 — NASA Trek 판 목록을 화성 화면에](20260930_wetherilli_080_mars_trek_catalog.md) |

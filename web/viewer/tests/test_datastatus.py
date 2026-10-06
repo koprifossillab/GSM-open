@@ -62,6 +62,6 @@ class DataStatus(TestCase):
         data = self.client.get("/GSM/healthz/").json()
         self.assertEqual(data["data"]["missing"], len(datastatus.missing()))
         page = self.client.get("/GSM/manage/").content.decode()
-        self.assertIn('id="tab-data"', page)
+        self.assertIn('id="tab-sources"', page)              # "구운 자료" 탭은 "데이터소스" 탭에 녹았다 (jikhanjung P02)
         self.assertIn("built 2026-10-05 · source RGI 7.0", page)
         self.assertNotIn(tempfile.gettempdir(), page)                       # 절대 경로는 내지 않는다

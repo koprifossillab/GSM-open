@@ -31,7 +31,7 @@ from gsmweb.version import VERSION
 
 from . import (coords, crs, datastatus, geo3al, geomap, geus, grportal, gsj, gsmma, i18n, ibcso, janmayen, kigam, kopri, npolar, ntgeo,
                patchnotes, elevation, moonmap, peninsula, phyloserver, pointsets, tilecache, tiles, trek, vworld, warp,
-               marscraters, marsmap, mercurymap, zhurong)
+               fetchlog, marscraters, marsmap, mercurymap, sources, zhurong)
 from . import admap, arcpoints, caribmap, crust, glaciers, impacts, faults, minerals, stress, tectonics, seafloor, glim, heatflow, fossils, gvp, icemargins, kigam50k, macrostrat, mantle, metatile, naturalearth, neotoma, paleo, paleoeco, paleocoast, pbdb, quakes, recentquakes, verifylog, spamap, ocean, usgs, volcanoes, wind
 from . import ags, austates, bas, basemaps, bcgs, bgr, bgs, brgm, calgs, cgs, dinamige, dmr, dov, egdi, emodnet, esdm, ga, georep, geosphere, gns, gsi, gsiindia, gtk, igme, iige, ineter, ingemmet, ispra, jmg, linked, lneg, mgb, mrdata, mris, natt, ngu, nrcan, nsgs, ogs, pig, segemar, sgb, sgc, sgm, sgs, sgu, sigeom, skgs, spw, stri, swisstopo, tno, twopen, usage, usgscarib, usstates, vmme, ygs
 from . import doors, earthpoints, pointvalues, profileband, static_tables, tilegrid
@@ -269,6 +269,14 @@ def healthz(request):
     except OSError:
         info["data"] = None
 
+    # 받아 두는 데이터소스 (jikhanjung P02) — 늦은 것·마지막이 깨진 것·기록이 없는 것·명세에서 건너뛴 줄의 수. 상태는 바꾸지 않는다 —
+    # 무엇인지는 관리 화면의 "데이터소스" 탭이 말한다. **읽기만 한다** — 공개 GET 마다 장부에 쓰면 명령이 장부를 잡은 동안
+    # 막힌다(#373 검토 2). 호스트가 남긴 것은 `hourly.sh` 끝의 `sources_log --sync-only` 와 관리 화면이 옮겨 적는다
+    try:
+        info["sources"] = sources.overview(sync=False, history=False)["counts"]
+    except Exception:                            # noqa: BLE001 — 장부가 깨져도 healthz 는 답한다
+        info["sources"] = None
+
     info["notes"] = notes
     response = JsonResponse(info, status=503 if info["status"] == "unhealthy" else 200,
                             json_dumps_params={"ensure_ascii": False})
@@ -327,19 +335,57 @@ def manage_view(request):
         "upstream_rows": usage.summary(7),
         # 마지막 레이어 대조의 한 줄 (wetherilli 314) — 날짜와 수뿐이다
         "verify": verifylog.summary(),
-        # 구운 자료 (wetherilli 312) — `data_status` 와 같은 표. 읽기만 하고 경로는 `<DB 옆>` 아래 이름뿐이다
-        "data_rows": _data_rows(lang),
+        # 데이터소스 (jikhanjung P02 3 단계) — 명세·기록 표·구운 파일을 한 줄로. "구운 자료" 탭(wetherilli 312)을 녹였다.
+        # 읽기만 하고 경로는 `<DB 옆>` 아래 이름뿐이다
+        "src": _sources_view(lang),
     })
 
 
-def _data_rows(lang):
-    out = []
-    for r in datastatus.rows():
-        out.append({**r, "what": i18n.t(r["what"], lang), "command": i18n.t(r["command"], lang),
-                    "size_text": datastatus.human_size(r["size"]) if r["size"] is not None
-                    else (i18n.t(msg("{n} 칸", n=r["count"]), lang) if r["count"] is not None else ""),
-                    "date": f"{r['modified']:%Y-%m-%d}" if r["modified"] else ""})
-    return out
+def _sources_view(lang):
+    try:
+        ov = sources.overview(sync=True, history=True)
+    except Exception as exc:                     # noqa: BLE001 — 장부가 깨져도 관리 화면은 선다
+        log.warning("데이터소스 탭을 그리지 못했다: %s", exc)
+        return None
+
+    def when(r):
+        return (r or {}).get("started_at", "")[:16].replace("T", " ")
+
+    rows = []
+    for item in ov["rows"]:
+        row, last = item["row"], item["last"]
+        outs = []
+        for o in item["outputs"]:
+            d = {"key": o["key"], "kind": o["kind"]}
+            if o["kind"] == "file":
+                d.update(exists=o["exists"], needed=o["needed"], version=o["version"],
+                         date=f"{o['modified']:%Y-%m-%d}" if o["modified"] else "",
+                         size=datastatus.human_size(o["size"]) if o["size"] is not None
+                         else (i18n.t(msg("{n} 칸", n=o["count"]), lang) if o["count"] is not None else ""))
+            outs.append(d)
+        counts = None
+        if last and (last.get("expected") is not None or last.get("rows") is not None):
+            counts = {"expected": last.get("expected"), "rows": last.get("rows"),
+                      "short": last.get("expected") is not None and last.get("rows") is not None
+                      and last["rows"] < last["expected"]}
+        rows.append({
+            "id": row["id"], "name": row["name"].get(lang) or row["name"]["ko"], "org": row.get("org", ""),
+            "license": row["license"], "flags": [i18n.t(sources.FLAG_LABELS[f], lang) for f in row.get("flags", [])],
+            "schedule": i18n.t(sources.SCHEDULE_LABELS[row["schedule"]], lang),
+            "runs_on": i18n.t(sources.RUNS_ON_LABELS[row["runs_on"]], lang),
+            "commands": " ".join(row.get("commands", [])), "note": row.get("note", ""),
+            "last": when(last), "result": (last or {}).get("result", ""), "estimated": bool((last or {}).get("estimated")),
+            "seconds": (last or {}).get("seconds"), "said": fetchlog.shown((last or {}).get("note") or "")[:160],
+            "ok": when(item["last_ok"]), "late": item["late"], "failed": item["failed"], "unknown": item["unknown"],
+            "counts": counts, "outputs": outs,
+            "history": [{"at": when(h), "origin": h["origin"], "result": h["result"], "seconds": h.get("seconds"),
+                         "expected": h.get("expected"), "rows": h.get("rows"), "raw": h.get("raw_path") or "",
+                         "said": fetchlog.shown(h.get("note") or "")[:160], "estimated": bool(h.get("estimated"))}
+                        for h in item["history"]],
+        })
+    problems = [(where, "; ".join(i18n.t(m, lang) for m in found)) for where, found in ov["problems"]]
+    return {"rows": rows, "counts": ov["counts"], "problems": problems, "origin": ov["origin"],
+            "spec_changed": when(ov["spec_changed"])}
 
 
 @require_POST

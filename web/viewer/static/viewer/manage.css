@@ -175,7 +175,48 @@ body.manage { display: block; height: auto; min-height: 100vh; overflow: visible
 .mg-verify b.bad { color: #d4523a; margin-left: 6px; }
 .mg-verify span { margin-left: 6px; font-family: var(--font-mono); font-size: 11px; }
 
-/* 구운 자료 (wetherilli 312) — 크기·날은 오른쪽에, 있어야 하는데 없는 것은 붉게 */
-.mg-data td.num { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
-.mg-data td.mono { font-size: 0.92em; }
-.mg-data td.bad { color: #d4523a; font-weight: 600; }
+/* 데이터소스 (jikhanjung P02 3 단계) — "구운 자료" 탭(wetherilli 312)을 녹였다. 늦거나 깨진 줄은 붉게, 줄을 누르면 지난 차례 */
+.mg-sources td { vertical-align: top; white-space: normal; }
+.mg-sources td.mg-src-name { min-width: 11em; }
+.mg-sources td:nth-child(2) { min-width: 8em; }
+.mg-sources td:nth-child(3), .mg-sources td:nth-child(5) { white-space: nowrap; }
+.mg-sources td:nth-child(4) { min-width: 12em; }
+.mg-sources td small { display: block; color: var(--ink-faint); font-size: 11px; }
+.mg-sources td small.bad, .mg-sources .bad { color: #d4523a; font-weight: 600; }
+.mg-sources .num { font-variant-numeric: tabular-nums; white-space: nowrap; }
+.mg-sources .mono, .mg-sources small.mono { font-family: var(--font-mono); font-size: 11px; }
+.mg-sources .faint { color: var(--ink-faint); }
+.mg-sources tr.mg-src { cursor: pointer; }
+.mg-sources tr.mg-src:hover td, .mg-sources tr.mg-src.open td { background: var(--panel-tint); }
+.mg-sources tr.mg-src.bad td:first-child { box-shadow: inset 3px 0 0 #d4523a; }
+.mg-src-name b { display: block; }
+.mg-flag { display: inline-block; padding: 0 5px; font-size: 10.5px; font-weight: 700; color: var(--on-hi); background: var(--gold-muted); border-radius: 4px; }
+.mg-res { display: inline-block; padding: 0 5px; font-size: 10.5px; font-weight: 700; border-radius: 4px; color: var(--on-hi); background: var(--good); }
+.mg-res.fail { background: #d4523a; }
+.mg-res.skip { background: var(--ink-faint); }
+.mg-said { max-width: 28em; overflow-wrap: anywhere; }
+.mg-out { white-space: nowrap; }
+.mg-src-more td { background: var(--panel-tint); }
+.mg-src-meta { margin: 2px 0 6px; font-size: 12px; color: var(--ink-soft); }
+.mg-hist { margin: 0; padding-left: 1.4em; font-size: 12px; }
+.mg-hist li { margin: 3px 0; }
+.mg-hist small { display: inline; margin-left: 6px; }
+.mg-hist small.mg-said { display: block; margin-left: 0; }
+.mg-src-sum { display: flex; flex-wrap: wrap; gap: 6px 14px; margin: 0 0 8px; font-size: 12.5px; color: var(--ink-soft); }
+.mg-src-warn { margin: 4px 0; padding: 6px 10px; font-size: 12.5px; border: 1px solid #d4523a; border-radius: 6px; }
+
+@media (max-width: 640px) {
+  /* 데이터소스도 카드로 — 칸이 여섯이라 가로로 굴렀다. 저장 탭(wetherilli 369)과 같은 틀 */
+  .mg-sources thead { display: none; }
+  .mg-sources, .mg-sources tbody { display: block; }
+  .mg-sources tr.mg-src { display: grid; grid-template-columns: 1fr; gap: 4px; padding: 10px 4px; border-bottom: 1px solid var(--line-soft); }
+  .mg-sources tr.mg-src td { display: block; padding: 0; border: 0; min-width: 0; overflow-wrap: anywhere; white-space: normal; }
+  .mg-sources tr.mg-src td[data-label]::before { content: attr(data-label); display: inline-block; min-width: 4.5em; margin-right: 6px;
+                                                 color: var(--ink-faint); font-size: 11px; }
+  .mg-sources tr.mg-src td small { display: inline; margin-left: 4px; }
+  .mg-sources tr.mg-src td small.mg-said, .mg-sources tr.mg-src td small.mg-out { display: block; margin-left: 0; }
+  .mg-sources tr.mg-src-more { display: block; }
+  .mg-sources tr.mg-src-more[hidden] { display: none; }
+  .mg-sources tr.mg-src-more td { display: block; padding: 8px 4px; border: 0; }
+  .mg-out, .mg-said { white-space: normal; max-width: none; }
+}

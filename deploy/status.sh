@@ -34,5 +34,5 @@ gh pr list --state open --json number,title,headRefName,statusCheckRollup --jq '
 if [ -n "$last" ]; then
   n="$(git log --oneline --merges --first-parent "$last..origin/main" | grep -c 'Merge pull request' || true)"
   echo "── $last 뒤 병합 $n 개 (판은 하루 두세 번 — 서넛 모이면 낸다)"
-  git log --format='%s%n%b' --merges --first-parent "$last..origin/main" | grep -v '^Merge pull request' | grep -v '^$' | head -10 | sed 's/^/  /'
+  git log --format='%s%n%b' --merges --first-parent "$last..origin/main" | grep -v '^Merge pull request' | grep -v '^$' | head -10 | sed 's/^/  /' || true
 fi

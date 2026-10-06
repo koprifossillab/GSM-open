@@ -62,3 +62,6 @@ geo3al.dbf
 # 자료원 명세(운영 판)와 그 이력 — 기본 자리 <DB 옆>. 저장소에는 씨앗 data/sources.seed.json 만 든다 (jikhanjung P02)
 /sources.json
 /sources_history/
+# 받은 차례의 기록 (jikhanjung P02) — 기본 자리 <DB 옆>
+/store.sqlite*
+/fetch_log_host.jsonl

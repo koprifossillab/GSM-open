@@ -747,6 +747,23 @@
 
   P.onChange(function () { if ($("tab-stored").classList.contains("on")) renderStored(); });
 
+  // ── 데이터소스 (jikhanjung P02 3 단계) — 줄을 누르면 지난 차례가 펼쳐진다 ─────────────
+  document.querySelectorAll("#mg-sources tr.mg-src").forEach(function (tr) {
+    function toggle() {
+      var more = document.querySelector('#mg-sources tr.mg-src-more[data-for="' + tr.dataset.src + '"]');
+      if (!more) return;
+      more.hidden = !more.hidden;
+      tr.classList.toggle("open", !more.hidden);
+    }
+    tr.addEventListener("click", function (e) {
+      if (e.target.closest("a, button")) return;
+      toggle();
+    });
+    tr.addEventListener("keydown", function (e) {
+      if (e.key === "Enter" || e.key === " ") { e.preventDefault(); toggle(); }
+    });
+  });
+
   var first = "import";
   try { first = localStorage.getItem(TAB_KEY) || "import"; } catch (e) { /* 사생활 모드 */ }
   showTab(/^(import|stored)$/.test(first) ? first : "import");

@@ -330,6 +330,21 @@ class PhoneScreenTests(PhoneBase):
         self.assertFits(self.measure(page), "manage stored")
         self.assertEqual(errors, [])
 
+    def test_데이터소스_탭은_카드로_서고_누르면_지난_차례가_펼쳐진다(self):
+        """칸이 여섯이라 가로로 굴렀다 — 휴대폰에서는 카드로 (jikhanjung P02 3 단계)"""
+        page, errors = self.open("manage/")
+        page.tap('#mg-tabs [data-tab="sources"]')
+        page.wait_for_selector("#mg-sources tr.mg-src", timeout=10000)
+        scroll = page.evaluate("(() => { const e = document.getElementById('mg-sources').closest('.mg-scroll'); return [e.scrollWidth, e.clientWidth]; })()")
+        self.assertLessEqual(scroll[0], scroll[1] + 1, "데이터소스 표가 가로로 구른다")
+        first = page.locator("#mg-sources tr.mg-src").first
+        src = first.get_attribute("data-src")
+        first.tap()
+        page.wait_for_timeout(300)
+        self.assertTrue(page.locator(f'#mg-sources tr.mg-src-more[data-for="{src}"]').is_visible(), "눌러도 펼쳐지지 않는다")
+        self.assertFits(self.measure(page), "manage sources")
+        self.assertEqual(errors, [])
+
     def test_관리와_소개(self):
         for path in ("manage/", ""):
             with self.subTest(path=path or "intro"):
@@ -354,7 +369,7 @@ class PhoneScreenTests(PhoneBase):
     def test_관리_화면의_상자_제목은_한_줄이다(self):
         """제목 옆의 안내 글이 제목을 밀어 "개인 레이 / 어" 처럼 꺾였다 — 휴대폰에서 안내는 다음 줄로 (wetherilli 365)"""
         page, errors = self.open("manage/")
-        for tab in ("import", "stored", "upstream", "data"):
+        for tab in ("import", "stored", "upstream", "sources"):
             page.tap(f'#mg-tabs [data-tab="{tab}"]')
             page.wait_for_timeout(300)
             lines = page.evaluate("""() => [...document.querySelectorAll('.mg-body.on .box-head')].map(h => {

@@ -69,3 +69,6 @@ mercury/
 # 자료원 명세(운영 판)와 그 이력 (jikhanjung P02) — 운영은 /srv/GSM/db/
 /sources.json
 sources_history/
+# 받은 차례의 기록 (jikhanjung P02)
+/store.sqlite*
+/fetch_log_host.jsonl

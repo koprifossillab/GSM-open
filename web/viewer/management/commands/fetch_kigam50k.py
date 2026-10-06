@@ -18,7 +18,7 @@ import time
 from django.core.management.base import BaseCommand, CommandError
 from django.utils import timezone
 
-from viewer import kigam, kigam50k
+from viewer import fetchlog, kigam, kigam50k
 
 
 class Command(BaseCommand):
@@ -48,12 +48,17 @@ class Command(BaseCommand):
                          "_body": body}
             self.stdout.write(f"  {name}: {matched:,}")
 
+        # 기록 표에 — 상류가 센 수 대 받은 수, 원본의 판(레이어 sha 를 이은 것의 sha) (jikhanjung P02)
+        fetchlog.note(expected=sum(r["numberMatched"] for r in got.values()),
+                      rows=sum(r["received"] for r in got.values()),
+                      raw_sha256=hashlib.sha256("".join(got[n]["sha256"] for n in sorted(got)).encode()).hexdigest())
         prev = kigam50k.latest()
         manifest = _read(prev / "manifest.json") if prev else None
         if manifest and set((manifest.get("layers") or {})) == set(got) and all(
                 manifest["layers"][n].get("sha256") == got[n]["sha256"] for n in got):
             manifest.setdefault("checked", []).append(now.isoformat(timespec="seconds"))
             _write_json(prev / "manifest.json", manifest)
+            fetchlog.note(raw_path=f"kigam50k/raw/{prev.name}", changed=0)
             self.stdout.write(self.style.SUCCESS(f"앞 판({prev.name})과 같다 — 새 폴더를 만들지 않고 확인한 날만 적었다"))
             return
 
@@ -75,6 +80,7 @@ class Command(BaseCommand):
         if dest.exists():          # 같은 날 두 번째 — 새로 받은 것이 이긴다
             shutil.rmtree(dest)
         work.rename(dest)
+        fetchlog.note(raw_path=f"kigam50k/raw/{day}", changed=1)        # 새 판 — 바뀐 레이어 수는 세지 않고 "바뀌었다" 만
         self.stdout.write(self.style.SUCCESS(f"레이어 {len(got)} 개 → {dest}"))
 
 

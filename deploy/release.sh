@@ -10,6 +10,7 @@
 # 판 세션의 release worktree(`~/projects/GSM-wt-release`)에서 부른다 — prep·publish 가 그 트리의 브랜치를 바꾼다.
 # 판은 `0.70.0` 처럼 v 없이. CHANGELOG 절 파일은 `## v<판> — <날짜> · <제목>` 로 시작하는 마크다운 한 절이다.
 # 판은 하루 두세 번으로 묶는다 — 판마다 CI·이미지·배포·정적 판 굽기가 돈다.
+# 출력을 `| tail` 로 받지 않는다 — 멈춘 까닭(마지막 줄)과 종료 코드가 가려진다. 중간에 멈추면 같은 명령을 다시 부른다.
 set -euo pipefail
 
 cmd="${1:-}"; ver="${2:-}"
@@ -79,27 +80,42 @@ EOF
 }
 
 ship() {
-  local pr; pr="$(gh pr list --head "release/$tag" --state open --json number --jq '.[0].number')"
-  [ -n "$pr" ] || { say "release/$tag 의 열린 PR 이 없다"; exit 1; }
-  say "#$pr 의 CI 를 기다린다"
-  sleep 20; gh pr checks "$pr" --watch --interval 60 >/dev/null 2>&1 || true
-  local c; c="$(checks "$pr")"
-  if [ "$c" != ok ]; then
-    # 휴대폰 화면 job 이 가끔 깨진다 — 한 번만 다시 돌리고, 또 깨지면 멈춘다
-    local run; run="$(gh pr checks "$pr" --json link,state --jq '.[] | select(.state == "FAILURE") | .link' | grep -o 'runs/[0-9]*' | head -1 | cut -d/ -f2)"
-    say "깨졌다($c) — run $run 을 한 번 다시"
-    gh run rerun "$run" --failed; sleep 30
-    gh run watch "$run" --interval 60 >/dev/null 2>&1 || true
-    c="$(checks "$pr")"; [ "$c" = ok ] || { say "다시 돌려도 깨졌다($c) — 멈춘다"; exit 1; }
+  # 다시 불러도 된다 — 이미 병합했으면 병합을, 이미 릴리스가 있으면 릴리스를 건너뛴다
+  local pr state
+  read -r pr state < <(gh pr list --head "release/$tag" --state all --json number,state --jq '.[0] | "\(.number) \(.state)"')
+  [ -n "${pr:-}" ] && [ "$pr" != null ] || { say "release/$tag 의 PR 이 없다"; exit 1; }
+  if [ "$state" = OPEN ]; then
+    say "#$pr 의 CI 를 기다린다"
+    sleep 20; gh pr checks "$pr" --watch --interval 60 >/dev/null 2>&1 || true
+    local c; c="$(checks "$pr")"
+    if [ "$c" != ok ]; then
+      # 휴대폰 화면 job 이 가끔 깨진다 — 한 번만 다시 돌리고, 또 깨지면 멈춘다
+      local run; run="$(gh pr checks "$pr" --json link,state --jq '.[] | select(.state == "FAILURE") | .link' | grep -o 'runs/[0-9]*' | head -1 | cut -d/ -f2 || true)"
+      say "깨졌다($c) — run $run 을 한 번 다시"
+      gh run rerun "$run" --failed; sleep 30
+      gh run watch "$run" --interval 60 >/dev/null 2>&1 || true
+      c="$(checks "$pr")"; [ "$c" = ok ] || { say "다시 돌려도 깨졌다($c) — 멈춘다"; exit 1; }
+    fi
+    gh pr merge "$pr" --merge >/dev/null
+    sleep 10
+  elif [ "$state" != MERGED ]; then
+    say "#$pr 가 $state 다 — 멈춘다"; exit 1
   fi
-  gh pr merge "$pr" --merge >/dev/null
-  sleep 10; git fetch -q origin
-  local sha; sha="$(gh pr view "$pr" --json mergeCommit --jq .mergeCommit.oid)"
-  git show "origin/main:CHANGELOG.md" | awk -v t="## $tag " 'index($0, t) == 1 {p = 1; next} /^## v/ {p = 0} p' > "$TMP/notes"
-  local title; title="$(git show "origin/main:CHANGELOG.md" | grep -m1 "^## $tag " | sed 's/^## \(v[^ ]*\) — [0-9-]* · /\1 — /')"
-  gh release create "$tag" --target "$sha" --title "$title" -F "$TMP/notes" >/dev/null
-  say "릴리스 $tag — 태그 CI 가 이미지를 올리기를 기다린다"
-  sleep 30
+  say "#$pr 병합됨"
+  if gh release view "$tag" >/dev/null 2>&1; then
+    say "릴리스 $tag 는 이미 있다"
+  else
+    git fetch -q origin
+    local sha; sha="$(gh pr view "$pr" --json mergeCommit --jq .mergeCommit.oid)"
+    # 파이프 끝에서 일찍 닫으면(grep -m1) pipefail 이 SIGPIPE 를 실패로 본다 — 파일로 떠 두고 읽는다
+    git show "origin/main:CHANGELOG.md" > "$TMP/changelog"
+    awk -v t="## $tag " 'index($0, t) == 1 {p = 1; next} /^## v/ {p = 0} p' "$TMP/changelog" > "$TMP/notes"
+    local title; title="$(grep -m1 "^## $tag " "$TMP/changelog" | sed 's/^## \(v[^ ]*\) — [0-9-]* · /\1 — /')"
+    gh release create "$tag" --target "$sha" --title "$title" -F "$TMP/notes" >/dev/null
+    say "릴리스 $tag"
+    sleep 30
+  fi
+  say "태그 CI 가 이미지를 올리기를 기다린다"
   local run; run="$(gh run list --branch "$tag" --limit 1 --json databaseId --jq '.[0].databaseId')"
   gh run watch "$run" --interval 60 >/dev/null 2>&1 || true
   [ "$(gh run view "$run" --json conclusion --jq .conclusion)" = success ] || { say "태그 CI 가 깨졌다 — 멈춘다"; exit 1; }
@@ -110,7 +126,8 @@ ship() {
 deploy() {
   local id; id="$(docker compose -f "$COMPOSE" ps -q web)"
   # 컨테이너 안에서 도는 명령(미리 데우기·받기)이 있으면 갈아 띄우지 않는다 — 세션들이 돌린 것일 수 있다
-  local busy; busy="$(docker top "$id" -o pid,args | tail -n +2 | grep -v gunicorn || true)"
+  docker top "$id" -o pid,args > "$TMP/top"
+  local busy; busy="$(tail -n +2 "$TMP/top" | grep -v gunicorn || true)"
   if [ -n "$busy" ] && [ "${GSM_FORCE:-}" != 1 ]; then say "컨테이너 안에 도는 일이 있다 — 멈춘다(GSM_FORCE=1 로 무시):"; say "$busy"; exit 1; fi
   (cd "$(dirname "$COMPOSE")" && GSM_TAG="$tag" docker compose -f "$COMPOSE" up -d --force-recreate web 2>&1 | tail -1)
   for _ in $(seq 1 24); do
@@ -128,8 +145,10 @@ publish() {
   clean
   git fetch -q origin --tags
   git switch -q --detach "$tag"
-  sh deploy/publish_open.sh "$tag" 2>&1 | tail -1
-  timeout 1800 sh deploy/publish_pages.sh "$BAKED" 2>&1 | grep -v '^rm:' | tail -2
+  sh deploy/publish_open.sh "$tag" > "$TMP/open.log" 2>&1 || { tail -5 "$TMP/open.log"; exit 1; }
+  tail -1 "$TMP/open.log"
+  timeout 1800 sh deploy/publish_pages.sh "$BAKED" > "$TMP/pages.log" 2>&1 || { grep -v '^rm:' "$TMP/pages.log" | tail -5; exit 1; }
+  grep -v '^rm:' "$TMP/pages.log" | tail -2
 }
 
 case "$cmd" in

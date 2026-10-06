@@ -45,6 +45,8 @@ if [[ "$(cat "$VENV/.stamp" 2>/dev/null)" != "$want" ]]; then
 fi
 
 export GSM_DB_PATH="${GSM_DB_PATH:-/srv/GSM/db/GSM.db}"
+# 호스트에서 돈다 — 기록 표(store.sqlite)에 쓰지 않고 hourly_status.json·fetch_log_host.jsonl 에 남긴다 (jikhanjung P02)
+export GSM_RUN_PLACE=host
 export GSM_DEBUG="${GSM_DEBUG:-0}"
 cd "$APP/web"
 "$VENV/bin/python" manage.py "$@"

@@ -25,7 +25,7 @@
     <button type="button" class="mg-tab on" data-tab="import">{% t "개인 레이어 반입" %}</button>
     <button type="button" class="mg-tab" data-tab="stored">{% t "저장 자료 관리" %}</button>
     <button type="button" class="mg-tab" data-tab="upstream">{% t "상류 응답 시간" %}</button>
-    <button type="button" class="mg-tab" data-tab="data">{% t "구운 자료" %}</button>
+    <button type="button" class="mg-tab" data-tab="sources">{% t "데이터소스" %}</button>
   </nav>
   <a class="btn quiet mg-back" href="{{ base }}map/">
     <svg viewBox="0 0 24 24" aria-hidden="true"><path class="stroke" d="M15 5l-7 7 7 7"/></svg>
@@ -206,25 +206,59 @@
   </section>
 
   {% comment %}구운 자료 (wetherilli 312) — `manage.py data_status` 와 같은 표. 읽기만 한다. 경로는 서버의 자료 폴더 아래 이름뿐이다{% endcomment %}
-  <section class="mg-body" id="tab-data">
+  <section class="mg-body" id="tab-sources">
     <div class="box">
-      <h2 class="box-head">{% t "구운 자료" %} <span class="count">{{ data_rows|length }}</span>
-        <span class="hint">{% t "서버의 자료 폴더에 굽거나 모아 둔 파일 — 있는지·크기·고친 날·원본 판" %}</span></h2>
+      <h2 class="box-head">{% t "받아 두는 데이터소스" %} <span class="count">{{ src.counts.total|default:0 }}</span>
+        <span class="hint">{% t "조건·주기·마지막으로 받은 때·결과·산출물 — 줄을 누르면 지난 차례" %}</span></h2>
       <div class="box-body">
-        <div class="mg-scroll"><table class="mg-table mg-data" id="mg-data">
+        {% if not src %}
+        <p class="mg-src-warn bad">{% t "데이터소스 장부를 읽지 못했다 — 서버 기록을 본다" %}</p>
+        {% else %}
+        <p class="mg-src-sum">
+          {% if src.counts.late %}<b class="bad">{% t "늦음 {n}" n=src.counts.late %}</b>{% endif %}
+          {% if src.counts.failed %}<b class="bad">{% t "깨짐 {n}" n=src.counts.failed %}</b>{% endif %}
+          {% if src.counts.unknown %}<span>{% t "기록 없음 {n}" n=src.counts.unknown %}</span>{% endif %}
+          {% if src.spec_changed %}<span>{% t "명세를 고친 때 {when}" when=src.spec_changed %}</span>{% endif %}
+          {% if src.origin != "file" %}<b class="bad">{% t "운영 명세가 아니라 {origin} 을 읽었다" origin=src.origin %}</b>{% endif %}
+        </p>
+        {% for where, why in src.problems %}
+        <p class="mg-src-warn bad">{% t "명세에서 건너뛴 줄" %} <span class="mono">{{ where|default:"—" }}</span> — {{ why }}</p>
+        {% endfor %}
+        <div class="mg-scroll"><table class="mg-table mg-sources" id="mg-sources">
           <thead>
-            <tr><th>{% t "파일" %}</th><th>{% t "무엇" %}</th><th>{% t "크기" %}</th><th>{% t "고친 날" %}</th><th>{% t "원본 판" %}</th><th>{% t "만드는 명령" %}</th></tr>
+            <tr><th>{% t "데이터소스" %}</th><th>{% t "조건" %}</th><th>{% t "주기" %}</th><th>{% t "마지막" %}</th><th>{% t "된 때" %}</th><th>{% t "산출물" %}</th></tr>
           </thead>
           <tbody>
-            {% for r in data_rows %}
-            <tr{% if r.needed and not r.exists %} class="bad"{% endif %}><td class="mono">{{ r.key }}</td><td>{{ r.what }}</td>
-              {% if r.exists %}<td class="num">{{ r.size_text }}</td><td class="num">{{ r.date }}</td><td class="mono">{{ r.version }}</td>
-              {% else %}<td colspan="3" class="{% if r.needed %}bad{% endif %}">{% if r.needed %}{% t "없다" %}{% else %}{% t "없다 (밖에 연 판에는 두지 않는다)" %}{% endif %}</td>{% endif %}
-              <td class="mono">{{ r.command }}</td></tr>
+            {% for r in src.rows %}
+            <tr class="mg-src{% if r.late or r.failed %} bad{% endif %}" data-src="{{ r.id }}" tabindex="0">
+              <td class="mg-src-name"><b>{{ r.name }}</b><small>{{ r.org }}</small><small class="mono">{{ r.id }}</small></td>
+              <td data-label="{% t "조건" %}">{{ r.license }}{% for f in r.flags %} <span class="mg-flag">{{ f }}</span>{% endfor %}</td>
+              <td data-label="{% t "주기" %}">{{ r.schedule }}<small>{{ r.runs_on }}</small></td>
+              <td data-label="{% t "마지막" %}">{% if r.last %}<span class="num">{{ r.last }}</span>{% if r.estimated %} <span class="mg-flag" title="{% t "산출물 파일의 고친 날로 어림했다" %}">~</span>{% endif %}
+                <span class="mg-res {{ r.result }}">{{ r.result }}</span>{% if r.seconds is not None %} <small class="num">{{ r.seconds }} s</small>{% endif %}
+                {% if r.counts %}<small class="num{% if r.counts.short %} bad{% endif %}">{% t "센 수 {e} · 받은 수 {n}" e=r.counts.expected n=r.counts.rows %}</small>{% endif %}
+                {% if r.said %}<small class="mg-said">{{ r.said }}</small>{% endif %}
+                {% elif r.unknown %}<span class="faint">{% t "기록 없음" %}</span>{% else %}<span class="faint">—</span>{% endif %}</td>
+              <td data-label="{% t "된 때" %}">{% if r.ok %}<span class="num">{{ r.ok }}</span>{% else %}—{% endif %}{% if r.late %} <b class="bad">{% t "늦음" %}</b>{% endif %}</td>
+              <td data-label="{% t "산출물" %}">{% for o in r.outputs %}<small class="mg-out">
+                <span class="mono">{{ o.key }}</span>
+                {% if o.kind == "file" %}{% if o.exists %} {{ o.size }} · {{ o.date }}{% if o.version %} · <span class="mono">{{ o.version }}</span>{% endif %}
+                {% elif o.needed %} <b class="bad">{% t "없다" %}</b>{% else %} <span class="faint">{% t "없다 (밖에 연 판에는 두지 않는다)" %}</span>{% endif %}
+                {% elif o.kind == "repo" %} <span class="faint">{% t "저장소" %}</span>{% endif %}</small>{% empty %}<span class="faint">—</span>{% endfor %}</td>
+            </tr>
+            <tr class="mg-src-more" data-for="{{ r.id }}" hidden><td colspan="6">
+              <p class="mg-src-meta"><span class="mono">{{ r.commands|default:"—" }}</span>{% if r.note %} — {{ r.note }}{% endif %}</p>
+              {% if r.history %}<ol class="mg-hist">{% for h in r.history %}
+                <li><span class="num">{{ h.at }}</span> <span class="mg-res {{ h.result }}">{{ h.result }}</span>
+                  <small>{{ h.origin }}{% if h.estimated %} ~{% endif %}{% if h.seconds is not None %} · {{ h.seconds }} s{% endif %}{% if h.expected is not None or h.rows is not None %} · {% t "센 수 {e} · 받은 수 {n}" e=h.expected n=h.rows %}{% endif %}{% if h.raw %} · <span class="mono">{{ h.raw }}</span>{% endif %}</small>
+                  {% if h.said %}<small class="mg-said">{{ h.said }}</small>{% endif %}</li>{% endfor %}</ol>
+              {% else %}<p class="faint">{% t "받은 차례가 아직 없다" %}</p>{% endif %}
+            </td></tr>
             {% endfor %}
           </tbody>
         </table></div>
-        <p class="hint">{% t "원본 판은 sqlite 의 meta 표나 JSON 머리, 바람·해류는 첫·끝 시점이다. 서버 쪽에서는 manage.py data_status 로 같은 표를 본다." %}</p>
+        <p class="hint">{% t "명세는 서버의 sources.json 을 손으로 고친다. 받은 차례는 명령이 끝날 때 저절로 쌓이고, 서버 쪽에서는 manage.py sources_log 로 같은 것을 본다." %}</p>
+        {% endif %}
       </div>
     </div>
   </section>
