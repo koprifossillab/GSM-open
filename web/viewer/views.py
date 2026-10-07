@@ -382,6 +382,7 @@ def _sources_view(lang, request=None):
         counts = None
         if last and (last.get("expected") is not None or last.get("rows") is not None):
             counts = {"expected": last.get("expected"), "rows": last.get("rows"),
+                      "text": _counts(last.get("expected"), last.get("rows"), lang),
                       "short": last.get("expected") is not None and last.get("rows") is not None
                       and last["rows"] < last["expected"]}
         rows.append({
@@ -400,7 +401,7 @@ def _sources_view(lang, request=None):
             "version": (last or {}).get("upstream_version") or "", "changed": _changed((last or {}).get("changed"), lang),
             "history": [{"at": when(h), "origin": label(sources.ORIGIN_LABELS, h["origin"]), "result": h["result"],
                          "result_label": label(sources.RESULT_LABELS, h["result"]), "seconds": h.get("seconds"),
-                         "expected": h.get("expected"), "rows": h.get("rows"), "raw": fetchlog.shown(h.get("raw_path") or ""),
+                         "counts": _counts(h.get("expected"), h.get("rows"), lang), "raw": fetchlog.shown(h.get("raw_path") or ""),
                          "said": said(h.get("note")), "estimated": bool(h.get("estimated")),
                          "version": h.get("upstream_version") or "", "changed": _changed(h.get("changed"), lang)}
                         for h in item["history"]],
@@ -540,6 +541,17 @@ def source_edit(request, source_id):
         sources.record_change(obj.pk, before, after, "tab", request.user)
     messages.success(request, i18n.t(msg("{id} 의 명세를 고쳤다", id=obj.pk), lang))
     return _back_to_sources(source_id)
+
+
+def _counts(expected, rows, lang) -> str:
+    """센 수·받은 수 — 있는 것만. 받은 수만 적는 일(최근 지진 따위)에 "센 수 None" 이 떴다 (jikhanjung 027)"""
+    if expected is not None and rows is not None:
+        return i18n.t(msg("센 수 {e} · 받은 수 {n}", e=expected, n=rows), lang)
+    if rows is not None:
+        return i18n.t(msg("받은 수 {n}", n=rows), lang)
+    if expected is not None:
+        return i18n.t(msg("센 수 {e}", e=expected), lang)
+    return ""
 
 
 def _changed(n, lang) -> str:

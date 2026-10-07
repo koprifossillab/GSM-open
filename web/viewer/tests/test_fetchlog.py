@@ -349,6 +349,16 @@ class HourlyNotes(Base):
         self.assertEqual([(r["rows"], r["started_at"]) for r in oks], [(7, "2026-10-07T15:40:02+09:00")])
 
 
+class CountsText(Base):
+    def test_받은_수만_있으면_받은_수만(self):
+        """최근 지진은 받은 수만 적는다 — "센 수 None · 받은 수 311" 이 떴다 (jikhanjung 027)"""
+        fetchlog.write({"source": "demo", "started_at": "2026-10-07T16:40:00+09:00", "result": "ok", "rows": 311})
+        page = self.client.get("/GSM/manage/").content.decode()
+        self.assertNotIn("None", page.split('id="tab-sources"')[1].split("</section>")[0])
+        self.assertIn("받은 수 311", page)
+        self.assertNotIn("센 수", page.split('data-src="demo"')[1].split("</tr>")[0])
+
+
 class WrapsCommands(Base):
     def test_fetch_build_명령이_끝나면_한_줄이_생긴다(self):
         """apps.py 가 BaseCommand.execute 를 감쌌다 — 진짜 명령 하나로 본다(빈 자리라 할 일이 없다)"""

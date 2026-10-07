@@ -1560,6 +1560,8 @@ EN = {
     "마지막으로 된 차례 — 끝난 때 (걸린 초는 모른다)": "Last successful run — time it ended (duration unknown)",
     "명세가 바뀌었다 — {name}": "Spec changed — {name}",
     "센 수 {e} · 받은 수 {n}": "counted {e} · received {n}",
+    "받은 수 {n}": "received {n}",
+    "센 수 {e}": "counted {e}",
     "받은 차례가 아직 없다": "No runs recorded yet",
     "명세는 staff 계정으로 로그인해 줄을 펼친 자리나 admin 에서 고친다 — 고칠 때마다 누가·언제·앞뒤가 이력에 남는다. 받은 차례는 명령이 끝날 때 저절로 쌓이고, 서버 쪽에서는 manage.py sources_log 로 같은 것을 본다.":
         "Edit the spec by signing in with a staff account and expanding a row, or in the admin — every edit records who, when and the before/after. Runs are recorded when each command finishes; on the server, manage.py sources_log shows the same.",

@@ -253,7 +253,7 @@
                 {% elif r.unknown %}<span class="faint">{% t "기록 없음" %}</span>{% else %}<span class="faint">—</span>{% endif %}</td>
               <td data-label="{% t "결과" %}">{% if r.last %}<span class="mg-res {{ r.result }}">{{ r.result_label }}</span>
                 {% if r.version or r.changed %}<small>{% if r.version %}{% t "상류 판" %} <span class="mono">{{ r.version }}</span>{% endif %}{% if r.version and r.changed %} · {% endif %}{{ r.changed }}</small>{% endif %}
-                {% if r.counts %}<small class="num{% if r.counts.short %} bad{% endif %}">{% t "센 수 {e} · 받은 수 {n}" e=r.counts.expected n=r.counts.rows %}</small>{% endif %}
+                {% if r.counts %}<small class="num{% if r.counts.short %} bad{% endif %}">{{ r.counts.text }}</small>{% endif %}
                 {% if r.said %}<small class="mg-said">{{ r.said }}</small>{% endif %}
                 {% else %}<span class="faint">—</span>{% endif %}</td>
               <td data-label="{% t "마지막 성공" %}">{% if r.ok %}<span class="num">{{ r.ok }}</span>{% else %}—{% endif %}{% if r.late %} <b class="bad">{% t "늦음" %}</b>{% endif %}</td>
@@ -288,7 +288,7 @@
               <p class="mg-src-h">{% t "받은 차례" %}</p>
               {% if r.history %}<ol class="mg-hist">{% for h in r.history %}
                 <li><span class="num">{{ h.at }}</span> <span class="mg-res {{ h.result }}">{{ h.result_label }}</span>
-                  <small>{{ h.origin }}{% if h.estimated %} ~{% endif %}{% if h.seconds is not None %} · {{ h.seconds }} s{% endif %}{% if h.expected is not None or h.rows is not None %} · {% t "센 수 {e} · 받은 수 {n}" e=h.expected n=h.rows %}{% endif %}{% if h.version %} · {% t "상류 판" %} <span class="mono">{{ h.version }}</span>{% endif %}{% if h.changed %} · {{ h.changed }}{% endif %}{% if h.raw %} · <span class="mono">{{ h.raw }}</span>{% endif %}</small>
+                  <small>{{ h.origin }}{% if h.estimated %} ~{% endif %}{% if h.seconds is not None %} · {{ h.seconds }} s{% endif %}{% if h.counts %} · {{ h.counts }}{% endif %}{% if h.version %} · {% t "상류 판" %} <span class="mono">{{ h.version }}</span>{% endif %}{% if h.changed %} · {{ h.changed }}{% endif %}{% if h.raw %} · <span class="mono">{{ h.raw }}</span>{% endif %}</small>
                   {% if h.said %}<small class="mg-said">{{ h.said }}</small>{% endif %}</li>{% endfor %}</ol>
               {% else %}<p class="faint">{% t "받은 차례가 아직 없다" %}</p>{% endif %}
             </td></tr>

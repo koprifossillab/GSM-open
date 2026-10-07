@@ -133,6 +133,7 @@
 | jikhanjung 024 | 2026-10-07 | [매시 일의 `note()` 값도 기록에](20261007_jikhanjung_024_hourly_notes.md) |
 | jikhanjung 025 | 2026-10-07 | [백업 사본의 로그인 세션, 같은 날 두 번째 백업](20261007_jikhanjung_025_backup_sessions.md) |
 | jikhanjung 026 | 2026-10-07 | [PBDB 를 매주 바뀐 것만 받아 덮는다](20261007_jikhanjung_026_pbdb_weekly.md) |
+| jikhanjung 027 | 2026-10-07 | [센 수가 없으면 받은 수만](20261007_jikhanjung_027_counts_none.md) |
 | wetherilli 078 | 2026-09-30 | [3D 극지 지형을 미리 받는다](20260930_wetherilli_078_polar_dem_prewarm.md) |
 | wetherilli 079 | 2026-09-30 | [화성 — USGS 지역 지질도를 옛 지질도에 얹는다](20260930_wetherilli_079_mars_regional_geology.md) |
 | wetherilli 080 | 2026-09-30 | [화성 — NASA Trek 판 목록을 화성 화면에](20260930_wetherilli_080_mars_trek_catalog.md) |
