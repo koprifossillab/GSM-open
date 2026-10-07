@@ -334,3 +334,15 @@ class Review381(Dir):
             self.assertNotIn("명세 고치기</a>", page)
         reload()
         self.assertEqual(self.client.get("/GSM/admin/").status_code, 302)       # 연구소 안에서는 로그인으로
+
+
+class Followup383(Dir):
+    def test_다_지워도_씨앗이_되살리지_않는다(self):
+        self.write_seed([_row(id="a"), _row(id="b")])
+        sources.seed()
+        for pk in ("a", "b"):
+            row = DataSource.objects.get(pk=pk).as_row()
+            DataSource.objects.filter(pk=pk).delete()
+            sources.record_change(pk, row, None, "admin")
+        self.assertEqual(sources.seed()["added"], [])
+        self.assertFalse(DataSource.objects.exists())

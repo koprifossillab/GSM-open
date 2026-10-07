@@ -9,6 +9,8 @@
 ## 결정 없이 할 수 있는 것 — 값이 큰 차례
 
 - [ ] **데이터소스 P03 2 단계** — jikhanjung P03: 관리 화면 "데이터소스" 탭에서 고치기(로그인한 staff 만), 옛 파일 길(`sources.json`·`sources_history/`·`store.sqlite` 의 기록) 지우기, `prune_fetch_log`(데이터소스마다 1 년 안은 다 두고 그보다 옛것은 하루 한 줄, 실패·`changed > 0` 줄은 늘 남긴다, 사람이 부른다·`--dry-run` 먼저 — 정했다, 사람, 2026-10-07). 1 단계는 #381·#383(staff 계정은 만들었다)
+- [ ] **호스트의 jsonl 이 끝없이 자란다** — `upstream_host.jsonl`(상류 호출 수, 매시 넷이면 한 해 십몇 MB)·`fetch_log_host.jsonl`. 날마다 파일을 나누고 다 들인 지난 날짜의 파일을 컨테이너가 지운다 (jikhanjung 018)
+- [ ] 매시 일이 `fetchlog.note()` 로 보탠 것(받은 수 따위)은 기록에 안 남는다 — `hourly_status.json` 에 그 칸이 없다. 매시 넷의 받은 수가 보고 싶어지면 `hourly.sh` 가 칸을 더한다 (jikhanjung 018)
 - [ ] **admin 이 평문 HTTP 다** — 데이터소스 명세를 고치는 창구라 staff 계정·세션이 오간다(#381 검토 3). HTTPS 는 나중에(사람, 2026-10-07). 그 전에 nginx 에서 사내 대역만 받을지도 정한다. 밖에 연 판(`GSM_PUBLIC`)에서는 admin 경로를 이미 뺀다
 - [ ] 호주 남은 주 — 뉴사우스웨일스 이음매 없는 지질도뿐이다. `gs-seamless` 는 여전히 503, MinView 가 쓰는 `gs-mv` 는 공개 DNS 에 없다(NXDOMAIN, 2026-10-05). 살아나면 붙인다(wetherilli 361). 노던테리토리는 섰다
 - [ ] 남호주 지구물리의 값 누르기 — 방사능(K·Th·U)은 섰다(wetherilli 358). 자력·중력은 아직 RGB 뿐이다 — 중력 격자 4.7 GB(2016), 주 총자력 합본은 PDF·PNG 만 보였다. 가울러 크라톤 탐사의 합본 TMI 는 18 GB

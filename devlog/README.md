@@ -125,6 +125,7 @@
 | jikhanjung P03 | 2026-10-06 | [데이터소스 명세와 받은 차례의 기록을 Django DB 로 — 관리 화면에서 고치고 이력을 남긴다 (계획)](20261006_jikhanjung_P03_source_db.md) |
 | jikhanjung 016 | 2026-10-07 | [데이터소스 명세와 기록을 `GSM.db` 로 (P03 1 단계)](20261007_jikhanjung_016_source_db.md) |
 | jikhanjung 017 | 2026-10-07 | [주간 백업도 컨테이너를 거쳐 DB 를 뜬다](20261007_jikhanjung_017_backup_in_container.md) |
+| jikhanjung 018 | 2026-10-07 | [P03 다시 보기 — 백업이 주울 뻔한 파일, 호출 수 들이기의 트랜잭션](20261007_jikhanjung_018_source_db_followup.md) |
 | wetherilli 078 | 2026-09-30 | [3D 극지 지형을 미리 받는다](20260930_wetherilli_078_polar_dem_prewarm.md) |
 | wetherilli 079 | 2026-09-30 | [화성 — USGS 지역 지질도를 옛 지질도에 얹는다](20260930_wetherilli_079_mars_regional_geology.md) |
 | wetherilli 080 | 2026-09-30 | [화성 — NASA Trek 판 목록을 화성 화면에](20260930_wetherilli_080_mars_trek_catalog.md) |

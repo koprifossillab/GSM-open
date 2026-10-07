@@ -442,3 +442,49 @@ class Followup(Base):
         self.assertIn('<th>마지막 실행</th><th>결과</th><th>마지막 성공</th>', page)
         self.assertRegex(page, r'<td data-label="결과"><span class="mg-res fail">실패</span>\s*<small class="mg-said">상류 500')
         self.assertIn('colspan="7"', page)
+
+
+class Followup383(Base):
+    """#383 뒤에 본 것 (jikhanjung 018)."""
+
+    def host_counts(self, n=3):
+        from viewer import usage
+        self.addCleanup(usage.reset)
+        with mock.patch.dict(os.environ, {"GSM_RUN_PLACE": "host"}):
+            for _ in range(n):
+                usage.record("kopri", ok=True)
+
+    def test_호출_수_더하기가_깨지면_다음에_처음부터(self):
+        from viewer import usage
+        from viewer.models import UpstreamDay
+        self.host_counts(3)
+        calls = {"n": 0}
+        real = usage._add
+
+        def flaky(*a, **k):
+            calls["n"] += 1
+            if calls["n"] == 2:
+                raise DatabaseError("database is locked")
+            return real(*a, **k)
+        with mock.patch.object(usage, "_add", side_effect=flaky):
+            self.assertEqual(usage.sync_host(), 0)
+        self.assertFalse(UpstreamDay.objects.exists())          # 자리도 더하기도 되돌아갔다
+        self.assertEqual(usage.sync_host(), 3)
+        self.assertEqual(UpstreamDay.objects.get(upstream="kopri").ok, 3)
+
+    def test_기록을_꺼도_호출_수는_들인다(self):
+        from viewer.models import UpstreamDay
+        self.host_counts(2)
+        with override_settings(FETCH_LOG=False):
+            fetchlog.sync()
+        self.assertEqual(UpstreamDay.objects.get(upstream="kopri").ok, 2)
+
+    def test_주간_백업은_호스트의_jsonl_을_줍지_않는다(self):
+        """upstream_host.jsonl 이 ② 의 목록에 들면 매시 바뀌어 ② (구운 것, GB) 를 매주 새로 뜬다"""
+        import re
+        script = (Path(__file__).resolve().parents[3] / "deploy/scripts/weekly_backup.sh").read_text(encoding="utf-8")
+        secrets = re.search(r"^SECRETS='([^']+)'", script, re.M).group(1)
+        weekly = re.search(r"^WEEKLY='([^']+)'", script, re.M).group(1)
+        for name in ("./upstream_host.jsonl", "./hourly_status.json"):
+            self.assertRegex(name, secrets)
+        self.assertRegex("./fetch_log_host.jsonl", weekly)                # 손으로 부른 일의 기록은 ① 에 담는다

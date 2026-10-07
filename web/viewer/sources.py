@@ -250,10 +250,11 @@ def seed() -> dict:
     seed_rows = read_seed().rows
     with transaction.atomic():
         have = {o.pk: o for o in DataSource.objects.all()}
-        if not have:
-            return {"created": True, "added": _put(seed_rows, "seed"), "differs": []}
-        start = max(o.order for o in have.values()) + 1
+        # 사람이 지운 id — 표가 다 비었어도(다 지웠어도) 되살리지 않는다. 새로 놓은 자리면 이력이 없어 비었다 (jikhanjung 018)
         gone = deleted_ids()
+        if not have:
+            return {"created": True, "added": _put([r for r in seed_rows if r["id"] not in gone], "seed"), "differs": []}
+        start = max(o.order for o in have.values()) + 1
         added = _put([r for r in seed_rows if r["id"] not in have and r["id"] not in gone], "seed", start)
     differs = sorted(seed_differs([o.as_row() for o in have.values()]))
     return {"created": False, "added": added, "differs": differs}

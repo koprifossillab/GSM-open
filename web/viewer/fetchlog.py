@@ -288,7 +288,12 @@ def sync(spec_rows=None) -> int:
 
     호스트에서는 하지 않고, 기록이 꺼져 있으면(시험) 하지 않는다. 못 적으면 0 — 부르는 쪽을 죽이지 않는다.
     """
-    if on_host() or not getattr(settings, "FETCH_LOG", True):
+    if on_host():
+        return 0
+    # 호스트가 센 상류 호출(`upstream_host.jsonl`)은 기록을 끄든 말든 들인다 — 호스트는 UpstreamDay 에 쓰지 않는다(P03, jikhanjung 018)
+    from . import usage
+    usage.sync_host()
+    if not getattr(settings, "FETCH_LOG", True):
         return 0
     if spec_rows is None:
         from . import sources
@@ -305,9 +310,6 @@ def sync(spec_rows=None) -> int:
             moved = write_many(rows) if rows else 0
     except (DatabaseError, OSError):
         moved = 0
-    # 호스트가 센 상류 호출(`upstream_host.jsonl`)도 같은 차례에 들인다 — 호스트는 UpstreamDay 에 쓰지 않는다(P03)
-    from . import usage
-    usage.sync_host()
     return moved
 
 

@@ -19,6 +19,7 @@ import threading
 import time
 from collections import deque
 
+from django.db import transaction
 from django.db.models import F
 from django.utils import timezone
 
@@ -133,25 +134,31 @@ def _append_host(row: dict) -> None:
 
 def sync_host() -> int:
     """호스트가 센 것(`upstream_host.jsonl`)의 새 줄을 `UpstreamDay` 에 더한다. 더한 줄 수. 컨테이너만 — 못 하면 0"""
-    from datetime import date
-
     from . import fetchlog
     if _on_host():
         return 0
-    added = 0
     try:
-        for row in fetchlog.new_lines(host_path(), "usage_offset"):
-            try:
-                day = date.fromisoformat(row["day"])
-                if row.get("field") not in ("ok", "fail", "blocked") or not row.get("upstream"):
-                    continue
-                _add(day, str(row["upstream"]), row["field"], int(row.get("count") or 1), bool(row.get("batch")),
-                     row.get("took"))
-                added += 1
-            except (KeyError, TypeError, ValueError):
-                continue
+        # 읽은 자리와 더하기를 한 트랜잭션에 — 더하다 깨지면 자리도 되돌아가 다음에 다시 읽고(#383 검토), 매시 차례와 관리 화면이
+        # 겹쳐도 IMMEDIATE 라 하나씩 돌아 같은 줄을 두 번 더하지 않는다 (jikhanjung 018)
+        with transaction.atomic():
+            return _add_rows(fetchlog.new_lines(host_path(), "usage_offset"))
     except Exception as exc:                      # noqa: BLE001 — 세는 것은 덤이다
         log.debug("호스트가 센 것을 들이지 못했다: %s", exc)
+        return 0
+
+
+def _add_rows(rows) -> int:
+    from datetime import date
+    added = 0
+    for row in rows:
+        try:
+            day = date.fromisoformat(row["day"])
+            if row.get("field") not in ("ok", "fail", "blocked") or not row.get("upstream"):
+                continue
+            _add(day, str(row["upstream"]), row["field"], int(row.get("count") or 1), bool(row.get("batch")), row.get("took"))
+            added += 1
+        except (KeyError, TypeError, ValueError):
+            continue
     return added
 
 
