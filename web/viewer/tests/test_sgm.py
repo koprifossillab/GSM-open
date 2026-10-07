@@ -93,6 +93,21 @@ class Views(TestCase):
         self.assertEqual(rows[0]["age"], "백악기")
         self.assertIn("Cuesta del Cura", rows[0]["lithology"])
 
+    def test_1대5만의_범례는_제_열로_묻는다(self):
+        """1:5만(7)은 열 이름이 1:25만과 다르다 — 없는 열로 묶으면 상류가 400 을 준다 (wetherilli 372)"""
+        stats = {"features": [{"attributes": {"CLAVE": "ToA-TR", "DLO": "ANDESITA-TOBA RIOLITICA", "NOMBRE": "x",
+                                              "EDAD_INI": "OLIGOCENO", "EDAD_FIN": "MIOCENO", "N": 4}}]}
+        sent = []
+
+        def get(url, params=None, **kw):
+            sent.append(params or {})
+            return answer(stats if url.endswith("/query") else RENDERER, ctype="application/json")
+        with mock.patch.object(sgm.requests, "get", side_effect=get):
+            rows = self.client.get(reverse("viewer:sgm-legend"), {"layer": "sgm:7", "bbox": "-103,22.5,-102.8,22.7"}).json()["rows"]
+        self.assertTrue(any(p.get("groupByFieldsForStatistics", "").startswith("CLAVE,DLO") for p in sent))
+        self.assertEqual((rows[0]["symbol"], rows[0]["age"]), ("ToA-TR", "올리고세~마이오세"))
+        self.assertIn("ANDESITA", rows[0]["lithology"])
+
 
 # ── 같은 서버의 다른 서비스 (wetherilli 219) ─────────────────────────
 #: 지질 연대 측정 점의 identify — 캄페체 해변. 줄였다

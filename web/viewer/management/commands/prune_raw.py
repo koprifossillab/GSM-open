@@ -10,7 +10,7 @@
 """
 from django.core.management.base import BaseCommand, CommandError
 
-from viewer import rawstore, sources
+from viewer import fetchlog, rawstore, sources
 
 
 class Command(BaseCommand):
@@ -22,6 +22,7 @@ class Command(BaseCommand):
         parser.add_argument("--dry-run", action="store_true", help="지우지 않고 무엇을 지울지만 보인다")
 
     def handle(self, *args, **opts):
+        fetchlog.refuse_on_host("prune_raw")
         rows = [r for r in sources.load().rows if r.get("raw")]
         if opts["source"]:
             rows = [r for r in rows if r["id"] == opts["source"]]

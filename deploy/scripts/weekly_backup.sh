@@ -8,7 +8,7 @@
 #
 # 바뀌는 빠르기대로 넷으로 가른다 — 한 tar 에 다 넣으면 주 2.7 GB 가운데 2.6 GB 가 안 바뀐 것이다.
 #   ① 주간 tar   /data/GSM/backups/GSM.<YYYYMMDD>.tar.gz — 다시 못 얻는 것. 모두 둔다
-#                GSM.db(sqlite 사본) · 스위치(dev_direct_wms·public, 있으면) · kopri/ · kigam50k/ · sources.json·sources_history/(데이터소스 명세)·store.sqlite·fetch_log_host.jsonl(받은 차례의 기록, jikhanjung P02) · earth/pbdb_collections.csv(있으면)
+#                GSM.db(sqlite 사본 — 컨테이너가 뜬다, jikhanjung 017) · 스위치(dev_direct_wms·public, 있으면) · kopri/ · kigam50k/ · sources.json·sources_history/(데이터소스 명세)·store.sqlite·fetch_log_host.jsonl(받은 차례의 기록, jikhanjung P02) · earth/pbdb_collections.csv(있으면)
 #                · docker-compose.yml · manifest-built.txt(② 의 목록, sha256)
 #   ② 구운 것    /data/GSM/backups/GSM-built.<YYYYMMDD>.tar — db/ 의 나머지. **목록이 지난번과 다를 때만** 뜬다.
 #                압축하지 않는다(webp·tif 가 대부분). 30 일까지 전부, 그 뒤 달마다 가장 새 것 하나
@@ -45,6 +45,8 @@ NAS_TILES=$NAS_ROOT/GSM/tiles
 NAS_SOURCES=$NAS_ROOT/GSM/sources
 DAY=$(date +%Y%m%d)
 MODE=${1:-all}
+# 컨테이너 안의 manage.py — 받기(⑤–⑦)와 DB 사본(①)이 이 길로 간다. timeout 이 부를 수 있게 함수가 아니라 배열로 둔다
+MANAGE=(docker compose -f "$COMPOSE" exec -T -w /app/web web python manage.py)
 
 # 백업에 넣지 않는 것 — 비밀과 이 스크립트가 적는 결과(backup_status.json), 지금의 바람(wind/gfs — 여섯 시간마다 바뀌고
 # 다음 판이 이긴다. 넣으면 ② 가 매주 새로 뜬다, koprifossillab P02), 최근 지진(earth/quakes_recent.json — 매시 새로 받는다, wetherilli 292·297), 컨테이너의 기록(logs/ — 날마다 늘고 30 일이면 지운다, wetherilli 351)
@@ -124,24 +126,29 @@ grep -zvE "$WEEKLY" "$STAGE/all.z" > "$STAGE/built.z"
 
 # ── ① 주간 tar ──────────────────────────────────────────────────────────
 STEP=backup
-python3 - "$DB/GSM.db" "$STAGE/GSM.db" <<'EOF' || fail "GSM.db 사본을 못 떴다"
+# **호스트는 GSM.db 를 열지 않는다**(사람, 2026-10-07, jikhanjung P03·017) — 사본은 컨테이너가 sqlite 온라인 백업으로 뜨고
+# integrity_check 를 지난 것만 표준 출력으로 낸다(`manage.py backup_db`). 호스트는 받은 바이트를 파일로 두고 머리만 본다 — 살아 있는
+# DB 의 잠금·저널(뒤의 WAL 이면 -shm)에 닿지 않는다. 컨테이너가 서 있지 않으면 백업은 실패로 끝난다 — 받기도 어차피 못 한다
+take() {   # take <받을 파일> [--store]
+    timeout 900 "${MANAGE[@]}" backup_db "${@:2}" > "$1" 2>"$LOGS/backup_db.err" \
+        && [ "$(head -c 15 "$1")" = "SQLite format 3" ] \
+        && intact "$1"
+}
+# 받은 사본이 온전한가 — 머리만으로는 흘리다 잘린 사본을 못 잡는다(#385 검토). 여는 것은 살아 있는 DB 가 아니라 받아 둔 사본이다
+intact() {   # intact <사본>
+    python3 - "$1" <<'PY' 2>>"$LOGS/backup_db.err"
 import sqlite3, sys
-src = sqlite3.connect(f"file:{sys.argv[1]}?mode=ro", uri=True)
-dst = sqlite3.connect(sys.argv[2])
-src.backup(dst)
-assert dst.execute("pragma integrity_check").fetchone()[0] == "ok", "integrity_check"
-dst.close(); src.close()
-EOF
-# 받은 차례의 기록(jikhanjung P02) — GSM.db 처럼 sqlite 로 뜬다. 아직 없으면 건너뛴다
-if [ -f "$DB/store.sqlite" ]; then
-    python3 - "$DB/store.sqlite" "$STAGE/store.sqlite" <<'PY' || fail "store.sqlite 사본을 못 떴다"
-import sqlite3, sys
-src = sqlite3.connect(f"file:{sys.argv[1]}?mode=ro", uri=True)
-dst = sqlite3.connect(sys.argv[2])
-src.backup(dst)
-assert dst.execute("pragma integrity_check").fetchone()[0] == "ok", "integrity_check"
-dst.close(); src.close()
+db = sqlite3.connect(sys.argv[1])
+ok = db.execute("PRAGMA integrity_check").fetchone()[0]
+db.close()
+if ok != "ok":
+    sys.exit(f"받은 사본이 integrity_check 를 지나지 못했다: {ok}")
 PY
+}
+take "$STAGE/GSM.db" || fail "GSM.db 사본을 못 떴다(컨테이너): $(tail -1 "$LOGS/backup_db.err")"
+# 받은 차례의 기록(jikhanjung P02) — 옛 store.sqlite. 아직 있으면 같은 길로
+if [ -f "$DB/store.sqlite" ]; then
+    take "$STAGE/store.sqlite" --store || fail "store.sqlite 사본을 못 떴다(컨테이너): $(tail -1 "$LOGS/backup_db.err")"
 fi
 cp "$COMPOSE" "$STAGE/docker-compose.yml" || fail "compose 를 못 읽었다"
 extra=()
@@ -206,8 +213,6 @@ echo "원본 거울: $SOURCES_RESULT ($(du -sh "$SOURCES" 2>/dev/null | cut -f1)
 
 # ── ⑤–⑦ 받기 — 컨테이너 안에서 ────────────────────────────────────────────
 STEP=fetch
-# timeout 이 부를 수 있게 함수가 아니라 배열로 둔다
-MANAGE=(docker compose -f "$COMPOSE" exec -T -w /app/web web python manage.py)
 FIRST_MONDAY=$([ "$((10#$(date +%d)))" -le 7 ] && echo 1 || echo 0)
 done_=(); failed=()
 run() {   # run <명령> <timeout> — 컨테이너 안의 manage.py <명령>

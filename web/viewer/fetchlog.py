@@ -1,55 +1,33 @@
-"""받은 차례의 기록 — `<DB 옆>/store.sqlite` 의 `fetch_log` (jikhanjung P02 2 단계).
+"""받은 차례의 기록 — `GSM.db` 의 `FetchRun` (jikhanjung P02 2 단계, P03 에서 `store.sqlite` 의 `fetch_log` 를 옮겼다).
 
-**문이 아니다.** 받아 두는 데이터소스(`sources.json`, P02 1 단계)마다 **받은 차례 하나가 한 줄**이다 — 언제·결과·걸린 초·마지막 말·
+**문이 아니다.** 받아 두는 데이터소스(`DataSource`)마다 **받은 차례 하나가 한 줄**이다 — 언제·결과·걸린 초·마지막 말·
 상류가 센 수 대 받은 수·원본 자리와 sha·구운 판. 사람이 정하는 것(조건·주기)은 명세에, 돌아가며 바뀌는 것은 여기에 둔다.
-`store.sqlite` 는 뒤의 적재(②)가 데이터소스마다 표를 더할 그 파일이다 — Django 의 `GSM.db` 에는 넣지 않는다(백업이 부푼다).
+받은 판의 정보(파일·sha256)는 원본 폴더의 `manifest.json` 이 지니고, 줄의 `raw_path` 가 그 폴더를 가리킨다.
+바깥에 내는 꼴(줄의 dict, `started_at` 은 이 서버 시간대의 ISO 글)은 파일 시절 그대로다 — 부르는 쪽을 고치지 않으려고.
 
 누가 쓰나
 - **컨테이너의 `fetch_*`·`build_*`** — `apps.py` 가 명령의 `execute` 를 감싸 끝날 때 한 줄을 적는다. 명령은 아는 것을 `note()` 로
   보탠다(`rows`·`expected`·`raw_path` …). 명령 마흔다섯을 하나하나 고치지 않으려고 한 자리에서 감쌌다
-- **호스트**(`run.sh` 가 `GSM_RUN_PLACE=host`)는 **sqlite 를 만들지도 쓰지도 않는다** — 컨테이너와 한 파일에 쓰지 않게(검토의 "잠금").
-  읽을 때는 읽기 전용으로 열고, 없으면 빈 것이다. `hourly.sh` 가 부른 일(`GSM_HOURLY_JOB=1`)은 `hourly_status.json` 이 남기고, 그 밖에
-  호스트에서 부른 일(ERA5·ECCO2, 손으로 부른 `run.sh fetch_araon --past` 따위)은 `fetch_log_host.jsonl` 에 한 줄을 덧붙인다.
-  컨테이너가 화면·healthz 를 그릴 때 둘을 옮겨 적는다(`sync()`) — jsonl 은 읽은 자리를 기억해 새 줄만 읽는다
+- **호스트**(`run.sh` 가 `GSM_RUN_PLACE=host`)는 **`FetchRun` 에 쓰지 않는다** — 읽기만 한다. `hourly.sh` 가 부른 일(`GSM_HOURLY_JOB=1`)은
+  `hourly_status.json` 이 남기고, 그 밖에 호스트에서 부른 일(ERA5·ECCO2, 손으로 부른 `run.sh fetch_araon --past` 따위)은
+  `fetch_log_host.jsonl` 에 한 줄을 덧붙인다. 컨테이너가 옮겨 적는다(`sync()`) — jsonl 은 읽은 자리를 기억해 새 줄만 읽는다
 """
 import contextlib
 import json
 import os
 import re
-import sqlite3
 import threading
 import time
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
 from django.conf import settings
+from django.db import DatabaseError, transaction
+from django.db.models import F, Window
+from django.db.models.functions import RowNumber
+from django.utils import timezone as dj_tz
 
 from .i18n import msg
-
-SCHEMA = """
-CREATE TABLE IF NOT EXISTS fetch_log (
-    id               INTEGER PRIMARY KEY,
-    source           TEXT NOT NULL,
-    command          TEXT NOT NULL DEFAULT '',
-    started_at       TEXT NOT NULL,
-    seconds          REAL,
-    result           TEXT NOT NULL,          -- ok · fail · skip
-    note             TEXT NOT NULL DEFAULT '',
-    upstream_version TEXT NOT NULL DEFAULT '',
-    expected         INTEGER,                -- 상류가 센 수
-    rows             INTEGER,                -- 받은(적재한) 수
-    changed          INTEGER,
-    raw_path         TEXT NOT NULL DEFAULT '',
-    raw_sha256       TEXT NOT NULL DEFAULT '',
-    built_at         TEXT NOT NULL DEFAULT '',
-    built_by         TEXT NOT NULL DEFAULT '',
-    estimated        INTEGER NOT NULL DEFAULT 0,  -- 1 이면 지난 것을 파일 stat 으로 어림한 줄
-    origin           TEXT NOT NULL DEFAULT 'container',  -- container · hourly · host · backfill · spec
-    UNIQUE (source, started_at, origin)
-);
-CREATE INDEX IF NOT EXISTS fetch_log_source ON fetch_log (source, started_at);
-CREATE TABLE IF NOT EXISTS fetch_log_meta (k TEXT PRIMARY KEY, v TEXT NOT NULL);
-"""
 
 #: 명령이 `note()` 로 보탤 수 있는 칸
 FIELDS = ("upstream_version", "expected", "rows", "changed", "raw_path", "raw_sha256", "built_at", "built_by")
@@ -76,6 +54,14 @@ def on_host() -> bool:
     return os.environ.get("GSM_RUN_PLACE") == "host"
 
 
+def refuse_on_host(command: str):
+    """DB 를 여는 명령은 호스트에서 돌리지 않는다(P03) — 컨테이너에서 부르라고 알리고 멈춘다"""
+    if on_host():
+        from django.core.management.base import CommandError
+        raise CommandError(f"호스트는 GSM.db 를 열지 않는다 — 컨테이너 안에서 부른다: "
+                           f"docker compose exec web python manage.py {command}")
+
+
 def from_hourly() -> bool:
     """`hourly.sh` 가 부른 일 — 그 결과는 `hourly_status.json` 이 남긴다"""
     return os.environ.get("GSM_HOURLY_JOB") == "1"
@@ -85,76 +71,50 @@ def _now() -> str:
     return datetime.now(timezone.utc).astimezone().isoformat(timespec="seconds")
 
 
-# ── 열기 ────────────────────────────────────────────────────────────
+# ── 쓰기 ────────────────────────────────────────────────────────────
 
-@contextlib.contextmanager
-def connect():
-    """쓰는 연결 — 컨테이너만. 표는 열 때마다 `IF NOT EXISTS` 로 — 파일을 지우거나 되살려도 오래 떠 있는 일꾼이 다시 짓는다."""
-    if on_host():
-        raise RuntimeError("호스트는 store.sqlite 에 쓰지 않는다")
-    p = store_path()
-    p.parent.mkdir(parents=True, exist_ok=True)
-    new = not p.exists()
-    db = sqlite3.connect(p, timeout=10)
-    try:
-        db.execute("PRAGMA journal_mode=WAL")
-        db.executescript(SCHEMA)
-        if new:
-            try:
-                os.chmod(p, 0o664)
-            except OSError:
-                pass
-        yield db
-        db.commit()
-    finally:
-        db.close()
-
-
-@contextlib.contextmanager
-def reader():
-    """읽는 연결 — 파일을 만들지 않는다. 없으면 None. 호스트는 읽기 전용으로 연다."""
-    p = store_path()
-    if not p.exists():
-        yield None
-        return
-    if on_host():
-        db = sqlite3.connect(f"file:{p}?mode=ro", uri=True, timeout=10)
+def _dt(text):
+    """줄의 `started_at`(ISO 글) → 시간대가 붙은 때. 시간대가 없으면 이 서버의 것으로. 못 읽으면 None"""
+    if isinstance(text, datetime):
+        value = text
     else:
-        db = sqlite3.connect(p, timeout=10)
-    try:
-        db.row_factory = sqlite3.Row
         try:
-            db.execute("SELECT 1 FROM fetch_log LIMIT 1")
-        except sqlite3.Error:                     # 표가 아직 없다
-            yield None
-            return
-        yield db
-    finally:
-        db.close()
+            value = datetime.fromisoformat(str(text))
+        except (TypeError, ValueError):
+            return None
+    return dj_tz.make_aware(value) if dj_tz.is_naive(value) else value
 
 
-def _values(row: dict) -> list:
-    values = [row.get(c) for c in COLUMNS]
-    return [_DEFAULTS.get(c) if v is None and c in _DEFAULTS else v for c, v in zip(COLUMNS, values)]
-
-
-_INSERT = f"INSERT OR IGNORE INTO fetch_log ({', '.join(COLUMNS)}) VALUES ({', '.join('?' * len(COLUMNS))})"
+def _obj(row: dict):
+    from .models import FetchRun
+    when = _dt(row.get("started_at"))
+    if when is None or not row.get("source") or not row.get("result"):
+        return None
+    values = {c: row.get(c) for c in COLUMNS if c != "started_at"}
+    values = {c: (_DEFAULTS.get(c) if v is None and c in _DEFAULTS else v) for c, v in values.items()}
+    values["estimated"] = bool(values.get("estimated"))
+    for c in ("note", "upstream_version", "raw_path", "raw_sha256", "built_at", "built_by", "command"):
+        values[c] = str(values.get(c) or "")
+    return FetchRun(started_at=when, **values)
 
 
 def write(row: dict):
-    """한 줄을 적는다. 같은 (데이터소스·시작한 때·어디서)는 한 번만."""
-    with connect() as db:
-        db.execute(_INSERT, _values(row))
+    """한 줄을 적는다. 같은 (데이터소스·시작한 때·어디서)는 한 번만. 호스트는 쓰지 않는다."""
+    write_many([row])
 
 
-def write_many(rows, db=None) -> int:
-    """여럿을 한 연결·한 트랜잭션에. 새로 적힌 줄 수."""
-    if db is None:
-        with connect() as conn:
-            return write_many(rows, conn)
-    before = db.total_changes
-    db.executemany(_INSERT, [_values(r) for r in rows])
-    return db.total_changes - before
+def write_many(rows) -> int:
+    """여럿을 한 트랜잭션에. 새로 적힌 줄 수."""
+    from .models import FetchRun
+    if on_host():
+        raise RuntimeError("호스트는 기록 표에 쓰지 않는다")
+    objs = [o for o in (_obj(r) for r in rows) if o is not None]
+    if not objs:
+        return 0
+    with transaction.atomic():
+        before = FetchRun.objects.count()
+        FetchRun.objects.bulk_create(objs, ignore_conflicts=True)
+        return FetchRun.objects.count() - before
 
 
 # ── 명령이 끝날 때 ─────────────────────────────────────────────────
@@ -245,7 +205,7 @@ def _shift(at: str, seconds) -> str:
         return at
 
 
-def _hourly_rows(spec_rows, db=None) -> list:
+def _hourly_rows(spec_rows, check: bool = False) -> list:
     """`hourly_status.json` 의 일마다 — 마지막 차례, 그리고 그것이 실패라면 마지막으로 된 차례(`last_ok`)도."""
     by_command = {c: r for r in spec_rows for c in r.get("commands", [])}
     try:
@@ -269,7 +229,7 @@ def _hourly_rows(spec_rows, db=None) -> list:
             if took is not None:
                 rows.append({"source": source["id"], "command": command, "started_at": _shift(last_ok, took),
                              "seconds": took, "result": "ok", "note": "마지막으로 된 차례", "origin": "hourly"})
-            elif not _hourly_ok_near(db, source["id"], last_ok):
+            elif not (check and _hourly_ok_near(source["id"], last_ok)):
                 rows.append({"source": source["id"], "command": command, "started_at": last_ok, "result": "ok",
                              "note": "마지막으로 된 차례 — 끝난 때 (걸린 초는 모른다)", "origin": "hourly"})
     return rows
@@ -279,58 +239,76 @@ def _hourly_rows(spec_rows, db=None) -> list:
 HOURLY_LIMIT = 900
 
 
-def _hourly_ok_near(db, source: str, end: str) -> bool:
+def _hourly_ok_near(source: str, end: str) -> bool:
     """`end` 에 끝난 매시 성공을 이미 옮겨 적었나 — 시작한 때가 `end` 에서 `HOURLY_LIMIT` 초 안쪽인 성공 줄"""
-    if db is None:
+    from .models import FetchRun
+    stop = _dt(end)
+    if stop is None:
         return False
-    found = db.execute("SELECT 1 FROM fetch_log WHERE source = ? AND origin = 'hourly' AND result = 'ok' "
-                       "AND started_at BETWEEN ? AND ? LIMIT 1", (source, _shift(end, HOURLY_LIMIT), end)).fetchone()
-    return found is not None
+    return FetchRun.objects.filter(source=source, origin="hourly", result="ok",
+                                   started_at__range=(stop - timedelta(seconds=HOURLY_LIMIT), stop)).exists()
 
 
-def _host_rows(db) -> list:
-    """jsonl 에서 지난번에 읽은 자리 뒤의 줄만. 파일이 줄었으면(바뀌었으면) 처음부터."""
-    p = host_log_path()
+def new_lines(path: Path, mark: str) -> list:
+    """덧붙이기만 하는 jsonl 에서 지난번에 읽은 자리(`FetchRunMark` 의 `mark`) 뒤의 줄만 — dict 의 목록. 파일이 줄었으면(바뀌었으면)
+    처음부터, 덜 적힌 마지막 줄은 다음 차례에. 호스트가 남긴 파일을 컨테이너가 들일 때 쓴다(기록·상류 호출 수)"""
+    from .models import FetchRunMark
     try:
-        size = p.stat().st_size
+        size = path.stat().st_size
     except OSError:
         return []
-    got = dict(db.execute("SELECT k, v FROM fetch_log_meta WHERE k = 'host_offset'").fetchall())
-    offset = int(got.get("host_offset", 0) or 0)
+    got = FetchRunMark.objects.filter(key=mark).first()
+    offset = int(got.value) if got and got.value.isdigit() else 0
     if offset > size:
         offset = 0
-    rows = []
-    with open(p, "rb") as fh:
+    with open(path, "rb") as fh:
         fh.seek(offset)
         data = fh.read()
-    end = data.rfind(b"\n") + 1                   # 덜 적힌 마지막 줄은 다음 차례에
+    end = data.rfind(b"\n") + 1
+    rows = []
     for line in data[:end].decode("utf-8", "replace").splitlines():
         try:
             row = json.loads(line)
         except ValueError:
             continue
-        if isinstance(row, dict) and row.get("source") and row.get("started_at"):
-            rows.append({**row, "origin": "host"})
-    db.execute("INSERT OR REPLACE INTO fetch_log_meta (k, v) VALUES ('host_offset', ?)", (str(offset + end),))
+        if isinstance(row, dict):
+            rows.append(row)
+    FetchRunMark.objects.update_or_create(key=mark, defaults={"value": str(offset + end)})
     return rows
 
 
-def sync(spec_rows=None) -> int:
-    """호스트가 남긴 것(`hourly_status.json`·`fetch_log_host.jsonl`)을 `fetch_log` 로. 옮긴 줄 수.
+def _host_rows() -> list:
+    """호스트 기록(jsonl)의 새 줄"""
+    return [{**r, "origin": "host"} for r in new_lines(host_log_path(), "host_offset")
+            if r.get("source") and r.get("started_at")]
 
-    호스트에서는 하지 않고, 기록이 꺼져 있으면(시험) 하지 않는다. 장부를 못 열면 0 — 부르는 쪽을 죽이지 않는다.
+
+def sync(spec_rows=None) -> int:
+    """호스트가 남긴 것(`hourly_status.json`·`fetch_log_host.jsonl`)을 `FetchRun` 으로, `upstream_host.jsonl` 을 `UpstreamDay` 로. 옮긴 기록 줄 수.
+
+    호스트에서는 하지 않고, 기록이 꺼져 있으면(시험) 하지 않는다. 못 적으면 0 — 부르는 쪽을 죽이지 않는다.
     """
     if on_host() or not getattr(settings, "FETCH_LOG", True):
         return 0
     if spec_rows is None:
         from . import sources
         spec_rows = sources.load().rows
+    # 호스트는 명세를 읽지 않아 명령 이름을 데이터소스 자리에 적어 둔다(P03) — 여기서 데이터소스로 바꾼다
+    by_command = {c: r["id"] for r in spec_rows for c in r.get("commands", [])}
+    ids = {r["id"] for r in spec_rows}
+    moved = 0
     try:
-        with connect() as db:
-            rows = _hourly_rows(spec_rows, db) + _host_rows(db)
-            return write_many(rows, db) if rows else 0
-    except (sqlite3.Error, OSError):
-        return 0
+        with transaction.atomic():
+            host = [{**r, "source": by_command.get(r["source"], r["source"]) if r["source"] not in ids else r["source"]}
+                    for r in _host_rows()]
+            rows = _hourly_rows(spec_rows, True) + host
+            moved = write_many(rows) if rows else 0
+    except (DatabaseError, OSError):
+        moved = 0
+    # 호스트가 센 상류 호출(`upstream_host.jsonl`)도 같은 차례에 들인다 — 호스트는 UpstreamDay 에 쓰지 않는다(P03)
+    from . import usage
+    usage.sync_host()
+    return moved
 
 
 # ── 화면에 내기 ─────────────────────────────────────────────────────
@@ -365,44 +343,37 @@ def shown(text: str) -> str:
 
 # ── 읽기 ────────────────────────────────────────────────────────────
 
-#: 차례의 순서 — 글자가 아니라 때로 (#373 검토 6). `started_at` 은 시간대를 단 ISO 라 호스트(+09:00)와 컨테이너(UTC)가 섞이면
-#: 글자 순서가 틀린다. SQLite 의 `julianday` 가 `+HH:MM` 을 읽는다. 때로 못 읽는 글(시험의 맨 글자)은 글자 순서로 뒤에
-ORDER = "julianday(started_at) {d}, started_at {d}, id {d}"
-
-_PICK = """
-SELECT * FROM (
-    SELECT *, ROW_NUMBER() OVER (PARTITION BY source ORDER BY {order}) AS rn
-    FROM fetch_log {where}
-) WHERE rn {cut}
-"""
+def as_dict(run) -> dict:
+    """`FetchRun` → 파일 시절의 줄 꼴. `started_at` 은 이 서버 시간대의 ISO 글"""
+    d = {c: getattr(run, c) for c in COLUMNS if c != "started_at"}
+    d["id"] = run.pk
+    d["started_at"] = dj_tz.localtime(run.started_at).isoformat(timespec="seconds")
+    d["estimated"] = int(bool(run.estimated))
+    return d
 
 
-def _rows(db, where="", desc=True, cut="= 1", args=()):
-    order = ORDER.format(d="DESC" if desc else "ASC")
-    for row in db.execute(_PICK.format(order=order, where=where, cut=cut), args):
-        d = dict(row)
-        d.pop("rn", None)
-        yield d
+def _ranked(qs, desc=True):
+    """데이터소스마다 차례를 매긴다 — 때로(UTC 로 적혀 시간대가 섞여도 맞다, #375), 같으면 나중에 적힌 것"""
+    order = [F("started_at").desc(), F("id").desc()] if desc else [F("started_at").asc(), F("id").asc()]
+    return qs.annotate(rn=Window(RowNumber(), partition_by=[F("source")], order_by=order))
 
 
 def latest() -> dict:
-    """데이터소스마다 마지막 줄·마지막으로 된(`ok`) 줄·첫 줄 — {id: {"last", "last_ok", "first"}}. 파일이 없으면 빈 것.
+    """데이터소스마다 마지막 줄·마지막으로 된(`ok`) 줄·첫 줄 — {id: {"last", "last_ok", "first"}}.
 
     `skip` 은 된 것으로 치지 않는다 — 치면 건너뛰기만 거듭하는 일의 늦음이 가려진다(#373 검토 6). 첫 줄은 한 번도 된 적 없는
-    일이 언제부터 그랬는지 재려고 둔다.
+    일이 언제부터 그랬는지 재려고 둔다. 표가 아직 없으면(마이그레이션 전) 빈 것.
     """
+    from .models import FetchRun
     out = {}
     try:
-        with reader() as db:
-            if db is None:
-                return out
-            for d in _rows(db):
-                out[d["source"]] = {"last": d, "last_ok": None, "first": None}
-            for d in _rows(db, where="WHERE result = 'ok'"):
-                out[d["source"]]["last_ok"] = d
-            for d in _rows(db, desc=False):
-                out[d["source"]]["first"] = d
-    except (sqlite3.Error, OSError):
+        for run in _ranked(FetchRun.objects.all()).filter(rn=1):
+            out[run.source] = {"last": as_dict(run), "last_ok": None, "first": None}
+        for run in _ranked(FetchRun.objects.filter(result="ok")).filter(rn=1):
+            out[run.source]["last_ok"] = as_dict(run)
+        for run in _ranked(FetchRun.objects.all(), desc=False).filter(rn=1):
+            out[run.source]["first"] = as_dict(run)
+    except DatabaseError:
         return {}
     return out
 
@@ -412,30 +383,19 @@ def history(source: str, limit: int = 20) -> list:
 
 
 def history_many(sources, limit: int = 20) -> dict:
-    """여러 데이터소스의 지난 차례를 연결 하나·질의 하나로 — {id: [줄 …]} (#373 검토 7: 화면 한 번에 연결이 100 남짓이었다)."""
+    """여러 데이터소스의 지난 차례를 질의 하나로 — {id: [줄 …]}, 새것부터 (#373 검토 7)."""
+    from .models import FetchRun
     ids = list(dict.fromkeys(sources))
     if not ids:
         return {}
     out = {}
     try:
-        with reader() as db:
-            if db is None:
-                return {}
-            where = f"WHERE source IN ({', '.join('?' * len(ids))})"
-            for d in _rows(db, where=where, cut="<= ?", args=(*ids, limit)):
-                out.setdefault(d["source"], []).append(d)
-    except (sqlite3.Error, OSError):
+        runs = _ranked(FetchRun.objects.filter(source__in=ids)).filter(rn__lte=limit).order_by("source", "-started_at", "-id")
+        for run in runs:
+            out.setdefault(run.source, []).append(as_dict(run))
+    except DatabaseError:
         return {}
-    for rows in out.values():            # ROW_NUMBER 가 차례를 정했지만 바깥 SELECT 는 순서를 지키지 않는다
-        rows.sort(key=lambda r: (_when(r["started_at"]), r["started_at"], r["id"]), reverse=True)
     return out
-
-
-def _when(text):
-    try:
-        return datetime.fromisoformat(text).timestamp()
-    except (TypeError, ValueError):
-        return float("-inf")
 
 
 # ── 화면에 낼 때 ────────────────────────────────────────────────────

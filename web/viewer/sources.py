@@ -1,27 +1,28 @@
-"""받아 두는 데이터소스의 명세 — `<DB 옆>/sources.json` (jikhanjung P02).
+"""받아 두는 데이터소스의 명세 — `GSM.db` 의 `DataSource` (jikhanjung P02, P03 에서 `<DB 옆>/sources.json` 을 옮겼다).
 
-**문이 아니다.** 상류를 부르지 않고, 사람이 정하는 것(조건·주기·돌리는 곳·명령·산출물)을 적은 JSON 한 장을 읽는다.
-받은 차례마다의 기록(받은 때·결과·행 수)은 여기 두지 않는다 — 돌아가며 바뀌는 것은 기록 표(`store.sqlite`, P02 2 단계)의 몫이다.
+**문이 아니다.** 상류를 부르지 않고, 사람이 정하는 것(조건·주기·돌리는 곳·명령·산출물·원본 자리)을 읽고 검사한다.
+받은 차례마다의 기록(받은 때·결과·행 수)은 여기 두지 않는다 — `fetchlog.py`(`FetchRun`)의 몫이다.
 
-- **씨앗** `data/sources.seed.json` — 컨테이너가 뜰 때(`manage.py sources_seed`) 운영 명세가 없으면 옮겨 놓고, 있으면 씨앗에만 있는
+- **고치기** — 사람이 Django admin(`/GSM/admin/`, staff 계정)에서 고친다. 고칠 때마다 `DataSourceChange` 에 앞뒤 줄이 남는다
+  (누가·언제). 관리 화면 탭에서 고치는 것은 P03 2 단계
+- **씨앗** `data/sources.seed.json` — 컨테이너가 뜰 때(`manage.py sources_seed`) 표가 비었으면 씨앗째 넣고, 차 있으면 씨앗에만 있는
   `id` 를 덧붙이기만 한다. 사람이 고친 줄은 덮지 않는다(`seed_catalog` 가 손질한 제목을 지키는 것과 같다)
-- **이력** — 읽을 때 파일이 앞서 본 판과 다르면 그 판을 `<DB 옆>/sources_history/` 에 떠 둔다. 관리 화면에 계정이 없어 명세는
-  서버에서 손으로 고친다 — 누가 언제 고쳤는지는 이 떠 둔 판과 파일 주인이 말한다
-- **틀린 줄은 건너뛴다** — 칸이 틀리거나 빠진 줄은 빼고 `problems` 에 적는다. 파일째 못 읽으면 마지막으로 떠 둔 판을 쓴다.
-  뷰어는 멈추지 않는다
+- **옮겨 오기** — 파일 시절의 운영 명세(`sources.json`)는 `manage.py sources_import` 가 표가 비었을 때 한 번 옮긴다(`import_file`)
+- **틀린 줄은 건너뛴다** — admin 이 저장 전에 같은 검사(`problems_of`)를 하지만, 표를 손으로 고쳐 틀린 줄이 들어와도 빼고 `problems` 에
+  적는다. 표가 비었거나 아직 없으면 씨앗을 읽는다. 뷰어는 멈추지 않는다
 
 지금 있는 파이썬 표(`datastatus.ITEMS`·`static_site.UPSTREAMS`·`views.LAB_ONLY`·`views.NO_STORE`)는 그대로 둔다 —
-손댈 일이 생길 때 하나씩 옮긴다(docs/자료_적재_구조.md "명세는 JSON 으로"). 어긋나면 `coverage()` 가 알린다.
+손댈 일이 생길 때 하나씩 옮긴다(docs/자료_적재_구조.md). 어긋나면 `coverage()` 가 알린다.
 """
 import hashlib
 import json
-import os
 import re
-import threading
 from datetime import datetime
 from pathlib import Path
 
 from django.conf import settings
+from django.db import DatabaseError, transaction
+from django.utils import timezone
 
 from .i18n import msg
 
@@ -34,16 +35,11 @@ FLAGS = ("nc", "sold", "lab_only", "no_store")
 LATE_HOURS = {"hourly": 3, "weekly": 9 * 24, "monthly-first-monday": 40 * 24}
 
 _ID = re.compile(r"^[a-z0-9_]+$")
-_lock = threading.Lock()
-_cache = {"key": None, "spec": None}
 
 
 def path() -> Path:
+    """파일 시절의 운영 명세 — `sources_import` 가 한 번 옮긴다"""
     return Path(settings.SOURCES_PATH)
-
-
-def history_dir() -> Path:
-    return path().parent / "sources_history"
 
 
 def seed_path() -> Path:
@@ -95,7 +91,7 @@ class Spec:
     def __init__(self, rows, problems, origin, sha="", read_at=None):
         self.rows = rows                  # 쓸 수 있는 줄만, 파일의 차례대로
         self.problems = problems          # [(id 또는 "#번째", [msg…])]
-        self.origin = origin              # file · history · seed · none
+        self.origin = origin              # db · seed · none (옮겨 올 때는 file · history)
         self.sha = sha
         self.read_at = read_at
 
@@ -121,10 +117,14 @@ def _check(raw) -> tuple:
     return rows, problems
 
 
-# ── 읽기 ────────────────────────────────────────────────────────────
+# ── 파일 시절의 명세 (옮겨 올 때만) ───────────────────────────────────
 
 def _sha(data: bytes) -> str:
     return hashlib.sha256(data).hexdigest()
+
+
+def history_dir() -> Path:
+    return path().parent / "sources_history"
 
 
 def _latest_history():
@@ -136,44 +136,6 @@ def _latest_history():
     return found[-1] if found else None
 
 
-def _keep_history(data: bytes, sha: str):
-    """앞서 떠 둔 판과 다르면 이 판을 떠 둔다. 못 쓰면 조용히 넘어간다 — 읽기를 막지 않는다.
-
-    **호스트는 뜨지 않는다** — 매시 `hourly.sh` 가 명세를 먼저 읽으면 호스트가 이력만 뜨고 기록 표의 `_spec` 줄은 건너뛰어(호스트는
-    sqlite 에 쓰지 않는다), 뒤에 컨테이너가 "이미 뜬 판" 이라 아무것도 남기지 않았다(#369 검토). 컨테이너가 처음 보고 둘 다 적는다
-    """
-    if os.environ.get("GSM_RUN_PLACE") == "host":
-        return
-    last = _latest_history()
-    if last is not None and last.stem.endswith(sha[:12]):
-        return
-    folder = history_dir()
-    try:
-        folder.mkdir(parents=True, exist_ok=True)
-        target = folder / f"{datetime.now():%Y%m%d-%H%M%S}-{sha[:12]}.json"
-        tmp = target.with_suffix(".tmp")
-        tmp.write_bytes(data)
-        os.replace(tmp, target)
-    except OSError:
-        return
-    _log_spec_change(sha, target.name)
-
-
-def _log_spec_change(sha: str, name: str):
-    """명세가 바뀐 것을 기록 표에도 한 줄 — 데이터소스 `_spec` (P02 2 단계). 장부가 실패해도 읽기는 돈다."""
-    if not getattr(settings, "FETCH_LOG", False):
-        return
-    try:
-        from . import fetchlog
-        if fetchlog.on_host():
-            return
-        fetchlog.write({"source": "_spec", "command": "", "started_at": fetchlog._now(), "result": "ok",
-                        "note": f"명세가 바뀌었다 — {name}", "raw_path": f"sources_history/{name}", "raw_sha256": sha,
-                        "origin": "spec"})
-    except Exception:                    # noqa: BLE001
-        pass
-
-
 def _parse(data: bytes):
     try:
         return json.loads(data.decode("utf-8"))
@@ -181,44 +143,29 @@ def _parse(data: bytes):
         return None
 
 
-def load(keep_history: bool = True) -> Spec:
-    """운영 명세를 읽는다. 파일이 바뀌지 않았으면 들고 있던 것을 준다."""
-    p = path()
-    try:
-        st = p.stat()
-        key = (str(p), st.st_mtime_ns, st.st_size)
-    except OSError:
-        key = (str(p), None, None)
-    with _lock:
-        if _cache["key"] == key and _cache["spec"] is not None:
-            return _cache["spec"]
-        spec = _read(p, keep_history)
-        _cache.update(key=key, spec=spec)
-        return spec
-
-
-def _read(p: Path, keep_history: bool) -> Spec:
+def read_file(p: Path = None) -> Spec:
+    """파일 시절의 운영 명세를 읽는다. 깨졌으면 마지막으로 떠 둔 판(`sources_history/`)을. 없으면 origin `none`."""
+    p = p or path()
     now = datetime.now()
     try:
         data = p.read_bytes()
     except OSError:
-        data = None
-    if data is not None:
-        raw = _parse(data)
-        if raw is not None:
-            sha = _sha(data)
-            if keep_history:
-                _keep_history(data, sha)
-            rows, problems = _check(raw)
-            return Spec(rows, problems, "file", sha, now)
-        broken = [("", [msg("명세 파일을 JSON 으로 읽지 못했다 — 마지막으로 떠 둔 판을 쓴다")])]
-        last = _latest_history()
-        if last is not None:
-            older = last.read_bytes()
-            rows, problems = _check(_parse(older) or {})
-            return Spec(rows, broken + problems, "history", _sha(older), now)
-        return Spec([], broken, "none", "", now)
-    # 운영 명세가 아직 없다(개발 장비·시험) — 씨앗을 읽는다
+        return Spec([], [], "none", "", now)
+    raw = _parse(data)
+    if raw is not None:
+        rows, problems = _check(raw)
+        return Spec(rows, problems, "file", _sha(data), now)
+    broken = [("", [msg("명세 파일을 JSON 으로 읽지 못했다 — 마지막으로 떠 둔 판을 쓴다")])]
+    last = _latest_history()
+    if last is not None:
+        older = last.read_bytes()
+        rows, problems = _check(_parse(older) or {})
+        return Spec(rows, broken + problems, "history", _sha(older), now)
+    return Spec([], broken, "none", "", now)
+
+
+def read_seed() -> Spec:
+    now = datetime.now()
     try:
         data = seed_path().read_bytes()
     except OSError:
@@ -227,65 +174,155 @@ def _read(p: Path, keep_history: bool) -> Spec:
     return Spec(rows, problems, "seed", _sha(data), now)
 
 
-# ── 씨앗 ────────────────────────────────────────────────────────────
+# ── 읽기 ────────────────────────────────────────────────────────────
+
+def load(keep_history: bool = True) -> Spec:
+    """명세를 읽는다 — `DataSource` 의 줄들. 표가 비었거나 아직 없으면(새 설치·마이그레이션 전·시험) 씨앗을.
+
+    `keep_history` 는 파일 시절의 것이다(이력은 이제 `DataSourceChange` 가 고칠 때 남긴다) — 부르는 자리를 고치지 않으려고 받기만 한다.
+    """
+    from .models import DataSource
+    try:
+        objs = list(DataSource.objects.all())
+    except DatabaseError:
+        objs = []
+    if not objs:
+        return read_seed()
+    rows, problems = [], []
+    for obj in objs:
+        row = obj.as_row()
+        found = problems_of(row)
+        if found:
+            problems.append((obj.pk, found))
+        else:
+            rows.append(row)
+    return Spec(rows, problems, "db", "", datetime.now())
+
+
+def last_change():
+    """명세를 마지막으로 고친 것 — `DataSourceChange` 한 줄, 없으면 None. 파일에서 옮겨 온 것(`import`)은 고친 것이 아니라 뺀다"""
+    from .models import DataSourceChange
+    try:
+        return DataSourceChange.objects.exclude(origin="import").order_by("-at", "-id").first()
+    except DatabaseError:
+        return None
+
+
+# ── 쓰기 — 씨앗·옮겨 오기·이력 ─────────────────────────────────────────
+
+def record_change(source_id: str, before, after, origin: str, by=None):
+    """명세의 이력 한 줄. `before`·`after` 는 줄(dict) 또는 None(새로 넣음·지움)"""
+    from .models import DataSourceChange
+    DataSourceChange.objects.create(source=source_id, before=before, after=after, origin=origin, by=by,
+                                    by_name=by.get_username() if by is not None else "")
+
+
+def _put(rows, origin: str, start: int = 0) -> list:
+    """줄들을 표 끝에 넣고 이력을 남긴다. 검사를 지난 줄만. 넣은 id"""
+    from .models import DataSource
+    added = []
+    for i, row in enumerate(rows):
+        if problems_of(row):
+            continue
+        obj = DataSource(id=row["id"], order=start + i, **DataSource.fields_of(row))
+        obj.save()
+        record_change(obj.pk, None, obj.as_row(), origin)
+        added.append(obj.pk)
+    return added
+
+
+def deleted_ids() -> set:
+    """사람이 지운 데이터소스 — 이력의 마지막 줄이 지움(`after` 가 빈 것)인 id. 씨앗이 되살리지 않는다(#381 검토 2)"""
+    from .models import DataSourceChange
+    last = {}
+    for source, after, at, pk in DataSourceChange.objects.values_list("source", "after", "at", "id").order_by("at", "id"):
+        last[source] = after
+    return {s for s, after in last.items() if after is None}
+
 
 def seed() -> dict:
-    """씨앗을 운영 명세에 옮긴다. 없으면 통째로, 있으면 씨앗에만 있는 id 를 끝에 덧붙인다.
+    """씨앗을 표에 넣는다. 비었으면 통째로, 차 있으면 씨앗에만 있는 id 를 끝에 덧붙인다.
 
-    돌려주는 것 — {"created": bool, "added": [id…], "differs": [id…]}. `differs` 는 씨앗과 운영의 같은 id 가 다른 줄이다
-    (덮지 않았다 — 옮길지는 사람이 정한다).
+    돌려주는 것 — {"created": bool, "added": [id…], "differs": [id…]}. `differs` 는 씨앗과 표의 같은 id 가 다른 줄이다
+    (덮지 않았다 — 옮길지는 사람이 정한다). 사람이 지운 id 는 덧붙이지 않는다(`deleted_ids`).
     """
-    seed_raw = _parse(seed_path().read_bytes()) or {}
-    seed_rows = [r for r in seed_raw.get("sources") or [] if isinstance(r, dict)]
-    p = path()
-    try:
-        live_data = p.read_bytes()
-    except OSError:
-        live_data = None
-    if live_data is None:
-        _write(p, seed_raw)
-        return {"created": True, "added": [r.get("id") for r in seed_rows], "differs": []}
-    live_raw = _parse(live_data)
-    if not isinstance(live_raw, dict) or not isinstance(live_raw.get("sources"), list):
-        # 사람이 고치다 깬 파일을 씨앗으로 덮지 않는다 — 읽기가 떠 둔 판으로 버티고, 사람이 고친다
-        return {"created": False, "added": [], "differs": [], "broken": True}
-    live_ids = {r.get("id"): r for r in live_raw["sources"] if isinstance(r, dict)}
-    added = [r for r in seed_rows if r.get("id") not in live_ids]
-    differs = [r["id"] for r in seed_rows if r.get("id") in live_ids and live_ids[r["id"]] != r]
-    if added:
-        live_raw["sources"].extend(added)
-        _write(p, live_raw)
-    return {"created": False, "added": [r.get("id") for r in added], "differs": differs}
+    from .models import DataSource
+    seed_rows = read_seed().rows
+    with transaction.atomic():
+        have = {o.pk: o for o in DataSource.objects.all()}
+        if not have:
+            return {"created": True, "added": _put(seed_rows, "seed"), "differs": []}
+        start = max(o.order for o in have.values()) + 1
+        gone = deleted_ids()
+        added = _put([r for r in seed_rows if r["id"] not in have and r["id"] not in gone], "seed", start)
+    differs = sorted(seed_differs([o.as_row() for o in have.values()]))
+    return {"created": False, "added": added, "differs": differs}
+
+
+IMPORTED = "sources_imported"
+
+
+def import_file(p: Path = None) -> dict:
+    """파일 시절의 운영 명세(`sources.json`)를 표로 — **한 번**. 끝나면 표지(`FetchRunMark` 의 `IMPORTED`)를 남긴다.
+
+    "표가 비었나" 로 정하지 않는다 — 옮기다 실패하고 그 사이 씨앗이 들어가면 다시 기회가 없었다(#381 검토 1). 표지가 없으면:
+    파일에만 있는 id 는 덧붙이고, 씨앗으로 들어간 줄이 파일과 다르면 **파일 쪽으로 덮는다**(파일이 사람이 고친 것이다) — 이력에 앞뒤를.
+    admin 에서 고친 줄은 덮지 않고 알린다. 파일이 깨졌으면 마지막으로 떠 둔 판을, 파일이 없으면(새 설치) 표지만 남긴다.
+    돌려주는 것 — {"done", "added", "replaced", "kept", "origin", "problems"}
+    """
+    from .models import DataSource, DataSourceChange, FetchRunMark
+    out = {"done": False, "added": [], "replaced": [], "kept": [], "origin": "", "problems": []}
+    if FetchRunMark.objects.filter(key=IMPORTED).exists():
+        out["origin"] = "done"
+        return out
+    spec = read_file(p)
+    out.update(origin=spec.origin, problems=spec.problems)
+    with transaction.atomic():
+        if spec.origin != "none" and spec.rows:
+            have = {o.pk: o for o in DataSource.objects.all()}
+            edited = set(DataSourceChange.objects.filter(origin__in=("admin", "tab")).values_list("source", flat=True))
+            start = max((o.order for o in have.values()), default=-1) + 1
+            new = [r for r in spec.rows if r["id"] not in have]
+            out["added"] = _put(new, "import", start)
+            for i, row in enumerate(spec.rows):
+                obj = have.get(row["id"])
+                if obj is None or _normal(obj.as_row()) == _normal(row):
+                    continue
+                if obj.pk in edited:
+                    out["kept"].append(obj.pk)
+                    continue
+                before = obj.as_row()
+                for k, v in DataSource.fields_of(row).items():
+                    setattr(obj, k, v)
+                obj.save()
+                record_change(obj.pk, before, obj.as_row(), "import")
+                out["replaced"].append(obj.pk)
+        FetchRunMark.objects.update_or_create(key=IMPORTED, defaults={"value": spec.origin or "none"})
+    out["done"] = True
+    return out
+
+
+def _normal(row: dict) -> dict:
+    """견주기 위해 빠진 칸을 채운다 — 씨앗은 빈 칸을 적지 않고, 표는 모든 칸을 갖는다"""
+    from .models import DataSource
+    return {"id": row.get("id"), "name": row.get("name"), **{k: v for k, v in DataSource.fields_of(row).items()
+                                                            if k not in ("name_ko", "name_en")}}
 
 
 def seed_differs(rows) -> dict:
-    """운영 명세의 줄 가운데 씨앗의 같은 id 와 다른 것 — {id: [다른 칸…]}. 씨앗을 고쳐도 있는 id 는 덮지 않으므로(사람이 서버에서
-    고친 것을 지키려고) 씨앗의 고침이 운영에 안 닿는다. 화면이 이것을 띄워 옮길지 사람이 정하게 한다 (P02 §9)"""
-    try:
-        seed_rows = (_parse(seed_path().read_bytes()) or {}).get("sources") or []
-    except (OSError, AttributeError):
-        return {}
-    by_id = {r.get("id"): r for r in seed_rows if isinstance(r, dict)}
+    """표의 줄 가운데 씨앗의 같은 id 와 다른 것 — {id: [다른 칸…]}. 씨앗을 고쳐도 있는 id 는 덮지 않으므로(사람이 고친 것을
+    지키려고) 씨앗의 고침이 운영에 안 닿는다. 화면이 이것을 띄워 옮길지 사람이 정하게 한다 (P02 §9)"""
+    by_id = {r["id"]: _normal(r) for r in read_seed().rows}
     out = {}
     for row in rows:
         other = by_id.get(row.get("id"))
         if other is None:
             continue
-        keys = sorted(k for k in set(row) | set(other) if row.get(k) != other.get(k))
+        mine = _normal(row)
+        keys = sorted(k for k in set(mine) | set(other) if mine.get(k) != other.get(k))
         if keys:
             out[row["id"]] = keys
     return out
-
-
-def _write(p: Path, raw: dict):
-    p.parent.mkdir(parents=True, exist_ok=True)
-    tmp = p.with_suffix(".json.tmp")
-    tmp.write_text(json.dumps(raw, ensure_ascii=False, indent=1) + "\n", encoding="utf-8")
-    try:
-        os.chmod(tmp, 0o664)            # 무리(paleoadmin)가 손으로 고칠 수 있게
-    except OSError:
-        pass
-    os.replace(tmp, p)
 
 
 # ── 파이썬 표와 견주기 ─────────────────────────────────────────────
@@ -329,8 +366,8 @@ FLAG_LABELS = {"nc": msg("비상업"), "sold": msg("판매"), "lab_only": msg("�
 RESULT_LABELS = {"ok": msg("성공"), "fail": msg("실패"), "skip": msg("건너뜀")}
 ORIGIN_LABELS = {"container": msg("컨테이너"), "hourly": msg("매시 차례"), "host": msg("호스트"),
                  "backfill": msg("어림"), "spec": msg("명세")}
-#: 명세를 어디서 읽었나 — `file` 이 아니면 탭 머리에 띄운다
-SPEC_ORIGIN_LABELS = {"seed": msg("저장소의 씨앗"), "history": msg("마지막으로 떠 둔 판"), "none": msg("빈 명세")}
+#: 명세를 어디서 읽었나 — `db` 가 아니면 탭 머리에 띄운다
+SPEC_ORIGIN_LABELS = {"seed": msg("저장소의 씨앗"), "none": msg("빈 명세")}
 
 
 def _parse_time(text):
@@ -393,10 +430,12 @@ def overview(sync: bool = True, history: bool = True, files: bool = True) -> dic
         past = fetchlog.history_many([r["row"]["id"] for r in rows if r["last"]], 20)
         for r in rows:
             r["history"] = past.get(r["row"]["id"], [])
-    # 씨앗과 다른 줄 — 운영 명세를 읽었을 때만(씨앗을 읽었으면 다를 것이 없다). healthz 는 보지 않는다
-    differs = seed_differs(spec.rows) if (history and spec.origin == "file") else {}
+    # 씨앗과 다른 줄 — 표를 읽었을 때만(씨앗을 읽었으면 다를 것이 없다). healthz 는 보지 않는다
+    differs = seed_differs(spec.rows) if (history and spec.origin == "db") else {}
     for r in rows:
         r["seed_differs"] = differs.get(r["row"]["id"], [])
-    spec_change = (latest.get("_spec") or {}).get("last")
+    # 명세를 마지막으로 고친 때 — 이력 표에서. 파일 시절의 `_spec` 기록 줄은 이제 남기지 않는다
+    change = last_change() if history else None
+    spec_change = {"started_at": timezone.localtime(change.at).isoformat(timespec="seconds")} if change else None
     return {"rows": rows, "counts": counts, "problems": spec.problems, "origin": spec.origin,
             "spec_changed": spec_change, "seed_differs": len(differs)}

@@ -35,6 +35,8 @@ python manage.py migrate --noinput
 # 카탈로그가 비어 있으면 저장소에 든 씨앗으로 채운다. 상류를 타지 않는다.
 python manage.py seed_catalog || echo "씨앗을 넣지 못했다 — 화면은 뜬다"
 # 받아 두는 데이터소스의 명세 — 운영에 없는 id 만 덧붙인다 (jikhanjung P02)
+# 파일 시절의 운영 명세·기록을 표로 한 번(비었을 때만) — 사람이 고친 명세가 씨앗보다 먼저 들어가게 (jikhanjung P03)
+python manage.py sources_import || echo "데이터소스 명세·기록을 옮기지 못했다 — 화면은 뜬다"
 python manage.py sources_seed || echo "데이터소스 명세를 놓지 못했다 — 화면은 뜬다"
 
 # ── 기록 ──────────────────────────────────────────────────────────────

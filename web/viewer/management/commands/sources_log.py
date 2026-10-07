@@ -10,7 +10,7 @@ from viewer import fetchlog, sources
 
 
 class Command(BaseCommand):
-    help = "받은 차례의 기록(store.sqlite 의 fetch_log)을 본다"
+    help = "받은 차례의 기록(FetchRun)을 본다"
 
     def add_arguments(self, parser):
         parser.add_argument("--source", default="", help="이 데이터소스의 지난 차례들")
@@ -20,6 +20,7 @@ class Command(BaseCommand):
                             help="옮겨 적기만 하고 표는 내지 않는다 — hourly.sh 가 차례 끝에 부른다 (#373 검토 2)")
 
     def handle(self, *args, **opts):
+        fetchlog.refuse_on_host("sources_log")
         say = self.stdout.write
         spec = sources.load()
         if not opts["no_sync"]:

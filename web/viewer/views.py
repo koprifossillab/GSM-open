@@ -24,6 +24,7 @@ from django.db.models import Prefetch, Q
 from django.http import Http404, HttpResponse, JsonResponse
 from django.utils.cache import patch_vary_headers
 from django.shortcuts import get_object_or_404, render
+from django.urls import NoReverseMatch, reverse
 from django.views.decorators.gzip import gzip_page
 from django.views.decorators.http import require_GET, require_POST
 
@@ -32,9 +33,9 @@ from gsmweb.version import VERSION
 from . import (coords, crs, datastatus, geo3al, geomap, geus, grportal, gsj, gsmma, i18n, ibcso, janmayen, kigam, kopri, npolar, ntgeo,
                patchnotes, elevation, moonmap, peninsula, phyloserver, pointsets, tilecache, tiles, trek, vworld, warp,
                fetchlog, marscraters, marsmap, mercurymap, sources, zhurong)
-from . import admap, arcpoints, caribmap, crust, glaciers, impacts, faults, minerals, stress, tectonics, seafloor, glim, heatflow, fossils, gvp, icemargins, kigam50k, macrostrat, mantle, metatile, naturalearth, neotoma, paleo, paleoeco, paleocoast, pbdb, quakes, recentquakes, verifylog, spamap, ocean, usgs, volcanoes, wind
+from . import admap, arcpoints, caribmap, geonames, crust, glaciers, impacts, faults, minerals, stress, tectonics, seafloor, glim, heatflow, fossils, gvp, icemargins, kigam50k, macrostrat, mantle, metatile, naturalearth, neotoma, paleo, paleoeco, paleocoast, pbdb, quakes, recentquakes, verifylog, spamap, ocean, usgs, volcanoes, wind
 from . import ags, austates, bas, basemaps, bcgs, bgr, bgs, brgm, calgs, cgs, dinamige, dmr, dov, egdi, emodnet, esdm, ga, georep, geosphere, gns, gsi, gsiindia, gtk, igme, iige, ineter, ingemmet, ispra, jmg, linked, lneg, mgb, mrdata, mris, natt, ngu, nrcan, nsgs, ogs, pig, segemar, sgb, sgc, sgm, sgs, sgu, sigeom, skgs, spw, stri, swisstopo, tno, twopen, usage, usgscarib, usstates, vmme, ygs
-from . import doors, earthpoints, pointvalues, profileband, static_tables, tilegrid
+from . import doors, earthpoints, pointvalues, profileband, static_tables, tilegrid, timescale
 from .i18n import msg
 from .models import Layer, LayerGroup, Point, PointSet, PointSetDeletion, Shape
 
@@ -401,7 +402,11 @@ def _sources_view(lang):
                         for h in item["history"]],
         })
     problems = [(where, "; ".join(i18n.t(m, lang) for m in found)) for where, found in ov["problems"]]
-    return {"rows": rows, "counts": ov["counts"], "problems": problems, "origin": ov["origin"],
+    try:                                         # 밖에 연 판에는 admin 경로가 없다 (#381 검토 3)
+        admin_url = reverse("admin:viewer_datasource_changelist")
+    except NoReverseMatch:
+        admin_url = ""
+    return {"rows": rows, "counts": ov["counts"], "problems": problems, "origin": ov["origin"], "admin_url": admin_url,
             "seed_differs": ov.get("seed_differs", 0),
             "origin_label": label(sources.SPEC_ORIGIN_LABELS, ov["origin"]),
             "spec_changed": when(ov["spec_changed"])}
@@ -1544,6 +1549,8 @@ def earth_view(request):
         "pointsets": _script_json(_pointset_list("earth")),
         # 그때의 지구에 얹는 것의 시점 — 막대 위의 띠와 캡션이 쓴다 (wetherilli 097). 파일이 없으면 빈다
         "then_data": _script_json({"coast": paleocoast.ages(), "fossils": fossils.available(),
+                                   # 시간 축의 지질시대 띠 — ICS 의 누대·대·기·세 (wetherilli 373)
+                                   "timescale": timescale.units(lang),
                                    # 화석 산지 밀도 (wetherilli 286) — 같은 pbdb.sqlite 에서. 범례는 비율
                                    "fossildensity": fossils.density_legend(lang) if fossils.available() else [],
                                    # 홀로세 화산 (wetherilli 134) — 받아 둔 것이 있을 때만 목록에 선다. 범례도 함께
@@ -1897,11 +1904,19 @@ def earth_places(request):
     """`?q=바이칼` — 온 지구의 찾기. 지명(Natural Earth 의 도시·산맥·바다·호수·강)에 더해 화석 산지·지층(PBDB)과 화산(GVP)의
     이름도 찾는다(wetherilli 187). 모두 모아 둔 파일이라 상류를 타지 않는다.
 
-    결과마다 `group`(place·volcano·formation·fossil)이 붙고, `kind` 는 화면의 딱지 글이다 — 지명은 그 갈래(도시·강 …),
-    나머지는 "화산"·"지층"·"화석". 같은 이름 → 앞이 같은 것 → 들어 있는 것 차례로 섞고, 같은 차례면 지명·화산·지층·화석 순이다"""
+    결과마다 `group`(place·volcano·city·formation·fossil)이 붙고, `kind` 는 화면의 딱지 글이다 — 지명은 그 갈래(도시·강 …),
+    나머지는 "화산"·"지층"·"화석". 같은 이름 → 앞이 같은 것 → 들어 있는 것 차례로 섞고, 같은 차례면 지명·화산·도시·지층·화석 순이다
+
+    도시는 GeoNames 17 만 곳(`group` city, wetherilli 374)도 뒤진다 — Natural Earth 의 지명과 겹치면(`_same_place`) 한국어
+    이름이 붙은 Natural Earth 의 것을 남긴다. 지역 탭도 이 찾기를 부른다 — `bbox=서,남,동,북` 을 주면 같은 차례 안에서 그 범위의 것이 앞선다"""
     lang = i18n.lang_of(request)
     q = request.GET.get("q", "")[:80]
+    bbox = _lonlat_box(request.GET.get("bbox"))
     hits = [dict(h, group="place") for h in naturalearth.search(q, lang, limit=10)]
+    city_word = "도시" if lang == "ko" else "city"         # Natural Earth 의 갈래 말과 같게(`naturalearth.KIND_KO`)
+    for c in geonames.search(q, lang, bbox):
+        if not any(_same_place(c, h) for h in hits if h["group"] == "place"):
+            hits.append(dict(c, group="city", kind=city_word))
     for v in volcanoes.search(q):
         last = volcanoes.year_text(v["last"])
         sub = " · ".join(x for x in (v["country"], i18n.t(msg("마지막 분화 {year}", year=i18n.t(last, lang)), lang)
@@ -1918,16 +1933,51 @@ def earth_places(request):
         hits.append({"group": "fossil", "kind": i18n.t(msg("화석"), lang), "title": r["name"],
                      "sub": " · ".join(x for x in (r["formation"], _fossil_span(r["early"], r["late"], lang)) if x),
                      "lat": r["lat"], "lon": r["lon"]})
-    order = {"place": 0, "volcano": 1, "formation": 2, "fossil": 3}
+    order = {"place": 0, "volcano": 1, "city": 2, "formation": 3, "fossil": 4}
     folded = arcpoints.fold(q)
 
     def rank(hit):
-        name = arcpoints.fold(hit["title"].split(" (")[0])
-        return (0 if name == folded else 1 if name.startswith(folded) else 2, order[hit["group"]])
+        # 괄호의 다른 이름으로 맞은 것(리마 (Lima))도 같은 이름이다. GeoNames 는 별칭으로도 맞으니 제 차례(`match`)를 쓴다
+        match = hit.pop("match", None)
+        if match is None:
+            match = min(0 if name == folded else 1 if name.startswith(folded) else 2
+                        for name in (arcpoints.fold(n) for n in hit["title"].rstrip(")").split(" (")))
+        inside = hit.pop("inside", None)
+        if inside is None:
+            inside = _in_box(bbox, hit["lon"], hit["lat"])
+        return (match, not inside, order[hit["group"]])
     hits = sorted(hits, key=rank)[:25]                    # 같은 차례 안에서는 갈래마다 받은 차례 그대로다(정렬이 안정하다)
-    sources = ["Natural Earth 10 m"] + (["GVP"] if any(h["group"] == "volcano" for h in hits) else []) + \
+    sources = ["Natural Earth 10 m"] + (["GeoNames"] if any(h["group"] == "city" for h in hits) else []) + \
+        (["GVP"] if any(h["group"] == "volcano" for h in hits) else []) + \
         (["PBDB"] if any(h["group"] in ("formation", "fossil") for h in hits) else [])
     return JsonResponse({"results": hits, "sources": sources}, json_dumps_params={"ensure_ascii": False})
+
+
+def _lonlat_box(text):
+    """`서,남,동,북` 경위도 → 튜플. 서가 동보다 크면 날짜변경선을 넘는다. 읽지 못하면 None."""
+    try:
+        west, south, east, north = (float(v) for v in (text or "").split(","))
+    except ValueError:
+        return None
+    if not (-90 <= south <= north <= 90 and -180 <= west <= 180 and -180 <= east <= 180):
+        return None
+    return west, south, east, north
+
+
+def _in_box(bbox, lon, lat) -> bool:
+    if not bbox:
+        return False
+    west, south, east, north = bbox
+    return south <= lat <= north and (west <= lon <= east if west <= east else (lon >= west or lon <= east))
+
+
+def _same_place(city, place) -> bool:
+    """GeoNames 도시가 Natural Earth 의 지명과 같은 곳인가 — 0.05° 안이거나, 이름 하나가 같고(괄호의 다른 이름도 본다) 0.3° 안.
+    서울·서울특별시처럼 이름이 달라도 자리가 거의 같으면 같은 곳이다"""
+    def names(title):
+        return {arcpoints.fold(n) for n in title.rstrip(")").split(" (")}
+    near = max(abs(city["lat"] - place["lat"]), abs(city["lon"] - place["lon"]))
+    return near < 0.05 or (near < 0.3 and bool(names(city["title"]) & names(place["title"])))
 
 
 def _fossil_span(early, late, lang):

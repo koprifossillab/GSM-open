@@ -5,6 +5,14 @@
 - **왜 그렇게 했는지**는 `devlog/` — 괄호 안의 번호가 그 문서다
 - 날짜는 그 판을 붙인 날이다
 
+## v0.73.0 — 2026-10-07 · 온 세계 지명 찾기·지질시대 띠 시간 축, 데이터소스 명세를 GSM.db 로 (wetherilli 373·374, jikhanjung 016·017)
+
+- **온 세계 지명 찾기** — GeoNames 도시(인구 1 000 이상)를 받아 두고(`manage.py build_geonames`) 온 지구 찾기에 더한다. 지역 탭의 찾기가 온 지구 찾기를 빌린다 (wetherilli 374)
+- **온 지구 시간 축** — 로그 막대를 ICS 지질시대 띠로. 띠를 누르고 끌어 연대를 고른다 (wetherilli 373)
+- **데이터소스 명세와 기록을 GSM.db 로** — admin 에서 고치고 이력을 남긴다. 처음 뜰 때 파일 시절의 명세·기록을 한 번 옮긴다(`sources_import`). 호스트는 GSM.db 를 열지 않는다 (jikhanjung 016)
+- **주간 백업** — DB 를 컨테이너를 거쳐 뜬다(`manage.py backup_db`) (jikhanjung 017)
+- **멕시코 1:5만 범례** — 상류가 바꾼 열 이름(`CLAVE`·`DLO`·`EDAD_INI`·`EDAD_FIN`)으로 묻는다. 범례 질의가 400 이던 것 (wetherilli 372)
+
 ## v0.72.0 — 2026-10-07 · 원본 장부 — 날짜 폴더에 바뀐 판만, prune_raw, 상류 판·바뀐 수 (jikhanjung 015)
 
 - **원본은 날짜 폴더에 바뀐 판만** — `rawstore` 가 받은 원본을 `<자리>/<YYYYMMDD>/` 에 매니페스트와 함께 적는다. 파일마다 sha256 이 앞 판과 같으면 새 폴더 없이 확인한 때만. kigam50k 가 이 틀로 옮겼고, PBDB 의 sha 는 받는 대로 셈한다 (jikhanjung 015)

@@ -7,7 +7,7 @@
 
 ## 작업 방식 (2026-09-30 부터)
 
-**브랜치** `main` = `0.72.0`(2026-10-07 배포). 코드 작업은 각자 자기 계정에서 `feature/<기능 이름>` 브랜치를 `main` 에서 만들고, 끝나면 PR 을 만든다.
+**브랜치** `main` = `0.73.0`(2026-10-07 배포). 코드 작업은 각자 자기 계정에서 `feature/<기능 이름>` 브랜치를 `main` 에서 만들고, 끝나면 PR 을 만든다.
 **PR 병합과 판 올리기·배포는 판 세션(gsm-31)이 한다** — 다른 세션은 PR 을 열고 알린다. 판은 몇 PR 이 모이면 따로 올린다. 문서만 고치는 것은 `main` 에 바로. devlog 는 글쓴이마다 번호를 센다 — CLAUDE.md "커밋과 PR"·"devlog",
 [devlog/README.md](devlog/README.md). WegenersDream 과 같은 규약이다.
 
@@ -69,8 +69,8 @@
 | `kigam_data/` | KIGAM `/openapi/data` 의 시료·분석·주제도·조사 | `manage.py fetch_kigam_data` (wetherilli 169) |
 | `kopri/` | 극지연구소 목록·상세 | `manage.py fetch_kopri` — 가끔, 새 것만 받는다 (053) |
 | `kigam50k/` | KIGAM 5만 지질도 구조 요소 19 레이어(WFS) — 층리·엽리 기호·장미도·레이어군 "지질 구조 (5만)" 이 읽는다. 지금은 `raw/20260930/` 하나 (jikhanjung 004·005, wetherilli 197·199·202·223) | `manage.py fetch_kigam50k` — 사람이 가끔. 같으면 새 폴더 없이 확인한 날만 (wetherilli 199·208). 옛 벌은 사람이 `manage.py prune_raw`(최근 3 벌, `--dry-run` 먼저, jikhanjung 015) |
-| `sources.json`·`sources_history/` | 받아 두는 데이터소스의 명세 — 조건·주기·돌리는 곳·명령·산출물, 그리고 바뀐 판마다 떠 둔 것 | 컨테이너가 뜰 때 `sources_seed` 가 씨앗(`data/sources.seed.json`)의 없는 id 만 덧붙인다. 고치는 것은 사람이 서버에서 (jikhanjung P02·011) |
-| `store.sqlite`·`fetch_log_host.jsonl` | 받은 차례의 기록 — `fetch_*`·`build_*` 가 끝날 때마다 한 줄. 호스트가 사람 손으로 부른 일은 jsonl 에 | 저절로 쌓인다. 처음 한 번 `sources_backfill`(지난 것을 파일로 어림), 보기는 `sources_log` (jikhanjung P02·012) |
+| `sources.json`·`sources_history/` | **파일 시절의** 데이터소스 명세와 그 사본 — P03 1 단계부터 명세는 `GSM.db` 의 `DataSource` 다. 컨테이너가 뜰 때 `sources_import` 가 표가 비었으면 한 번 옮긴다. 파일은 한 판 동안 견주려고 남긴다(P03 2 단계에서 읽는 길을 지운다) | 명세는 admin(`/GSM/admin/`, staff 계정)에서 고치고 `DataSourceChange` 에 이력. 씨앗은 `sources_seed` 가 없는 id 만 덧붙인다 **판을 P03 앞으로 되돌리면 admin 에서 고친 것은 안 보인다**(옛 판은 sources.json 을 읽는다 — DB 에는 남는다) (jikhanjung P03·016) |
+| `store.sqlite`·`fetch_log_host.jsonl`·`upstream_host.jsonl` | 받은 차례의 기록은 P03 1 단계부터 `GSM.db` 의 `FetchRun` 이다 — `store.sqlite` 의 `fetch_log` 는 `sources_import` 가 한 번 옮긴 뒤 쓰지 않는다(② 적재 자리로 남긴다). **호스트는 GSM.db 를 열지 않는다** — 사람 손으로 부른 일은 `fetch_log_host.jsonl`, 상류 호출 수는 `upstream_host.jsonl` 에 남기고 컨테이너가 매시 들인다 | 저절로 쌓인다. 보기는 `sources_log`·admin 의 "받은 차례" (jikhanjung P02·012·P03·016) |
 
 그 밖에 가끔 돌리는 것 — `data_status`(위 표의 파일마다 있는지·크기·고친 날·원본 판, wetherilli 312), `fetch_grportal`(그린란드 시료·NPI 점·지명), `verify_layers --probe-info`
 (`/openapi/wms` 가 속성을 열었는지), `upstream_stats`(얼마나 묻는지).
@@ -192,7 +192,7 @@ koprifossillab 019) — DNS 가 고쳐지면 함께 지운다. 2026-09-23 에 �
 
 ### 백업
 
-매주 월요일 01:40 `/srv/GSM/scripts/weekly_backup.sh`(원본 `deploy/scripts/`) — 다시 못 얻는 것(GSM.db·kopri·kigam50k)과 구운 것을 `/data/GSM/backups`
+매주 월요일 01:40 `/srv/GSM/scripts/weekly_backup.sh`(원본 `deploy/scripts/`) — 다시 못 얻는 것(GSM.db — 사본은 컨테이너가 뜬다 `backup_db`, jikhanjung 017 ·kopri·kigam50k)과 구운 것을 `/data/GSM/backups`
 와 NAS 에, 캐시·원본은 거울로. 그 뒤 `fetch_kopri`. 무엇이 어디에 있고 어떻게 되살리나는 [docs/백업.md](docs/백업.md)
 (koprifossillab 001). 2026-09-30 에 paleoadmin 의 crontab 에 붙였다(`deploy/host/crontab.GSM`) — 첫 차례는 10-05(월).
 결과는 DB 옆 `backup_status.json` 에도 적혀 **`/GSM/healthz/` 가 읽는다** — 멈췄거나 여드레 넘게 없으면 `degraded`

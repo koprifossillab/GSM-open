@@ -220,7 +220,7 @@
           {% if src.counts.unknown %}<span>{% t "기록 없음 {n}" n=src.counts.unknown %}</span>{% endif %}
           {% if src.spec_changed %}<span>{% t "명세를 고친 때 {when}" when=src.spec_changed %}</span>{% endif %}
           {% if src.seed_differs %}<span>{% t "씨앗과 다른 줄 {n}" n=src.seed_differs %}</span>{% endif %}
-          {% if src.origin != "file" and src.origin != "none" %}<b class="bad">{% t "운영 명세가 아니라 {origin} 을 읽었다" origin=src.origin_label %}</b>{% endif %}
+          {% if src.origin != "db" and src.origin != "none" %}<b class="bad">{% t "운영 명세가 아니라 {origin} 을 읽었다" origin=src.origin_label %}</b>{% endif %}
         </p>
         {% if src.origin == "none" %}<p class="mg-src-warn bad">{% t "명세가 없다 — 서버에서 manage.py sources_seed 를 부르면 저장소의 씨앗을 놓는다" %}</p>{% endif %}
         {% for where, why in src.problems %}
@@ -263,7 +263,7 @@
             {% endfor %}
           </tbody>
         </table></div>
-        <p class="hint">{% t "명세는 서버의 sources.json 을 손으로 고친다. 받은 차례는 명령이 끝날 때 저절로 쌓이고, 서버 쪽에서는 manage.py sources_log 로 같은 것을 본다." %}</p>
+        <p class="hint">{% t "명세는 admin 에서 고친다(staff 계정) — 고칠 때마다 누가·언제·앞뒤가 이력에 남는다. 받은 차례는 명령이 끝날 때 저절로 쌓이고, 서버 쪽에서는 manage.py sources_log 로 같은 것을 본다." %}{% if src.admin_url %} <a href="{{ src.admin_url }}">{% t "명세 고치기" %}</a>{% endif %}</p>
         {% endif %}
       </div>
     </div>

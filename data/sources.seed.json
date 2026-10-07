@@ -935,6 +935,29 @@
    "note": "저장소에 굽는다"
   },
   {
+   "id": "geonames",
+   "name": {
+    "ko": "도시 이름 GeoNames",
+    "en": "GeoNames city names"
+   },
+   "org": "GeoNames",
+   "kind": "build",
+   "commands": [
+    "build_geonames"
+   ],
+   "runs_on": "person",
+   "schedule": "manual",
+   "license": "CC BY 4.0",
+   "flags": [],
+   "outputs": [
+    "earth/geonames.sqlite"
+   ],
+   "docs": [
+    "wetherilli 374"
+   ],
+   "note": "download.geonames.org/export/dump 의 cities1000.zip·admin1CodesASCII.txt, 나라 이름은 Natural Earth admin 0"
+  },
+  {
    "id": "natural_earth",
    "name": {
     "ko": "지명·강·호수·빙하 Natural Earth",

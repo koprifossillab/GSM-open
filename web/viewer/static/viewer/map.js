@@ -7262,9 +7262,10 @@
     var box = document.getElementById("search-results");
     box.hidden = false;
     if (!REGIONS[region].vworld) {
-      // 스발바르·그린란드·남극(드로닝모드랜드)·북극은 지명을 뒤진다 (021·wetherilli 096). 나머지는 좌표로만 간다
+      // 스발바르·그린란드·남극(드로닝모드랜드)·북극은 지명을 뒤진다 (021·wetherilli 096). 나머지는 온 지구의 찾기로 (wetherilli 374)
       if (REGIONS[region].places) { searchNames(q); return; }
       if (REGIONS[region].gsi) { searchGsi(q); return; }
+      if (!STATIC) { searchWorld(q); return; }
       box.innerHTML = '<li class="note">' + esc(T("이 지역에서는 좌표로 간다 — 주소·장소는 한국·일본, 지명은 스발바르·그린란드·북극·남극 탭에서 찾는다")) + "</li>";
       return;
     }
@@ -7302,6 +7303,33 @@
       .then(function (res) {
         if (!res.ok) throw new Error(res.d.error || "");
         renderResults(res.d.results || [], "", T(PLACE_SOURCES[region] || "지명 검색"));
+      })
+      .catch(function (err) {
+        box.innerHTML = '<li class="note">' + esc(err.message || T("찾지 못했다")) + "</li>";
+      });
+  }
+
+  /** 그 밖의 지역 — 온 지구 화면의 찾기(`earth/places/`)를 빌린다 (wetherilli 374). Natural Earth 의 지명·GeoNames 의 도시
+   *  17 만 곳·화산·화석 산지에서, 같은 차례면 **보는 범위 안의 것**이 앞선다. 모두 서버에 모아 둔 파일이라 상류를 타지 않는다.
+   *  정적 판은 서버가 없어 좌표로만 간다 */
+  function viewBox() {
+    try {
+      var ext = ol.proj.transformExtent(map.getView().calculateExtent(map.getSize()), viewProj(), "EPSG:4326");
+      var w = Math.max(-180, ext[0]), e = Math.min(180, ext[2]);
+      return [w, Math.max(-90, ext[1]), e, Math.min(90, ext[3])].map(function (v) { return v.toFixed(3); }).join(",");
+    } catch (err) {
+      return "";
+    }
+  }
+  function searchWorld(q) {
+    var box = document.getElementById("search-results");
+    box.innerHTML = '<li class="note">' + esc(T("찾는 중…")) + "</li>";
+    var box4326 = viewBox();
+    fetch(BASE + "earth/places/?q=" + encodeURIComponent(q) + (box4326 ? "&bbox=" + box4326 : ""))
+      .then(function (r) { return r.json().then(function (d) { return { ok: r.ok, d: d }; }); })
+      .then(function (res) {
+        if (!res.ok) throw new Error(res.d.error || "");
+        renderResults(res.d.results || [], "", T("지명 검색: {sources}", { sources: (res.d.sources || []).join(" · ") }));
       })
       .catch(function (err) {
         box.innerHTML = '<li class="note">' + esc(err.message || T("찾지 못했다")) + "</li>";
@@ -7464,6 +7492,8 @@
     if (spec.places) return T("좌표·지명으로 이동 — {example}", { example: spec.places });
     if (spec.gsi) return T("좌표·주소·지명으로 이동 — {example}", { example: spec.gsi });
     var example = spec.example || (spec.center[1].toFixed(1) + ", " + spec.center[0].toFixed(1));
+    // 서버가 있으면 온 지구의 찾기를 빌린다 (wetherilli 374)
+    if (!STATIC) return T("좌표·지명으로 이동 — {example}", { example: example + " · " + T("도시 이름") });
     return T("좌표로 이동 — 위도, 경도 (예: {example})", { example: example });
   }
 

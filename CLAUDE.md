@@ -45,7 +45,7 @@ Docker Hub 이미지(`koprifossillab/gsm`), 브라우저 `localStorage` 키.
 | 점묶음에 든 선·면 하나 | **모양**(`Shape`) | 도형, 피처 |
 | 클릭해 읽은 속성 | **속성** | 정보, 피처 |
 | 지도의 보이는 범위 | **범위**(bbox) | 영역, 뷰포트 |
-| 받아 두는 바깥 자료의 출처 하나 | **데이터소스**(`sources.json`) | 자료원 |
+| 받아 두는 바깥 자료의 출처 하나 | **데이터소스**(`DataSource`) | 자료원 |
 
 **개인 레이어**는 관리 화면(`/GSM/manage/`)에서 반입해 **그 브라우저(IndexedDB)에만 두는 것**이다 — 서버의
 점묶음과 다르다. 상류가 주는 레이어와 헷갈리지 않게 늘 "개인" 을 붙인다. 양식은 `docs/개인레이어_양식.md` 하나이고
@@ -262,7 +262,7 @@ WMS·z/x/y·우리가 굽는 것) 계획을 따로 둔다 (029).
   `manage.py build_paleomap <zip>`)으로 단위의 윗·밑 연대나 사람이 넣은 연대로 옮긴다. EarthThruTime3D 와 같은 모델·같은 줄임이다 —
   건너갔을 때 같은 자리에 핀이 서게. 셈은 ETT 의 코드(MIT, `docs/licenses/`)를 옮겼다. **계산이지 관측이 아니다**.
   옮겨진 연대에는 ETT 를 여는 링크가 붙는다(`earth.js` 의 `ettHref`, wetherilli 088) — 오늘의 좌표와 연대만 넘긴다.
-  **시간 축**(wetherilli P07·091) — 연대 하나를 로그 막대로 고른다(`?age=`). 1 Ma 부터는 오늘의 영상·지형·지질도를 끄고
+  **시간 축**(wetherilli P07·091·373) — 연대 하나를 지도 위 너비를 다 쓰는 ICS 지질시대 띠(`timescale.py`)에서 누르거나 끌어 고른다(`?age=`). 왼쪽이 옛날, 제4기만 로그로 넓게 편다. 1 Ma 부터는 오늘의 영상·지형·지질도를 끄고
   서버가 판을 돌려 칠한 경위도 타일(`paleo.render_tile`, 그리는 법을 고치면 `paleo.RENDERER` 를 올린다)을 바다색 구에 그린다.
   판을 돌리는 셈은 서버의 `paleo.py` 하나다 — 브라우저에 두지 않는다. 레이어의 `then: true` 는 1 Ma 부터만 뜬다 — 옛 해안선
   (`paleocoast.py`, PaleoCoastlines v7.1, `<EARTH_DIR>/paleocoastlines_v7.json` — `manage.py build_paleocoastlines <zip>`, wetherilli 097).
@@ -287,7 +287,8 @@ WMS·z/x/y·우리가 굽는 것) 계획을 따로 둔다 (029).
   `impacts.py`, `data/earth_impacts.json` — `manage.py build_impacts`. LIP 레이어는 `always` — 대륙 위의 것은 PALEOMAP 판으로 옮긴다, wetherilli 283)·**세계 빙하**(RGI 7.0 속성 표, CC BY 4.0, `glaciers.py`, `<EARTH_DIR>/glaciers.sqlite` —
   `manage.py build_glaciers <csv>`, 줌 3 부터 — 그 밑은 Natural Earth, 윤곽은 Earthdata 로그인 뒤라 아직, wetherilli 289)와 **지명 찾기·산맥·바다 이름·강·호수·빙하**
   (Natural Earth 10 m, `naturalearth.py`, `data/earth_places.json`·`earth_water.json`·`earth_ice.json` — `manage.py build_natural_earth`,
-  wetherilli 102). 이름표는 타일이 아니라 화면이 쓴다(`labels: true` 레이어). `ka: true` 는 0 보다 오래고 1 Ma 안쪽일 때만 —
+  wetherilli 102). 찾기는 **GeoNames 도시**(`cities1000` 17 만 곳, CC BY 4.0, `geonames.py`, `<EARTH_DIR>/geonames.sqlite` — `manage.py build_geonames <폴더>`,
+  wetherilli 374)도 뒤진다 — 같은 찾기(`earth/places/`)를 주소·지명 찾기가 없는 지역 탭이 보는 범위(`bbox`)를 붙여 빌린다. 이름표는 타일이 아니라 화면이 쓴다(`labels: true` 레이어). `ka: true` 는 0 보다 오래고 1 Ma 안쪽일 때만 —
   **최근 빙기의 빙상 가장자리**(NADI-1·DATED-1, `icemargins.py`, `data/ice_margins.json` — `manage.py build_ice_margins`, wetherilli 104).
   `mantle: true` 는 구에서만 — **맨틀 슬랩·하부 더미**(Müller 2022 OPT1, `mantle.py`, `<EARTH_DIR>/mantle/` — `manage.py build_mantle <zip>`,
   wetherilli 106). 켜면 땅이 비친다. 옛 연대는 맨틀 기준틀이라 판 조각과 어긋난다고 캡션에 적는다
@@ -579,10 +580,12 @@ web/viewer/       뷰어 앱 하나뿐이다. 앱을 더 가르지 않는다
   paleo.py        PALEOMAP 2016 판 회전(data/paleomap2016.json) -> 오늘의 한 자리가 옛 연대에 있던 곳. 문이 아니다
   paleocoast.py   옛 해안선 PaleoCoastlines v7.1 -> 그때의 지구에 얹는 경위도 타일. 문이 아니다
   naturalearth.py 온 지구의 지명·강·호수·빙하 Natural Earth (data/earth_*.json) -> 찾기·이름표·경위도 타일. 문이 아니다
+  geonames.py     온 세계의 도시 17 만 곳 GeoNames cities1000 (<EARTH_DIR>/geonames.sqlite, `build_geonames`) -> 찾기. 온 지구와 주소 찾기가 없는 지역 탭이 쓴다. 문이 아니다
   mantle.py       맨틀 슬랩 Müller 2022 OPT1 — ParaView VTK(numpy 없이) -> 시점마다 삼각형 덩이. 문이 아니다
   icemargins.py   최근 빙기의 빙상 가장자리 NADI-1·DATED-1 (data/ice_margins.json) -> 연대마다 경위도 타일. 문이 아니다
   ocean.py        해류 u·v 표층 -> PNG 텍스처(R=u·G=v·B=바다), 목록. 유속 파일의 밀린 경도를 바로잡는다. 굽기는 호스트에서만(numpy). 문이 아니다
   wind.py         바람 u·v 격자 -> PNG 텍스처(R=u·G=v), 구름량 -> 회색 PNG, 그리고 목록. 굽기는 호스트에서만(numpy). 문이 아니다
+  timescale.py    ICS 국제층서표의 누대·대·기·세·제4기의 절(경계·색·한국어 이름) -> 온 지구 시간 축의 띠. 문이 아니다
   crust.py        지각 두께 CRUST 2.0 (data/crust2_thickness.json) -> 경위도 타일·누른 자리의 두께. 문이 아니다
   glaciers.py     세계 빙하 RGI 7.0 속성 CSV -> sqlite(R*Tree) -> 넓이만 한 점의 경위도 타일(줌 3 부터)·누른 자리. 문이 아니다
   impacts.py      지구 충돌구(Wikidata CC0)·거대 화성암 지대(Johansson 2018) (data/earth_impacts.json) -> 경위도 타일. LIP 는 PALEOMAP 판으로 그때의 자리에. 문이 아니다
@@ -593,8 +596,8 @@ web/viewer/       뷰어 앱 하나뿐이다. 앱을 더 가르지 않는다
   glim.py         세계 암상 GLiM 0.5° 격자(data/glim_05deg.json) -> 경위도 타일·누른 자리의 갈래. 문이 아니다
   heatflow.py     IHFC 세계 지열류 2024 글 파일 -> sqlite(R*Tree) -> 경위도 점 타일·누른 자리. 문이 아니다
   seafloor.py     해양 지각 연대 Seton 2020(NetCDF-3)·해저 퇴적층 두께 GlobSed v3(글 격자) — numpy 없이 -> <EARTH_DIR> 의 칠한 PNG·int16 값 -> 경위도 타일·누른 자리. 문이 아니다
-  sources.py      받아 두는 데이터소스의 명세(<DB 옆>/sources.json — 서버에서 손으로 고친다) — 읽기·검사·씨앗 덧붙이기·바뀐 판 떠 두기. 씨앗은 data/sources.seed.json, 새 fetch_*·build_* 를 더하면 거기 한 줄 (jikhanjung P02). 문이 아니다
-  fetchlog.py     받은 차례의 기록(<DB 옆>/store.sqlite 의 fetch_log) — fetch_*·build_* 가 끝날 때 한 줄(apps.py 가 BaseCommand.execute 를 감싼다), 명령은 fetchlog.note() 로 보탠다. 호스트(GSM_RUN_PLACE=host)는 sqlite 에 쓰지 않는다 — hourly_status.json·fetch_log_host.jsonl 을 컨테이너가 옮겨 적는다(jikhanjung P02). 문이 아니다
+  sources.py      받아 두는 데이터소스의 명세(`GSM.db` 의 `DataSource` — admin 에서 고치고 `DataSourceChange` 에 이력, jikhanjung P03) — 읽기·검사·씨앗 덧붙이기, 파일 시절의 `<DB 옆>/sources.json` 을 한 번 옮기기(`sources_import`). 씨앗은 data/sources.seed.json, 새 fetch_*·build_* 를 더하면 거기 한 줄 (jikhanjung P02). 문이 아니다
+  fetchlog.py     받은 차례의 기록(`GSM.db` 의 `FetchRun`, P03 에서 store.sqlite 의 fetch_log 를 옮겼다) — fetch_*·build_* 가 끝날 때 한 줄(apps.py 가 BaseCommand.execute 를 감싼다), 명령은 fetchlog.note() 로 보탠다. 호스트(GSM_RUN_PLACE=host)는 읽기만 한다 — hourly_status.json·fetch_log_host.jsonl 을 컨테이너가 옮겨 적는다(jikhanjung P02). 받은 판의 정보는 원본 폴더의 manifest.json(`rawstore`). 문이 아니다
   rawstore.py     받은 원본을 날짜 폴더(`<자리>/<YYYYMMDD>/` + manifest)에 — 바뀐 판만(sha256 이 같으면 확인한 때만), 지우기는 사람이 부르는 `prune_raw`(최근 3 벌, `--dry-run` 먼저). kigam50k 의 틀을 뽑았다(jikhanjung P02 4 단계). 문이 아니다
   datastatus.py   구운 자료의 나이 — <DB 옆> 의 파일마다 있는지·크기·고친 날·원본 판(`ITEMS` 한 표). data_status·healthz·관리 화면의 "데이터소스" 탭(산출물 칸, jikhanjung 013)이 읽는다. 문이 아니다
   earthpoints.py  지역 탭의 화석 산지·홀로세 화산·지진·고생태 산지 — 온 지구의 모아 둔 sqlite·JSON 에서 지역의 네모만 점 GeoJSON 으로. 문이 아니다
@@ -613,7 +616,7 @@ web/viewer/       뷰어 앱 하나뿐이다. 앱을 더 가르지 않는다
   crs.py          평면 좌표계(TM·UTM-K·옛 Bessel·람베르트·북극 람베르트 등적) <-> 위경도. pyproj 없이
   i18n.py         한국어 원문 -> 영어 번역표. 지질시대 옮기기
   tilecache.py    받아온 타일을 디스크에 둔다. 같은 것을 두 번 받지 않는다
-  models.py       Layer·LayerGroup·PointSet·Point·Shape·PointSetDeletion·UpstreamDay
+  models.py       Layer·LayerGroup·PointSet·Point·Shape·PointSetDeletion·UpstreamDay·DataSource·DataSourceChange·FetchRun·FetchRunMark
   views.py        화면 하나 + 프록시 둘 + 업로드
 deploy/           Docker·nginx·배포 스크립트. cron 이 부르는 것은 deploy/scripts/ — 컨테이너가 뜰 때 /srv/GSM/scripts/ 에 깔고
                   호스트 cron 은 그 사본을 전용 venv 로 돌린다(run.sh). 저장소를 부르지 않는다 (koprifossillab 005)
@@ -625,9 +628,9 @@ devlog/           왜 그렇게 했는지 — 색인은 devlog/README.md
 
 **상류마다 문이 하나다 — `kigam.py`·`vworld.py`·`geus.py`·`grportal.py`·`npolar.py`·`gsj.py`·`gsmma.py`·`emodnet.py`·`ngu.py`·`gtk.py`·`sgu.py`·`natt.py`·`bgs.py`·`brgm.py`·`egdi.py`·`bgr.py`·`cgs.py`·`igme.py`·`gsi.py`·`sgc.py`·`sgb.py`·`ingemmet.py`·`iige.py`·`mrdata.py`·`sgm.py`·`ga.py`·`austates.py`·`gns.py`·`mris.py`·`gsiindia.py`·`sgs.py`·`esdm.py`·`jmg.py`·`mgb.py`·`dmr.py`·`segemar.py`·`dinamige.py`·`ispra.py`·`lneg.py`·`swisstopo.py`·`nrcan.py`·`ogs.py`·`sigeom.py`·`ygs.py`·`skgs.py`·`nsgs.py`·`ags.py`·`bas.py`·`bcgs.py`·`calgs.py`·`usstates.py`·`geosphere.py`·`pig.py`·`tno.py`·`dov.py`·`spw.py`·`ineter.py`·`stri.py`·`usgscarib.py`·`vmme.py`·`georep.py`·`phyloserver.py`·`elevation.py`·`trek.py`·`kopri.py`·`macrostrat.py`·`pbdb.py`·`gvp.py`·`usgs.py`·`neotoma.py`·`basemaps.py`·`linked.py`·`gfs.py`·`era5.py`·`gmgsi.py`·`ecco.py`.**
 이 일흔여섯 말고는 어디서도 `requests` 를 쓰지 않는다. `gfs.py`·`era5.py`·`gmgsi.py`·`ecco.py` 는 **호스트에서만** 부른다 — 바람·해류를 받아
-굽는 일(numpy·ecCodes·numcodecs, `requirements-wind.txt`)이 `/srv/GSM/scripts/run.sh` 의 전용 venv 에서 돌고(koprifossillab 005), 컨테이너는 구운 PNG 를 내주기만 한다(koprifossillab P02). `linked.py` 만은 주소를 우리가 정하지 않는다 — 개인 레이어를 남의 API 에
+굽는 일(numpy·ecCodes·numcodecs, `requirements-wind.txt`)이 `/srv/GSM/scripts/run.sh` 의 전용 venv 에서 돌고(koprifossillab 005), 컨테이너는 구운 PNG 를 내주기만 한다(koprifossillab P02). **호스트는 `GSM.db` 를 열지 않는다**(사람, 2026-10-07, jikhanjung P03) — `run.sh` 가 거는 `GSM_RUN_PLACE=host` 면 설정이 DB 엔진을 dummy 로 바꿔 실수로 열면 곧장 깨진다. 호스트의 명령은 파일만 남기고(`hourly_status.json`·`fetch_log_host.jsonl`·`upstream_host.jsonl`) 컨테이너가 들인다(`hourly.sh` 끝의 `docker compose exec … sources_log --sync-only`). DB 가 필요한 일은 호스트에서 돌리지 않고 컨테이너 안에서 부른다(`docker compose exec web python manage.py …`) — 주간 백업의 DB 사본도 그렇다(`manage.py backup_db` 가 표준 출력으로 낸다, jikhanjung 017). `linked.py` 만은 주소를 우리가 정하지 않는다 — 개인 레이어를 남의 API 에
 이을 때 브라우저가 곧장 못 받으면 거친다(wetherilli P09·122). 사설망은 `GSM_LINKED_ALLOW` 에 적은 호스트만, 밖에 열면 닫는다. 뷰가 직접 부르지 않는다. 상류가 바뀌거나 주소가
-닫힐 때 고칠 자리를 하나로 묶어두려는 것이다. `geomap.py`·`janmayen.py`·`geo3al.py`·`peninsula.py`·`moonmap.py`·`caribmap.py`·`ibcso.py`·`admap.py`·`ntgeo.py`·`sarad.py`·`kigam50k.py`·`kigamdata.py`·`twopen.py`·`zhurong.py`·`marscraters.py`·`marsmap.py`·`mercurymap.py`·`spamap.py`·`paleo.py`·`paleocoast.py`·`fossils.py`·`volcanoes.py`·`quakes.py`·`paleoeco.py`·`crust.py`·`glaciers.py`·`impacts.py`·`faults.py`·`minerals.py`·`stress.py`·`tectonics.py`·`seafloor.py`·`glim.py`·`heatflow.py`·`naturalearth.py`·`icemargins.py`·`mantle.py`·`earthpoints.py`·`pointvalues.py`·`sources.py`·`fetchlog.py`·`rawstore.py` 는
+닫힐 때 고칠 자리를 하나로 묶어두려는 것이다. `geomap.py`·`janmayen.py`·`geo3al.py`·`peninsula.py`·`moonmap.py`·`caribmap.py`·`ibcso.py`·`admap.py`·`ntgeo.py`·`sarad.py`·`kigam50k.py`·`kigamdata.py`·`twopen.py`·`zhurong.py`·`marscraters.py`·`marsmap.py`·`mercurymap.py`·`spamap.py`·`paleo.py`·`paleocoast.py`·`fossils.py`·`volcanoes.py`·`quakes.py`·`paleoeco.py`·`crust.py`·`glaciers.py`·`impacts.py`·`faults.py`·`minerals.py`·`stress.py`·`tectonics.py`·`seafloor.py`·`glim.py`·`heatflow.py`·`naturalearth.py`·`geonames.py`·`icemargins.py`·`mantle.py`·`earthpoints.py`·`pointvalues.py`·`sources.py`·`fetchlog.py`·`rawstore.py` 는
 상류가 아니라 우리 디스크의 파일을 읽으므로 문이 아니다. `warp.py` 도 문이 아니다 — 원본은 부르는 쪽이 넘긴다. 문은 서로를 타지 않는다 —
 주소 검색은 KIGAM 을 거치지 않고, KIGAM 인증키도 쓰지 않는다.
 

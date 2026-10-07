@@ -7,6 +7,8 @@
 """
 from django.db import models
 
+from .sources import KINDS, RUNS_ON, SCHEDULES
+
 
 #: 지역. 화면 위의 지역 탭이 이것으로 레이어 목록을 가른다 (devlog 016).
 REGIONS = (("korea", "한국"), ("greenland", "그린란드"), ("antarctica", "남극"),
@@ -341,3 +343,137 @@ class UpstreamDay(models.Model):
 
     def __str__(self):
         return f"{self.day} {self.upstream} {self.ok}/{self.fail}/{self.blocked}"
+
+
+# ── 데이터소스 (jikhanjung P03) ─────────────────────────────────────────
+#
+# 받아 두는 바깥 자료의 명세와 받은 차례의 기록. 둘 다 처음엔 파일이었다(P02 — `<DB 옆>/sources.json`·`store.sqlite` 의 `fetch_log`).
+# 명세는 사람이 정하는 것이라 화면(지금은 admin)에서 고치고 이력을 남기려고, 기록은 명세와 잇고 표 구조를 마이그레이션이 맡게 하려고
+# 여기로 옮겼다. 받은 판의 정보(파일·sha256·받은 때)는 원본 폴더의 `manifest.json` 에 그대로 둔다(`rawstore.py`).
+# 검사·씨앗·화면은 `sources.py`, 기록을 읽고 쓰는 것은 `fetchlog.py` 가 맡는다 — 바깥에 내는 꼴(줄의 dict)은 파일 시절 그대로다.
+
+class DataSource(models.Model):
+    """명세 한 줄 — 무엇을 받나(조건·주기·돌리는 곳·명령·산출물·원본 자리)."""
+
+    id = models.CharField("id", max_length=64, primary_key=True)
+    order = models.PositiveIntegerField("차례", default=0)
+    name_ko = models.CharField("이름", max_length=200)
+    name_en = models.CharField("영어 이름", max_length=200)
+    org = models.CharField("기관", max_length=300, blank=True, default="")
+    # 고를 수 있는 값은 `sources` 의 표 하나 — admin 이 고르게 하고, 검사(`problems_of`)와 같은 것을 본다
+    kind = models.CharField("갈래", max_length=16, choices=[(k, k) for k in KINDS])
+    runs_on = models.CharField("돌리는 곳", max_length=16, choices=[(k, k) for k in RUNS_ON])
+    schedule = models.CharField("주기", max_length=32, choices=[(k, k) for k in SCHEDULES])
+    license = models.CharField("조건", max_length=500)
+    flags = models.JSONField("표시", default=list, blank=True)
+    commands = models.JSONField("명령", default=list, blank=True)
+    outputs = models.JSONField("산출물", default=list, blank=True)
+    raw = models.CharField("원본 자리", max_length=300, blank=True, default="")
+    docs = models.JSONField("근거", default=list, blank=True)
+    note = models.TextField("메모", blank=True, default="")
+    updated_at = models.DateTimeField("고친 때", auto_now=True)
+    updated_by = models.ForeignKey("auth.User", null=True, blank=True, on_delete=models.SET_NULL,
+                                   related_name="+", verbose_name="고친 사람")
+
+    #: 파일 시절의 줄(dict)과 오가는 칸 — `name` 만 두 칸으로 갈렸다
+    ROW_KEYS = ("org", "kind", "commands", "runs_on", "schedule", "license", "flags", "outputs", "raw", "docs", "note")
+
+    class Meta:
+        ordering = ["order", "id"]
+        verbose_name = "데이터소스"
+        verbose_name_plural = "데이터소스"
+
+    def __str__(self):
+        return f"{self.id} — {self.name_ko}"
+
+    def as_row(self) -> dict:
+        row = {"id": self.id, "name": {"ko": self.name_ko, "en": self.name_en}}
+        row.update({k: getattr(self, k) for k in self.ROW_KEYS})
+        return row
+
+    @classmethod
+    def fields_of(cls, row: dict) -> dict:
+        """줄(dict) → 모델의 칸. 빠진 칸은 비운다"""
+        name = row.get("name") or {}
+        out = {"name_ko": name.get("ko", ""), "name_en": name.get("en", "")}
+        for k in cls.ROW_KEYS:
+            default = [] if k in ("flags", "commands", "outputs", "docs") else ""
+            out[k] = row.get(k, default)
+        return out
+
+    def clean(self):
+        from django.core.exceptions import ValidationError
+
+        from . import i18n, sources
+        # admin 에서 목록 칸을 비우면 폼이 None 을 넘긴다 — 빈 목록으로 받는다 (#381 검토 7)
+        for k in ("flags", "commands", "outputs", "docs"):
+            if getattr(self, k) in (None, ""):
+                setattr(self, k, [])
+        found = sources.problems_of(self.as_row())
+        if found:
+            raise ValidationError([i18n.t(m) for m in found])
+
+
+class DataSourceChange(models.Model):
+    """명세의 이력 — 고칠 때마다 한 줄, 앞뒤 줄 전체를. 지운 줄도 남게 데이터소스를 글로 적는다."""
+
+    ORIGINS = (("admin", "admin"), ("tab", "관리 화면"), ("seed", "씨앗"), ("import", "파일에서 옮김"))
+    source = models.CharField("데이터소스", max_length=64, db_index=True)
+    at = models.DateTimeField("때", auto_now_add=True)
+    by = models.ForeignKey("auth.User", null=True, blank=True, on_delete=models.SET_NULL, related_name="+",
+                           verbose_name="누가")
+    # 계정을 지워도 누가 고쳤는지 남게 이름을 글로도 (#381 검토 5)
+    by_name = models.CharField("누가(이름)", max_length=150, blank=True, default="")
+    origin = models.CharField("어디서", max_length=16, choices=ORIGINS)
+    before = models.JSONField("앞", null=True, blank=True)
+    after = models.JSONField("뒤", null=True, blank=True)
+
+    class Meta:
+        ordering = ["-at", "-id"]
+        verbose_name = "데이터소스 명세의 이력"
+        verbose_name_plural = "데이터소스 명세의 이력"
+
+    def __str__(self):
+        return f"{self.at:%Y-%m-%d %H:%M} {self.source} ({self.origin})"
+
+
+class FetchRun(models.Model):
+    """받은 차례 한 줄 — 언제·결과·걸린 초·마지막 말·센 수 대 받은 수·원본 자리와 sha·구운 판.
+
+    데이터소스는 글이다 — 명세 밖의 것(명세에 없는 명령은 명령 이름)도 받게. 같은 (데이터소스·시작한 때·어디서)는 한 번만.
+    호스트는 여기 쓰지 않는다 — 컨테이너가 호스트의 기록을 옮겨 적는다(`fetchlog.sync`).
+    """
+
+    source = models.CharField("데이터소스", max_length=64)
+    command = models.CharField("명령", max_length=100, blank=True, default="")
+    started_at = models.DateTimeField("시작한 때")
+    seconds = models.FloatField("걸린 초", null=True, blank=True)
+    result = models.CharField("결과", max_length=8)                # ok · fail · skip
+    note = models.TextField("마지막 말", blank=True, default="")
+    upstream_version = models.CharField("상류 판", max_length=300, blank=True, default="")
+    expected = models.IntegerField("센 수", null=True, blank=True)
+    rows = models.IntegerField("받은 수", null=True, blank=True)
+    changed = models.IntegerField("바뀐 것", null=True, blank=True)
+    raw_path = models.CharField("원본 자리", max_length=500, blank=True, default="")
+    raw_sha256 = models.CharField("원본 sha256", max_length=64, blank=True, default="")
+    built_at = models.CharField("구운 때", max_length=40, blank=True, default="")
+    built_by = models.CharField("구운 것", max_length=200, blank=True, default="")
+    estimated = models.BooleanField("어림", default=False)
+    origin = models.CharField("어디서", max_length=16, default="container")   # container · hourly · host · backfill
+
+    class Meta:
+        ordering = ["-started_at", "-id"]
+        verbose_name = "받은 차례"
+        verbose_name_plural = "받은 차례"
+        constraints = [models.UniqueConstraint(fields=["source", "started_at", "origin"], name="fetch_run_once")]
+        indexes = [models.Index(fields=["source", "started_at"], name="fetch_run_source")]
+
+    def __str__(self):
+        return f"{self.started_at:%Y-%m-%d %H:%M} {self.source} {self.result}"
+
+
+class FetchRunMark(models.Model):
+    """옮겨 적기가 기억할 것 — 호스트 기록(jsonl)을 어디까지 읽었나 따위. 열쇠·값 한 줄씩."""
+
+    key = models.CharField(max_length=64, primary_key=True)
+    value = models.CharField(max_length=200)

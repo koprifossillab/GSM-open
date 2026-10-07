@@ -474,6 +474,14 @@ EN = {
     "연대를 넣는다 — 250, 20 ka, 1.2 Ga": "Type an age — 250, 20 ka, 1.2 Ga",
     "오늘로 — 연대를 0 으로": "Back to today — age 0",
     "판 조각 (PALEOMAP 2016)": "Plate pieces (PALEOMAP 2016)",
+    # 지질시대 띠 (wetherilli 373) — ICS 의 갈래와 막대의 손잡이
+    "누대": "Eon", "대": "Era", "기": "Period", "세": "Epoch", "절": "Age",
+    "그때의 지구 — 판을 돌린 복원 (PALEOMAP 2016)": "The Earth then — plates rotated back (PALEOMAP 2016)",
+    "오늘의 지구": "Today's Earth",
+    "오늘의 지구에 얹는다": "Today's Earth, with that age's layers",
+    "더 옛날로": "Older", "더 옛날로 — 한 칸": "Older — one step",
+    "오늘 쪽으로": "Younger", "오늘 쪽으로 — 한 칸": "Younger — one step",
+    "지질시대 띠를 접는다": "Fold the time scale", "지질시대 띠를 편다": "Unfold the time scale",
     "판 조각 경계": "Plate piece outlines",
     "PALEOMAP 2016 판 회전으로 셈한 그때의 지구": "The Earth then, computed with the PALEOMAP 2016 plate rotations",
     "PALEOMAP 2016 판 회전으로 셈한 그때의 지구다 — 관측이 아니다. 다른 판 모델과는 100 Ma 에 1 000 km 안팎 다르다. 오늘의 영상·지형·지질도는 오늘에만 뜬다":
@@ -1378,6 +1386,8 @@ EN = {
     "이 지역에서는 좌표로 간다 — 주소·장소는 한국·일본, 지명은 스발바르·그린란드·북극·남극 탭에서 찾는다":
         "Coordinates only here — addresses and places in Korea and Japan, place names in the Svalbard, Greenland, Arctic and Antarctica tabs",
     "좌표·지명으로 이동 — {example}": "Go to coordinates or a place name — {example}",
+    "지명 검색: {sources}": "Place search: {sources}",
+    "도시 이름": "city name",
     # 일본 찾기 칸 — 국토지리원 (wetherilli 155)
     "좌표·주소·지명으로 이동 — {example}": "Go to coordinates, an address or a place name — {example}",
     "주소·지명": "Address/place",
@@ -1531,7 +1541,6 @@ EN = {
     "어림": "estimate",
     "명세": "spec",
     "저장소의 씨앗": "the repository seed",
-    "마지막으로 떠 둔 판": "the last saved copy",
     "빈 명세": "an empty spec",
     "명세가 없다 — 서버에서 manage.py sources_seed 를 부르면 저장소의 씨앗을 놓는다": "No spec — run manage.py sources_seed on the server to place the repository seed",
     "마지막으로 된 차례": "Last successful run",
@@ -1539,8 +1548,9 @@ EN = {
     "명세가 바뀌었다 — {name}": "Spec changed — {name}",
     "센 수 {e} · 받은 수 {n}": "counted {e} · received {n}",
     "받은 차례가 아직 없다": "No runs recorded yet",
-    "명세는 서버의 sources.json 을 손으로 고친다. 받은 차례는 명령이 끝날 때 저절로 쌓이고, 서버 쪽에서는 manage.py sources_log 로 같은 것을 본다.":
-        "The spec is edited by hand in sources.json on the server. Runs are recorded when each command finishes; on the server, manage.py sources_log shows the same.",
+    "명세는 admin 에서 고친다(staff 계정) — 고칠 때마다 누가·언제·앞뒤가 이력에 남는다. 받은 차례는 명령이 끝날 때 저절로 쌓이고, 서버 쪽에서는 manage.py sources_log 로 같은 것을 본다.":
+        "The spec is edited in the admin (staff account) — every edit records who, when and the before/after. Runs are recorded when each command finishes; on the server, manage.py sources_log shows the same.",
+    "명세 고치기": "Edit the spec",
     "매시": "hourly",
     "매주": "weekly",
     "매달 첫 월요일": "first Monday monthly",

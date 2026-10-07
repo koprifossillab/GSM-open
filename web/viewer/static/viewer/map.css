@@ -2220,43 +2220,89 @@ a.tool { text-decoration: none; }                /* 3D 단추는 링크다 */
   .legend-dock { width: auto; left: 8px; right: 8px; bottom: 54px; }
   .legend-list { max-height: 34vh; }
   /* 온 지구는 시간 축이 아래에 앉는다 — 범례는 그 위로 */
-  .timebar ~ .legend-dock { bottom: 150px; }
+  .timebar ~ .legend-dock { bottom: 206px; }
   .coord-readout, .pose-readout { display: none; }
   /* 평면의 축척 막대가 범례 머리(달·화성·수성)·시간 축(온 지구) 밑에 깔렸다 — 그 위로 (wetherilli 342) */
   :root:is([data-region="moon"], [data-region="mars"], [data-region="mercury"]) #scalebar { bottom: 98px; }
-  :root[data-region="earth"] #scalebar, :root[data-region="earth"] .profile-dock { bottom: 192px; }
+  :root[data-region="earth"] #scalebar, :root[data-region="earth"] .profile-dock { bottom: 206px; }
   /* 펼친 범례는 툴바(z 6) 위에 — 툴바가 범례 오른쪽의 칸 수를 덮었다. 접으면 툴바가 다시 보인다 */
   .legend-dock[open] { z-index: 7; }
 }
-/* 시간 축 (wetherilli 091) — 온 지구 화면의 왼쪽 위. 연대 하나를 로그 막대로 고른다 */
-.timebar { position: absolute; left: 12px; top: 12px; z-index: 6; width: min(520px, calc(100% - 200px));
-           padding: 8px 12px 6px; background: var(--glass); border: 1px solid var(--glass-line); border-radius: 10px;
+/* 시간 축 (wetherilli 091·373) — 온 지구 화면의 위 너비를 다 쓴다(오른쪽 위 손잡이 묶음 옆까지, `--tb-right` 는 화면이 잰다).
+   ICS 지질시대 띠를 누르거나 끌어 연대 하나를 고른다. 왼쪽이 옛날, 오른쪽 끝이 오늘이다 */
+.timebar { position: absolute; left: 12px; top: 12px; right: var(--tb-right, 160px); z-index: 6;
+           padding: 6px 10px 6px; background: var(--glass); border: 1px solid var(--glass-line); border-radius: 10px;
            box-shadow: var(--shadow); backdrop-filter: blur(6px); font-size: 12px; color: var(--ink-soft); }
-.timebar .tb-row { display: flex; align-items: center; gap: 8px; }
+.timebar .tb-row { display: flex; align-items: center; gap: 6px; min-width: 0; }
 .timebar .tb-cap { font-weight: 700; letter-spacing: .08em; color: var(--gold-bright); }
-.timebar .tb-form input { width: 92px; padding: 2px 6px; font: 600 13px var(--font-mono); color: var(--ink);
+.timebar .tb-form input { width: 92px; padding: 2px 6px; font: 600 13px var(--font-mono); color: var(--ink); text-align: center;
                           background: var(--panel-tint); border: 1px solid var(--line); border-radius: 5px; }
-.timebar .tb-period { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
-                      color: var(--ink); }
+.timebar .tb-step { width: 24px; height: 24px; padding: 0; font: 700 16px/1 sans-serif; color: var(--ink); background: var(--panel-tint);
+                    border: 1px solid var(--line); border-radius: 5px; cursor: pointer; touch-action: manipulation; user-select: none; }
+.timebar .tb-step:disabled { opacity: .35; cursor: default; }
+.timebar .tb-mode { flex: none; padding: 1px 8px; border-radius: 9px; font-size: 11px; white-space: nowrap;
+                    color: var(--ink); border: 1px solid var(--line); }
+.timebar .tb-mode.then { color: var(--on-hi); background: var(--gold); border-color: var(--gold); }
+.timebar .tb-period { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--ink); }
+.timebar .tb-u { white-space: nowrap; }
+.timebar .tb-u i { display: inline-block; width: 10px; height: 10px; margin-right: 4px; vertical-align: -1px; border-radius: 2px;
+                   box-shadow: 0 0 0 1px rgba(0, 0, 0, .25); }
+.timebar .tb-sep { margin: 0 5px; color: var(--ink-faint); }
 .timebar .tb-now { padding: 2px 10px; font: inherit; color: var(--on-hi); background: var(--hi); border: 0;
                    border-radius: 5px; cursor: pointer; }
 .timebar .tb-now:disabled { opacity: .45; cursor: default; }
-.timebar .tb-track { position: relative; margin-top: 6px; }
-.timebar input[type="range"] { display: block; width: 100%; margin: 0; accent-color: var(--hi); }
-/* 자료가 있는 구간 — 막대 위 띠. 레이어마다 한 줄 */
-.timebar .tb-bands { position: relative; height: 0; }
-.timebar .tb-band { position: relative; height: 4px; margin-bottom: 2px; border-radius: 2px; opacity: .8; }
-.timebar .tb-band span { position: absolute; top: 0; bottom: 0; border-radius: 2px; background: var(--gold); }
+.timebar .tb-fold { width: 24px; height: 24px; padding: 0; font: 12px/1 sans-serif; color: var(--ink-soft); background: none;
+                    border: 1px solid var(--line); border-radius: 5px; cursor: pointer; }
+.timebar.folded .tb-fold { transform: rotate(180deg); }
+.timebar.folded .tb-scale, .timebar.folded .tb-note { display: none; }
+.timebar .tb-scale { position: relative; margin-top: 6px; padding-left: 26px; }
+/* 띠 — 갈래마다 한 줄. 줄 머리(누대·대·기·세·절)는 왼쪽 여백에 */
+.timebar .tb-strip { position: relative; cursor: ew-resize; touch-action: none; user-select: none; outline: none;
+                     border-radius: 3px; }
+.timebar .tb-strip:focus-visible { box-shadow: 0 0 0 2px var(--hi); }
+.timebar .tb-rank { position: relative; height: 14px; margin-bottom: 1px; }
+.timebar .tb-rank.r-period { height: 19px; }
+.timebar .tb-rank.r-eon, .timebar .tb-rank.r-stage { height: 12px; }
+.timebar .tb-rlab { position: absolute; right: 100%; top: 0; bottom: 0; margin-right: 4px; display: flex; align-items: center;
+                    font-size: 10px; color: var(--ink-faint); white-space: nowrap; }
+.timebar .tb-unit { position: absolute; top: 0; bottom: 0; overflow: hidden; display: flex; align-items: center; justify-content: center;
+                    font-size: 10px; line-height: 1; white-space: nowrap; box-shadow: inset -1px 0 rgba(0, 0, 0, .28); }
+.timebar .r-period .tb-unit { font-size: 11px; font-weight: 600; }
+.timebar .tb-split { position: absolute; top: -2px; bottom: -2px; width: 0; border-left: 2px dashed var(--ink); opacity: .7;
+                     pointer-events: none; }
+.timebar .tb-cursor { position: absolute; top: -3px; bottom: 0; width: 2px; margin-left: -1px; background: var(--ink);
+                      box-shadow: 0 0 0 1px rgba(0, 0, 0, .55), 0 0 6px rgba(0, 0, 0, .5); pointer-events: none; }
+.timebar .tb-cursor::before { content: ""; position: absolute; left: -5px; top: -4px; border: 6px solid transparent;
+                              border-top-color: var(--ink); border-bottom: 0; }
 .timebar .tb-ticks { position: relative; height: 14px; font: 10px var(--font-mono); color: var(--ink-faint); }
-.timebar .tb-ticks span { position: absolute; top: 1px; transform: translateX(-50%); white-space: nowrap; }
-.timebar .tb-ticks span:first-child { transform: none; }
-.timebar .tb-ticks span:last-child { transform: translateX(-100%); }
-.timebar .tb-note { margin: 2px 0 0; line-height: 1.45; color: var(--ink-faint); }
+.timebar .tb-ticks span { position: absolute; top: 1px; white-space: nowrap; }
+.timebar .tb-ticks span::before { content: ""; position: absolute; left: var(--at, 50%); top: -3px; height: 3px;
+                                  border-left: 1px solid var(--ink-faint); }
+/* 자료가 있는 구간 — 이름을 단 줄 */
+.timebar .tb-band { position: relative; height: 13px; margin-top: 1px; }
+.timebar .tb-band span { position: absolute; top: 0; bottom: 0; overflow: hidden; padding: 0 5px; border-radius: 3px;
+                         font-size: 10px; line-height: 13px; white-space: nowrap; color: var(--on-hi); background: var(--gold-muted); }
+.timebar .tb-band span.then { background: var(--gold); }
+.timebar .tb-band span.today { color: var(--ink); background: var(--gold-wash); box-shadow: inset 0 0 0 1px var(--gold-edge); }
+.timebar .tb-hover { position: absolute; top: calc(100% + 4px); z-index: 1; padding: 1px 6px; border-radius: 4px; font-size: 11px;
+                     white-space: nowrap; color: var(--ink); background: var(--panel-tint); border: 1px solid var(--line);
+                     pointer-events: none; }
+.timebar .tb-note { margin: 3px 0 0; line-height: 1.45; color: var(--ink-faint); }
 .timebar .tb-note:empty { display: none; }
 .timebar.paleo { border-color: var(--gold); }
 .popup .today-go { margin: 4px 0 2px; padding: 2px 10px; font: inherit; font-size: 12px; color: var(--on-hi);
                    background: var(--hi); border: 0; border-radius: 5px; cursor: pointer; }
-@media (max-width: 760px) { .timebar { left: 8px; width: calc(100% - 16px); top: auto; bottom: 54px; } }
+/* 휴대폰 — 밑에 앉고, 누대·절 줄과 자료 줄(맨 위 그때/오늘 줄만 두고)을 접는다. 캡션은 한 줄 */
+@media (max-width: 760px) {
+  .timebar { left: 8px; right: 8px; top: auto; bottom: 54px; padding: 5px 8px; }
+  .timebar .tb-cap, .timebar .tb-mode { display: none; }
+  .timebar .tb-form input { width: 76px; }
+  .timebar .tb-step, .timebar .tb-fold { width: 28px; height: 28px; }
+  .timebar .tb-scale { padding-left: 0; margin-top: 4px; }
+  .timebar .tb-rlab, .timebar .tb-rank.r-eon, .timebar .tb-rank.r-stage, .timebar .tb-band + .tb-band { display: none; }
+  .timebar .tb-rank.r-period { height: 22px; }
+  .timebar .tb-note { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+}
 /* 구의 그리기가 멈췄을 때 (wetherilli 110) */
 /* 공유 링크로 연 화면이라는 띠 (wetherilli 189) — 지도 위 가운데. 닫거나 "내 화면으로" 를 누른다 */
 .share-notice { position: absolute; left: 50%; top: 12px; z-index: 15; transform: translateX(-50%);
@@ -2272,7 +2318,7 @@ a.tool { text-decoration: none; }                /* 3D 단추는 링크다 */
   .share-notice > span { flex: 1; }
   /* 구 화면은 축척 막대·범례 머리 위로 */
   :root:is([data-region="moon"], [data-region="mars"], [data-region="mercury"]) .share-notice { bottom: 156px; }
-  :root[data-region="earth"] .share-notice { bottom: 250px; }
+  :root[data-region="earth"] .share-notice { bottom: 262px; }
 }
 /* 링크를 복사했다는 띠 — 휴대폰은 툴바의 이름표가 숨어 단추의 "복사했다" 가 보이지 않는다 (wetherilli 342) */
 .share-toast { position: absolute; left: 50%; top: 34px; z-index: 15; transform: translateX(-50%); padding: 6px 14px;

@@ -65,3 +65,4 @@ geo3al.dbf
 # 받은 차례의 기록 (jikhanjung P02) — 기본 자리 <DB 옆>
 /store.sqlite*
 /fetch_log_host.jsonl
+/upstream_host.jsonl

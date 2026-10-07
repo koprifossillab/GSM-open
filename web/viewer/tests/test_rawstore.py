@@ -7,14 +7,13 @@ import hashlib
 import io
 import json
 import os
-import sqlite3
 import tempfile
 from datetime import datetime, timezone
 from pathlib import Path
 from unittest import mock
 
 from django.core.management import call_command
-from django.test import SimpleTestCase, override_settings
+from django.test import SimpleTestCase, TestCase, override_settings
 
 from viewer import fetchlog, pbdb, rawstore, sources
 
@@ -27,7 +26,7 @@ def _entries(**bodies):
     return {name: {"file": f"{name}.json.gz", "body": body.encode()} for name, body in bodies.items()}
 
 
-class Base(SimpleTestCase):
+class Base(TestCase):
     def setUp(self):
         self.tmp = tempfile.TemporaryDirectory()
         self.addCleanup(self.tmp.cleanup)
@@ -46,12 +45,8 @@ class Base(SimpleTestCase):
         self.addCleanup(now.stop)
 
     def logged(self):
-        db = sqlite3.connect(self.dir / "store.sqlite")
-        db.row_factory = sqlite3.Row
-        try:
-            return [dict(r) for r in db.execute("SELECT * FROM fetch_log ORDER BY id")]
-        finally:
-            db.close()
+        from viewer.models import FetchRun
+        return [fetchlog.as_dict(r) for r in FetchRun.objects.order_by("id")]
 
 
 class Save(Base):
@@ -138,15 +133,13 @@ class Prune(Base):
         self.make("20260101", "20260201", "20260301", "20260401")
         (self.dir / "earth").mkdir()
         (self.dir / "earth" / "pbdb.csv").write_text("x")
-        spec = self.dir / "sources.json"
-        spec.write_text(json.dumps({"sources": [
+        sources._put([
             {"id": "demo", "name": {"ko": "시험", "en": "Demo"}, "kind": "fetch", "commands": ["fetch_demo"],
              "runs_on": "container", "schedule": "manual", "license": "x", "raw": "demo/raw"},
             {"id": "flat", "name": {"ko": "평", "en": "Flat"}, "kind": "fetch", "commands": ["fetch_flat"],
              "runs_on": "container", "schedule": "manual", "license": "x", "raw": "earth/pbdb.csv"},
-        ]}), encoding="utf-8")
-        with override_settings(SOURCES_PATH=str(spec), DEMO_DIR=str(self.dir / "demo"), EARTH_DIR=str(self.dir / "earth")):
-            sources._cache.update(key=None, spec=None)
+        ], "seed")
+        with override_settings(DEMO_DIR=str(self.dir / "demo"), EARTH_DIR=str(self.dir / "earth")):
             out = io.StringIO()
             call_command("prune_raw", "--dry-run", stdout=out)
             self.assertIn("demo: 4 벌", out.getvalue())
@@ -155,7 +148,6 @@ class Prune(Base):
             self.assertEqual(len(rawstore.versions(self.raw)), 4)
             call_command("prune_raw", stdout=io.StringIO())
             self.assertEqual([p.name for p in rawstore.versions(self.raw)], ["20260201", "20260301", "20260401"])
-        sources._cache.update(key=None, spec=None)
         self.assertTrue((self.dir / "earth" / "pbdb.csv").exists())
 
 
@@ -187,21 +179,16 @@ class PbdbDigest(SimpleTestCase):
 class Screen(Base):
     """관리 화면 — 상류 판·바뀐 수, 씨앗과 다른 줄 (P02 §6·§9)."""
 
-    databases = {"default"}
-
     def setUp(self):
         super().setUp()
         row = {"id": "demo", "name": {"ko": "시험", "en": "Demo"}, "kind": "fetch", "commands": ["fetch_demo"],
                "runs_on": "container", "schedule": "manual", "license": "x"}
         seed = self.dir / "seed.json"
         seed.write_text(json.dumps({"sources": [row]}), encoding="utf-8")
-        live = self.dir / "sources.json"
-        live.write_text(json.dumps({"sources": [{**row, "license": "사람이 고친 조건"}]}), encoding="utf-8")
-        over = override_settings(SOURCES_PATH=str(live), SOURCES_SEED=seed)
+        over = override_settings(SOURCES_SEED=seed)
         over.enable()
         self.addCleanup(over.disable)
-        sources._cache.update(key=None, spec=None)
-        self.addCleanup(lambda: sources._cache.update(key=None, spec=None))
+        sources._put([{**row, "license": "사람이 고친 조건"}], "import")
         fetchlog.write({"source": "demo", "started_at": "2026-10-06T00:00:00+09:00", "result": "ok",
                         "upstream_version": "v2026.09", "changed": 0})
 

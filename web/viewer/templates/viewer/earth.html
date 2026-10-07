@@ -287,21 +287,29 @@
     <output id="tool-out" class="tool-out" hidden></output>
   </div>
 
-  {% comment %}시간 축 (wetherilli P07·091) — 연대 하나. 0 이 오늘이고, 1 Ma 넘어서는 판을 돌린 그때의 지구다{% endcomment %}
+  {% comment %}시간 축 (wetherilli P07·091·373) — 연대 하나. 지도의 위 너비를 다 쓴다. 왼쪽이 오래된 것이고 오른쪽 끝이 오늘이다.
+  ICS 지질시대 띠(누대·대·기·세·절)를 누르거나 끌어 고른다. 1 Ma 가 두 뜻을 가른다 — 왼쪽은 판을 돌린 그때의 지구다{% endcomment %}
   <div id="timebar" class="timebar" role="group" aria-labelledby="age-cap">
     <div class="tb-row">
       <span class="tb-cap" id="age-cap">{% t "연대" %}</span>
+      <button type="button" class="tb-step" id="age-older" title="{% t "더 옛날로 — 한 칸" %}" aria-label="{% t "더 옛날로" %}">&lsaquo;</button>
       <form id="age-form" class="tb-form">
         <input id="age-input" type="text" inputmode="decimal" autocomplete="off" spellcheck="false"
                title="{% t "연대를 넣는다 — 250, 20 ka, 1.2 Ga" %}" aria-label="{% t "연대" %}">
       </form>
+      <button type="button" class="tb-step" id="age-younger" title="{% t "오늘 쪽으로 — 한 칸" %}" aria-label="{% t "오늘 쪽으로" %}">&rsaquo;</button>
+      <span class="tb-mode" id="age-mode"></span>
       <span class="tb-period" id="age-period"></span>
       <button type="button" class="tb-now" id="age-now" title="{% t "오늘로 — 연대를 0 으로" %}">{% t "오늘" %}</button>
+      <button type="button" class="tb-fold" id="age-fold" aria-expanded="true" aria-controls="age-scale"
+              title="{% t "지질시대 띠를 접는다" %}">&#9652;</button>
     </div>
-    <div class="tb-track">
-      <div class="tb-bands" id="age-bands" aria-hidden="true"></div>
-      <input id="age-range" type="range" min="0" max="1000" step="1" aria-labelledby="age-cap">
+    <div class="tb-scale" id="age-scale">
+      <div class="tb-strip" id="age-strip" role="slider" tabindex="0" aria-labelledby="age-cap"
+           aria-valuemin="0" aria-valuemax="1100"></div>
       <div class="tb-ticks" id="age-ticks" aria-hidden="true"></div>
+      <div class="tb-bands" id="age-bands" aria-hidden="true"></div>
+      <div class="tb-hover" id="age-hover" hidden></div>
     </div>
     <p class="tb-note" id="age-note"></p>
   </div>

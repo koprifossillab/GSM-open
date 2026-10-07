@@ -2826,21 +2826,46 @@
 
   // ══ 시간 축 (wetherilli P07·091) ═══════════════════════════════════
   //
-  // 연대 하나(`age`, Ma)를 로그 막대로 고른다 — 1 ka 에서 1 100 Ma 까지 여섯 자릿수가 한 막대에 선다. ETT 처럼
+  // 연대 하나(`age`, Ma)를 막대로 고른다 — 1 ka 에서 1 100 Ma 까지 여섯 자릿수가 한 막대에 선다(축척은 아래 `SEGS`). ETT 처럼
   // "전체 시대 / 최근 빙기" 창을 가르지 않았다 — 빙상 밑의 대륙을 묻는 물음이 두 화면으로 쪼개진다(P07 §2).
   //
   // **1 Ma 가 두 뜻을 가른다.** 그 안쪽은 오늘의 지구에 그 연대의 것을 얹는다(판이 움직인 것이 수십 km 안이다).
   // 1 Ma 부터는 서버가 판을 돌려 칠한 **그때의 지구**를 바다색 구 위에 그리고, 오늘의 것(영상·지형·지질도)은
   // 뜨지 않는다 — 오늘 드러난 암석이 그때 거기 드러나 있었다는 뜻으로 읽히지 않게. 판을 돌리는 셈은 서버의
   // `paleo.py` 하나다 — 브라우저에 한 벌 더 두지 않는다
-  var AGE_LOG0 = Math.log(0.001) / Math.LN10, AGE_LOG1 = Math.log(AGE_MAX) / Math.LN10;
-  var SLIDER = 1000;
-  function toSlider(a) {
-    if (!(a > 0)) return 0;
-    return Math.max(1, Math.min(SLIDER, Math.round(1 + (SLIDER - 1) * (Math.log(a) / Math.LN10 - AGE_LOG0) / (AGE_LOG1 - AGE_LOG0))));
+  // ── 막대의 축척 (wetherilli 373) ──
+  // 왼쪽이 오래된 것, 오른쪽 끝이 오늘이다 — 지질시대 표를 옆으로 누인 꼴. 한 축척으로는 1 100 Ma 와 1 ka 가 함께
+  // 서지 못해 구간마다 축척을 바꾼다: 선캄브리아·현생누대·신생대는 고르게(Ma), 제4기만 로그로 넓게 편다 — 빙상
+  // 가장자리(25–1 ka)와 홀로세가 거기 산다. 로그 하나로 펴던 옛 막대는 고생대·중생대가 한 뼘에 몰려 기가 읽히지
+  // 않았다. 구간의 경계는 ICS 경계라 띠 위에서 축척이 바뀐 자리가 눈에 보인다
+  var SEGS = [[AGE_MAX, 538.8, 0.10], [538.8, 66, 0.44], [66, 2.58, 0.17], [2.58, 0.001, 0.26, true], [0.001, 0, 0.03]];
+  (function () { var x = 0; SEGS.forEach(function (s) { s.x0 = x; x += s[2]; }); })();
+  /** 연대(Ma) → 막대 위 자리(0 왼쪽 끝 · 1 오른쪽 끝 = 오늘) */
+  function ageX(a) {
+    if (!(a > 0)) return 1;
+    a = Math.min(AGE_MAX, Math.max(0.001, a));
+    for (var i = 0; i < SEGS.length; i++) {
+      var s = SEGS[i];
+      if (a <= s[0] && a >= s[1]) {
+        var f = s[3] ? Math.log(s[0] / a) / Math.log(s[0] / s[1]) : (s[0] - a) / (s[0] - s[1]);
+        return s.x0 + f * s[2];
+      }
+    }
+    return 1;
   }
-  function fromSlider(v) {
-    return v <= 0 ? 0 : snapAge(Math.pow(10, AGE_LOG0 + (v - 1) / (SLIDER - 1) * (AGE_LOG1 - AGE_LOG0)));
+  /** 막대 위 자리 → 연대(Ma, 고르기 전) */
+  function xAge(x) {
+    x = Math.min(1, Math.max(0, x));
+    var last = SEGS[SEGS.length - 1];
+    if (x >= last.x0) return x >= last.x0 + last[2] / 2 ? 0 : 0.001;
+    for (var i = 0; i < SEGS.length - 1; i++) {
+      var s = SEGS[i];
+      if (x <= s.x0 + s[2]) {
+        var f = (x - s.x0) / s[2];
+        return s[3] ? s[0] * Math.pow(s[1] / s[0], f) : s[0] - f * (s[0] - s[1]);
+      }
+    }
+    return 0;
   }
   function ageText(a) {
     if (!(a > 0)) return T("오늘");
@@ -2856,16 +2881,33 @@
     var v = parseFloat(m[1].replace(",", ".")), unit = (m[2] || "ma").charAt(0);
     return snapAge(unit === "k" ? v / 1000 : unit === "g" ? v * 1000 : v);
   }
-  // 자료가 있는 구간 — 막대 위의 띠. 단계마다 한 줄씩 는다 (P07 §4)
+  /** 한 칸 — 1 Ma 부터는 1 Myr(판 조각이 1 Myr 마다다), 그 안쪽은 자릿수 하나(20 ka → 30 ka, 300 ka → 400 ka) */
+  function stepAge(a, dir, big) {
+    if (dir > 0) {                                    // 더 옛날로
+      if (!(a > 0)) return 0.001;
+      if (a >= PALEO_FROM) return snapAge(a + (big ? 10 : 1));
+      var ka = Math.round(a * 1000), s = Math.pow(10, Math.floor(Math.log(ka) / Math.LN10 + 1e-9));
+      return snapAge((ka + (big ? 10 * s : s)) / 1000);
+    }
+    if (!(a > 0)) return 0;
+    if (a > PALEO_FROM) return snapAge(Math.max(PALEO_FROM, a - (big ? 10 : 1)));
+    var k = Math.round(a * 1000);
+    if (k <= 1) return 0;
+    var d = Math.pow(10, Math.floor(Math.log(k - 1) / Math.LN10 + 1e-9));
+    return snapAge(Math.max(1, k - (big ? 10 * d : d)) / 1000);
+  }
+
+  // 자료가 있는 구간 — 지질시대 띠 밑에 이름을 단 줄로 (P07 §4). 맨 위 줄이 1 Ma 의 두 뜻이다
   var AGE_BANDS = [
-    { title: "판 조각 (PALEOMAP 2016)", from: PALEO_FROM, to: AGE_MAX },
+    [{ title: T("그때의 지구 — 판을 돌린 복원 (PALEOMAP 2016)"), from: PALEO_FROM, to: AGE_MAX, cls: "then" },
+     { title: T("오늘의 지구"), from: 0, to: PALEO_FROM, cls: "today" }],
   ];
   var COAST_AGES = (THEN.coast || []).filter(function (a) { return a >= PALEO_FROM; });
-  if (COAST_AGES.length) AGE_BANDS.push({ title: "옛 해안선", from: COAST_AGES[0], to: COAST_AGES[COAST_AGES.length - 1] + 10 });
+  if (COAST_AGES.length) AGE_BANDS.push([{ title: T("옛 해안선"), from: COAST_AGES[0], to: COAST_AGES[COAST_AGES.length - 1] + 10 }]);
   var ICE_AGES = THEN.icemargins || {};
   var iceAll = (ICE_AGES.nadi || []).concat(ICE_AGES.dated || []);
   if (iceAll.length) {
-    AGE_BANDS.push({ title: "빙상 가장자리", from: Math.min.apply(null, iceAll) / 1000, to: Math.max.apply(null, iceAll) / 1000 });
+    AGE_BANDS.push([{ title: T("빙상 가장자리"), from: Math.min.apply(null, iceAll) / 1000, to: Math.max.apply(null, iceAll) / 1000 }]);
   }
   /** 빙상 가장자리의 조각 — 묶음마다 가장 가까운 것, 반 조각 간격 안에서만 (서버의 `icemargins.pick` 과 같다) */
   function iceStops(a) {
@@ -2883,27 +2925,102 @@
     (THEN.coast || []).forEach(function (c) { if (best == null || Math.abs(c - a) < Math.abs(best - a)) best = c; });
     return best != null && Math.abs(best - a) <= 10 ? best : null;
   }
-  var AGE_TICKS = [[0.001, "1 ka"], [0.01, "10 ka"], [0.1, "100 ka"], [1, "1 Ma"], [10, "10 Ma"], [100, "100 Ma"], [1000, "1 Ga"]];
-  var ageRange = $("age-range"), ageInput = $("age-input");
-  function pct(a) { return (toSlider(a) / SLIDER * 100).toFixed(2) + "%"; }
-  $("age-ticks").innerHTML = AGE_TICKS.map(function (t) {
-    return '<span style="left:' + pct(t[0]) + '">' + t[1] + "</span>";
-  }).join("");
-  $("age-bands").innerHTML = AGE_BANDS.map(function (b) {
-    var left = toSlider(b.from) / SLIDER * 100, right = toSlider(b.to) / SLIDER * 100;
-    return '<div class="tb-band" title="' + esc(T(b.title)) + " · " + esc(ageText(b.from)) + "–" + esc(ageText(b.to)) +
-           '"><span style="left:' + left.toFixed(2) + "%;width:" + (right - left).toFixed(2) + '%"></span></div>';
-  }).join("");
-  $("age-bands").style.height = AGE_BANDS.length * 6 + "px";
 
-  // 시대 이름 — 지질도 범례와 같은 ICS 기(period)의 목록을 한 번 받는다
-  var periods = null;
-  fetch(BASE + "earth/legend/").then(function (r) { return r.json(); })
-    .then(function (d) { periods = d.rows || []; showAge(); }).catch(function () { periods = []; });
-  function periodOf(a) {
-    var hit = (periods || []).filter(function (r) { return r.t_age <= a && a < r.b_age; })[0];
-    return hit ? hit.name : "";
+  // ── 지질시대 띠 — ICS 국제층서표의 누대·대·기·세, 제4기의 절 (서버의 `timescale.py`) ──
+  var ICS = THEN.timescale || [];
+  var RANK_ROWS = [["eon", T("누대")], ["era", T("대")], ["period", T("기")], ["epoch", T("세")], ["stage", T("절")]];
+  /** 그 연대를 품은 단위 — 갈래마다 하나. 경계의 연대(66 Ma)는 그 밑의 옛 단위(백악기)의 끝으로 친다 */
+  function unitsAt(a) {
+    var out = {};
+    if (!(a > 0)) return out;
+    ICS.forEach(function (u) { if (u.t <= a && a < u.b) out[u.rank] = u; });
+    return out;
   }
+  function inkOn(hex) {                               // 밝은 칸에는 검은 글자, 어두운 칸에는 흰 글자
+    var n = parseInt(String(hex).slice(1), 16);
+    var l = 0.299 * (n >> 16 & 255) + 0.587 * (n >> 8 & 255) + 0.114 * (n & 255);
+    return l > 150 ? "#1d1d1d" : "#fff";
+  }
+  var measure = document.createElement("canvas").getContext("2d");
+  function textW(text, px) { measure.font = px + "px sans-serif"; return measure.measureText(text).width; }
+  var TICKS = [0, 1, 1000, 500, 100, 0.01, 0.1, 300, 200, 400, 50, 800, 600, 20, 0.001];   // 앞의 것부터 자리를 준다
+  var scaleEl = $("age-scale"), strip = $("age-strip"), ageInput = $("age-input"), hoverEl = $("age-hover");
+  var cursor = document.createElement("div"), split = document.createElement("div");
+  cursor.className = "tb-cursor"; split.className = "tb-split";
+  function drawScale() {
+    // 줄 머리의 너비 — 영어판은 "Period" 라 넓다. 휴대폰은 줄 머리를 접는다(CSS)
+    var rlab = Math.ceil(Math.max.apply(null, RANK_ROWS.map(function (rr) { return textW(rr[1], 10); }))) + 8;
+    scaleEl.style.paddingLeft = window.matchMedia("(max-width: 760px)").matches ? "" : rlab + "px";
+    var W = strip.clientWidth;
+    if (!W) return;
+    var html = "";
+    RANK_ROWS.forEach(function (rr) {
+      html += '<div class="tb-rank r-' + rr[0] + '"><span class="tb-rlab">' + esc(rr[1]) + "</span>";
+      ICS.forEach(function (u) {
+        if (u.rank !== rr[0] || u.t >= AGE_MAX) return;
+        var l = ageX(Math.min(u.b, AGE_MAX)), r = ageX(u.t), w = (r - l) * W;
+        var px = rr[0] === "period" ? 11 : 10, label = "";
+        if (textW(u.name, px) + 6 <= w) label = u.name;
+        else if (textW(u.short, px) + 4 <= w) label = u.short;
+        html += '<span class="tb-unit" data-name="' + esc(u.name) + '" data-b="' + u.b + '" data-t="' + u.t +
+                '" style="left:' + (l * 100).toFixed(3) + "%;width:" + ((r - l) * 100).toFixed(3) + "%;background:" + u.color +
+                ";color:" + inkOn(u.color) + '">' + esc(label) + "</span>";
+      });
+      html += "</div>";
+    });
+    strip.innerHTML = html;
+    strip.appendChild(split);
+    split.style.left = (ageX(PALEO_FROM) * 100).toFixed(3) + "%";
+    // 눈금 — 겹치는 것은 뒤의 것을 버린다
+    var taken = [], ticks = "";
+    TICKS.forEach(function (a) {
+      var text = !a ? T("오늘") : ageText(a), w = textW(text, 10) + 8, x = ageX(a) * W;
+      var lo = Math.max(0, Math.min(W - w, x - w / 2));
+      if (taken.some(function (t) { return lo < t[1] && lo + w > t[0]; })) return;
+      taken.push([lo, lo + w]);
+      ticks += '<span style="left:' + lo.toFixed(1) + "px;width:" + w.toFixed(1) + "px;text-align:center;--at:" + (x - lo).toFixed(1) +
+               'px">' + esc(text) + "</span>";
+    });
+    $("age-ticks").innerHTML = ticks;
+    $("age-bands").innerHTML = AGE_BANDS.map(function (row) {
+      return '<div class="tb-band">' + row.map(function (b) {
+        var l = ageX(b.to), r = ageX(b.from), w = (r - l) * W, title = b.title;
+        return '<span class="' + (b.cls || "") + '" title="' + esc(title + " · " + ageText(b.to) + "–" + ageText(b.from)) +
+               '" style="left:' + (l * 100).toFixed(3) + "%;width:" + ((r - l) * 100).toFixed(3) + '%">' +
+               (textW(title, 10) + 8 <= w ? esc(title) : "") + "</span>";
+      }).join("") + "</div>";
+    }).join("");
+    scaleEl.appendChild(cursor);
+    placeCursor(age);
+  }
+  function placeCursor(a) {
+    var left = strip.offsetLeft + ageX(a) * strip.clientWidth;
+    cursor.style.left = left + "px";
+    cursor.classList.toggle("today", !(a > 0));
+  }
+
+  // 막대를 넓게 — 오른쪽 위 손잡이 묶음 옆까지 (휴대폰은 CSS 가 밑에 앉힌다)
+  var timebar = $("timebar"), toolbarEl = $("toolbar");
+  function fitTimebar() {
+    timebar.style.setProperty("--tb-right", (toolbarEl ? toolbarEl.offsetWidth + 24 : 12) + "px");
+    drawScale();
+  }
+  if (window.ResizeObserver) {
+    var tbObs = new ResizeObserver(function () { fitTimebar(); });
+    tbObs.observe(timebar);
+    if (toolbarEl) tbObs.observe(toolbarEl);
+  } else window.addEventListener("resize", fitTimebar);
+  var folded = saved("gsm.earth.tbfold", "0") === "1";
+  function setFold(f) {
+    folded = f;
+    timebar.classList.toggle("folded", f);
+    $("age-fold").setAttribute("aria-expanded", String(!f));
+    $("age-fold").title = f ? T("지질시대 띠를 편다") : T("지질시대 띠를 접는다");
+    save("gsm.earth.tbfold", f ? "1" : "0");
+    if (!f) fitTimebar();
+  }
+  setFold(folded);
+  $("age-fold").addEventListener("click", function () { setFold(!folded); });
 
   // 그때의 지구 — 칠한 판 조각. 연대마다 타일 주소가 달라 레이어를 갈아 끼운다
   var cPaleo = null, paleoShown = null;
@@ -2938,14 +3055,28 @@
     applyStack();
   }
   var wasPaleo = null, setsAt = 0;
+  /** 머리줄 — 고른 연대의 갈래(대 › 기 › 세 › 절)와 뜻. 끄는 동안에도 따라 쓴다 */
+  function headAt(a) {
+    var p = a >= PALEO_FROM, us = unitsAt(a);
+    $("age-mode").textContent = !(a > 0) ? T("오늘의 지구") : p ? T("그때의 지구") : T("오늘의 지구에 얹는다");
+    $("age-mode").className = "tb-mode" + (p ? " then" : "");
+    $("age-period").innerHTML = ["era", "period", "epoch", "stage"].filter(function (r) { return us[r]; }).map(function (r) {
+      var u = us[r];
+      return '<span class="tb-u" title="' + esc(u.name + " · " + ageText(u.b) + "–" + ageText(u.t)) + '"><i style="background:' +
+             u.color + '"></i>' + esc(u.name) + "</span>";
+    }).join('<span class="tb-sep">›</span>');
+    strip.setAttribute("aria-valuenow", String(a));
+    strip.setAttribute("aria-valuetext", ageText(a) + (us.period ? " · " + us.period.name : ""));
+    placeCursor(a);
+  }
   function showAge() {
     var p = paleoOn();
-    ageRange.value = toSlider(age);
     if (document.activeElement !== ageInput) ageInput.value = ageText(age);
-    var period = age > 0 ? periodOf(age) : "";
-    $("age-period").textContent = period;
+    headAt(age);
     $("age-now").disabled = !age;
-    $("timebar").classList.toggle("paleo", p);
+    $("age-younger").disabled = !age;
+    $("age-older").disabled = age >= AGE_MAX;
+    timebar.classList.toggle("paleo", p);
     var note = !age ? "" : p
       ? T("PALEOMAP 2016 판 회전으로 셈한 그때의 지구다 — 관측이 아니다. 다른 판 모델과는 100 Ma 에 1 000 km 안팎 다르다. 오늘의 영상·지형·지질도는 오늘에만 뜬다")
       : T("오늘의 지구다 — 1 Ma 안에서 판이 움직인 것은 수십 km 안이다");
@@ -3005,12 +3136,78 @@
     }
     if (changed) closePopup();
   }
-  var ageTimer = 0;
-  ageRange.addEventListener("input", function () {
-    var a = fromSlider(+ageRange.value);
+  // 끄는 동안은 머리줄·바늘만 따라가고, 손을 멈춘 뒤에 고른다 — 타일을 쏟아 묻지 않게
+  var ageTimer = 0, pending = null;
+  function preview(a, wait) {
+    a = snapAge(a);
+    pending = a;
     ageInput.value = ageText(a);
+    headAt(a);
     clearTimeout(ageTimer);
-    ageTimer = setTimeout(function () { applyAge(a); }, 180);   // 끄는 동안 타일을 쏟아 묻지 않게
+    ageTimer = setTimeout(function () { pending = null; applyAge(a); }, wait == null ? 180 : wait);
+  }
+  function stripAge(e) {
+    var b = strip.getBoundingClientRect();
+    return snapAge(xAge((e.clientX - b.left) / b.width));
+  }
+  function stripHover(e, a) {
+    var us = unitsAt(a), fine = us.stage || us.epoch || us.period;
+    hoverEl.textContent = ageText(a) + (fine ? " · " + fine.name : "");
+    hoverEl.hidden = false;
+    var b = scaleEl.getBoundingClientRect(), x = e.clientX - b.left, w = hoverEl.offsetWidth;
+    hoverEl.style.left = Math.max(0, Math.min(b.width - w, x - w / 2)) + "px";
+  }
+  var dragging = false;
+  strip.addEventListener("pointerdown", function (e) {
+    if (e.button) return;
+    dragging = true;
+    try { strip.setPointerCapture(e.pointerId); } catch (err) { /* 옛 브라우저 */ }
+    strip.focus({ preventScroll: true });
+    preview(stripAge(e));
+    e.preventDefault();
+  });
+  strip.addEventListener("pointermove", function (e) {
+    var a = stripAge(e);
+    if (e.pointerType === "mouse" || dragging) stripHover(e, a);
+    if (dragging) preview(a);
+  });
+  function endDrag() {
+    if (!dragging) return;
+    dragging = false;
+    if (pending != null) preview(pending, 0);
+  }
+  strip.addEventListener("pointerup", function (e) { endDrag(); if (e.pointerType !== "mouse") hoverEl.hidden = true; });
+  strip.addEventListener("pointercancel", function () { endDrag(); hoverEl.hidden = true; });
+  strip.addEventListener("pointerleave", function () { if (!dragging) hoverEl.hidden = true; });
+  // 왼쪽이 옛날이다 — ← 는 더 옛날로, → 는 오늘 쪽으로. Shift·PageUp/Down 은 열 칸
+  strip.addEventListener("keydown", function (e) {
+    var cur = pending != null ? pending : age, next = null;
+    if (e.key === "ArrowLeft" || e.key === "ArrowDown") next = stepAge(cur, 1, e.shiftKey);
+    else if (e.key === "ArrowRight" || e.key === "ArrowUp") next = stepAge(cur, -1, e.shiftKey);
+    else if (e.key === "PageUp") next = stepAge(cur, 1, true);
+    else if (e.key === "PageDown") next = stepAge(cur, -1, true);
+    else if (e.key === "Home") next = AGE_MAX;
+    else if (e.key === "End") next = 0;
+    if (next == null) return;
+    e.preventDefault();
+    preview(next, 300);
+  });
+  // 한 칸 단추 — 누르고 있으면 계속 간다
+  [["age-older", 1], ["age-younger", -1]].forEach(function (pair) {
+    var btn = $(pair[0]), hold = 0;
+    function tick() {
+      var next = stepAge(pending != null ? pending : age, pair[1], false);
+      if (next === (pending != null ? pending : age)) return stop();
+      preview(next, 300);
+    }
+    function stop() { clearTimeout(hold); clearInterval(hold); hold = 0; }
+    btn.addEventListener("pointerdown", function (e) {
+      if (e.button) return;
+      tick();
+      hold = setTimeout(function () { hold = setInterval(tick, 90); }, 420);
+    });
+    ["pointerup", "pointerleave", "pointercancel"].forEach(function (ev) { btn.addEventListener(ev, stop); });
+    btn.addEventListener("keydown", function (e) { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); tick(); } });
   });
   $("age-form").addEventListener("submit", function (e) {
     e.preventDefault();
@@ -3019,8 +3216,8 @@
     ageInput.blur();
     applyAge(a);
   });
-  ageInput.addEventListener("blur", function () { ageInput.value = ageText(age); });
-  $("age-now").addEventListener("click", function () { applyAge(0); });
+  ageInput.addEventListener("blur", function () { ageInput.value = ageText(pending != null ? pending : age); });
+  $("age-now").addEventListener("click", function () { clearTimeout(ageTimer); pending = null; applyAge(0); });
 
   // 그때의 지구를 누르면 — 그 자리에 있던 판 조각과, 그 판의 회전을 되돌린 **오늘의 자리**. 오늘의 자리에서
   // 지질 단위를 다시 묻는다. 계산이지 관측이 아니다

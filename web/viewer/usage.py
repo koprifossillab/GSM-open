@@ -88,20 +88,71 @@ def record(upstream: str, ok: bool, blocked: bool = False, count: int = 1, elaps
                 _recent_blocks.clear()
                 log.warning("%s 에서 차단 조짐이 %d 번 — %d 분 동안 묻지 않는다",
                             upstream, BLOCK_LIMIT, PAUSE_SECONDS // 60)
+    field = "blocked" if blocked else ("ok" if ok else "fail")
+    took = seconds_of(elapsed)
     try:
-        from .models import UpstreamDay
-        row, _ = UpstreamDay.objects.get_or_create(day=timezone.localdate(), upstream=upstream)
-        field = "blocked" if blocked else ("ok" if ok else "fail")
-        changes = {field: F(field) + count}
-        if BATCH:
-            changes["batch"] = F("batch") + count
-        took = seconds_of(elapsed)
-        if took is not None:
-            slot = f"t{bucket(took)}"
-            changes.update(timed=F("timed") + 1, seconds=F("seconds") + took, **{slot: F(slot) + 1})
-        UpstreamDay.objects.filter(pk=row.pk).update(**changes)
+        if _on_host():
+            # 호스트는 GSM.db 를 열지 않는다(P03) — 파일에 남기면 컨테이너가 들인다(`sync_host`)
+            _append_host({"day": timezone.localdate().isoformat(), "upstream": upstream, "field": field,
+                          "count": count, "batch": BATCH, "took": took})
+        else:
+            _add(timezone.localdate(), upstream, field, count, BATCH, took)
     except Exception as exc:                      # 세는 것은 덤이다
         log.debug("호출을 세지 못했다: %s", exc)
+
+
+def _add(day, upstream: str, field: str, count: int, batch: bool, took) -> None:
+    from .models import UpstreamDay
+    row, _ = UpstreamDay.objects.get_or_create(day=day, upstream=upstream)
+    changes = {field: F(field) + count}
+    if batch:
+        changes["batch"] = F("batch") + count
+    if took is not None:
+        slot = f"t{bucket(took)}"
+        changes.update(timed=F("timed") + 1, seconds=F("seconds") + took, **{slot: F(slot) + 1})
+    UpstreamDay.objects.filter(pk=row.pk).update(**changes)
+
+
+# ── 호스트 (jikhanjung P03) ─────────────────────────────────────────
+
+def _on_host() -> bool:
+    import os
+    return os.environ.get("GSM_RUN_PLACE") == "host"
+
+
+def host_path():
+    from . import fetchlog
+    return fetchlog.store_path().parent / "upstream_host.jsonl"
+
+
+def _append_host(row: dict) -> None:
+    import json
+    with open(host_path(), "a", encoding="utf-8") as fh:          # 한 줄 덧붙이기는 쪼개지지 않는다
+        fh.write(json.dumps(row, ensure_ascii=False) + "\n")
+
+
+def sync_host() -> int:
+    """호스트가 센 것(`upstream_host.jsonl`)의 새 줄을 `UpstreamDay` 에 더한다. 더한 줄 수. 컨테이너만 — 못 하면 0"""
+    from datetime import date
+
+    from . import fetchlog
+    if _on_host():
+        return 0
+    added = 0
+    try:
+        for row in fetchlog.new_lines(host_path(), "usage_offset"):
+            try:
+                day = date.fromisoformat(row["day"])
+                if row.get("field") not in ("ok", "fail", "blocked") or not row.get("upstream"):
+                    continue
+                _add(day, str(row["upstream"]), row["field"], int(row.get("count") or 1), bool(row.get("batch")),
+                     row.get("took"))
+                added += 1
+            except (KeyError, TypeError, ValueError):
+                continue
+    except Exception as exc:                      # noqa: BLE001 — 세는 것은 덤이다
+        log.debug("호스트가 센 것을 들이지 못했다: %s", exc)
+    return added
 
 
 def reset() -> None:

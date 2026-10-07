@@ -65,10 +65,11 @@ LAYERS = {
 METATILE = {"sgm:datos:7": None}
 #: 칠하기 구간(classBreaks)을 범례로 내는 레이어 — 보는 범위와 무관하다
 BREAKS = tuple(n for n in LAYERS if n.startswith(("sgm:anom250:", "sgm:anom50:", "sgm:datos:")))
-#: 범례에 실을 열 — 기호, 암상, 지층, 시대
+#: 범례에 실을 열 — 기호, 암상, 지층, 시대. 1:5만은 열 이름이 다르다 — 기호·암상·이름·시작·끝 시대 (wetherilli 372)
 LABEL = ("CLAVE_SGM", "LITOLOGIA", "FORMACION", "PERIODO")
+LABEL_50K = ("CLAVE", "DLO", "NOMBRE", "EDAD_INI", "EDAD_FIN")
 #: 보는 범위의 범례 — 레이어 → (칠하기 열, 묶을 열, 범례를 뜨는 가장 넓은 범위(°))
-LEGENDS = {"sgm:8": ("CLAVE_SGM", LABEL, 8), "sgm:7": ("CLAVE_SGM", LABEL, 3),
+LEGENDS = {"sgm:8": ("CLAVE_SGM", LABEL, 8), "sgm:7": ("CLAVE", LABEL_50K, 3),
            "sgm:edades:0": ("DES_CLAV", ("DES_CLAV",), 40)}
 MAX_LEGEND = 60
 COLORS_MAX_AGE = 30 * 86400
@@ -318,9 +319,12 @@ def legend_row(row: dict, table: dict, lang: str = "ko") -> dict:
     if "DES_CLAV" in f:                         # 지질 연대 점 — 시대 하나가 한 칸
         return {"color": table.get(row["value"], "#cccccc"), "symbol": "", "swatch": "",
                 "lithology": edad(row["value"], lang) or row["value"], "age": ""}
-    name = " · ".join(x for x in (f.get("LITOLOGIA"), f.get("FORMACION")) if x)
+    if "DLO" in f:                              # 1:5만 — 암상과 시작·끝 시대
+        name, age = f.get("DLO", ""), _span(f.get("EDAD_INI", ""), f.get("EDAD_FIN", ""), lang)
+    else:
+        name, age = " · ".join(x for x in (f.get("LITOLOGIA"), f.get("FORMACION")) if x), _span(f.get("PERIODO", ""), "", lang)
     return {"color": table.get(row["value"], "#cccccc"), "symbol": row["value"], "swatch": "",
-            "lithology": f"{row['value']} {name}".strip(), "age": _span(f.get("PERIODO", ""), "", lang)}
+            "lithology": f"{row['value']} {name}".strip(), "age": age}
 
 
 def breaks(name: str) -> list:
