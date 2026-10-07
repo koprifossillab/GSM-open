@@ -7,7 +7,7 @@
 """
 from django.core.management.base import BaseCommand, CommandError
 
-from viewer import recentquakes, usgs
+from viewer import fetchlog, recentquakes, usgs
 
 
 class Command(BaseCommand):
@@ -18,4 +18,6 @@ class Command(BaseCommand):
             got = usgs.fetch_recent(recentquakes.path())
         except (usgs.UsgsError, OSError) as exc:
             raise CommandError(str(exc)) from exc
+        # 기록 표에 — 받은 수와 피드를 지은 때 (jikhanjung 024)
+        fetchlog.note(rows=got["quakes"], upstream_version=f"{recentquakes.when(got['generated'])} UTC")
         self.stdout.write(f"최근 지진 {got['quakes']:,} 곳 — 피드를 지은 때 {recentquakes.when(got['generated'])} UTC")

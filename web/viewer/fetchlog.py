@@ -10,10 +10,11 @@
   보탠다(`rows`·`expected`·`raw_path` …). 명령 마흔다섯을 하나하나 고치지 않으려고 한 자리에서 감쌌다
 - **호스트**(`run.sh` 가 `GSM_RUN_PLACE=host`)는 **`FetchRun` 에 쓰지 않는다** — 읽기만 한다. `hourly.sh` 가 부른 일(`GSM_HOURLY_JOB=1`)은
   `hourly_status.json` 이 남기고, 그 밖에 호스트에서 부른 일(ERA5·ECCO2, 손으로 부른 `run.sh fetch_araon --past` 따위)은
-  `fetch_log_host.jsonl` 에 한 줄을 덧붙인다. 컨테이너가 옮겨 적는다(`sync()`) — jsonl 은 읽은 자리를 기억해 새 줄만 읽는다
+  `fetch_log_host/<날짜>.jsonl` 에 한 줄을 덧붙인다. 컨테이너가 옮겨 적는다(`sync()`) — jsonl 은 읽은 자리를 기억해 새 줄만 읽는다
 """
 import contextlib
 import json
+import logging
 import os
 import re
 import threading
@@ -29,6 +30,8 @@ from django.utils import timezone as dj_tz
 
 from .i18n import msg
 
+log = logging.getLogger(__name__)
+
 #: 명령이 `note()` 로 보탤 수 있는 칸
 FIELDS = ("upstream_version", "expected", "rows", "changed", "raw_path", "raw_sha256", "built_at", "built_by")
 COLUMNS = ("source", "command", "started_at", "seconds", "result", "note", "estimated", "origin", *FIELDS)
@@ -42,8 +45,41 @@ def store_path() -> Path:
     return Path(settings.STORE_PATH)
 
 
+#: 호스트가 남기는 jsonl 의 폴더 — 날마다 한 파일(`<폴더>/<YYYYMMDD>.jsonl`, jikhanjung 023). 컨테이너가 다 들인 지난 날의 파일은 지운다
+HOST_LOG = "fetch_log_host"       # 호스트에서 부른 일의 기록(손으로 부른 것)
+HOST_USAGE = "upstream_host"      # 호스트가 센 상류 호출 수(`usage.py`)
+#: 다 들인 파일도 이만큼 지난 날의 것만 지운다 — 어제 것은 자정을 넘겨 도는 일이 아직 쓸 수 있다
+HOST_KEEP_DAYS = 1
+
+
+def host_dir(name: str) -> Path:
+    return store_path().parent / name
+
+
 def host_log_path() -> Path:
-    return store_path().parent / "fetch_log_host.jsonl"
+    """옛 한 파일(`fetch_log_host.jsonl`) — 날마다 나누기 전의 것. 다 들일 때까지 읽고 지운다"""
+    return store_path().parent / f"{HOST_LOG}.jsonl"
+
+
+def append_day(name: str, row: dict):
+    """호스트가 `<DB 옆>/<name>/<오늘>.jsonl` 에 한 줄을 덧붙인다. 폴더는 무리가 쓸 수 있게(컨테이너가 다 들인 파일을 지운다)"""
+    from django.utils import timezone as dj_tz
+    folder = host_dir(name)
+    if not folder.is_dir():
+        folder.mkdir(parents=True, exist_ok=True)
+        try:
+            os.chmod(folder, 0o2775)
+        except OSError:
+            pass
+    p = folder / f"{dj_tz.localdate():%Y%m%d}.jsonl"
+    new = not p.exists()
+    with open(p, "a", encoding="utf-8") as fh:            # 한 줄 덧붙이기는 쪼개지지 않는다
+        fh.write(json.dumps(row, ensure_ascii=False) + "\n")
+    if new:
+        try:
+            os.chmod(p, 0o664)
+        except OSError:
+            pass
 
 
 def hourly_status_path() -> Path:
@@ -153,8 +189,9 @@ def record(source: str, command: str, schedule: str = "manual"):
                "note": last or tail.last, **extra}
         try:
             if on_host():
-                if not from_hourly():             # hourly.sh 가 부른 것은 hourly_status.json 이 남긴다
-                    _append_host(row)
+                # hourly.sh 가 부른 일도 남긴다 — `note()` 로 보탠 값(받은 수·판·바뀐 수)은 이 프로세스만 안다. hourly_status.json 은
+                # bash 가 써서 종료 코드·초·마지막 말뿐이다. 같은 차례가 두 줄이 되지 않게 표시하고 옮길 때 하나로 (jikhanjung 024)
+                _append_host({**row, "hourly": True} if from_hourly() else row)
             else:
                 write(row)
         except Exception:                         # noqa: BLE001 — 장부가 일을 막으면 안 된다
@@ -185,10 +222,7 @@ class _Tail:
 
 
 def _append_host(row: dict):
-    p = host_log_path()
-    line = json.dumps(row, ensure_ascii=False) + "\n"
-    with open(p, "a", encoding="utf-8") as fh:            # 한 줄 덧붙이기는 쪼개지지 않는다
-        fh.write(line)
+    append_day(HOST_LOG, row)
 
 
 # ── 옮겨 적기 ───────────────────────────────────────────────────────
@@ -220,7 +254,7 @@ def _hourly_rows(spec_rows, check: bool = False) -> list:
         result = {"ok": "ok", "skip": "skip"}.get(job.get("result"), "fail")
         rows.append({"source": source["id"], "command": command, "started_at": _shift(job["at"], job.get("seconds")),
                      "seconds": job.get("seconds"), "result": result, "note": str(job.get("note") or "")[:300],
-                     "origin": "hourly"})
+                     "origin": "hourly", "_end": job["at"]})
         last_ok = job.get("last_ok")
         if last_ok and last_ok != job["at"]:
             # 옮기기 전에 성공 뒤 실패가 오면 성공 줄이 빠진다. 그 성공을 이미 옮겼다면 같은 줄이 되어야 한다 —
@@ -228,10 +262,10 @@ def _hourly_rows(spec_rows, check: bool = False) -> list:
             took = job.get("last_ok_seconds")
             if took is not None:
                 rows.append({"source": source["id"], "command": command, "started_at": _shift(last_ok, took),
-                             "seconds": took, "result": "ok", "note": "마지막으로 된 차례", "origin": "hourly"})
+                             "seconds": took, "result": "ok", "note": "마지막으로 된 차례", "origin": "hourly", "_end": last_ok})
             elif not (check and _hourly_ok_near(source["id"], last_ok)):
                 rows.append({"source": source["id"], "command": command, "started_at": last_ok, "result": "ok",
-                             "note": "마지막으로 된 차례 — 끝난 때 (걸린 초는 모른다)", "origin": "hourly"})
+                             "note": "마지막으로 된 차례 — 끝난 때 (걸린 초는 모른다)", "origin": "hourly", "_end": last_ok})
     return rows
 
 
@@ -277,20 +311,96 @@ def new_lines(path: Path, mark: str) -> list:
     return rows
 
 
+def drain(name: str, legacy_mark: str) -> list:
+    """호스트가 남긴 jsonl 들의 새 줄 — 옛 한 파일(`<name>.jsonl`)과 날마다의 파일(`<name>/<YYYYMMDD>.jsonl`), dict 의 목록.
+
+    다 들인(읽은 자리가 끝인) 파일은 지운다 — 날마다의 것은 `HOST_KEEP_DAYS` 보다 지난 날의 것만, 옛 한 파일은 하루 넘게 손대지 않은 것만.
+    **지우기는 커밋 뒤에** — 부르는 쪽의 트랜잭션이 깨지면 자리도 되돌아가니 파일이 남아야 다음에 다시 읽는다 (jikhanjung 023)
+    """
+    from django.utils import timezone as dj_tz
+    rows, done = [], []
+    legacy = store_path().parent / f"{name}.jsonl"
+    if legacy.exists():
+        rows += new_lines(legacy, legacy_mark)
+        try:
+            stale = time.time() - legacy.stat().st_mtime > 86400
+        except OSError:
+            stale = False
+        if stale and _fully_read(legacy, legacy_mark):
+            done.append((legacy, legacy_mark))
+    folder = host_dir(name)
+    if folder.is_dir():
+        oldest = dj_tz.localdate() - timedelta(days=HOST_KEEP_DAYS)
+        for p in sorted(folder.glob("*.jsonl")):
+            mark = f"{name}/{p.stem}"
+            rows += new_lines(p, mark)
+            try:
+                day = datetime.strptime(p.stem, "%Y%m%d").date()
+            except ValueError:
+                continue
+            if day < oldest and _fully_read(p, mark):
+                done.append((p, mark))
+    if done:
+        transaction.on_commit(lambda: _remove(done))
+    return rows
+
+
+def _fully_read(path: Path, mark: str) -> bool:
+    from .models import FetchRunMark
+    got = FetchRunMark.objects.filter(key=mark).first()
+    try:
+        return bool(got) and got.value.isdigit() and int(got.value) >= path.stat().st_size
+    except OSError:
+        return False
+
+
+def _remove(done):
+    from .models import FetchRunMark
+    for path, mark in done:
+        try:
+            path.unlink()
+        except FileNotFoundError:
+            pass
+        except OSError as exc:                     # 지우지 못하면 남긴다 — 읽은 자리가 있어 두 번 들이지 않는다
+            log.warning("다 들인 호스트 기록을 지우지 못했다 (%s): %s", path.name, exc)
+            continue
+        FetchRunMark.objects.filter(key=mark).delete()
+
+
 def _host_rows() -> list:
-    """호스트 기록(jsonl)의 새 줄"""
-    return [{**r, "origin": "host"} for r in new_lines(host_log_path(), "host_offset")
-            if r.get("source") and r.get("started_at")]
+    """호스트 기록(jsonl)의 새 줄 — `hourly.sh` 가 부른 일(`"hourly": true`)은 origin `hourly`, 그 밖은 `host`"""
+    out = []
+    for r in drain(HOST_LOG, "host_offset"):
+        if not (r.get("source") and r.get("started_at")):
+            continue
+        hourly = bool(r.pop("hourly", False))
+        out.append({**r, "origin": "hourly" if hourly else "host"})
+    return out
+
+
+def _seen_run(source: str, end, batch) -> bool:
+    """`end` 에 끝난 매시 차례를 jsonl 이 이미 가져왔나 — 이번에 함께 옮기는 줄이나 표에, 같은 데이터소스의 origin `hourly` 줄이
+    `end` 에서 `HOURLY_LIMIT` 초 안쪽에 시작한 것. 그러면 hourly_status.json 의 줄(값이 모자란 것)은 버린다 (jikhanjung 024)"""
+    from .models import FetchRun
+    stop = _dt(end)
+    if stop is None:
+        return False
+    start = stop - timedelta(seconds=HOURLY_LIMIT)
+    for r in batch:
+        when = _dt(r.get("started_at"))
+        if r["source"] == source and when is not None and start <= when <= stop:
+            return True
+    return FetchRun.objects.filter(source=source, origin="hourly", started_at__range=(start, stop)).exists()
 
 
 def sync(spec_rows=None) -> int:
-    """호스트가 남긴 것(`hourly_status.json`·`fetch_log_host.jsonl`)을 `FetchRun` 으로, `upstream_host.jsonl` 을 `UpstreamDay` 로. 옮긴 기록 줄 수.
+    """호스트가 남긴 것(`hourly_status.json`·`fetch_log_host/`)을 `FetchRun` 으로, `upstream_host/` 를 `UpstreamDay` 로. 옮긴 기록 줄 수.
 
     호스트에서는 하지 않고, 기록이 꺼져 있으면(시험) 하지 않는다. 못 적으면 0 — 부르는 쪽을 죽이지 않는다.
     """
     if on_host():
         return 0
-    # 호스트가 센 상류 호출(`upstream_host.jsonl`)은 기록을 끄든 말든 들인다 — 호스트는 UpstreamDay 에 쓰지 않는다(P03, jikhanjung 018)
+    # 호스트가 센 상류 호출(`upstream_host/`)은 기록을 끄든 말든 들인다 — 호스트는 UpstreamDay 에 쓰지 않는다(P03, jikhanjung 018)
     from . import usage
     usage.sync_host()
     if not getattr(settings, "FETCH_LOG", True):
@@ -306,7 +416,11 @@ def sync(spec_rows=None) -> int:
         with transaction.atomic():
             host = [{**r, "source": by_command.get(r["source"], r["source"]) if r["source"] not in ids else r["source"]}
                     for r in _host_rows()]
-            rows = _hourly_rows(spec_rows, True) + host
+            # jsonl 이 가져온 매시 차례(값이 다 있다)가 이긴다 — hourly_status.json 의 줄은 jsonl 이 없을 때(시간을 넘겨 죽었을 때 따위)만
+            from_jsonl = [r for r in host if r["origin"] == "hourly"]
+            status = [r for r in _hourly_rows(spec_rows, True)
+                      if not _seen_run(r["source"], r.pop("_end"), from_jsonl)]
+            rows = status + host
             moved = write_many(rows) if rows else 0
     except (DatabaseError, OSError):
         moved = 0

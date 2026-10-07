@@ -9,8 +9,7 @@
 ## 결정 없이 할 수 있는 것 — 값이 큰 차례
 
 - [ ] **데이터소스 P03 2 단계 — 남은 것** — jikhanjung P03: 옛 파일 길(`sources.json`·`sources_history/`·`store.sqlite` 의 기록) 지우기는 0.73.x 가 며칠 돈 뒤. 탭에서 고치기·탭 안의 로그인은 jikhanjung 020(PR). 기록 줄이기는 하지 않는다(사람, 2026-10-07). 1 단계는 #381·#383·#385·#388(0.73.0·0.73.1)
-- [ ] **호스트의 jsonl 이 끝없이 자란다** — `upstream_host.jsonl`(상류 호출 수, 매시 넷이면 한 해 십몇 MB)·`fetch_log_host.jsonl`. 날마다 파일을 나누고 다 들인 지난 날짜의 파일을 컨테이너가 지운다 (jikhanjung 018)
-- [ ] 매시 일이 `fetchlog.note()` 로 보탠 것(받은 수 따위)은 기록에 안 남는다 — `hourly_status.json` 에 그 칸이 없다. 매시 넷의 받은 수가 보고 싶어지면 `hourly.sh` 가 칸을 더한다 (jikhanjung 018)
+- [ ] **PBDB 는 매주 바뀐 것만 받아 다시 굽는다** (사람, 2026-10-07 — 지금은 주간 백업의 ⑦ 에서 매달 첫 월요일에 통째로, 158 MB·27 만 8 천 곳). API 가 바뀐 것만 고르는 변수를 준다 — `colls/list` 의 `colls_modified_after`·`colls_created_after`(날짜·때), 지운 줄은 `_status` 가 `deleted` 라고 문서에 있다(이 질의로 실제로 돌아오는지는 아직 못 봤다). 운영과 같은 질의로 잰 바뀐 양: 지난 1 일 29 줄 16 KB · 7 일 81 줄 44 KB · 30 일 2 074 줄 1.2 MB. 그림 — 매주(WegenersDream 과 같은 주기) 마지막으로 받은 때부터(겹치게 하루 앞에서) 바뀐 줄만 받아 받아 둔 CSV(`earth/pbdb_collections.csv`)에 `collection_no` 로 덮어쓰고 지운 줄은 빼서 **sqlite 는 지금처럼 통째로 다시 굽는다**(`fossils.build`, 2 분 남짓) — upsert 길을 새로 짓지 않아도 되고, 화석 타일 캐시(열쇠에 `fossils_version`)가 무효가 되는 것도 매주 한 번이다. 놓친 것을 맞추려 통째 받기는 가끔(한 달·분기). 받는 차례는 데이터소스 장부(`fetchlog.note` — 받은 줄·바뀐 줄·지운 줄)에, 원본은 `rawstore` 날짜 폴더에 바뀐 판만(jikhanjung 015)
 - [ ] **admin 이 평문 HTTP 다** — 데이터소스 명세를 고치는 창구라 staff 계정·세션이 오간다(#381 검토 3). HTTPS 는 나중에(사람, 2026-10-07). 그 전에 nginx 에서 사내 대역만 받을지도 정한다. 밖에 연 판(`GSM_PUBLIC`)에서는 admin 경로를 이미 뺀다
 - [ ] 호주 남은 주 — 뉴사우스웨일스 이음매 없는 지질도뿐이다. `gs-seamless` 는 여전히 503, MinView 가 쓰는 `gs-mv` 는 공개 DNS 에 없다(NXDOMAIN, 2026-10-05). 살아나면 붙인다(wetherilli 361). 노던테리토리는 섰다
 - [ ] 남호주 지구물리의 값 누르기 — 방사능(K·Th·U)은 섰다(wetherilli 358). 자력·중력은 아직 RGB 뿐이다 — 중력 격자 4.7 GB(2016), 주 총자력 합본은 PDF·PNG 만 보였다. 가울러 크라톤 탐사의 합본 TMI 는 18 GB

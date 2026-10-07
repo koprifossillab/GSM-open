@@ -785,7 +785,7 @@ DATABASES = {
 }
 
 # **호스트는 GSM.db 를 열지 않는다** (사람, 2026-10-07, jikhanjung P03). 호스트 cron 이 `run.sh` 로 돌리는 명령(GSM_RUN_PLACE=host)은
-# 파일만 남기고(`hourly_status.json`·`fetch_log_host.jsonl`·`upstream_host.jsonl`), DB 에 들이는 일은 컨테이너가 한다(`hourly.sh` 끝의
+# 파일만 남기고(`hourly_status.json`·`fetch_log_host/`·`upstream_host/` — 날마다 한 파일), DB 에 들이는 일은 컨테이너가 한다(`hourly.sh` 끝의
 # `docker compose exec … sources_log --sync-only`). DB 가 꼭 필요한 일은 호스트에서 돌리지 않고 컨테이너 안에서 부른다.
 # 엔진을 dummy 로 바꿔 두어 실수로 DB 를 부르면 곧장 깨진다. 이름(`NAME`)은 남긴다 — `<DB 옆>` 의 자리를 거기서 셈한다
 if os.environ.get("GSM_RUN_PLACE") == "host":

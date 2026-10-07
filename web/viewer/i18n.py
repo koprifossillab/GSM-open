@@ -187,8 +187,8 @@ EN = {
         "{n} points is too many to read extra values for — the limit is {limit}. Call with extras=none",
     # 이름
     "대돌여지도": "Great Stone Map",
-    "GSM — 한국지질자원연구원 지오빅데이터 오픈플랫폼 오픈API 지도뷰어":
-        "GSM — a map viewer for the KIGAM Geo Big Data Open Platform API",
+    "GSM — 여러 나라 지질조사기관의 지질도를 겹쳐 보는 지도뷰어. 한국지질자원연구원 오픈API 에서 시작했다":
+        "GSM — a map viewer that overlays geological maps from survey agencies around the world. It began with the KIGAM open API",
     "불러오는 중": "Loading",
 
     # 띠
@@ -1665,8 +1665,8 @@ EN = {
     # ── 소개 (wetherilli 113) ──
     "대돌여지도 소개": "About Great Stone Map",
     "소개 다시 보지 않기": "Don't show the intro again",
-    "지질도를 겹쳐 보고, 눌러 속성을 읽고, 내 좌표를 얹는 지도 — 한국·극지·일본, 그리고 달과 화성까지.":
-        "Overlay geological maps, click to read attributes, drop your own coordinates on top — Korea, the poles, Japan, and on to the Moon and Mars.",
+    "지질도를 겹쳐 보고, 눌러 속성을 읽고, 내 좌표를 얹는 지도 — 쉰 남짓의 나라·지역과 온 지구, 그리고 달·화성·수성까지.":
+        "Overlay geological maps, click to read attributes, drop your own coordinates on top — some fifty countries and regions, the whole Earth, and on to the Moon, Mars and Mercury.",
     "언어": "Language",
     "지도로 바로 가기": "Go to the map",
     "한국 지도": "Korea map",

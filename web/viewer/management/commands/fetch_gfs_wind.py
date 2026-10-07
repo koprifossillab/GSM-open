@@ -20,7 +20,7 @@ import time
 
 from django.core.management.base import BaseCommand, CommandError
 
-from viewer import gfs, wind
+from viewer import fetchlog, gfs, wind
 
 
 def run_of(entry: dict) -> str:
@@ -43,6 +43,7 @@ class Command(BaseCommand):
             have = {e.get("fh", 0) for e in times.values() if run_of(e) == cycle and e.get("clouds")}
             todo = [fh for fh in gfs.FORECAST_HOURS if fh not in have]
             if not todo:
+                fetchlog.note(upstream_version=cycle, changed=0)            # 기록 표에 — 판과 바뀐 장 (jikhanjung 024)
                 self.stdout.write(f"{cycle} 은 다 있다 — 할 일 없음")
                 break
             done, waiting = [], []
@@ -72,6 +73,7 @@ class Command(BaseCommand):
             if 0 in waiting:
                 self.stdout.write(f"{cycle} 은 아직 올라오지 않았다")
                 continue                             # 앞 판으로
+            fetchlog.note(upstream_version=cycle, expected=len(todo), rows=len(done), changed=len(done))
             self.stdout.write(f"{cycle} — 받은 장 {', '.join(f'+{h}' for h in done) or '없음'}"
                               + (f" · 아직 없는 장 {', '.join(f'+{h}' for h in waiting)}" if waiting else ""))
             break

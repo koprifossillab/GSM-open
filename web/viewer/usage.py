@@ -121,19 +121,14 @@ def _on_host() -> bool:
     return os.environ.get("GSM_RUN_PLACE") == "host"
 
 
-def host_path():
-    from . import fetchlog
-    return fetchlog.store_path().parent / "upstream_host.jsonl"
-
-
 def _append_host(row: dict) -> None:
-    import json
-    with open(host_path(), "a", encoding="utf-8") as fh:          # 한 줄 덧붙이기는 쪼개지지 않는다
-        fh.write(json.dumps(row, ensure_ascii=False) + "\n")
+    """`<DB 옆>/upstream_host/<오늘>.jsonl` 에 한 줄 — 날마다 한 파일, 다 들인 지난 날의 것은 컨테이너가 지운다 (jikhanjung 023)"""
+    from . import fetchlog
+    fetchlog.append_day(fetchlog.HOST_USAGE, row)
 
 
 def sync_host() -> int:
-    """호스트가 센 것(`upstream_host.jsonl`)의 새 줄을 `UpstreamDay` 에 더한다. 더한 줄 수. 컨테이너만 — 못 하면 0"""
+    """호스트가 센 것(`upstream_host/` 의 날마다의 jsonl, 옛 `upstream_host.jsonl`)의 새 줄을 `UpstreamDay` 에 더한다. 더한 줄 수. 컨테이너만 — 못 하면 0"""
     from . import fetchlog
     if _on_host():
         return 0
@@ -141,7 +136,7 @@ def sync_host() -> int:
         # 읽은 자리와 더하기를 한 트랜잭션에 — 더하다 깨지면 자리도 되돌아가 다음에 다시 읽고(#383 검토), 매시 차례와 관리 화면이
         # 겹쳐도 IMMEDIATE 라 하나씩 돌아 같은 줄을 두 번 더하지 않는다 (jikhanjung 018)
         with transaction.atomic():
-            return _add_rows(fetchlog.new_lines(host_path(), "usage_offset"))
+            return _add_rows(fetchlog.drain(fetchlog.HOST_USAGE, "usage_offset"))
     except Exception as exc:                      # noqa: BLE001 — 세는 것은 덤이다
         log.debug("호스트가 센 것을 들이지 못했다: %s", exc)
         return 0

@@ -11,7 +11,7 @@ import datetime as dt
 
 from django.core.management.base import BaseCommand, CommandError
 
-from viewer import gmgsi, wind
+from viewer import fetchlog, gmgsi, wind
 
 
 class Command(BaseCommand):
@@ -25,6 +25,7 @@ class Command(BaseCommand):
         for hour in gmgsi.recent_hours(dt.datetime.now(dt.timezone.utc), 3):
             stamp = hour.strftime("%Y%m%d%H")
             if stamp in times:
+                fetchlog.note(upstream_version=stamp, changed=0)            # 기록 표에 — 장과 바뀌었나 (jikhanjung 024)
                 self.stdout.write(f"{stamp} 은 이미 있다 — 할 일 없음")
                 break
             try:
@@ -39,6 +40,7 @@ class Command(BaseCommand):
             times[stamp] = entry
             wind.write_index("gmgsi", list(times.values()))
             gone = wind.prune("gmgsi", opts["keep"])
+            fetchlog.note(upstream_version=stamp, changed=1)
             self.stdout.write(f"{stamp} 을 구웠다 ({len(blob) / 1e6:.1f} MB)" + (f" · 지움 {', '.join(gone)}" if gone else ""))
             break
         else:

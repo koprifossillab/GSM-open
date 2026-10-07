@@ -1,5 +1,5 @@
 #!/bin/bash
-# 매주 한 번(월요일 01:40): GSM 운영 자료를 백업하고, 상류에서 모아 두는 것을 새로 받는다 (koprifossillab P01).
+# 매주 한 번(월요일 03:10): GSM 운영 자료를 백업하고, 상류에서 모아 두는 것을 새로 받는다 (koprifossillab P01).
 # paleoadmin 의 crontab 에서 돈다 — deploy/host/crontab.GSM. 도는 것은 /srv/GSM/scripts/ 의 사본이다(koprifossillab 005). 틀은 WegenersDream 의 weekly_refresh.sh 다.
 #
 #   /srv/GSM/scripts/weekly_backup.sh                 ①–④ 백업 → ⑤–⑦ 받기
@@ -48,13 +48,13 @@ MODE=${1:-all}
 # 컨테이너 안의 manage.py — 받기(⑤–⑦)와 DB 사본(①)이 이 길로 간다. timeout 이 부를 수 있게 함수가 아니라 배열로 둔다
 MANAGE=(docker compose -f "$COMPOSE" exec -T -w /app/web web python manage.py)
 
-# 백업에 넣지 않는 것 — 비밀과 이 스크립트가 적는 결과(backup_status.json), 호스트가 센 상류 호출 수(upstream_host.jsonl — 매시 늘고 컨테이너가
+# 백업에 넣지 않는 것 — 비밀과 이 스크립트가 적는 결과(backup_status.json), 호스트가 센 상류 호출 수(upstream_host/ — 날마다 한 파일, 매시 늘고 컨테이너가
 # 매시 GSM.db 로 들인다. 넣으면 ② 가 매주 새로 뜬다, jikhanjung 018), 지금의 바람(wind/gfs — 여섯 시간마다 바뀌고
 # 다음 판이 이긴다. 넣으면 ② 가 매주 새로 뜬다, koprifossillab P02), 최근 지진(earth/quakes_recent.json — 매시 새로 받는다, wetherilli 292·297), 컨테이너의 기록(logs/ — 날마다 늘고 30 일이면 지운다, wetherilli 351)
-SECRETS='^\./(kigam_key|vworld_key|secret_key|geus_whoami|allowed_hosts|backup_status\.json|hourly_status\.json|upstream_host\.jsonl|wind/gfs/.*|wind/gmgsi/.*|earth/quakes_recent\.json|logs/.*)$'
+SECRETS='^\./(kigam_key|vworld_key|secret_key|geus_whoami|allowed_hosts|backup_status\.json|hourly_status\.json|upstream_host\.jsonl|upstream_host/.*|wind/gfs/.*|wind/gmgsi/.*|earth/quakes_recent\.json|logs/.*)$'
 # ① 에 드는 것. ② 의 목록에서 뺀다. pbdb.sqlite 는 CSV 로 다시 굽는다. 스위치 파일을 ② 에 두면 켜고 끌 때마다
 # 1.4 GB 를 새로 뜬다
-WEEKLY='^\./(GSM\.db.*|dev_direct_wms|public|kopri/.*|kigam50k/.*|sources\.json|sources_history/.*|store\.sqlite.*|fetch_log_host\.jsonl|earth/pbdb_collections\.csv|earth/pbdb\.sqlite)$'
+WEEKLY='^\./(GSM\.db.*|dev_direct_wms|public|kopri/.*|kigam50k/.*|sources\.json|sources_history/.*|store\.sqlite.*|fetch_log_host\.jsonl|fetch_log_host/.*|earth/pbdb_collections\.csv|earth/pbdb\.sqlite)$'
 
 case "$MODE" in all|--backup-only|--no-fetch) ;; *) echo "모르는 선택: $MODE" >&2; exit 2 ;; esac
 
@@ -153,7 +153,7 @@ if [ -f "$DB/store.sqlite" ]; then
 fi
 cp "$COMPOSE" "$STAGE/docker-compose.yml" || fail "compose 를 못 읽었다"
 extra=()
-for p in dev_direct_wms public kopri kigam50k sources.json sources_history fetch_log_host.jsonl earth/pbdb_collections.csv; do [ -e "$DB/$p" ] && extra+=("$p"); done
+for p in dev_direct_wms public kopri kigam50k sources.json sources_history fetch_log_host.jsonl fetch_log_host earth/pbdb_collections.csv; do [ -e "$DB/$p" ] && extra+=("$p"); done
 
 ARCHIVE=$BACKUPS/GSM.$DAY.tar.gz
 args=(-C "$STAGE" GSM.db docker-compose.yml manifest-built.txt)

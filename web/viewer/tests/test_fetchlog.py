@@ -7,6 +7,7 @@ import io
 import json
 import os
 import tempfile
+import time
 from datetime import datetime, timedelta
 from pathlib import Path
 from unittest import mock
@@ -45,6 +46,11 @@ class Base(TestCase):
 
     def rows(self):
         return [fetchlog.as_dict(r) for r in FetchRun.objects.order_by("id")]
+
+    def today(self, name):
+        """호스트가 오늘 덧붙이는 파일 — `<DB 옆>/<name>/<YYYYMMDD>.jsonl` (jikhanjung 023)"""
+        from django.utils import timezone
+        return self.dir / name / f"{timezone.localdate():%Y%m%d}.jsonl"
 
     def put(self, *rows):
         """명세를 표에 — 씨앗이 아니라 운영의 명세로 읽히게"""
@@ -86,8 +92,9 @@ class Record(Base):
             with fetchlog.record("araon", "fetch_araon", "hourly"):
                 pass                                         # 매시 일이라도 손으로 부른 것(--past)은 jsonl 에 (#369 검토 5)
         self.assertEqual(FetchRun.objects.count(), 0)
-        lines = (self.dir / "fetch_log_host.jsonl").read_text(encoding="utf-8").splitlines()
-        self.assertEqual([json.loads(x)["source"] for x in lines], ["era5", "araon"])
+        lines = [json.loads(x) for x in self.today("fetch_log_host").read_text(encoding="utf-8").splitlines()]
+        self.assertEqual([(x["source"], x.get("hourly", False)) for x in lines],
+                         [("wind", True), ("era5", False), ("araon", False)])      # hourly.sh 가 부른 일도 — 표시를 달고 (jikhanjung 024)
 
     def test_호스트는_DB_를_열지_않는다(self):
         """사람, 2026-10-07 — 호스트가 DB 를 건드려야 하면 컨테이너를 거친다. 호스트의 명령은 파일만 남긴다"""
@@ -105,9 +112,9 @@ class Record(Base):
                 with self.assertRaisesRegex(CommandError, "컨테이너 안에서"):
                     call_command(name, stdout=io.StringIO(), stderr=io.StringIO())
         self.assertEqual(ctx.captured_queries, [])
-        [line] = (self.dir / "fetch_log_host.jsonl").read_text(encoding="utf-8").splitlines()
+        [line] = self.today("fetch_log_host").read_text(encoding="utf-8").splitlines()
         self.assertEqual(json.loads(line)["source"], "fetch_kigam50k")
-        self.assertTrue((self.dir / "upstream_host.jsonl").exists())
+        self.assertTrue(self.today("upstream_host").exists())
 
     def test_호스트의_설정은_DB_엔진이_없다(self):
         import subprocess
@@ -237,6 +244,109 @@ class FromHost(Base):
         fetchlog.sync()                                   # 두 번 더하지 않는다
         row = UpstreamDay.objects.get(upstream="kopri")
         self.assertEqual((row.ok, row.fail, row.blocked, row.timed), (1, 1, 1, 1))
+
+
+class HostDaily(Base):
+    """호스트의 jsonl 을 날마다 나눈다 — 다 들인 지난 날의 파일은 커밋 뒤에 지운다 (jikhanjung 023)."""
+
+    def day_file(self, name, days_ago, *rows):
+        from datetime import date
+        from django.utils import timezone
+        day = timezone.localdate() - timedelta(days=days_ago)
+        p = self.dir / name / f"{day:%Y%m%d}.jsonl"
+        p.parent.mkdir(exist_ok=True)
+        p.write_text("".join(json.dumps(r) + "\n" for r in rows), encoding="utf-8")
+        return p
+
+    def sync(self):
+        """시험은 한 트랜잭션 안이라 커밋 뒤의 일(`on_commit` — 다 들인 파일 지우기)이 돌지 않는다 — 운영처럼 돌게"""
+        with self.captureOnCommitCallbacks(execute=True):
+            return fetchlog.sync()
+
+    def run_row(self, hour):
+        return {"source": "era5", "command": "build_era5_wind", "started_at": f"2026-10-05T{hour:02d}:00:00+09:00", "result": "ok"}
+
+    def test_다_들인_그제_것은_지우고_어제_오늘_것은_둔다(self):
+        old = self.day_file("fetch_log_host", 2, self.run_row(1))
+        yesterday = self.day_file("fetch_log_host", 1, self.run_row(2))
+        today = self.day_file("fetch_log_host", 0, self.run_row(3))
+        self.assertEqual(self.sync(), 3)
+        self.assertFalse(old.exists())
+        self.assertTrue(yesterday.exists() and today.exists())
+        from viewer.models import FetchRunMark
+        self.assertFalse(FetchRunMark.objects.filter(key=f"fetch_log_host/{old.stem}").exists())   # 자리도 치운다
+        self.assertEqual(self.sync(), 0)                                                       # 남은 것을 두 번 들이지 않는다
+
+    def test_들이기가_깨지면_파일도_자리도_남는다(self):
+        old = self.day_file("fetch_log_host", 3, self.run_row(1))
+        with mock.patch.object(FetchRun.objects, "bulk_create", side_effect=DatabaseError("database is locked")):
+            self.assertEqual(self.sync(), 0)
+        self.assertTrue(old.exists())
+        self.assertEqual(self.sync(), 1)                                                       # 다음에 다시
+        self.assertFalse(old.exists())
+
+    def test_옛_한_파일도_다_들이고_지운다(self):
+        legacy = self.dir / "fetch_log_host.jsonl"
+        legacy.write_text(json.dumps(self.run_row(4)) + "\n", encoding="utf-8")
+        self.assertEqual(self.sync(), 1)
+        self.assertTrue(legacy.exists())                                       # 하루 안에 손댄 것은 아직 둔다
+        os.utime(legacy, (time.time() - 2 * 86400,) * 2)
+        self.sync()
+        self.assertFalse(legacy.exists())
+
+    def test_상류_호출_수도_날마다(self):
+        from viewer import usage
+        from viewer.models import UpstreamDay
+        self.addCleanup(usage.reset)
+        old = self.day_file("upstream_host", 2, {"day": "2026-10-05", "upstream": "usgs", "field": "ok", "count": 1})
+        with mock.patch.dict(os.environ, {"GSM_RUN_PLACE": "host"}):
+            usage.record("kopri", ok=True)
+        self.assertTrue(self.today("upstream_host").exists())
+        self.sync()
+        self.assertEqual(sorted(UpstreamDay.objects.values_list("upstream", "ok")), [("kopri", 1), ("usgs", 1)])
+        self.assertFalse(old.exists())
+        self.assertTrue(self.today("upstream_host").exists())
+
+
+class HourlyNotes(Base):
+    """매시 일의 `note()` 값 — jsonl 이 가져오고, 같은 차례의 hourly_status.json 줄은 버린다 (jikhanjung 024)."""
+
+    def status(self, **job):
+        (self.dir / "hourly_status.json").write_text(json.dumps({"jobs": {"fetch_gfs_wind": job}}), encoding="utf-8")
+
+    def hourly_line(self, started, **extra):
+        from django.utils import timezone
+        p = self.dir / "fetch_log_host" / f"{timezone.localdate():%Y%m%d}.jsonl"
+        p.parent.mkdir(exist_ok=True)
+        with open(p, "a", encoding="utf-8") as fh:
+            fh.write(json.dumps({"source": "fetch_gfs_wind", "command": "fetch_gfs_wind", "started_at": started,
+                                 "result": "ok", "hourly": True, **extra}) + "\n")
+
+    def test_jsonl_의_값이_이기고_한_줄이다(self):
+        self.hourly_line("2026-10-07T16:40:03+09:00", seconds=38.0, upstream_version="2026100700", expected=5, rows=5, changed=5)
+        self.status(at="2026-10-07T16:40:45+09:00", result="ok", seconds=42, note="받은 장 +0…", last_ok="2026-10-07T16:40:45+09:00")
+        self.assertEqual(fetchlog.sync(), 1)
+        [row] = self.rows()
+        self.assertEqual((row["source"], row["origin"], row["upstream_version"], row["rows"], row["changed"]),
+                         ("wind", "hourly", "2026100700", 5, 5))
+        self.assertEqual(fetchlog.sync(), 0)              # 다음 옮기기에도 hourly_status 의 같은 차례를 또 적지 않는다
+        self.assertEqual(len(self.rows()), 1)
+
+    def test_jsonl_이_없으면_hourly_status_로(self):
+        """시간을 넘겨 죽으면 파이썬은 jsonl 에 못 쓴다 — bash 가 남긴 실패가 기록이 된다"""
+        self.status(at="2026-10-07T17:30:00+09:00", result="fail", seconds=3000, note="3000초를 넘겨 멈췄다")
+        self.assertEqual(fetchlog.sync(), 1)
+        [row] = self.rows()
+        self.assertEqual((row["result"], row["note"]), ("fail", "3000초를 넘겨 멈췄다"))
+
+    def test_실패_전의_성공도_jsonl_이_있으면_한_줄(self):
+        self.hourly_line("2026-10-07T15:40:02+09:00", seconds=3.0, rows=7)
+        fetchlog.sync()
+        self.status(at="2026-10-07T16:40:05+09:00", result="fail", seconds=5, note="상류 500",
+                    last_ok="2026-10-07T15:40:05+09:00", last_ok_seconds=4)
+        fetchlog.sync()
+        oks = [r for r in self.rows() if r["result"] == "ok"]
+        self.assertEqual([(r["rows"], r["started_at"]) for r in oks], [(7, "2026-10-07T15:40:02+09:00")])
 
 
 class WrapsCommands(Base):
@@ -485,6 +595,7 @@ class Followup383(Base):
         script = (Path(__file__).resolve().parents[3] / "deploy/scripts/weekly_backup.sh").read_text(encoding="utf-8")
         secrets = re.search(r"^SECRETS='([^']+)'", script, re.M).group(1)
         weekly = re.search(r"^WEEKLY='([^']+)'", script, re.M).group(1)
-        for name in ("./upstream_host.jsonl", "./hourly_status.json"):
+        for name in ("./upstream_host.jsonl", "./upstream_host/20261007.jsonl", "./hourly_status.json"):
             self.assertRegex(name, secrets)
-        self.assertRegex("./fetch_log_host.jsonl", weekly)                # 손으로 부른 일의 기록은 ① 에 담는다
+        for name in ("./fetch_log_host.jsonl", "./fetch_log_host/20261007.jsonl"):
+            self.assertRegex(name, weekly)                                 # 손으로 부른 일의 기록은 ① 에 담는다 (jikhanjung 023)

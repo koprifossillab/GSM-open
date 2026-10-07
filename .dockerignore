@@ -73,3 +73,5 @@ sources_history/
 /store.sqlite*
 /fetch_log_host.jsonl
 /upstream_host.jsonl
+/fetch_log_host/
+/upstream_host/

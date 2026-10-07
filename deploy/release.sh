@@ -3,7 +3,7 @@
 #
 #   bash deploy/release.sh prep    <판> <CHANGELOG 절 파일>   판 PR 을 연다(색인·CHANGELOG·version.py·HANDOFF)
 #   bash deploy/release.sh ship    <판>                       CI 를 기다려(깨지면 한 번 다시) 병합·릴리스·이미지 받기
-#   bash deploy/release.sh deploy  <판>                       컨테이너 안에 다른 일이 없으면 갈아 띄우고 healthz
+#   bash deploy/release.sh deploy  <판>                       컨테이너 안에 다른 일이 없으면 갈아 띄우고 healthz, 옛 이미지 정리
 #   bash deploy/release.sh publish <판>                       GSM-open 에 소스, gh-pages 에 정적 판
 #   bash deploy/release.sh all     <판>                       ship → deploy → publish
 #
@@ -23,6 +23,33 @@ TMP="$(mktemp -d)"; trap 'rm -rf "$TMP"' EXIT
 
 say() { printf '%s\n' "$*"; }
 clean() { [ -z "$(git status --short)" ] || { say "트리가 깨끗하지 않다 — 멈춘다"; exit 1; }; }
+
+# 옛 이미지를 정리한다 (.guides/web/deployment.md §5.1) — healthz 판 확인을 지난 뒤에만 부른다.
+#
+# 이 머신은 개발·운영을 겸하고 루트 SSD 가 늘 빠듯하다. 이미지는 판마다 쌓이고 손으로
+# 치우면 잊는다 — 그래서 배포의 마지막 단계다. 저장소마다 **만든 시각으로 최근 N 개**
+# (기본 3, 태그 글자순이 아니다 — v0.9 와 v0.10 은 글자순으로 거꾸로다)와 인자로 준
+# 태그(지금 판·되돌리기에 쓸 앞 판), 컨테이너(멈춘 것·시험 인스턴스 포함)가 쓰는 이미지는
+# 남긴다. 못 지운 것은 경고만 — 정리 실패가 배포를 실패로 만들지 않는다.
+# 지울 목록만 보려면 PRUNE_DRY_RUN=1, 끄려면 PRUNE_KEEP=0.
+prune_old_images() {   # $1 = 저장소, $2… = 지킬 태그
+    local repo="$1" keep="${PRUNE_KEEP:-3}" protect img; shift
+    [ "$keep" -gt 0 ] 2>/dev/null || { echo "  옛 이미지 정리를 건너뛴다 (PRUNE_KEEP=$keep)"; return 0; }
+    protect="$(mktemp)"
+    for img in "$@"; do [ -n "$img" ] && printf '%s:%s\n' "$repo" "$img" >> "$protect"; done
+    docker ps -a --format '{{.Image}}' | grep "^$repo:" >> "$protect" || true
+    docker images "$repo" --format '{{.CreatedAt}}\t{{.Repository}}:{{.Tag}}' \
+        | grep -v '<none>' | sort -r | tail -n +"$((keep + 1))" | cut -f2 \
+        | grep -vxF -f "$protect" \
+        | while read -r img; do
+            if [ "${PRUNE_DRY_RUN:-}" = 1 ]; then echo "  (dry-run) 지울 것: $img"
+            elif docker rmi "$img" >/dev/null 2>&1; then echo "  옛 이미지를 지웠다: $img"
+            else echo "  경고: $img 를 지우지 못했다 — 넘어간다" >&2; fi
+        done || true   # 지울 것이 없으면 grep 이 1 — set -e·pipefail 아래서 배포를 죽이지 않게
+    rm -f "$protect"
+    [ "${PRUNE_DRY_RUN:-}" = 1 ] || docker image prune -f >/dev/null 2>&1 || true
+    return 0
+}
 
 checks() {   # PR 의 검사 상태를 한 줄로 — 모두 SUCCESS 면 ok
   gh pr checks "$1" --json state --jq '[.[].state] | if length > 0 and all(. == "SUCCESS") then "ok" else join(",") end'
@@ -124,7 +151,8 @@ ship() {
 }
 
 deploy() {
-  local id; id="$(docker compose -f "$COMPOSE" ps -q web)"
+  local id prev; id="$(docker compose -f "$COMPOSE" ps -q web)"
+  prev="$(docker inspect -f '{{.Config.Image}}' "$id" 2>/dev/null | sed 's/.*://')"   # 되돌리기에 쓸 앞 판
   # 컨테이너 안에서 도는 명령(미리 데우기·받기)이 있으면 갈아 띄우지 않는다 — 세션들이 돌린 것일 수 있다
   docker top "$id" -o pid,args > "$TMP/top"
   local busy; busy="$(tail -n +2 "$TMP/top" | grep -v gunicorn || true)"
@@ -139,6 +167,8 @@ print(r['status'], r['version'], '|', '; '.join(n[:60] for n in r.get('notes') o
   done
   say "healthz: ${out:-대답 없음}"
   case "$out" in *" $ver "*) ;; *) say "판이 $ver 가 아니다"; exit 1;; esac
+  say "옛 이미지를 정리한다 (최근 ${PRUNE_KEEP:-3}개 + $tag + ${prev:-앞 판 모름})"
+  prune_old_images koprifossillab/gsm "$tag" "$prev"
 }
 
 publish() {

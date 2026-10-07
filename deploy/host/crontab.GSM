@@ -6,19 +6,20 @@
 # deploy/scripts/ 와 앱 코드로 새로 깔린다(install.sh). 파이썬 일은 run.sh 가 전용 venv(/srv/GSM/scripts/venv)로 돌린다.
 # 저장소의 체크아웃이 어느 브랜치에 있든 운영의 cron 은 운영의 판을 돈다 (koprifossillab 005).
 #
-# 매주 월요일 01:40 — ① 다시 못 얻는 것(GSM.db·kopri·kigam50k·PBDB CSV)을 /data/GSM/backups/GSM.<YYYYMMDD>.tar.gz 로,
+# 매주 월요일 03:10 — ① 다시 못 얻는 것(GSM.db·kopri·kigam50k·PBDB CSV)을 /data/GSM/backups/GSM.<YYYYMMDD>.tar.gz 로,
 # ② 구운 것을 목록이 바뀐 주에만 GSM-built.<YYYYMMDD>.tar 로 뜨고 둘 다 NAS(/nfs/temp-share/GSM/backup/)에도 둔다.
 # ③ 타일 캐시를 NAS 로, ④ NAS 원본을 /data/GSM/sources 로 거울질한 뒤 ⑤ fetch_kopri(매주)·
 # ⑦ fetch_pbdb(첫 월요일)를 컨테이너 안에서 부른다(⑥ fetch_kigam50k 는 뺐다 — 사람이 가끔, wetherilli 208). GSM.db 의 사본도 컨테이너가 뜬다 —
-# 호스트는 GSM.db 를 열지 않는다(jikhanjung 016·017). WegenersDream(월 02:30)보다 한 시간 먼저, 다른 앱의 새벽 일
+# 호스트는 GSM.db 를 열지 않는다(jikhanjung 016·017). WegenersDream(월 02:30) 뒤에, 다른 앱의 새벽 일
 # (매시 :20·:25, 03:00·04:00 phyloserver, 04:40·05:10 NAS 동기화, 05:00 타임랩스)과 겹치지 않게 비껴 뒀다.
+# :10 인 것은 매시 받기(:40)와 겹치지 않게다 — ① tar 가 담는 fetch_log_host/ 에 매시 일이 덧붙이고 지운다(koprifossillab 023).
 # 결과는 /data/GSM/logs/last_backup.json. 로그: /data/GSM/logs/weekly_backup.log
-40 1 * * 1 /srv/GSM/scripts/weekly_backup.sh >> /data/GSM/logs/weekly_backup.log 2>&1
+10 3 * * 1 /srv/GSM/scripts/weekly_backup.sh >> /data/GSM/logs/weekly_backup.log 2>&1
 
 
 # 매시 받기 (koprifossillab 013) — 매시 :40 에 hourly.sh 가 차례로 부른다: 지금의 바람·구름(fetch_gfs_wind, koprifossillab 003·008·011),
 # 위성 구름(fetch_gmgsi, 012), 아라온호 위치(fetch_araon, 004), 최근 지진(fetch_recent_quakes, wetherilli 292). 일은 저마다 run.sh 로 따로 부를 수 있다. 한 일이 멈춰도 다음 일은
 # 돈다. :40 인 것은 GMGSI 의 장이 정시에서 30 분 남짓 뒤에 올라오기 때문이다 — 다른 매시 일(:20·:25)과도 비껴 있다.
 # 일마다의 결과는 /srv/GSM/db/hourly_status.json(`/GSM/healthz/` 가 읽는다), 로그는 /data/GSM/logs/hourly.log
-# 차례 끝에 컨테이너가 그 결과와 호스트가 센 상류 호출 수(upstream_host.jsonl)를 GSM.db 로 들인다(sources_log --sync-only)
+# 차례 끝에 컨테이너가 그 결과와 호스트가 센 상류 호출 수(upstream_host/<날짜>.jsonl)를 GSM.db 로 들인다(sources_log --sync-only)
 40 * * * * timeout 3000 /srv/GSM/scripts/hourly.sh

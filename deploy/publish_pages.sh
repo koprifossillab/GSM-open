@@ -33,6 +33,9 @@ fi
 VERSION="$(sed -n 's/^VERSION = "\(.*\)"/\1/p' web/gsmweb/version.py)"
 cd "$WORK/site"
 git init -q -b gh-pages
+# 커밋 뒤 git 이 뒤에서 도는 정리(auto gc)를 끈다 — 끝의 rm -rf 와 부딪혀 밀고도 1 로 끝나던 것 (wetherilli 371 뒤)
+git config gc.auto 0
+git config maintenance.auto false
 git add -A
 git -c user.name="$(git -C "$OLDPWD" config user.name || echo GSM)" \
     -c user.email="$(git -C "$OLDPWD" config user.email || echo gsm@localhost)" \

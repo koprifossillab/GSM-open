@@ -128,6 +128,9 @@
 | jikhanjung 018 | 2026-10-07 | [P03 다시 보기 — 백업이 주울 뻔한 파일, 호출 수 들이기의 트랜잭션](20261007_jikhanjung_018_source_db_followup.md) |
 | jikhanjung 020 | 2026-10-07 | [데이터소스 탭에서 명세를 고친다 — 탭 안의 로그인 (P03 2 단계)](20261007_jikhanjung_020_source_edit.md) |
 | jikhanjung 021 | 2026-10-07 | [소개 다시 보지 않기](20261007_jikhanjung_021_intro_skip.md) |
+| jikhanjung 022 | 2026-10-07 | [설정 시트의 한 줄 설명과 소개의 meta description](20261007_jikhanjung_022_tagline.md) |
+| jikhanjung 023 | 2026-10-07 | [호스트의 jsonl 을 날마다 나눈다](20261007_jikhanjung_023_host_jsonl_daily.md) |
+| jikhanjung 024 | 2026-10-07 | [매시 일의 `note()` 값도 기록에](20261007_jikhanjung_024_hourly_notes.md) |
 | wetherilli 078 | 2026-09-30 | [3D 극지 지형을 미리 받는다](20260930_wetherilli_078_polar_dem_prewarm.md) |
 | wetherilli 079 | 2026-09-30 | [화성 — USGS 지역 지질도를 옛 지질도에 얹는다](20260930_wetherilli_079_mars_regional_geology.md) |
 | wetherilli 080 | 2026-09-30 | [화성 — NASA Trek 판 목록을 화성 화면에](20260930_wetherilli_080_mars_trek_catalog.md) |
@@ -458,3 +461,5 @@
 | koprifossillab 019 | 2026-10-06 | [아라온호 받기가 DNS 로 22 시간 멈춘 것 — 호스트 /etc/hosts 에 고정](20261006_koprifossillab_019_araon_dns.md) |
 | koprifossillab 020 | 2026-10-06 | [시험이 /tmp 에 흘린 것 — tempfile 의 기본 자리를 러너의 임시 자리로](20261006_koprifossillab_020_test_tmp_leak.md) |
 | koprifossillab 021 | 2026-10-06 | [지난 바람 ERA5 를 8 TB 하드로 — 루트 SSD 를 비운다](20261006_koprifossillab_021_era5_on_data.md) |
+| koprifossillab 022 | 2026-10-07 | [판을 띄운 뒤 옛 이미지를 정리한다](20261007_koprifossillab_022_prune_old_images.md) |
+| koprifossillab 023 | 2026-10-07 | [주간 백업을 월요일 03:10 으로 — 매시 받기(:40)와 비끼고 WegenersDream 뒤에](20261007_koprifossillab_023_backup_at_10.md) |

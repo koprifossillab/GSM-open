@@ -9,7 +9,7 @@
 """
 from django.core.management.base import BaseCommand, CommandError
 
-from viewer import kopri
+from viewer import fetchlog, kopri
 
 
 class Command(BaseCommand):
@@ -32,7 +32,9 @@ class Command(BaseCommand):
             row = kopri.fetch_araon()
         except kopri.KopriError as exc:
             raise CommandError(str(exc)) from exc
-        if kopri.append_araon(row):
+        fresh = kopri.append_araon(row)
+        fetchlog.note(upstream_version=str(row.get("time") or ""), changed=int(bool(fresh)))     # 기록 표에 (jikhanjung 024)
+        if fresh:
             self.stdout.write(f"아라온호 {row['time']} {row['lat']}, {row['lon']}")
         else:
             self.stdout.write(f"아라온호 새 자리 없음 (마지막 {row['time']})")
