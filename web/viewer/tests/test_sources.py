@@ -346,3 +346,93 @@ class Followup383(Dir):
             sources.record_change(pk, row, None, "admin")
         self.assertEqual(sources.seed()["added"], [])
         self.assertFalse(DataSource.objects.exists())
+
+
+class TabEdit(Dir):
+    """관리 화면 "데이터소스" 탭에서 고치기와 탭 안의 로그인 (jikhanjung 020)."""
+
+    def setUp(self):
+        super().setUp()
+        self.write_seed([])
+        sources._put([_row(id="a"), _row(id="b", schedule="hourly")], "seed")
+        self.staff = User.objects.create_user("editor", password="pw", is_staff=True)
+        User.objects.create_user("viewer", password="pw")
+
+    def form(self, **over):
+        data = {"name_ko": "시험", "name_en": "Demo", "org": "", "kind": "fetch", "schedule": "manual",
+                "runs_on": "container", "license": "CC BY 4.0", "commands": "fetch_demo", "outputs": "", "raw": "",
+                "docs": "", "note": ""}
+        data.update(over)
+        return data
+
+    def page(self):
+        return self.client.get("/GSM/manage/").content.decode()
+
+    def login(self, name="editor", password="pw"):
+        return self.client.post("/GSM/manage/login/", {"username": name, "password": password}, follow=True)
+
+    def test_로그인_전에는_폼이_없고_고칠_수_없다(self):
+        page = self.page()
+        self.assertIn('action="/GSM/manage/login/"', page)
+        self.assertNotIn("mg-src-edit", page)
+        self.assertEqual(self.client.post("/GSM/manage/sources/a/", self.form(license="x")).status_code, 403)
+        self.assertEqual(DataSource.objects.get(pk="a").license, "CC BY 4.0")
+
+    def test_틀린_비밀번호와_staff_아닌_계정(self):
+        self.assertIn("이름이나 비밀번호가 맞지 않는다", self.login(password="nope").content.decode())
+        r = self.login("viewer")
+        self.assertIn("staff 계정이 아니다", r.content.decode())
+        self.assertNotIn("_auth_user_id", self.client.session)
+
+    def test_staff_는_탭에서_고치고_이력이_남는다(self):
+        r = self.login()
+        self.assertEqual(r.redirect_chain[-1][0], "/GSM/manage/?tab=sources")
+        page = r.content.decode()
+        self.assertIn("editor 로 로그인했다", page)
+        self.assertIn('action="/GSM/manage/sources/a/"', page)
+        r = self.client.post("/GSM/manage/sources/a/", self.form(license="사람이 고친 조건", flags=["nc"], docs="jikhanjung 020\nP03"),
+                             follow=True)
+        self.assertEqual(r.redirect_chain[-1][0], "/GSM/manage/?tab=sources&src=a")
+        obj = DataSource.objects.get(pk="a")
+        self.assertEqual((obj.license, obj.flags, obj.docs, obj.updated_by), ("사람이 고친 조건", ["nc"], ["jikhanjung 020", "P03"], self.staff))
+        change = DataSourceChange.objects.filter(origin="tab").get()
+        self.assertEqual((change.source, change.by_name, change.before["license"]), ("a", "editor", "CC BY 4.0"))
+        page = r.content.decode()
+        self.assertIn("a 의 명세를 고쳤다", page)
+        self.assertIn("명세의 이력", page)
+        self.assertIn("관리 화면 · editor · <span class=\"mono\">docs, flags, license</span>", page)
+        self.assertIn('<details class="mg-src-edit" open>', page)                # 돌아오면 그 줄의 폼이 열려 있다
+
+    def test_틀린_값은_저장하지_않는다(self):
+        self.login()
+        r = self.client.post("/GSM/manage/sources/a/", self.form(schedule="가끔"), follow=True)
+        self.assertIn("저장하지 않았다", r.content.decode())
+        self.assertEqual(DataSource.objects.get(pk="a").schedule, "manual")
+        self.assertFalse(DataSourceChange.objects.filter(origin="tab").exists())
+
+    def test_바뀐_것이_없으면_이력도_없다(self):
+        self.login()
+        r = self.client.post("/GSM/manage/sources/a/", self.form(), follow=True)
+        self.assertIn("바뀐 것이 없다", r.content.decode())
+        self.assertFalse(DataSourceChange.objects.filter(origin="tab").exists())
+
+    def test_CSRF_를_묻는다(self):
+        from django.test import Client
+        client = Client(enforce_csrf_checks=True)
+        client.force_login(self.staff)
+        self.assertEqual(client.post("/GSM/manage/sources/a/", self.form(license="x")).status_code, 403)
+        self.assertEqual(client.post("/GSM/manage/login/", {"username": "editor", "password": "pw"}).status_code, 403)
+
+    def test_밖에_연_판에는_없다(self):
+        self.client.force_login(self.staff)
+        with override_settings(PUBLIC=True):
+            page = self.page()
+            self.assertNotIn("mg-src-login", page)
+            self.assertNotIn("mg-src-edit", page)
+            self.assertEqual(self.client.post("/GSM/manage/sources/a/", self.form(license="x")).status_code, 404)
+            self.assertEqual(self.client.post("/GSM/manage/login/", {"username": "editor", "password": "pw"}).status_code, 404)
+
+    def test_로그아웃(self):
+        self.login()
+        self.client.post("/GSM/manage/logout/")
+        self.assertIn('action="/GSM/manage/login/"', self.page())

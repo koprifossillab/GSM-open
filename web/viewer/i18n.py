@@ -484,6 +484,10 @@ EN = {
     "지질시대 띠를 접는다": "Fold the time scale", "지질시대 띠를 편다": "Unfold the time scale",
     "판 조각 경계": "Plate piece outlines",
     "PALEOMAP 2016 판 회전으로 셈한 그때의 지구": "The Earth then, computed with the PALEOMAP 2016 plate rotations",
+    "땅과 바다 밑의 높이는 PaleoDEM 의 {ma} Ma (Scotese & Wright 2018)":
+        "Land and sea-floor heights from the PaleoDEM at {ma} Ma (Scotese & Wright 2018)",
+    "높이 격자(PaleoDEM)는 540 Ma 까지다 — 판 조각만 칠한다":
+        "The height grids (PaleoDEM) reach only 540 Ma — only the plate pieces are coloured",
     "PALEOMAP 2016 판 회전으로 셈한 그때의 지구다 — 관측이 아니다. 다른 판 모델과는 100 Ma 에 1 000 km 안팎 다르다. 오늘의 영상·지형·지질도는 오늘에만 뜬다":
         "The Earth then, computed with the PALEOMAP 2016 plate rotations — not an observation. "
         "Other plate models differ by around 1,000 km at 100 Ma. "
@@ -612,6 +616,15 @@ EN = {
     "최근 지진": "Recent earthquakes",
     "제4기 고생태 산지 Neotoma": "Quaternary palaeoecology sites Neotoma",
     "맨틀 슬랩": "Mantle slabs",
+    "다누리 자기장 궤적": "Danuri magnetometer tracks",
+    # 달 화면의 다누리 KMAG 궤적 (wetherilli 378)
+    "다누리 (KPLO)": "Danuri (KPLO)",
+    "다누리 자기장 측정기(KMAG) 궤적": "Danuri magnetometer (KMAG) tracks",
+    "다누리 자기장 궤적 파일이 없다": "No Danuri magnetometer track file",
+    "여기 가까이 지난 궤적이 없다": "No track passes near here",
+    "|B| 는 바깥 자기장(태양풍·지구 자기권)이 섞인 값 — 지각 자기 이상이 아니다":
+        "|B| includes external fields (solar wind, Earth's magnetosphere) — it is not a crustal magnetic anomaly",
+    "그때의 땅과 바다 밑 높이": "Land and sea-floor heights then",
     "지각 응력": "Crustal stress",
     "광상": "Mineral deposits",
     "활성 단층 GEM": "Active faults GEM",
@@ -1548,8 +1561,40 @@ EN = {
     "명세가 바뀌었다 — {name}": "Spec changed — {name}",
     "센 수 {e} · 받은 수 {n}": "counted {e} · received {n}",
     "받은 차례가 아직 없다": "No runs recorded yet",
-    "명세는 admin 에서 고친다(staff 계정) — 고칠 때마다 누가·언제·앞뒤가 이력에 남는다. 받은 차례는 명령이 끝날 때 저절로 쌓이고, 서버 쪽에서는 manage.py sources_log 로 같은 것을 본다.":
-        "The spec is edited in the admin (staff account) — every edit records who, when and the before/after. Runs are recorded when each command finishes; on the server, manage.py sources_log shows the same.",
+    "명세는 staff 계정으로 로그인해 줄을 펼친 자리나 admin 에서 고친다 — 고칠 때마다 누가·언제·앞뒤가 이력에 남는다. 받은 차례는 명령이 끝날 때 저절로 쌓이고, 서버 쪽에서는 manage.py sources_log 로 같은 것을 본다.":
+        "Edit the spec by signing in with a staff account and expanding a row, or in the admin — every edit records who, when and the before/after. Runs are recorded when each command finishes; on the server, manage.py sources_log shows the same.",
+    # 탭에서 고치기 (jikhanjung 020)
+    "admin 에서 보기": "Open in admin",
+    "staff 계정이 아니다 — 명세를 고칠 수 없다": "Not a staff account — it cannot edit the spec",
+    "{id} 의 명세를 고쳤다": "Saved the spec of {id}",
+    "{name} 로 로그인했다 — 줄을 펼치면 명세를 고칠 수 있다": "Signed in as {name} — expand a row to edit its spec",
+    "{name} 은 staff 계정이 아니라 명세를 고칠 수 없다": "{name} is not a staff account and cannot edit the spec",
+    "갈래": "Kind",
+    "계정 이름": "Username",
+    "근거": "References",
+    "기관": "Organization",
+    "돌리는 곳": "Runs on",
+    "로그아웃": "Sign out",
+    "로그인": "Sign in",
+    "로그인했다 — 줄을 펼치면 명세를 고칠 수 있다": "Signed in — expand a row to edit its spec",
+    "메모": "Note",
+    "명령": "Commands",
+    "명세를 고치려면 로그인한다 (staff 계정)": "Sign in to edit the spec (staff account)",
+    "명세의 이력": "Spec history",
+    "바뀐 것이 없다": "Nothing changed",
+    "바뀐 칸 없음": "no field changed",
+    "비밀번호": "Password",
+    "새로 넣음": "added",
+    "씨앗": "seed",
+    "영어 이름": "English name",
+    "원본 자리": "Raw location",
+    "이름이나 비밀번호가 맞지 않는다": "The username or password is wrong",
+    "저장하지 않았다 — {why}": "Not saved — {why}",
+    "지움": "deleted",
+    "파일에서 옮김": "imported from the file",
+    "표시": "Flags",
+    "한 줄에 하나": "one per line",
+    "받은 차례": "Runs",
     "명세 고치기": "Edit the spec",
     "매시": "hourly",
     "매주": "weekly",
@@ -1619,6 +1664,7 @@ EN = {
 
     # ── 소개 (wetherilli 113) ──
     "대돌여지도 소개": "About Great Stone Map",
+    "소개 다시 보지 않기": "Don't show the intro again",
     "지질도를 겹쳐 보고, 눌러 속성을 읽고, 내 좌표를 얹는 지도 — 한국·극지·일본, 그리고 달과 화성까지.":
         "Overlay geological maps, click to read attributes, drop your own coordinates on top — Korea, the poles, Japan, and on to the Moon and Mars.",
     "언어": "Language",
@@ -2070,6 +2116,11 @@ EN = {
 # 모았다. 영문 열(`symnum`·`GRAY_INDEX` …)은 그대로 둔다.
 
 PROP_EN = {
+    # 다누리 KMAG (wetherilli 378)
+    "시각": "Time",
+    "자기장 세기 |B|": "Field strength |B|",
+    "측정점": "Sample point",
+    "주의": "Note",
     "특성": "Characteristics",                 # 대만 암체 강도 등급의 지층 특성 (wetherilli 370)
     "등급의 차례": "Class order",
     # 호주 확인 자원·수리지질도 (wetherilli 325)

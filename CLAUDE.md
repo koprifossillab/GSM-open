@@ -236,7 +236,9 @@ WMS·z/x/y·우리가 굽는 것) 계획을 따로 둔다 (029).
   Trek 을 곧장 부른다. 루나 오비터·클레멘타인 배경은 브라우저가 USGS Astrogeology WMS 를 칸의 경위도 범위로 곧장 부른다(공공 도메인,
   CORS `*`, wetherilli 229) — 극 평면에서는 USGS 극 판이 우리 극 격자와 맞지 않아 WAC 를 쓴다. 좌표는 달 경위도다 — 지구의 `toLL`·좌표계를 타지 않는다. 평면은 위도 65° 너머면
   달 극 평사도법(`IAU_2015:30130`·`30135`)이고 Trek 의 극지 판을 받는다 (052). 달 지명은
-  `data/moon_places.json`(`manage.py fetch_moon_places`). 원도 6 장(1971–1979)은 우리가 굽는다 — 아래 "파일을 받아"
+  `data/moon_places.json`(`manage.py fetch_moon_places`). 원도 6 장(1971–1979)은 우리가 굽는다 — 아래 "파일을 받아".
+  **다누리(KPLO) 자기장 측정기 궤적**은 모아 둔 것(`fetch_kmag`, `<KPDS_DIR>/kmag.sqlite`)을 서버가 한 색 선으로 긋는다(`kmag.py`, 경위도·극 타일,
+  wetherilli 377·378) — **|B| 로 칠하지 않는다**(바깥 자기장이 섞인 값이라 지각 자기 이상처럼 읽히면 오해다, 사람이 정했다). 누르면 시각·고도·|B|
 - **화성도 지역이 아니다** — 달 화면을 옮긴 따로 화면(`/GSM/mars/`, `mars.js`·`mars.html`, 058)이다. 틀은 달과 같고
   자료만 다르다 — USGS 화성 지질도(SIM 3292)·MOLA–HRSC 지형, 영상 배경은 Viking·THEMIS·MOLA. 문은 같은 `trek.py`
   (`mars_*`, 주소 `TREK_MARS_URL`)다 — 같은 NASA Trek 의 다른 몸이라 문을 새로 내지 않았다. 테마는 녹슨 주황이다.
@@ -262,8 +264,10 @@ WMS·z/x/y·우리가 굽는 것) 계획을 따로 둔다 (029).
   `manage.py build_paleomap <zip>`)으로 단위의 윗·밑 연대나 사람이 넣은 연대로 옮긴다. EarthThruTime3D 와 같은 모델·같은 줄임이다 —
   건너갔을 때 같은 자리에 핀이 서게. 셈은 ETT 의 코드(MIT, `docs/licenses/`)를 옮겼다. **계산이지 관측이 아니다**.
   옮겨진 연대에는 ETT 를 여는 링크가 붙는다(`earth.js` 의 `ettHref`, wetherilli 088) — 오늘의 좌표와 연대만 넘긴다.
-  **시간 축**(wetherilli P07·091·373) — 연대 하나를 지도 위 너비를 다 쓰는 ICS 지질시대 띠(`timescale.py`)에서 누르거나 끌어 고른다(`?age=`). 왼쪽이 옛날, 제4기만 로그로 넓게 편다. 1 Ma 부터는 오늘의 영상·지형·지질도를 끄고
+  **시간 축**(wetherilli P07·091·373·376) — 연대 하나를 지도 위 너비를 다 쓰는 ICS 지질시대 띠(`timescale.py`, 대·기·세 세 줄)에서 누르거나 끌어 고른다(`?age=`). 띠는 처음에 접혀 있다(376). 왼쪽이 옛날, 제4기만 로그로 넓게 편다. 1 Ma 부터는 오늘의 영상·지형·지질도를 끄고
   서버가 판을 돌려 칠한 경위도 타일(`paleo.render_tile`, 그리는 법을 고치면 `paleo.RENDERER` 를 올린다)을 바다색 구에 그린다.
+  타일의 바탕은 **PaleoDEM**(Scotese & Wright 2018, CC BY 4.0, 0–540 Ma 5 Myr 간격)을 고도로 칠하고 음영을 얹은 것이고 판 경계는 가는 선이다 —
+  WegenersDream 의 배경과 같은 빛이다(`paleodem.py`, `<EARTH_DIR>/paleodem/` — 호스트에서 `run.sh build_paleodem <zip>`, wetherilli 375). 540 Ma 너머는 판 조각만 칠한다.
   판을 돌리는 셈은 서버의 `paleo.py` 하나다 — 브라우저에 두지 않는다. 레이어의 `then: true` 는 1 Ma 부터만 뜬다 — 옛 해안선
   (`paleocoast.py`, PaleoCoastlines v7.1, `<EARTH_DIR>/paleocoastlines_v7.json` — `manage.py build_paleocoastlines <zip>`, wetherilli 097).
   `always` 는 늘 뜬다 — **화석 산지**(PBDB 27 만 곳, 문 `pbdb.py`, `manage.py fetch_pbdb` 가 받아 `fossils.py` 가 `<EARTH_DIR>/pbdb.sqlite`
@@ -553,6 +557,7 @@ web/viewer/       뷰어 앱 하나뿐이다. 앱을 더 가르지 않는다
   era5.py         ARCO-ERA5(Google Cloud 공개 버킷)로 나가는 문 (지난 바람). 37 층 덩이에서 그 층만 Range 로. 사람이 부른다(`build_era5_wind`)
   ecco.py         ECCO2(NASA NAS 데이터 포털, 로그인 없음)로 나가는 문 (해류, 3 일 평균 표층). netCDF 머리를 읽고 표층만 Range 로. 사람이 부른다(`build_ecco2`)
   kopri.py        극지연구소로 나가는 문 (암석 시료 DB·KPDC 자료 목록·KPDC 지도 서버·아라온호 위치). 목록은 모아 둔다(`fetch_kopri`), 아라온호는 매시간 쌓아(`fetch_araon`) 항적 레이어로 낸다 — 남극·북극해 탭과 온 지구. 지난 1 년은 한 번 떠 둔 것(`fetch_araon --past`, 날짜는 하루 단위)
+  kpds.py         항우연 KPDS 로 나가는 문 (다누리 KPLO 과학자료 — 문서에 없는 검색 화면의 목록·라벨·내려받기). 모아 둔다(`fetch_kmag`)
   trek.py         NASA Trek 으로 나가는 문 (달·화성·수성의 지질도·표고·지명·착륙지). 달·화성·수성 화면(Cesium)만 쓴다
   macrostrat.py   Macrostrat 으로 나가는 문 (온 지구의 지질도 타일·누른 자리의 단위·범례). 온 지구 화면만 쓴다
   phyloserver.py  연구실 phyloserver 로 나가는 문 (암맥 기록 한 덩이, 한반도 지질도 카카오 격자 타일). 읽기만 한다
@@ -572,6 +577,7 @@ web/viewer/       뷰어 앱 하나뿐이다. 앱을 더 가르지 않는다
   admap.py        남극 자력 이상 ADMAP-2 — Geosoft 압축 격자(numpy 없이) -> 칠한 3031 타일(미리 잘라 둔다)·누른 자리의 nT. 문이 아니다
   ntgeo.py        노던테리토리 1:250만 지질도·단층 — 열린자료 셰이프 ZIP(CC BY)을 위경도 GeoJSON 한 덩이로, 색은 ICS(원생누대는 기까지). 지도 서비스가 없다. 문이 아니다
   sarad.py        남호주 방사능 농도 격자 K·Th·U(SARIG 2024, CC BY 4.0) — ER Mapper 격자를 네 칸에 하나(320 m) int16 로 골라 적고 누른 자리의 값. 타일은 SARIG 영상 WMS 의 것. 문이 아니다
+  kmag.py         다누리 자기장 측정기 KMAG Calibrated 하루치 CSV -> 32 초마다 한 점(R*Tree sqlite) -> 달 궤적·누른 자리의 |B|. 문이 아니다
   marscraters.py  화성 크레이터 38 만 개(Robbins 2012) -> sqlite(3 차원 R*Tree) -> 화성 경위도·극 타일. 문이 아니다
   marsmap.py      화성 옛 지질도·지역도(USGS I-1802·SIM 2888·I-2650·MTM) 셰이프파일 -> sqlite -> 화성 경위도·극 타일. moonmap 의 짝. 문이 아니다
   mercurymap.py   수성 지질도(USGS 1:500만 도폭 아홉의 합본) 셰이프파일 -> sqlite -> 수성 경위도 타일·누른 자리·범례. marsmap 의 짝. 문이 아니다
@@ -579,6 +585,7 @@ web/viewer/       뷰어 앱 하나뿐이다. 앱을 더 가르지 않는다
   spamap.py       남극–에이트켄 분지 지질도 원본(팔레트 GeoTIFF) -> 누른 자리의 단위. 타일은 Trek 의 것. 문이 아니다
   paleo.py        PALEOMAP 2016 판 회전(data/paleomap2016.json) -> 오늘의 한 자리가 옛 연대에 있던 곳. 문이 아니다
   paleocoast.py   옛 해안선 PaleoCoastlines v7.1 -> 그때의 지구에 얹는 경위도 타일. 문이 아니다
+  paleodem.py     그때의 땅과 바다 밑 PaleoDEM (Scotese & Wright 2018) — 고도를 칠하고 음영을 얹은 시점 그림 -> 판 조각 타일의 바탕. 굽기는 호스트에서만(numpy·h5py). 문이 아니다
   naturalearth.py 온 지구의 지명·강·호수·빙하 Natural Earth (data/earth_*.json) -> 찾기·이름표·경위도 타일. 문이 아니다
   geonames.py     온 세계의 도시 17 만 곳 GeoNames cities1000 (<EARTH_DIR>/geonames.sqlite, `build_geonames`) -> 찾기. 온 지구와 주소 찾기가 없는 지역 탭이 쓴다. 문이 아니다
   mantle.py       맨틀 슬랩 Müller 2022 OPT1 — ParaView VTK(numpy 없이) -> 시점마다 삼각형 덩이. 문이 아니다
@@ -626,8 +633,8 @@ web/.tilecache/   받아둔 타일. 커밋하지 않는다 (운영은 /data/GSM/
 devlog/           왜 그렇게 했는지 — 색인은 devlog/README.md
 ```
 
-**상류마다 문이 하나다 — `kigam.py`·`vworld.py`·`geus.py`·`grportal.py`·`npolar.py`·`gsj.py`·`gsmma.py`·`emodnet.py`·`ngu.py`·`gtk.py`·`sgu.py`·`natt.py`·`bgs.py`·`brgm.py`·`egdi.py`·`bgr.py`·`cgs.py`·`igme.py`·`gsi.py`·`sgc.py`·`sgb.py`·`ingemmet.py`·`iige.py`·`mrdata.py`·`sgm.py`·`ga.py`·`austates.py`·`gns.py`·`mris.py`·`gsiindia.py`·`sgs.py`·`esdm.py`·`jmg.py`·`mgb.py`·`dmr.py`·`segemar.py`·`dinamige.py`·`ispra.py`·`lneg.py`·`swisstopo.py`·`nrcan.py`·`ogs.py`·`sigeom.py`·`ygs.py`·`skgs.py`·`nsgs.py`·`ags.py`·`bas.py`·`bcgs.py`·`calgs.py`·`usstates.py`·`geosphere.py`·`pig.py`·`tno.py`·`dov.py`·`spw.py`·`ineter.py`·`stri.py`·`usgscarib.py`·`vmme.py`·`georep.py`·`phyloserver.py`·`elevation.py`·`trek.py`·`kopri.py`·`macrostrat.py`·`pbdb.py`·`gvp.py`·`usgs.py`·`neotoma.py`·`basemaps.py`·`linked.py`·`gfs.py`·`era5.py`·`gmgsi.py`·`ecco.py`.**
-이 일흔여섯 말고는 어디서도 `requests` 를 쓰지 않는다. `gfs.py`·`era5.py`·`gmgsi.py`·`ecco.py` 는 **호스트에서만** 부른다 — 바람·해류를 받아
+**상류마다 문이 하나다 — `kigam.py`·`vworld.py`·`geus.py`·`grportal.py`·`npolar.py`·`gsj.py`·`gsmma.py`·`emodnet.py`·`ngu.py`·`gtk.py`·`sgu.py`·`natt.py`·`bgs.py`·`brgm.py`·`egdi.py`·`bgr.py`·`cgs.py`·`igme.py`·`gsi.py`·`sgc.py`·`sgb.py`·`ingemmet.py`·`iige.py`·`mrdata.py`·`sgm.py`·`ga.py`·`austates.py`·`gns.py`·`mris.py`·`gsiindia.py`·`sgs.py`·`esdm.py`·`jmg.py`·`mgb.py`·`dmr.py`·`segemar.py`·`dinamige.py`·`ispra.py`·`lneg.py`·`swisstopo.py`·`nrcan.py`·`ogs.py`·`sigeom.py`·`ygs.py`·`skgs.py`·`nsgs.py`·`ags.py`·`bas.py`·`bcgs.py`·`calgs.py`·`usstates.py`·`geosphere.py`·`pig.py`·`tno.py`·`dov.py`·`spw.py`·`ineter.py`·`stri.py`·`usgscarib.py`·`vmme.py`·`georep.py`·`phyloserver.py`·`elevation.py`·`trek.py`·`kopri.py`·`kpds.py`·`macrostrat.py`·`pbdb.py`·`gvp.py`·`usgs.py`·`neotoma.py`·`basemaps.py`·`linked.py`·`gfs.py`·`era5.py`·`gmgsi.py`·`ecco.py`.**
+이 일흔일곱 말고는 어디서도 `requests` 를 쓰지 않는다. `gfs.py`·`era5.py`·`gmgsi.py`·`ecco.py` 는 **호스트에서만** 부른다 — 바람·해류를 받아
 굽는 일(numpy·ecCodes·numcodecs, `requirements-wind.txt`)이 `/srv/GSM/scripts/run.sh` 의 전용 venv 에서 돌고(koprifossillab 005), 컨테이너는 구운 PNG 를 내주기만 한다(koprifossillab P02). **호스트는 `GSM.db` 를 열지 않는다**(사람, 2026-10-07, jikhanjung P03) — `run.sh` 가 거는 `GSM_RUN_PLACE=host` 면 설정이 DB 엔진을 dummy 로 바꿔 실수로 열면 곧장 깨진다. 호스트의 명령은 파일만 남기고(`hourly_status.json`·`fetch_log_host.jsonl`·`upstream_host.jsonl`) 컨테이너가 들인다(`hourly.sh` 끝의 `docker compose exec … sources_log --sync-only`). DB 가 필요한 일은 호스트에서 돌리지 않고 컨테이너 안에서 부른다(`docker compose exec web python manage.py …`) — 주간 백업의 DB 사본도 그렇다(`manage.py backup_db` 가 표준 출력으로 낸다, jikhanjung 017). `linked.py` 만은 주소를 우리가 정하지 않는다 — 개인 레이어를 남의 API 에
 이을 때 브라우저가 곧장 못 받으면 거친다(wetherilli P09·122). 사설망은 `GSM_LINKED_ALLOW` 에 적은 호스트만, 밖에 열면 닫는다. 뷰가 직접 부르지 않는다. 상류가 바뀌거나 주소가
 닫힐 때 고칠 자리를 하나로 묶어두려는 것이다. `geomap.py`·`janmayen.py`·`geo3al.py`·`peninsula.py`·`moonmap.py`·`caribmap.py`·`ibcso.py`·`admap.py`·`ntgeo.py`·`sarad.py`·`kigam50k.py`·`kigamdata.py`·`twopen.py`·`zhurong.py`·`marscraters.py`·`marsmap.py`·`mercurymap.py`·`spamap.py`·`paleo.py`·`paleocoast.py`·`fossils.py`·`volcanoes.py`·`quakes.py`·`paleoeco.py`·`crust.py`·`glaciers.py`·`impacts.py`·`faults.py`·`minerals.py`·`stress.py`·`tectonics.py`·`seafloor.py`·`glim.py`·`heatflow.py`·`naturalearth.py`·`geonames.py`·`icemargins.py`·`mantle.py`·`earthpoints.py`·`pointvalues.py`·`sources.py`·`fetchlog.py`·`rawstore.py` 는

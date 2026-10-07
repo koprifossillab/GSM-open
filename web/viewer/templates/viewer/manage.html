@@ -222,6 +222,18 @@
           {% if src.seed_differs %}<span>{% t "씨앗과 다른 줄 {n}" n=src.seed_differs %}</span>{% endif %}
           {% if src.origin != "db" and src.origin != "none" %}<b class="bad">{% t "운영 명세가 아니라 {origin} 을 읽었다" origin=src.origin_label %}</b>{% endif %}
         </p>
+        {% if messages %}<ul class="mg-msgs">{% for m in messages %}<li class="{{ m.tags }}">{{ m }}</li>{% endfor %}</ul>{% endif %}
+        {% if src.can_login %}<div class="mg-src-login">
+          {% if src.editor %}<span>{% t "{name} 로 로그인했다 — 줄을 펼치면 명세를 고칠 수 있다" name=src.username %}</span>
+          {% elif src.username %}<span class="bad">{% t "{name} 은 staff 계정이 아니라 명세를 고칠 수 없다" name=src.username %}</span>{% endif %}
+          {% if src.username %}<form method="post" action="{% url 'viewer:manage-logout' %}">{% csrf_token %}<button type="submit" class="btn quiet">{% t "로그아웃" %}</button></form>
+          {% else %}<form method="post" action="{% url 'viewer:manage-login' %}" class="mg-login">{% csrf_token %}
+            <span>{% t "명세를 고치려면 로그인한다 (staff 계정)" %}</span>
+            <input name="username" autocomplete="username" placeholder="{% t "계정 이름" %}" aria-label="{% t "계정 이름" %}" required>
+            <input name="password" type="password" autocomplete="current-password" placeholder="{% t "비밀번호" %}" aria-label="{% t "비밀번호" %}" required>
+            <button type="submit" class="btn">{% t "로그인" %}</button>
+          </form>{% endif %}
+        </div>{% endif %}
         {% if src.origin == "none" %}<p class="mg-src-warn bad">{% t "명세가 없다 — 서버에서 manage.py sources_seed 를 부르면 저장소의 씨앗을 놓는다" %}</p>{% endif %}
         {% for where, why in src.problems %}
         <p class="mg-src-warn bad">{% t "명세에서 건너뛴 줄" %} <span class="mono">{{ where|default:"—" }}</span> — {{ why }}</p>
@@ -254,6 +266,26 @@
             <tr class="mg-src-more" id="mg-src-more-{{ r.id }}" data-for="{{ r.id }}" hidden><td colspan="7">
               <p class="mg-src-meta"><span class="mono">{{ r.commands|default:"—" }}</span>{% if r.note %} — {{ r.note }}{% endif %}</p>
               {% for o in r.outputs %}{% if o.made_by %}<small class="mg-out-by"><span class="mono">{{ o.key }}</span> ← <span class="mono">{{ o.made_by }}</span></small>{% endif %}{% endfor %}
+              {% if r.edit %}<details class="mg-src-edit"{% if src.open == r.id %} open{% endif %}><summary>{% t "명세 고치기" %}</summary>
+                <form method="post" action="{% url 'viewer:source-edit' r.id %}">{% csrf_token %}
+                  <label>{% t "이름" %}<input name="name_ko" value="{{ r.edit.name_ko }}" required></label>
+                  <label>{% t "영어 이름" %}<input name="name_en" value="{{ r.edit.name_en }}" required></label>
+                  <label>{% t "기관" %}<input name="org" value="{{ r.edit.org }}"></label>
+                  <label>{% t "조건" %}<input name="license" value="{{ r.edit.license }}" required></label>
+                  <fieldset><legend>{% t "표시" %}</legend>{% for f, label in src.choices.flags %}<label class="mg-check"><input type="checkbox" name="flags" value="{{ f }}"{% if f in r.edit.flags %} checked{% endif %}> {{ label }}</label>{% endfor %}</fieldset>
+                  <label>{% t "갈래" %}<select name="kind">{% for k, label in src.choices.kind %}<option value="{{ k }}"{% if k == r.edit.kind %} selected{% endif %}>{{ label }}</option>{% endfor %}</select></label>
+                  <label>{% t "주기" %}<select name="schedule">{% for k, label in src.choices.schedule %}<option value="{{ k }}"{% if k == r.edit.schedule %} selected{% endif %}>{{ label }}</option>{% endfor %}</select></label>
+                  <label>{% t "돌리는 곳" %}<select name="runs_on">{% for k, label in src.choices.runs_on %}<option value="{{ k }}"{% if k == r.edit.runs_on %} selected{% endif %}>{{ label }}</option>{% endfor %}</select></label>
+                  <label>{% t "명령" %} <small>{% t "한 줄에 하나" %}</small><textarea name="commands" rows="2">{{ r.edit.commands }}</textarea></label>
+                  <label>{% t "산출물" %} <small>{% t "한 줄에 하나" %}</small><textarea name="outputs" rows="2">{{ r.edit.outputs }}</textarea></label>
+                  <label>{% t "원본 자리" %}<input name="raw" value="{{ r.edit.raw }}"></label>
+                  <label>{% t "근거" %} <small>{% t "한 줄에 하나" %}</small><textarea name="docs" rows="2">{{ r.edit.docs }}</textarea></label>
+                  <label>{% t "메모" %}<textarea name="note" rows="2">{{ r.edit.note }}</textarea></label>
+                  <button type="submit" class="btn">{% t "저장" %}</button>
+                </form></details>{% endif %}
+              {% if r.changes %}<p class="mg-src-h">{% t "명세의 이력" %}</p><ol class="mg-hist mg-spec-hist">{% for c in r.changes %}
+                <li><span class="num">{{ c.at }}</span> <small>{{ c.origin }}{% if c.by %} · {{ c.by }}{% endif %} · <span class="mono">{{ c.what }}</span></small></li>{% endfor %}</ol>{% endif %}
+              <p class="mg-src-h">{% t "받은 차례" %}</p>
               {% if r.history %}<ol class="mg-hist">{% for h in r.history %}
                 <li><span class="num">{{ h.at }}</span> <span class="mg-res {{ h.result }}">{{ h.result_label }}</span>
                   <small>{{ h.origin }}{% if h.estimated %} ~{% endif %}{% if h.seconds is not None %} · {{ h.seconds }} s{% endif %}{% if h.expected is not None or h.rows is not None %} · {% t "센 수 {e} · 받은 수 {n}" e=h.expected n=h.rows %}{% endif %}{% if h.version %} · {% t "상류 판" %} <span class="mono">{{ h.version }}</span>{% endif %}{% if h.changed %} · {{ h.changed }}{% endif %}{% if h.raw %} · <span class="mono">{{ h.raw }}</span>{% endif %}</small>
@@ -263,7 +295,7 @@
             {% endfor %}
           </tbody>
         </table></div>
-        <p class="hint">{% t "명세는 admin 에서 고친다(staff 계정) — 고칠 때마다 누가·언제·앞뒤가 이력에 남는다. 받은 차례는 명령이 끝날 때 저절로 쌓이고, 서버 쪽에서는 manage.py sources_log 로 같은 것을 본다." %}{% if src.admin_url %} <a href="{{ src.admin_url }}">{% t "명세 고치기" %}</a>{% endif %}</p>
+        <p class="hint">{% t "명세는 staff 계정으로 로그인해 줄을 펼친 자리나 admin 에서 고친다 — 고칠 때마다 누가·언제·앞뒤가 이력에 남는다. 받은 차례는 명령이 끝날 때 저절로 쌓이고, 서버 쪽에서는 manage.py sources_log 로 같은 것을 본다." %}{% if src.admin_url %} <a href="{{ src.admin_url }}">{% t "admin 에서 보기" %}</a>{% endif %}</p>
         {% endif %}
       </div>
     </div>

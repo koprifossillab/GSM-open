@@ -15,7 +15,7 @@ from django.core.management.base import CommandError
 from django.test import SimpleTestCase, TestCase, override_settings
 from django.urls import reverse
 
-from viewer import macrostrat, paleo
+from viewer import macrostrat, paleo, paleodem
 from viewer.management.commands import build_paleomap
 
 
@@ -169,6 +169,7 @@ class Then(SimpleTestCase):
         self.assertEqual(poly[-2][1], -90.0)
         self.assertAlmostEqual(poly[-2][0] - poly[0][0], 360.0)
 
+    @override_settings(EARTH_DIR=tempfile.mkdtemp(prefix="gsm-nodem-"))
     def test_타일(self):
         from PIL import Image
         im = Image.open(io.BytesIO(paleo.render_tile(0.0, "land", 0, 1, 0))).convert("RGBA")
@@ -176,6 +177,50 @@ class Then(SimpleTestCase):
         self.assertGreater(im.getpixel((150, 60))[3], 200)        # 동경 105°·북위 48° — 몽골은 땅
         self.assertLess(im.getpixel((250, 128))[3], 20)          # 동경 176°·적도 — 태평양은 비었다
         self.assertGreater(im.getpixel((128, 254))[3], 200)       # 남극점 둘레 — 극까지 칠했다
+
+
+class Relief(SimpleTestCase):
+    """그때의 땅과 바다 밑 (wetherilli 375) — 구운 PaleoDEM 그림을 깔고, 없는 연대는 판 조각을 칠한다."""
+
+    def setUp(self):
+        from PIL import Image
+        self.dir = tempfile.mkdtemp(prefix="gsm-dem-")
+        patch = override_settings(EARTH_DIR=self.dir)
+        patch.enable()
+        self.addCleanup(patch.disable)
+        folder = Path(self.dir) / paleodem.DIR
+        folder.mkdir()
+        image = Image.new("RGB", (360, 180), (0, 0, 200))           # 서반구는 파랑, 동반구는 빨강
+        image.paste((200, 0, 0), (180, 0, 360, 180))
+        image.save(folder / "2500.webp", "WEBP", lossless=True)
+        (folder / "index.json").write_text(json.dumps({"ages": [250.0], "meta": {"built": "t"}}))
+
+    def test_가까운_시점은_2_5_Myr_안에서만(self):
+        self.assertEqual(paleodem.stop(252), 250.0)
+        self.assertIsNone(paleodem.stop(253))
+        self.assertIsNone(paleodem.stop(700))
+
+    def test_그림을_깔고_판_경계를_얹는다(self):
+        from PIL import Image
+        west = Image.open(io.BytesIO(paleo.render_tile(250.0, "land", 0, 0, 0))).convert("RGBA")
+        east = Image.open(io.BytesIO(paleo.render_tile(250.0, "land", 0, 1, 0))).convert("RGBA")
+        r, g, b, a = west.getpixel((10, 128))                        # 서경 173° — 판다랏사
+        self.assertEqual(a, 255)
+        self.assertGreater(b, 150)
+        self.assertGreater(east.getpixel((250, 128))[0], 150)     # 동경 176°
+
+    def test_시점이_없는_연대는_판_조각만(self):
+        from PIL import Image
+        im = Image.open(io.BytesIO(paleo.render_tile(700.0, "land", 0, 0, 0))).convert("RGBA")
+        self.assertLess(im.getpixel((240, 128))[3], 20)                # 서경 11°·적도 — 그때는 바다
+
+    def test_다시_구우면_타일의_판이_바뀐다(self):
+        from viewer import views
+        before = views.paleo_version()
+        index = Path(self.dir) / paleodem.DIR / "index.json"
+        index.write_text(json.dumps({"ages": [250.0], "meta": {"built": "u"}}))
+        __import__("os").utime(index, (1, 1))
+        self.assertNotEqual(views.paleo_version(), before)
 
 
 class ThenViews(TestCase):

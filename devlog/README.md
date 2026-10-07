@@ -126,6 +126,8 @@
 | jikhanjung 016 | 2026-10-07 | [데이터소스 명세와 기록을 `GSM.db` 로 (P03 1 단계)](20261007_jikhanjung_016_source_db.md) |
 | jikhanjung 017 | 2026-10-07 | [주간 백업도 컨테이너를 거쳐 DB 를 뜬다](20261007_jikhanjung_017_backup_in_container.md) |
 | jikhanjung 018 | 2026-10-07 | [P03 다시 보기 — 백업이 주울 뻔한 파일, 호출 수 들이기의 트랜잭션](20261007_jikhanjung_018_source_db_followup.md) |
+| jikhanjung 020 | 2026-10-07 | [데이터소스 탭에서 명세를 고친다 — 탭 안의 로그인 (P03 2 단계)](20261007_jikhanjung_020_source_edit.md) |
+| jikhanjung 021 | 2026-10-07 | [소개 다시 보지 않기](20261007_jikhanjung_021_intro_skip.md) |
 | wetherilli 078 | 2026-09-30 | [3D 극지 지형을 미리 받는다](20260930_wetherilli_078_polar_dem_prewarm.md) |
 | wetherilli 079 | 2026-09-30 | [화성 — USGS 지역 지질도를 옛 지질도에 얹는다](20260930_wetherilli_079_mars_regional_geology.md) |
 | wetherilli 080 | 2026-09-30 | [화성 — NASA Trek 판 목록을 화성 화면에](20260930_wetherilli_080_mars_trek_catalog.md) |
@@ -427,7 +429,11 @@
 | wetherilli 371 | 2026-10-06 | [문이 제 파일에 자기를 적는다 — 공유 줄 충돌을 없애고, 판 내기를 명령 하나로](20261006_wetherilli_371_door_registry_and_release_script.md) |
 | wetherilli 372 | 2026-10-07 | [멕시코 1:5만 범례 — 상류가 바꾼 열 이름으로 묻는다](20261007_wetherilli_372_sgm_50k_legend_fields.md) |
 | wetherilli 373 | 2026-10-07 | [온 지구 시간 축 — ICS 지질시대 띠를 누르고 끌어 연대를 고른다](20261007_wetherilli_373_earth_timebar_ics.md) |
+| wetherilli 377 | 2026-10-07 | [다누리 자기장 측정기(KMAG) 궤적 — KPDS 문과 모아 두기](20261007_wetherilli_377_kpds_kmag.md) |
+| wetherilli 378 | 2026-10-07 | [달 화면에 다누리 KMAG 궤적 — 한 색 선, 멀리서는 궤도를 솎는다](20261007_wetherilli_378_moon_kmag_tracks.md) |
 | wetherilli 374 | 2026-10-07 | [온 세계 지명 찾기 — GeoNames 도시를 받아 두고, 지역 탭이 온 지구 찾기를 빌린다](20261007_wetherilli_374_world_place_search.md) |
+| wetherilli 375 | 2026-10-07 | [그때의 지구 — 판 조각 대신 PaleoDEM 고도·음영을 깐다](20261007_wetherilli_375_paleodem_relief.md) |
+| wetherilli 376 | 2026-10-07 | [온 지구 시간 막대 — 처음엔 접고, 띠는 대·기·세 세 줄로](20261007_wetherilli_376_timebar_folded_fewer_rows.md) |
 | koprifossillab P01 | 2026-09-30 | [백업 — WegenersDream 의 틀로, 바뀌는 빠르기에 따라 넷으로 (계획)](20260930_koprifossillab_P01_backup_plan.md) |
 | koprifossillab 001 | 2026-09-30 | [매주 월요일 새벽: 운영 자료 백업과 KPDC 목록 갱신](20260930_koprifossillab_001_weekly_backup.md) |
 | koprifossillab 002 | 2026-09-30 | [`/healthz/` — 판·DB·백업 상태를 한 장으로](20260930_koprifossillab_002_healthz.md) |

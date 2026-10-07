@@ -3,11 +3,11 @@
 이 문서는 **지금 어디까지 왔고 다음이 무엇인지** 한 곳에서 답한다.
 왜 그렇게 했는지는 `devlog/`, 무엇이 언제 붙었는지는 `CHANGELOG.md`.
 
-마지막으로 손본 날: **2026-10-04**
+마지막으로 손본 날: **2026-10-07**
 
 ## 작업 방식 (2026-09-30 부터)
 
-**브랜치** `main` = `0.73.1`(2026-10-07 배포). 코드 작업은 각자 자기 계정에서 `feature/<기능 이름>` 브랜치를 `main` 에서 만들고, 끝나면 PR 을 만든다.
+**브랜치** `main` = `0.74.0`(2026-10-07 배포). 코드 작업은 각자 자기 계정에서 `feature/<기능 이름>` 브랜치를 `main` 에서 만들고, 끝나면 PR 을 만든다.
 **PR 병합과 판 올리기·배포는 판 세션(gsm-31)이 한다** — 다른 세션은 PR 을 열고 알린다. 판은 몇 PR 이 모이면 따로 올린다. 문서만 고치는 것은 `main` 에 바로. devlog 는 글쓴이마다 번호를 센다 — CLAUDE.md "커밋과 PR"·"devlog",
 [devlog/README.md](devlog/README.md). WegenersDream 과 같은 규약이다.
 
@@ -26,10 +26,10 @@
 
 판마다 무엇이 붙었는지는 `CHANGELOG.md`, 왜 그랬는지는 괄호 안의 devlog 다.
 
-- **지역 스물과 묶음 넷** — 한국(기본)·일본·중국·대만·그린란드·스발바르·얀마옌·북극해·노르웨이·핀란드(한 탭)·영국·아일랜드·프랑스·독일·스페인·
-  콜롬비아·브라질·페루·아르헨티나·우루과이·남극, 묶음 탭 동아시아·북극·유럽·남미 (016·017·021·024·076, wetherilli 136·140·143·147·188·191·195·196).
-  화면 투영은 3857·3413·3031 이다. 지역 탭에는 화석 산지·화산·지진·고생태 점도 뜬다(wetherilli 185)
-- **상류로 나가는 문 서른여섯** — 목록은 CLAUDE.md "구조" 의 끝. 문이 아닌 것(우리 디스크의 파일을 굽거나 읽는다)도 거기 있다
+- **지역 쉰하나와 묶음 여덟** — 한국(기본)부터 남극까지, 목록과 지역마다의 색은 CLAUDE.md "지역". 묶음 탭은 동아시아·북극·유럽·남미·북미·
+  중미·카리브·오세아니아·동남아 (016·017·021·024·076, wetherilli 136–260). 화면 투영은 3857·3413·3031·3978 이다. 지역 탭에는 화석 산지·화산·
+  지진·고생태 점도 뜬다(wetherilli 185)
+- **상류로 나가는 문 일흔여섯** — 목록은 CLAUDE.md "구조" 의 끝. 문이 아닌 것(우리 디스크의 파일을 굽거나 읽는다)도 거기 있다
 - **정적 판** — 연구소 밖 `https://koprifossillab.github.io/GSM-open/`. 보는 사람이 KIGAM·VWorld 키를 각자 넣는다. 판 세션이 판마다
   `deploy/publish_pages.sh` 로 굽고, 소스는 `deploy/publish_open.sh` 로 GSM-open 에 민다 (wetherilli P11·149·162·174)
 - **공유 링크** — 지역 탭·온 지구·달·화성·수성의 "링크" 단추. 주소의 해시에 자리·레이어·배경을 담고, 받은 쪽의 기억은 덮지 않는다 (wetherilli 189)
@@ -49,6 +49,11 @@
 - **3D** — 도구 막대의 단추로 늘 연다 (059). 한국·일본·북극·남극·유럽·남미 지형과 지질, 점묶음 (wetherilli 187·188)
 - **영어판** — 설정의 "언어 · Language". 화면의 글을 고치면 `viewer/i18n.py` 에 영어도 적는다 (008)
 - **연구실 내부용** — geo3al·phyloserver·한반도 지질도·kopri. 밖에 열 때 `GSM_PUBLIC=1` 로 내린다 (025·029·053)
+- **데이터소스 장부** — 받아 두는 바깥 자료 50 곳의 명세(`DataSource`)와 받은 차례의 기록(`FetchRun`)이 `GSM.db` 에 있다. 관리 화면
+  `/GSM/manage/` 의 "데이터소스" 탭이 한 줄씩(조건·주기·마지막 실행·결과·마지막 성공·산출물, 늦음·실패는 붉게), healthz 가 늦음·실패의 수를.
+  **명세는 그 탭에서 staff 로 로그인해 펼친 줄의 폼, 또는 admin(`/GSM/admin/`)에서 고친다**(staff 계정 — 지금 `koprifossillab`, jikhanjung 020) — 고칠 때마다 누가·언제·앞뒤가 `DataSourceChange` 에.
+  admin 은 아직 평문 HTTP 다(HTTPS 는 나중에, TODOs). 원본을 날짜 폴더에 두는 것은 바뀐 판만, 옛 벌은 사람이 `prune_raw`
+  (jikhanjung P02·P03·011–018)
 
 ### 운영에 두는 파일
 
@@ -205,8 +210,13 @@ koprifossillab 019) — DNS 가 고쳐지면 함께 지운다. 2026-09-23 에 �
 venv 는 requirements 가 바뀌면 스스로 다시 만든다. cron 은 **두 줄**이다 — 주간 백업(월 01:40)과 **매시 받기**(매시 :40,
 `hourly.sh`, koprifossillab 013). `hourly.sh` 가 차례로 부르는 일: 지금의 바람·구름(`fetch_gfs_wind` → `db/wind/gfs/`, 판마다 분석과
 +12 시간까지의 예보, 48 시간만), 위성 구름(`fetch_gmgsi` → `db/wind/gmgsi/`, 스물네 장만), 아라온호 위치(`fetch_araon` →
-`db/kopri/araon.jsonl`). 일마다의 결과는 `db/hourly_status.json` 에 남고 **`/GSM/healthz/` 가 읽는다** — 기록이 2 시간 넘게 멈추거나,
+`db/kopri/araon.jsonl`), 최근 지진(`fetch_recent_quakes` → `db/earth/quakes_recent.json`). 일마다의 결과는 `db/hourly_status.json` 에 남고 **`/GSM/healthz/` 가 읽는다** — 기록이 2 시간 넘게 멈추거나,
 한 일이 실패하거나, GFS 판이 12 시간·위성 장이 3 시간을 넘으면 `degraded`. 로그는 `/data/GSM/logs/hourly.log`.
+**호스트는 `GSM.db` 를 열지 않는다**(사람, 2026-10-07, jikhanjung 016) — `run.sh` 가 `GSM_RUN_PLACE=host` 를 걸어 호스트의 설정은 DB 엔진이 dummy 다.
+호스트의 일은 파일만 남기고(`hourly_status.json`·`fetch_log_host.jsonl`·`upstream_host.jsonl`) `hourly.sh` 가 차례 끝에 컨테이너의
+`sources_log --sync-only` 로 DB 에 들인다. **DB 가 필요한 명령은 컨테이너 안에서 부른다** —
+`docker compose -f /srv/GSM/docker-compose.yml exec -w /app/web web python manage.py <명령>`(compose 파일을 적어야 한다 — 저장소 체크아웃에는
+운영 compose 가 없다). `sources_log`·`sources_backfill`·`prune_raw`·`createsuperuser` 따위가 그렇다 — 호스트에서 부르면 "컨테이너 안에서" 로 멈춘다.
 지난 바람·구름(`db/wind/era5/`, 944 날)은 2026-10-01 저녁에 굽기 시작했다(바람 `/data/GSM/logs/era5_build.log`, 이어서 구름
 `era5_clouds.log`) — 다 구우면 다시 구울 일은 기간을 늘릴 때뿐이다. 판을 올리기 전에 고친 것을 돌려 보려면 저장소에서
 `deploy/scripts/install.sh . /srv/GSM/scripts` (koprifossillab 005). 운영 compose 에는 `scripts` 마운트를
@@ -214,7 +224,7 @@ venv 는 requirements 가 바뀌면 스스로 다시 만든다. cron 은 **두 �
 
 ### 판을 올릴 때
 
-- 기동할 때 이주와 씨앗(`seed_catalog`)이 저절로 들어간다
+- 기동할 때 이주와 씨앗(`seed_catalog`), 데이터소스의 옮기기·씨앗(`sources_import` — 파일 시절의 것을 한 번, `sources_seed` — 없는 id 만)이 저절로 들어간다
 - 새 파일이 드는 판이면 **판보다 먼저** 위 "운영에 두는 파일" 자리에 둔다
 - 새 상류가 생기면 운영 장비에서 그 주소로 나갈 수 있는지 먼저 본다 (KOPRI 망의 TLS 는 위)
 - 올린 뒤 `deploy/host/smoke.sh`

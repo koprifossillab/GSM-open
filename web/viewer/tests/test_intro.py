@@ -31,13 +31,24 @@ class IntroTests(TestCase):
         self.assertIn('href="/GSM/map/?region=antarctica"', html)
         self.assertIn('href="/GSM/3d/"', html)
 
+    def test_소개_다시_보지_않기(self):
+        """체크는 "지도로 바로 가기" 밑, 고른 브라우저는 머리의 짧은 스크립트가 그리기 전에 지도로. 지도의 소개 링크는 `?intro=1` (jikhanjung 021)"""
+        html = self.get("viewer:intro")
+        self.assertIn('id="skip-intro"', html)
+        self.assertIn("소개 다시 보지 않기", html)
+        head = html[:html.index("</head>")]
+        self.assertIn('localStorage.getItem("gsm.intro.skip") === "1"', head)
+        self.assertIn('location.replace("map/")', head)
+        self.assertIn("Don't show the intro again", self.get("viewer:intro", "en"))
+        self.assertIn('class="intro-link" href="/GSM/?intro=1"', self.get("viewer:map"))
+
     def test_지도의_갈래는_뿌리_밑이다(self):
         html = self.get("viewer:map")
         for target in ("earth/", "moon/", "mars/", "mercury/", "3d/"):
             self.assertIn(f'href="/GSM/{target}"', html)
         self.assertNotIn('href="/GSM/map/earth/"', html)
         # 숨은 차림에서 소개로 돌아간다
-        self.assertIn('class="intro-link" href="/GSM/"', html)
+        self.assertIn('class="intro-link" href="/GSM/?intro=1"', html)   # 지도에서 소개로 가면 "다시 보지 않기" 를 골랐어도 소개 (jikhanjung 021)
 
     def test_달_화성_온지구에서_지구는_지도로(self):
         for name in ("viewer:moon", "viewer:mars", "viewer:mercury", "viewer:earth"):

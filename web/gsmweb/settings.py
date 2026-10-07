@@ -123,6 +123,8 @@ GRPORTAL_URL = env("GSM_GRPORTAL_URL",
 NPOLAR_URL = env("GSM_NPOLAR_URL", "https://geodata.npolar.no/arcgis/rest/services")
 # 극지연구소 — 암석 시료 DB, KPDC 자료 목록, KPDC 지도 서버(GeoServer). 문은 `kopri.py` 하나다
 KOPRI_ROCK_URL = env("GSM_KOPRI_ROCK_URL", "https://rock.kopri.re.kr/rock")
+#: 항우연 KARI Planetary Data System — 다누리(KPLO) 과학자료 (wetherilli 377, `kpds.py`)
+KPDS_URL = env("GSM_KPDS_URL", "https://www.kari.re.kr/kpds")
 KOPRI_KPDC_URL = env("GSM_KOPRI_KPDC_URL", "https://kpdc.kopri.re.kr")
 KOPRI_GEO_URL = env("GSM_KOPRI_GEO_URL", "https://kpdcgeo.kopri.re.kr/geoserver/kpdc")
 NPOLAR_FEATURES_URL = env("GSM_NPOLAR_FEATURES_URL",
@@ -382,6 +384,9 @@ SARAD_DIR = env("GSM_SARAD_DIR") or str(_data_dir() / "sa_radiometrics")
 #: `manage.py fetch_kopri` 가 천천히 모아 여기 쓴다(두 시간 남짓, 다음부터는 새 것만). 저장소·이미지에
 #: 두지 않는다. 없으면 그 레이어에 "자료가 없다" 가 뜰 뿐 뷰어는 돈다 (devlog 053·055). 기본은 `<DB 옆>/kopri/`.
 KOPRI_DIR = env("GSM_KOPRI_DIR") or str(_data_dir() / "kopri")
+#: 다누리(KPLO) 과학자료에서 모아 둔 것 — 자기장 측정기 KMAG 의 궤적(`kmag.sqlite`). `manage.py fetch_kmag` 이 KPDS 에서 하루치씩
+#: 천천히 받아 줄여 적는다. 저장소·이미지에 두지 않는다 (wetherilli 377). 기본은 `<DB 옆>/kpds/`.
+KPDS_DIR = env("GSM_KPDS_DIR") or str(_data_dir() / "kpds")
 #: 대만 지질운의 열린자료(탄층·토석류·낙석·GPS 상시 관측소·암체 등급) — `manage.py fetch_taiwan_open` 이 한 번 받아 둔 GeoJSON. 화면은 이것만 읽는다.
 #: 저장소·이미지에 두지 않는다 (wetherilli 305)
 TAIWAN_OPEN_DIR = env("GSM_TAIWAN_OPEN_DIR") or str(_data_dir() / "taiwan_open")

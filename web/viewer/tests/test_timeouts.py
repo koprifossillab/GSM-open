@@ -14,7 +14,7 @@ from viewer import metatile, sgm, tiles, views
 VIEWER = Path(views.__file__).parent
 REPO = VIEWER.parent.parent
 #: 화면이 부르지 않는 받기 — 호스트 cron·사람이 부르는 명령만 쓰는 문, 또는 그 함수
-OFF_PATH = {"gfs.py", "era5.py", "gmgsi.py", "ecco.py", "neotoma.py", "gvp.py", "usgs.py", "pbdb.py"}
+OFF_PATH = {"gfs.py", "era5.py", "gmgsi.py", "ecco.py", "neotoma.py", "gvp.py", "usgs.py", "pbdb.py", "kpds.py"}
 OFF_PATH_LINES = ("def fetch_capabilities", "def _wfs", "def _data_get")     # kigam 의 씨앗·5만 WFS·자료 API
 
 

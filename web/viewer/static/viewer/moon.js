@@ -113,6 +113,12 @@
       { name: "eva", title: "아폴로 EVA 동선", kind: "vector", url: "moon/eva/", src: "Esri UK" },
       { name: "nac", title: "착륙지 고해상 사진 (LRO NAC)", kind: "nac", src: "NASA/GSFC/Arizona State University" },
     ] },
+    // 다누리 자기장 측정기 궤적 — 모아 둔 것(`fetch_kmag`)을 서버가 한 색 가는 선으로 긋는다(`kmag.py`, wetherilli 378).
+    // **|B| 로 칠하지 않는다** — 바깥 자기장이 섞인 값이라 지각 자기 이상처럼 읽히면 오해다. 누르면 가까운 측정점의 시각·고도·|B|
+    { group: "다누리 (KPLO)", layers: [
+      { name: "kmag", title: "다누리 자기장 측정기(KMAG) 궤적", info: "kmag", src: "KPLO (Danuri) KMAG · KARI KPDS",
+        note: "|B| 는 바깥 자기장(태양풍·지구 자기권)이 섞인 값 — 지각 자기 이상이 아니다" },
+    ] },
   ];
   var LAYER = {};
   CATALOG.forEach(function (g) { g.layers.forEach(function (l) { LAYER[l.name] = l; }); });
@@ -1200,6 +1206,7 @@
       var src = document.createElement("p");
       src.className = "active-src";
       src.textContent = LAYER[e.name].src || creditOf(e.name) || "";
+      if (LAYER[e.name].note) src.textContent += " — " + T(LAYER[e.name].note);   // 읽는 법의 주의 (wetherilli 378)
       li.append(head, foot, src);
       host.appendChild(li);
     });

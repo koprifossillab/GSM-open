@@ -8,7 +8,7 @@
 
 ## 결정 없이 할 수 있는 것 — 값이 큰 차례
 
-- [ ] **데이터소스 P03 2 단계** — jikhanjung P03: 관리 화면 "데이터소스" 탭에서 고치기(로그인한 staff 만), 옛 파일 길(`sources.json`·`sources_history/`·`store.sqlite` 의 기록) 지우기, `prune_fetch_log`(데이터소스마다 1 년 안은 다 두고 그보다 옛것은 하루 한 줄, 실패·`changed > 0` 줄은 늘 남긴다, 사람이 부른다·`--dry-run` 먼저 — 정했다, 사람, 2026-10-07). 1 단계는 #381·#383(staff 계정은 만들었다)
+- [ ] **데이터소스 P03 2 단계 — 남은 것** — jikhanjung P03: 옛 파일 길(`sources.json`·`sources_history/`·`store.sqlite` 의 기록) 지우기는 0.73.x 가 며칠 돈 뒤. 탭에서 고치기·탭 안의 로그인은 jikhanjung 020(PR). 기록 줄이기는 하지 않는다(사람, 2026-10-07). 1 단계는 #381·#383·#385·#388(0.73.0·0.73.1)
 - [ ] **호스트의 jsonl 이 끝없이 자란다** — `upstream_host.jsonl`(상류 호출 수, 매시 넷이면 한 해 십몇 MB)·`fetch_log_host.jsonl`. 날마다 파일을 나누고 다 들인 지난 날짜의 파일을 컨테이너가 지운다 (jikhanjung 018)
 - [ ] 매시 일이 `fetchlog.note()` 로 보탠 것(받은 수 따위)은 기록에 안 남는다 — `hourly_status.json` 에 그 칸이 없다. 매시 넷의 받은 수가 보고 싶어지면 `hourly.sh` 가 칸을 더한다 (jikhanjung 018)
 - [ ] **admin 이 평문 HTTP 다** — 데이터소스 명세를 고치는 창구라 staff 계정·세션이 오간다(#381 검토 3). HTTPS 는 나중에(사람, 2026-10-07). 그 전에 nginx 에서 사내 대역만 받을지도 정한다. 밖에 연 판(`GSM_PUBLIC`)에서는 admin 경로를 이미 뺀다
@@ -161,6 +161,10 @@
 
 - **공간 연산 (GDAL·shapely·geopandas)** — 이 뷰어는 겹쳐 보고 클릭해 읽을 뿐이다.
   넣는 순간 web 이미지가 200 MB 대를 벗어난다. 필요해지면 그때 devlog 를 쓰고 더한다
+- **다누리(KPLO) LUTI 촬영 자리 — 지금은 접었다** (2026-10-07). 촬영 띠의 경위도 네모는 PDS4 라벨(`/kpds/search/xml/<_id>`, 14 KB,
+  키 없음, CORS 없음)에만 있는데, `_id` 를 얻는 길이 KPDS 검색(`/kpds/search/dataTableList`) 하나뿐이고 행마다 썸네일(base64,
+  평균 260 KB)이 붙는다 — Calibrated 16 887 장이면 목록만 4–5 GB 다. `param[type]`·`columns`·`length` 로는 썸네일이 빠지지 않았고 공간 검색도
+  없다. 다시 꺼낸다면 kpds@kari.re.kr 에 촬영 자리 목록(컬렉션 인벤토리)을 먼저 묻는다
 - **DiaRUGA·ForGIA 와 DB 를 나누기** — 저장소도 배포도 따로다. 시추 지점을
   지도에 올리고 싶어지면 `Locality.lat/lon` 을 내보내 `PointSet` 으로 받는다
 - **제품이 `/mgeo/geoserver` 를 타기** — 문서에 없는 주소다. 타일·범례는

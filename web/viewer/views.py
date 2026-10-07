@@ -19,11 +19,15 @@ from pathlib import Path
 
 from django.conf import settings
 from django.contrib.staticfiles import finders
-from django.db import transaction
+from django.db import DatabaseError, transaction
 from django.db.models import Prefetch, Q
 from django.http import Http404, HttpResponse, JsonResponse
+from django.utils import timezone
 from django.utils.cache import patch_vary_headers
-from django.shortcuts import get_object_or_404, render
+from django.contrib import messages
+from django.contrib.auth import login as auth_login, logout as auth_logout
+from django.contrib.auth.forms import AuthenticationForm
+from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import NoReverseMatch, reverse
 from django.views.decorators.gzip import gzip_page
 from django.views.decorators.http import require_GET, require_POST
@@ -33,7 +37,7 @@ from gsmweb.version import VERSION
 from . import (coords, crs, datastatus, geo3al, geomap, geus, grportal, gsj, gsmma, i18n, ibcso, janmayen, kigam, kopri, npolar, ntgeo,
                patchnotes, elevation, moonmap, peninsula, phyloserver, pointsets, tilecache, tiles, trek, vworld, warp,
                fetchlog, marscraters, marsmap, mercurymap, sources, zhurong)
-from . import admap, arcpoints, caribmap, geonames, crust, glaciers, impacts, faults, minerals, stress, tectonics, seafloor, glim, heatflow, fossils, gvp, icemargins, kigam50k, macrostrat, mantle, metatile, naturalearth, neotoma, paleo, paleoeco, paleocoast, pbdb, quakes, recentquakes, verifylog, spamap, ocean, usgs, volcanoes, wind
+from . import admap, arcpoints, kmag, caribmap, geonames, crust, glaciers, impacts, faults, minerals, stress, tectonics, seafloor, glim, heatflow, fossils, gvp, icemargins, kigam50k, macrostrat, mantle, metatile, naturalearth, neotoma, paleo, paleoeco, paleocoast, pbdb, quakes, recentquakes, verifylog, spamap, ocean, paleodem, usgs, volcanoes, wind
 from . import ags, austates, bas, basemaps, bcgs, bgr, bgs, brgm, calgs, cgs, dinamige, dmr, dov, egdi, emodnet, esdm, ga, georep, geosphere, gns, gsi, gsiindia, gtk, igme, iige, ineter, ingemmet, ispra, jmg, linked, lneg, mgb, mrdata, mris, natt, ngu, nrcan, nsgs, ogs, pig, segemar, sgb, sgc, sgm, sgs, sgu, sigeom, skgs, spw, stri, swisstopo, tno, twopen, usage, usgscarib, usstates, vmme, ygs
 from . import doors, earthpoints, pointvalues, profileband, static_tables, tilegrid, timescale
 from .i18n import msg
@@ -338,11 +342,11 @@ def manage_view(request):
         "verify": verifylog.summary(),
         # 데이터소스 (jikhanjung P02 3 단계) — 명세·기록 표·구운 파일을 한 줄로. "구운 자료" 탭(wetherilli 312)을 녹였다.
         # 읽기만 하고 경로는 `<DB 옆>` 아래 이름뿐이다
-        "src": _sources_view(lang),
+        "src": _sources_view(lang, request),
     })
 
 
-def _sources_view(lang):
+def _sources_view(lang, request=None):
     try:
         ov = sources.overview(sync=True, history=True)
     except Exception as exc:                     # noqa: BLE001 — 장부가 깨져도 관리 화면은 선다
@@ -406,10 +410,136 @@ def _sources_view(lang):
         admin_url = reverse("admin:viewer_datasource_changelist")
     except NoReverseMatch:
         admin_url = ""
+    # 탭에서 고치기 (jikhanjung P03 2 단계, 020) — staff 로 로그인했으면 펼친 줄에 고치는 폼. 명세의 이력은 누구에게나(밖에 연 판은 탭째 없다)
+    editor = _is_editor(request)
+    changes = _spec_changes([r["id"] for r in rows], lang)
+    by_id = {item["row"]["id"]: item["row"] for item in ov["rows"]}
+    for r in rows:
+        r["changes"] = changes.get(r["id"], [])
+        if editor:
+            row = by_id[r["id"]]
+            r["edit"] = {"name_ko": row["name"]["ko"], "name_en": row["name"]["en"], "org": row.get("org", ""),
+                         "kind": row["kind"], "schedule": row["schedule"], "runs_on": row["runs_on"],
+                         "license": row["license"], "flags": row.get("flags", []), "raw": row.get("raw", ""),
+                         "note": row.get("note", ""), "commands": "\n".join(row.get("commands", [])),
+                         "outputs": "\n".join(row.get("outputs", [])), "docs": "\n".join(row.get("docs", []))}
+    user = getattr(request, "user", None)
     return {"rows": rows, "counts": ov["counts"], "problems": problems, "origin": ov["origin"], "admin_url": admin_url,
+            "editor": editor, "can_login": not settings.PUBLIC and ov["origin"] == "db",
+            "username": user.get_username() if user is not None and user.is_authenticated else "",
+            "choices": {"kind": [(k, k) for k in sources.KINDS],
+                        "schedule": [(k, i18n.t(sources.SCHEDULE_LABELS[k], lang)) for k in sources.SCHEDULES],
+                        "runs_on": [(k, i18n.t(sources.RUNS_ON_LABELS[k], lang)) for k in sources.RUNS_ON],
+                        "flags": [(f, i18n.t(sources.FLAG_LABELS[f], lang)) for f in sources.FLAGS]},
+            # 고치고 돌아오면 그 줄을 펼친다(`?src=`) — 화면의 JS 가 탭과 줄을, 여기서는 고치기 폼을
+            "open": (request.GET.get("src", "") if request is not None else ""),
             "seed_differs": ov.get("seed_differs", 0),
             "origin_label": label(sources.SPEC_ORIGIN_LABELS, ov["origin"]),
             "spec_changed": when(ov["spec_changed"])}
+
+
+def _is_editor(request) -> bool:
+    """탭에서 명세를 고칠 수 있나 — staff 로 로그인했고, 밖에 연 판이 아니다 (jikhanjung 020)"""
+    user = getattr(request, "user", None)
+    return bool(not settings.PUBLIC and user is not None and user.is_authenticated and user.is_active and user.is_staff)
+
+
+#: 명세의 이력에서 화면에 내는 줄 수(데이터소스마다)
+SPEC_CHANGES_SHOWN = 10
+
+
+def _spec_changes(ids, lang) -> dict:
+    """데이터소스마다 명세의 이력(새것부터) — 누가·언제·어디서·바뀐 칸. 질의 하나"""
+    from .models import DataSourceChange
+    origins = {"admin": msg("admin"), "tab": msg("관리 화면"), "seed": msg("씨앗"), "import": msg("파일에서 옮김")}
+    out = {}
+    try:
+        for c in DataSourceChange.objects.filter(source__in=ids).order_by("-at", "-id"):
+            got = out.setdefault(c.source, [])
+            if len(got) >= SPEC_CHANGES_SHOWN:
+                continue
+            if c.before is None:
+                what = i18n.t(msg("새로 넣음"), lang)
+            elif c.after is None:
+                what = i18n.t(msg("지움"), lang)
+            else:
+                keys = sorted(k for k in set(c.before) | set(c.after) if c.before.get(k) != c.after.get(k))
+                what = ", ".join(keys) or i18n.t(msg("바뀐 칸 없음"), lang)
+            got.append({"at": timezone.localtime(c.at).strftime("%Y-%m-%d %H:%M"), "by": c.by_name or "",
+                        "origin": i18n.t(origins.get(c.origin, c.origin), lang), "what": what})
+    except DatabaseError:
+        return {}
+    return out
+
+
+def _back_to_sources(source_id=""):
+    url = reverse("viewer:manage") + "?tab=sources"
+    return redirect(url + (f"&src={source_id}" if source_id else ""))
+
+
+@require_POST
+def manage_login(request):
+    """관리 화면 "데이터소스" 탭의 로그인 — Django 계정(admin 과 같은 계정·세션). staff 만 들인다 (jikhanjung 020).
+    **아직 평문 HTTP 다** — HTTPS 는 나중에(사람, 2026-10-07, TODOs). 밖에 연 판에는 없다"""
+    if settings.PUBLIC:
+        raise Http404
+    lang = i18n.lang_of(request)
+    form = AuthenticationForm(request, data=request.POST)
+    if not form.is_valid():
+        messages.error(request, i18n.t(msg("이름이나 비밀번호가 맞지 않는다"), lang))
+    elif not form.get_user().is_staff:
+        messages.error(request, i18n.t(msg("staff 계정이 아니다 — 명세를 고칠 수 없다"), lang))
+    else:
+        auth_login(request, form.get_user())
+        messages.success(request, i18n.t(msg("로그인했다 — 줄을 펼치면 명세를 고칠 수 있다"), lang))
+    return _back_to_sources()
+
+
+@require_POST
+def manage_logout(request):
+    if settings.PUBLIC:
+        raise Http404
+    auth_logout(request)
+    return _back_to_sources()
+
+
+def _lines(text: str) -> list:
+    return [x.strip() for x in (text or "").splitlines() if x.strip()]
+
+
+@require_POST
+def source_edit(request, source_id):
+    """탭에서 명세 한 줄을 고친다 — admin 과 같은 검사(`DataSource.clean`)를 지나야 저장하고, 이력에 앞뒤 줄을 남긴다 (jikhanjung 020)"""
+    from django.core.exceptions import ValidationError
+
+    from .models import DataSource
+    if settings.PUBLIC:
+        raise Http404
+    if not _is_editor(request):
+        return HttpResponse(status=403)
+    lang = i18n.lang_of(request)
+    obj = get_object_or_404(DataSource, pk=source_id)
+    before = obj.as_row()
+    p = request.POST
+    for k in ("name_ko", "name_en", "org", "kind", "schedule", "runs_on", "license", "raw", "note"):
+        setattr(obj, k, (p.get(k) or "").strip())
+    obj.flags = [f for f in p.getlist("flags") if f]
+    obj.commands, obj.outputs, obj.docs = _lines(p.get("commands")), _lines(p.get("outputs")), _lines(p.get("docs"))
+    try:
+        obj.full_clean()
+    except ValidationError as exc:
+        messages.error(request, i18n.t(msg("저장하지 않았다 — {why}", why="; ".join(exc.messages)), lang))
+        return _back_to_sources(source_id)
+    after = obj.as_row()
+    if after == before:
+        messages.info(request, i18n.t(msg("바뀐 것이 없다"), lang))
+        return _back_to_sources(source_id)
+    obj.updated_by = request.user
+    with transaction.atomic():
+        obj.save()
+        sources.record_change(obj.pk, before, after, "tab", request.user)
+    messages.success(request, i18n.t(msg("{id} 의 명세를 고쳤다", id=obj.pk), lang))
+    return _back_to_sources(source_id)
 
 
 def _changed(n, lang) -> str:
@@ -586,6 +716,8 @@ def moon_tile(request, layer, z, x, y):
     z, x, y = int(z), int(x), int(y)
     if moonmap.knows(layer):
         return _moon_original_tile(request, layer, z, x, y)
+    if layer == "kmag":
+        return _kmag_tile(request, None, z, x, y)
     if layer not in trek.LAYERS or not trek.valid_tile(z, x, y):
         return JsonResponse({"error": i18n.t(msg("그런 타일은 없다"), i18n.lang_of(request))}, status=404)
     key = moon_tile_key(layer, z, x, y)
@@ -600,6 +732,29 @@ def moon_tile(request, layer, z, x, y):
             return _tile(old, cached=True)
         log.warning("달 지질도 타일을 받지 못했다 (%s %s/%s/%s): %s", layer, z, x, y, exc)
         return _tile(tiles.notice_tile(256, 256, tiles.SLOW if metatile.slow(exc) else tiles.NO_MAP), store=False)
+    tilecache.put(key, png)
+    response = _tile(png)
+    response["X-GSM-Cache"] = "miss"
+    return response
+
+
+def _kmag_tile(request, pole, z, x, y):
+    """다누리 KMAG 궤적 (wetherilli 378) — 모아 둔 sqlite(`kmag.py`)에서 우리가 긋는다. `pole` 이 None 이면 경위도 격자, 아니면 극 격자.
+    날이 더해지면 `kmag.stamp()` 가 바뀌어 옛 그림을 버린다"""
+    if pole is None and not trek.valid_tile(z, x, y):
+        return JsonResponse({"error": i18n.t(msg("그런 타일은 없다"), i18n.lang_of(request))}, status=404)
+    if not kmag.available():
+        return _tile(tiles.notice_tile(256, 256, tiles.NO_KMAG), store=False)
+    version = f"{kmag.DRAW}-{kmag.stamp()}"
+    key = tilecache.key_text("kmag", f"{version}/{pole or 'eq'}/{z}/{x}/{y}")
+    hit = tilecache.get(key)
+    if hit is not None:
+        return _tile(hit, cached=True)
+    try:
+        png = kmag.render_tile(z, x, y) if pole is None else kmag.render_polar_tile(pole, z, x, y)
+    except (sqlite3.Error, OSError) as exc:
+        log.warning("다누리 KMAG 궤적을 긋지 못했다 (%s %s/%s/%s): %s", pole, z, x, y, exc)
+        return _tile(tiles.notice_tile(256, 256, tiles.NO_KMAG), store=False)
     tilecache.put(key, png)
     response = _tile(png)
     response["X-GSM-Cache"] = "miss"
@@ -636,6 +791,8 @@ def moon_polar_tile(request, pole, layer, z, x, y):
     그리고, 원도는 우리가 극 평사도법으로 굽는다."""
     z, x, y = int(z), int(x), int(y)
     lang = i18n.lang_of(request)
+    if layer == "kmag" and trek.polar_valid(z, x, y):
+        return _kmag_tile(request, pole, z, x, y)
     if not trek.polar_valid(z, x, y) or not (layer in trek.LAYERS or moonmap.knows(layer)):
         return JsonResponse({"error": i18n.t(msg("그런 타일은 없다"), lang)}, status=404)
     if moonmap.knows(layer):
@@ -855,6 +1012,8 @@ def moon_info(request):
         return _moon_original_info(lang, lon, lat)
     if request.GET.get("layer") == "spa":
         return _moon_spa_info(lang, lon, lat)
+    if request.GET.get("layer") == "kmag":
+        return _kmag_info(lang, lon, lat)
     # 1e-3° 는 달에서 30 m 남짓이다 — 1:500만 지도에는 한 점이다
     key = tilecache.key_text("trek-info", f"{lon:.3f},{lat:.3f}")
     raw = _cached_json(key)
@@ -877,6 +1036,31 @@ def moon_info(request):
             value = trek.AGES_KO.get(value, value)
         rows.append([i18n.PROP_EN.get(label, label) if lang == "en" else label, value])
     return JsonResponse({"unit": hit.get("unit", ""), "rows": rows})
+
+
+def _kmag_info(lang, lon, lat):
+    """다누리 KMAG — 누른 자리에서 가장 가까운 측정점(반 도, 15 km 남짓 안)의 시각·고도·|B| (wetherilli 378).
+    |B| 는 바깥 자기장이 섞인 값이라 그렇다고 한 줄 붙인다"""
+    if not kmag.available():
+        return JsonResponse({"rows": [], "note": i18n.t(msg("다누리 자기장 궤적 파일이 없다"), lang)})
+    try:
+        hit = kmag.nearest(lon, lat)
+    except sqlite3.Error as exc:
+        log.warning("다누리 KMAG 를 읽지 못했다: %s", exc)
+        return JsonResponse({"error": i18n.t(msg("다누리 자기장 궤적 파일이 없다"), lang), "rows": []}, status=502)
+    if not hit:
+        return JsonResponse({"rows": [], "note": i18n.t(msg("여기 가까이 지난 궤적이 없다"), lang)})
+
+    def label(text):
+        return i18n.PROP_EN.get(text, text) if lang == "en" else text
+    b = f"{hit['b']:.2f} nT" if hit["b"] is not None else "—"
+    return JsonResponse({"rows": [
+        [label("시각"), hit["time"]],
+        [label("고도"), f"{hit['alt']:.1f} km"],
+        [label("자기장 세기 |B|"), b],
+        [label("측정점"), f"{hit['lat']:.3f}, {hit['lon']:.3f}"],
+        [label("주의"), i18n.t(msg("|B| 는 바깥 자기장(태양풍·지구 자기권)이 섞인 값 — 지각 자기 이상이 아니다"), lang)],
+    ]})
 
 
 def _moon_original_info(lang, lon, lat):
@@ -1549,6 +1733,8 @@ def earth_view(request):
         "pointsets": _script_json(_pointset_list("earth")),
         # 그때의 지구에 얹는 것의 시점 — 막대 위의 띠와 캡션이 쓴다 (wetherilli 097). 파일이 없으면 빈다
         "then_data": _script_json({"coast": paleocoast.ages(), "fossils": fossils.available(),
+                                   # 그때의 땅과 바다 밑 높이 — PaleoDEM 의 시점 (wetherilli 375). 구운 것이 없으면 빈다
+                                   "dem": paleodem.ages(),
                                    # 시간 축의 지질시대 띠 — ICS 의 누대·대·기·세 (wetherilli 373)
                                    "timescale": timescale.units(lang),
                                    # 화석 산지 밀도 (wetherilli 286) — 같은 pbdb.sqlite 에서. 범례는 비율
@@ -4855,7 +5041,7 @@ def mercurymap_version() -> str:
 
 
 def paleo_version() -> str:
-    return _stamp(paleo.RENDERER, _content_stamp(settings.PALEOMAP_FILE))
+    return _stamp(paleo.RENDERER, _content_stamp(settings.PALEOMAP_FILE), paleodem.stamp())
 
 
 def paleocoast_version() -> str:

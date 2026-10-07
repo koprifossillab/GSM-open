@@ -2262,7 +2262,6 @@ a.tool { text-decoration: none; }                /* 3D 단추는 링크다 */
 .timebar .tb-strip:focus-visible { box-shadow: 0 0 0 2px var(--hi); }
 .timebar .tb-rank { position: relative; height: 14px; margin-bottom: 1px; }
 .timebar .tb-rank.r-period { height: 19px; }
-.timebar .tb-rank.r-eon, .timebar .tb-rank.r-stage { height: 12px; }
 .timebar .tb-rlab { position: absolute; right: 100%; top: 0; bottom: 0; margin-right: 4px; display: flex; align-items: center;
                     font-size: 10px; color: var(--ink-faint); white-space: nowrap; }
 .timebar .tb-unit { position: absolute; top: 0; bottom: 0; overflow: hidden; display: flex; align-items: center; justify-content: center;
@@ -2299,7 +2298,7 @@ a.tool { text-decoration: none; }                /* 3D 단추는 링크다 */
   .timebar .tb-form input { width: 76px; }
   .timebar .tb-step, .timebar .tb-fold { width: 28px; height: 28px; }
   .timebar .tb-scale { padding-left: 0; margin-top: 4px; }
-  .timebar .tb-rlab, .timebar .tb-rank.r-eon, .timebar .tb-rank.r-stage, .timebar .tb-band + .tb-band { display: none; }
+  .timebar .tb-rlab, .timebar .tb-band + .tb-band { display: none; }
   .timebar .tb-rank.r-period { height: 22px; }
   .timebar .tb-note { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 }

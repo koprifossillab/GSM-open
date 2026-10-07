@@ -8,6 +8,10 @@
 <meta name="theme-color" content="#0b0906">
 <link rel="icon" type="image/svg+xml" href="{% static 'viewer/emblem.svg' %}?v={{ stamp|default:version }}">
 <link rel="stylesheet" href="{% static 'viewer/intro.css' %}?v={{ stamp|default:version }}">
+<script>
+/* "소개 다시 보지 않기" 를 고른 브라우저면 소개를 그리기 전에 지도로 (jikhanjung 021). 지도의 "대돌여지도 소개" 는 `?intro=1` 로 늘 소개를 */
+try { if (localStorage.getItem("gsm.intro.skip") === "1" && !/[?&]intro=/.test(location.search)) location.replace("map/"); } catch (e) { /* 사생활 모드 */ }
+</script>
 </head>
 {% comment %}
 소개 (wetherilli 113·115). 장면(`section.scene`)마다 화면에 붙는 무대(`.stage`)가 있고, 스크롤이 그 장면
@@ -29,10 +33,13 @@
       <button type="button" data-lang="ko" {% if lang == "ko" %}aria-current="true"{% endif %}>한국어</button>
       <button type="button" data-lang="en" {% if lang == "en" %}aria-current="true"{% endif %}>English</button>
     </nav>
-    <a class="skip" id="skip" href="{{ base }}map/?region=korea">
-      <b>{% t "지도로 바로 가기" %} <span aria-hidden="true">→</span></b>
-      <span class="skip-to" id="skip-to">{% t "한국 지도" %}</span>
-    </a>
+    <div class="skip-box">
+      <a class="skip" id="skip" href="{{ base }}map/?region=korea">
+        <b>{% t "지도로 바로 가기" %} <span aria-hidden="true">→</span></b>
+        <span class="skip-to" id="skip-to">{% t "한국 지도" %}</span>
+      </a>
+      <label class="skip-keep"><input type="checkbox" id="skip-intro"> {% t "소개 다시 보지 않기" %}</label>
+    </div>
   </div>
 </header>
 

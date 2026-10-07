@@ -327,7 +327,7 @@
     return BASE + "earth/tiles/" + name + "/{z}/{x}/{y}.png";
   }
   var GEO_CREDIT = "Macrostrat (CC BY 4.0) · Peters, Husson & Czaplewski 2018, G-cubed";
-  var PALEO_CREDIT = "PALEOMAP 2016 (CC BY 4.0) · Scotese 2016, PALEOMAP PaleoAtlas for GPlates";
+  var PALEO_CREDIT = "PALEOMAP 2016 (CC BY 4.0) · Scotese 2016, PALEOMAP PaleoAtlas for GPlates · PaleoDEM, Scotese & Wright 2018 (CC BY 4.0)";
   var COAST_CREDIT = "PaleoCoastlines v7.1 (CC BY 4.0) · Kocsis & Scotese 2021, Earth-Science Reviews";
   var PBDB_CREDIT = "Paleobiology Database (CC BY 4.0) · paleobiodb.org";
   var CRUST_CREDIT = "CRUST 2.0 (CC BY 4.0) · Laske, Masters & Reif 2000 · EarthByte GPlates 2.3";
@@ -2919,16 +2919,21 @@
     });
     return out;
   }
-  /** 옛 해안선의 시점 — 가장 가까운 것, 10 Myr 안에서만 (서버의 `paleocoast.stop` 과 같다) */
-  function coastStop(a) {
+  /** 시점 목록에서 가장 가까운 것, `reach` Myr 안에서만 */
+  function nearestStop(list, a, reach) {
     var best = null;
-    (THEN.coast || []).forEach(function (c) { if (best == null || Math.abs(c - a) < Math.abs(best - a)) best = c; });
-    return best != null && Math.abs(best - a) <= 10 ? best : null;
+    list.forEach(function (c) { if (best == null || Math.abs(c - a) < Math.abs(best - a)) best = c; });
+    return best != null && Math.abs(best - a) <= reach ? best : null;
   }
+  /** 옛 해안선의 시점 — 10 Myr 안에서만 (서버의 `paleocoast.stop` 과 같다) */
+  function coastStop(a) { return nearestStop(THEN.coast || [], a, 10); }
+  /** 높이 격자(PaleoDEM)의 시점 — 서버의 `paleodem.stop` 과 같다 (wetherilli 375) */
+  var DEM_AGES = THEN.dem || [];
 
-  // ── 지질시대 띠 — ICS 국제층서표의 누대·대·기·세, 제4기의 절 (서버의 `timescale.py`) ──
+  // ── 지질시대 띠 — ICS 국제층서표의 대·기·세 (서버의 `timescale.py`) ──
+  // 띠에는 세 줄만 — 누대와 제4기의 절은 머리줄의 갈래(대 › 기 › 세 › 절)에만 쓴다 (wetherilli 376)
   var ICS = THEN.timescale || [];
-  var RANK_ROWS = [["eon", T("누대")], ["era", T("대")], ["period", T("기")], ["epoch", T("세")], ["stage", T("절")]];
+  var RANK_ROWS = [["era", T("대")], ["period", T("기")], ["epoch", T("세")]];
   /** 그 연대를 품은 단위 — 갈래마다 하나. 경계의 연대(66 Ma)는 그 밑의 옛 단위(백악기)의 끝으로 친다 */
   function unitsAt(a) {
     var out = {};
@@ -3010,23 +3015,25 @@
     tbObs.observe(timebar);
     if (toolbarEl) tbObs.observe(toolbarEl);
   } else window.addEventListener("resize", fitTimebar);
-  var folded = saved("gsm.earth.tbfold", "0") === "1";
-  function setFold(f) {
+  // 처음에는 접어 둔다 — 머리줄(‹ 연대 › 와 갈래)만. 사람이 펴거나 접은 것만 기억한다 (wetherilli 376).
+  // 열쇠를 바꾼 것은 옛 열쇠에 처음 열 때 저절로 적힌 "0"(편 것)이 남아 있어서다
+  var folded = saved("gsm.earth.timebar.folded", "1") === "1";
+  function setFold(f, keep) {
     folded = f;
     timebar.classList.toggle("folded", f);
     $("age-fold").setAttribute("aria-expanded", String(!f));
     $("age-fold").title = f ? T("지질시대 띠를 편다") : T("지질시대 띠를 접는다");
-    save("gsm.earth.tbfold", f ? "1" : "0");
+    if (keep) save("gsm.earth.timebar.folded", f ? "1" : "0");
     if (!f) fitTimebar();
   }
-  setFold(folded);
-  $("age-fold").addEventListener("click", function () { setFold(!folded); });
+  setFold(folded, false);
+  $("age-fold").addEventListener("click", function () { setFold(!folded, true); });
 
   // 그때의 지구 — 칠한 판 조각. 연대마다 타일 주소가 달라 레이어를 갈아 끼운다
   var cPaleo = null, paleoShown = null;
   var oPaleo = new ol.layer.Tile({ visible: false });
   flat.getLayers().insertAt(1, oPaleo);            // 배경 바로 위 — 점묶음·찍은 것은 그 위다
-  var OCEAN = "#1b3a5e";
+  var OCEAN = "#194271";                           // 고도 격자의 −4 000 m 빛 — 격자가 없는 연대(540 Ma 너머)의 바다 (375)
   function showPaleo(a) {
     if (a === paleoShown) return;
     paleoShown = a;
@@ -3080,6 +3087,11 @@
     var note = !age ? "" : p
       ? T("PALEOMAP 2016 판 회전으로 셈한 그때의 지구다 — 관측이 아니다. 다른 판 모델과는 100 Ma 에 1 000 km 안팎 다르다. 오늘의 영상·지형·지질도는 오늘에만 뜬다")
       : T("오늘의 지구다 — 1 Ma 안에서 판이 움직인 것은 수십 km 안이다");
+    if (p && DEM_AGES.length) {
+      var dem = nearestStop(DEM_AGES, age, 2.5);
+      note += " · " + (dem != null ? T("땅과 바다 밑의 높이는 PaleoDEM 의 {ma} Ma (Scotese & Wright 2018)", { ma: dem })
+                                   : T("높이 격자(PaleoDEM)는 540 Ma 까지다 — 판 조각만 칠한다"));
+    }
     if (!p && age > 0 && isOn("icemargins")) {
       var ice = iceStops(age), bits = [];
       if (ice.nadi != null) bits.push(T("북미 {ka} ka", { ka: ice.nadi }));

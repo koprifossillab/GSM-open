@@ -689,6 +689,7 @@
     [/^gsm\.earth\./, T("온 지구")],
     [/^gsm\.moon\./, T("달")],
     [/^gsm\.mars\./, T("화성")],
+    [/^gsm\.intro\./, T("대돌여지도 소개")],
   ];
   function prefName(key) {
     for (var i = 0; i < PREF_NAMES.length; i++) if (PREF_NAMES[i][0].test(key)) return PREF_NAMES[i][1];
@@ -767,5 +768,18 @@
 
   var first = "import";
   try { first = localStorage.getItem(TAB_KEY) || "import"; } catch (e) { /* 사생활 모드 */ }
+  // 데이터소스 탭의 로그인·고치기에서 돌아오면(`?tab=sources&src=<id>`) 그 탭과 그 줄을 연다 (jikhanjung 020)
+  var params = new URLSearchParams(location.search);
+  if (params.get("tab") === "sources" && document.getElementById("tab-sources")) {
+    showTab("sources");
+    var back = params.get("src");
+    var row = back && document.querySelector('#mg-sources tr.mg-src[data-src="' + back.replace(/[^a-z0-9_]/g, "") + '"]');
+    if (row) {
+      var b = row.querySelector(".mg-src-toggle");
+      if (b && b.getAttribute("aria-expanded") !== "true") b.click();
+      row.scrollIntoView({ block: "start" });
+    }
+    return;
+  }
   showTab(/^(import|stored)$/.test(first) ? first : "import");
 })();

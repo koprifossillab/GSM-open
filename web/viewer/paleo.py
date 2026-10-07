@@ -371,10 +371,12 @@ def model():
 TILE = 256
 MAX_ZOOM = 6                     # 180/2⁶/256 ≈ 0.011° — 0.12° 로 줄인 다각형에는 넉넉하다. 그 너머는 늘려 쓴다
 STYLES = ("land", "edge")        # 칠한 땅(옛 연대) · 경계선만(오늘, 배경 위에)
-RENDERER = "1"                   # 그리는 법을 고치면 올린다 — 캐시 열쇠에 든다
+RENDERER = "2"                   # 그리는 법을 고치면 올린다 — 캐시 열쇠에 든다
 SEA = (0, 0, 0, 0)
 EDGE = (40, 30, 20, 230)
 LINE = (255, 196, 64, 235)
+SEAM = (24, 20, 16, 120)         # 칠한 고도 위의 판 경계 — 땅을 가리지 않게 가늘고 옅게
+SHELF = (120, 170, 196, 255)     # 고도 격자가 없는 연대(540 Ma 너머) — 판 둘레에 두르는 얕은 바다
 
 
 def valid_tile(z: int, x: int, y: int) -> bool:
@@ -382,10 +384,13 @@ def valid_tile(z: int, x: int, y: int) -> bool:
 
 
 def land_colour(pid: int) -> tuple:
-    """판마다 조금씩 다른 흙빛 — 이웃한 조각이 갈려 보이게. 번호에서 뽑아 늘 같은 색이다."""
+    """판마다 조금씩 다른 낮은 뭍빛 — 이웃한 조각이 갈려 보이게. 번호에서 뽑아 늘 같은 색이다.
+
+    고도 격자의 0–800 m 고리(`paleodem.LAND`) 안에서 고른다 — 540 Ma 를 넘나들 때 빛이 갑자기 바뀌지 않게."""
     h = (pid * 2654435761) & 0xFFFFFFFF
-    k = ((h >> 8) & 0xFF) / 255.0 - 0.5
-    return (int(196 + 30 * k), int(178 + 24 * k), int(132 + 20 * ((h & 0xFF) / 255.0 - 0.5)), 255)
+    k = ((h >> 8) & 0xFF) / 255.0
+    j = (h & 0xFF) / 255.0 - 0.5
+    return (int(130 + 56 * k), int(160 + 22 * k + 8 * j), int(100 + 18 * k), 255)
 
 
 def _shapes(model_, age: float) -> list:
@@ -406,10 +411,15 @@ def _shapes(model_, age: float) -> list:
 
 
 def render_tile(age: float, style: str, z: int, x: int, y: int) -> bytes:
-    """`age` Ma 의 판 조각을 한 장에. 두 배로 그려 줄인다 — Pillow 의 다각형에는 가장자리 다듬기가 없다."""
+    """`age` Ma 의 판 조각을 한 장에. 두 배로 그려 줄인다 — Pillow 의 다각형에는 가장자리 다듬기가 없다.
+
+    `land` 는 그 시점의 고도 격자(`paleodem`, wetherilli 375)를 칠한 그림을 깔고 판 경계를 가늘게 얹는다. 격자가 없는
+    연대(540 Ma 너머)나 구운 것이 없을 때는 판 조각을 낮은 뭍빛으로 칠하고 둘레에 얕은 바다를 두른다."""
     import io
 
     from PIL import Image, ImageDraw
+
+    from . import paleodem
 
     m = model()
     span = 180.0 / 2 ** z
@@ -417,21 +427,36 @@ def render_tile(age: float, style: str, z: int, x: int, y: int) -> bytes:
     k = 2
     size = TILE * k
     scale = size / span
-    image = Image.new("RGBA", (size, size), SEA)
+    relief = paleodem.crop(age, west, north, span, size) if style == "land" else None
+    image = relief.convert("RGBA") if relief is not None else Image.new("RGBA", (size, size), SEA)
     if m is not None:
-        draw = ImageDraw.Draw(image)
-        lines = []
+        over = Image.new("RGBA", (size, size), SEA) if relief is not None else image
+        draw = ImageDraw.Draw(over)
+        polys, lines = [], []
         for pid, poly, real, (lo, hi) in _shapes(m, age):
             for shift in (-720.0, -360.0, 0.0, 360.0, 720.0):
                 if hi + shift < west or lo + shift > west + span:
                     continue
                 pts = [((px + shift - west) * scale, (north - py) * scale) for px, py in poly]
-                if style == "land":
-                    draw.polygon(pts, fill=land_colour(pid))
+                polys.append((pid, pts))
                 # 극까지 내려 막은 변은 긋지 않는다 — 진짜 해안이 아니다
                 lines.append(pts[:real + 1] if len(pts) > real + 1 else pts + pts[:1])
+        if style == "land" and relief is None:
+            # 얕은 바다를 먼저 두르고 뭍을 덮는다 — 줌과 상관없이 화면에서 몇 픽셀
+            for pts in lines:
+                draw.line(pts, fill=SHELF, width=7 * k, joint="curve")
+            for pid, pts in polys:
+                draw.polygon(pts, fill=land_colour(pid))
+        if style == "edge":
+            colour, width = LINE, 2 * k
+        elif relief is not None:
+            colour, width = SEAM, k
+        else:
+            colour, width = EDGE, k + 1
         for pts in lines:
-            draw.line(pts, fill=EDGE if style == "land" else LINE, width=2 * k if style == "edge" else k + 1)
+            draw.line(pts, fill=colour, width=width)
+        if over is not image:
+            image = Image.alpha_composite(image, over)
     buf = io.BytesIO()
     image.resize((TILE, TILE), Image.LANCZOS).save(buf, "PNG", optimize=True)
     return buf.getvalue()

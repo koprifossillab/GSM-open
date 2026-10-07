@@ -148,6 +148,29 @@
    "note": "주간 백업 뒤에 매주. 처음 뒤로는 새 것만"
   },
   {
+   "id": "kpds_kmag",
+   "name": {
+    "ko": "다누리 자기장 측정기(KMAG) 궤적",
+    "en": "Danuri magnetometer (KMAG) tracks"
+   },
+   "org": "항우연 KPDS",
+   "kind": "fetch",
+   "commands": [
+    "fetch_kmag"
+   ],
+   "runs_on": "person",
+   "schedule": "manual",
+   "license": "제약 없이 일반에 공개 (KPDS 소개) — CC 라이선스는 적혀 있지 않다",
+   "flags": [],
+   "outputs": [
+    "kpds/kmag.sqlite"
+   ],
+   "docs": [
+    "wetherilli 377"
+   ],
+   "note": "KPDS 는 석 달마다 더한다. 처음 뒤로는 새 날만"
+  },
+  {
    "id": "araon",
    "name": {
     "ko": "아라온호 위치",
@@ -686,6 +709,29 @@
    "docs": [
     "wetherilli 097"
    ]
+  },
+  {
+   "id": "paleodem",
+   "name": {
+    "ko": "그때의 땅과 바다 밑 PaleoDEM",
+    "en": "PaleoDEM paleo-elevation"
+   },
+   "org": "Zenodo 5460860",
+   "kind": "build",
+   "commands": [
+    "build_paleodem"
+   ],
+   "runs_on": "host",
+   "schedule": "manual",
+   "license": "CC BY 4.0",
+   "flags": [],
+   "outputs": [
+    "earth/paleodem"
+   ],
+   "docs": [
+    "wetherilli 375"
+   ],
+   "note": "numpy·h5py 로 굽는다 — /srv/GSM/scripts/run.sh build_paleodem <zip>"
   },
   {
    "id": "mantle",

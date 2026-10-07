@@ -117,6 +117,13 @@ p, li, figcaption { text-wrap: pretty; }
 .skip b { font-size: 19px; }
 .skip .skip-to { font-size: 12.5px; opacity: .8; }
 .skip .skip-to::before { content: "→ "; }
+/* 소개 다시 보지 않기 (jikhanjung 021) — 단추 밑의 작은 체크 */
+/* 단추는 제자리에 두고 체크는 그 밑에 매단다 — 머리띠의 높이(76·64 px)를 늘리지 않게 */
+.skip-box { position: relative; }
+.skip-keep { position: absolute; top: 100%; right: 4px; margin-top: 6px;
+  display: flex; align-items: center; gap: 5px; font-size: 12px; color: var(--soft); cursor: pointer;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, .8); white-space: nowrap; }
+.skip-keep input { margin: 0; accent-color: var(--accent); }
 
 /* ── 자동 재생 — 왼쪽 아래. 막대가 이 자리에 머무는 시간을 센다 ── */
 .play {
@@ -412,6 +419,7 @@ html[lang="en"] .title h1 { font-size: clamp(46px, 5.4vw, 82px); }
   .chips.feats { display: none; }
   .title h1 { font-size: 46px; }
   .skip .skip-to { font-size: 11.5px; }
+  .skip-keep { font-size: 11px; margin-top: 4px; }
   .stage, .shot .stage { padding: 76px 16px 84px; }
   .shot .stage { grid-template-columns: 1fr; grid-template-rows: auto 1fr; align-content: start; gap: 18px; }
   .shot .frame { grid-row: 1; transform: none; max-height: 42vh; }

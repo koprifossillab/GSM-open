@@ -40,6 +40,8 @@ NO_MARS_CRATERS = "GSM: no Mars crater file"
 NO_MARS_ORIGINALS = "GSM: no Mars original maps file"
 #: 수성 지질도를 아직 굽지 않았다 — mercurymap.py (wetherilli 144)
 NO_MERCURY_GEOLOGY = "GSM: no Mercury geologic map file"
+#: 다누리 KMAG 궤적 파일이 없을 때 (`fetch_kmag`, wetherilli 378)
+NO_KMAG = "GSM: no Danuri KMAG track file"
 
 
 def notice_tile(width: int, height: int, message: str) -> bytes:

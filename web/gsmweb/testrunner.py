@@ -25,7 +25,7 @@ from django.test.runner import DiscoverRunner
 #: (`test_testrunner` 가 settings 의 `*_DIR` 과 견주어 빠진 것을 잡는다)
 REDIRECT = {name: f"GSM_{name}" for name in (
     "MOON_DIR", "CARIBBEAN_DIR", "MARS_DIR", "MERCURY_DIR", "EARTH_DIR", "WIND_DIR", "OCEAN_DIR", "GEOMAP_DIR", "NPOLAR_DIR",
-    "USGS_DIR", "PENINSULA_DIR", "IBCSO_DIR", "ADMAP_DIR", "KOPRI_DIR", "TAIWAN_OPEN_DIR", "KIGAM_DATA_DIR", "SGB_DIR",
+    "USGS_DIR", "PENINSULA_DIR", "IBCSO_DIR", "ADMAP_DIR", "KOPRI_DIR", "KPDS_DIR", "TAIWAN_OPEN_DIR", "KIGAM_DATA_DIR", "SGB_DIR",
     "KIGAM50K_DIR", "VERIFY_DIR", "SARAD_DIR", "NTGEO_DIR", "TILE_CACHE_DIR")}
 #: 시험이 손대지 않는 설정 — 저장소 자리 자체, 비면 꺼지는 로그
 KEEP = {"BASE_DIR", "REPO_DIR", "LOG_DIR"}

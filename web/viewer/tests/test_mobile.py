@@ -367,6 +367,26 @@ class PhoneScreenTests(PhoneBase):
         self.assertFits(self.measure(page), "intro en")
         self.assertEqual(errors, [])
 
+    def test_소개_다시_보지_않기(self):
+        """"지도로 바로 가기" 밑의 체크 — 고르면 다음부터 뿌리에서 곧장 지도로, 지도의 "대돌여지도 소개"(`?intro=1`)에서 풀 수 있다 (jikhanjung 021)"""
+        page, errors = self.open("")
+        keep = page.locator("#skip-intro")
+        self.assertTrue(keep.is_visible(), "체크가 보이지 않는다")
+        self.assertFits(self.measure(page), "intro skip box")
+        keep.tap()
+        self.assertEqual(page.evaluate("localStorage.getItem('gsm.intro.skip')"), "1")
+        page.goto(self.live_server_url + "/GSM/", wait_until="load")
+        self.assertTrue(page.url.endswith("/GSM/map/"), page.url)                 # 소개를 건너 지도로
+        page.goto(self.live_server_url + "/GSM/?intro=1", wait_until="load")      # 지도의 "대돌여지도 소개"
+        self.assertTrue(page.url.endswith("/GSM/?intro=1"), page.url)
+        keep = page.locator("#skip-intro")
+        self.assertTrue(keep.is_checked())
+        keep.tap()
+        self.assertIsNone(page.evaluate("localStorage.getItem('gsm.intro.skip')"))
+        page.goto(self.live_server_url + "/GSM/", wait_until="load")
+        self.assertTrue(page.url.endswith("/GSM/"), page.url)                     # 풀면 다시 소개
+        self.assertEqual(errors, [])
+
     def test_관리_화면의_상자_제목은_한_줄이다(self):
         """제목 옆의 안내 글이 제목을 밀어 "개인 레이 / 어" 처럼 꺾였다 — 휴대폰에서 안내는 다음 줄로 (wetherilli 365)"""
         page, errors = self.open("manage/")

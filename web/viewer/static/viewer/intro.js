@@ -59,6 +59,18 @@
   var scenes = Array.prototype.slice.call(document.querySelectorAll(".scene, .doors-wrap"));
   var skip = document.getElementById("skip");
   var skipTo = document.getElementById("skip-to");
+  // "소개 다시 보지 않기" (jikhanjung 021) — 고르면 이 브라우저는 다음부터 뿌리(`/GSM/`)에서 곧장 지도로 간다(머리의 짧은 스크립트).
+  // 지도의 "대돌여지도 소개" 는 `?intro=1` 로 들어와 여기서 풀 수 있다
+  var keep = document.getElementById("skip-intro");
+  if (keep) {
+    try { keep.checked = localStorage.getItem("gsm.intro.skip") === "1"; } catch (e) { /* 사생활 모드 */ }
+    keep.addEventListener("change", function () {
+      try {
+        if (keep.checked) localStorage.setItem("gsm.intro.skip", "1");
+        else localStorage.removeItem("gsm.intro.skip");
+      } catch (e) { /* 사생활 모드 */ }
+    });
+  }
   var chapters = Array.prototype.slice.call(document.querySelectorAll("#chapters a"));
   var still = matchMedia("(prefers-reduced-motion: reduce)").matches;
   var DPR = Math.min(window.devicePixelRatio || 1, 1.5);
