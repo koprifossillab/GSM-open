@@ -7,7 +7,7 @@ from pathlib import Path
 
 from django.core.management.base import BaseCommand, CommandError
 
-from viewer import neotoma, paleoeco
+from viewer import fetchlog, neotoma, paleoeco, rawstore
 
 
 class Command(BaseCommand):
@@ -28,4 +28,7 @@ class Command(BaseCommand):
                 raise CommandError(str(exc)) from exc
             self.stdout.write(f"  자료 {n:,} 건")
         got = paleoeco.build(src, out, log=self.stdout.write)
+        # 기록 표에 — 원본의 자리·판과 구운 수 (jikhanjung P02 4 단계). 몇십 MB 라 다 읽어 셈한다
+        fetchlog.note(raw_path=rawstore.label(src), raw_sha256=rawstore.file_sha256(src),
+                      rows=got["datasets"])
         self.stdout.write(f"산지 {got['sites']:,} 곳 · 자료 {got['datasets']:,} 건 · {got['seconds']} 초 → {out}")

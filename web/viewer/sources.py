@@ -258,6 +258,25 @@ def seed() -> dict:
     return {"created": False, "added": [r.get("id") for r in added], "differs": differs}
 
 
+def seed_differs(rows) -> dict:
+    """운영 명세의 줄 가운데 씨앗의 같은 id 와 다른 것 — {id: [다른 칸…]}. 씨앗을 고쳐도 있는 id 는 덮지 않으므로(사람이 서버에서
+    고친 것을 지키려고) 씨앗의 고침이 운영에 안 닿는다. 화면이 이것을 띄워 옮길지 사람이 정하게 한다 (P02 §9)"""
+    try:
+        seed_rows = (_parse(seed_path().read_bytes()) or {}).get("sources") or []
+    except (OSError, AttributeError):
+        return {}
+    by_id = {r.get("id"): r for r in seed_rows if isinstance(r, dict)}
+    out = {}
+    for row in rows:
+        other = by_id.get(row.get("id"))
+        if other is None:
+            continue
+        keys = sorted(k for k in set(row) | set(other) if row.get(k) != other.get(k))
+        if keys:
+            out[row["id"]] = keys
+    return out
+
+
 def _write(p: Path, raw: dict):
     p.parent.mkdir(parents=True, exist_ok=True)
     tmp = p.with_suffix(".json.tmp")
@@ -374,6 +393,10 @@ def overview(sync: bool = True, history: bool = True, files: bool = True) -> dic
         past = fetchlog.history_many([r["row"]["id"] for r in rows if r["last"]], 20)
         for r in rows:
             r["history"] = past.get(r["row"]["id"], [])
+    # 씨앗과 다른 줄 — 운영 명세를 읽었을 때만(씨앗을 읽었으면 다를 것이 없다). healthz 는 보지 않는다
+    differs = seed_differs(spec.rows) if (history and spec.origin == "file") else {}
+    for r in rows:
+        r["seed_differs"] = differs.get(r["row"]["id"], [])
     spec_change = (latest.get("_spec") or {}).get("last")
     return {"rows": rows, "counts": counts, "problems": spec.problems, "origin": spec.origin,
-            "spec_changed": spec_change}
+            "spec_changed": spec_change, "seed_differs": len(differs)}

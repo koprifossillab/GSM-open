@@ -7,7 +7,7 @@ from pathlib import Path
 
 from django.core.management.base import BaseCommand, CommandError
 
-from viewer import quakes, usgs
+from viewer import fetchlog, quakes, rawstore, usgs
 
 
 class Command(BaseCommand):
@@ -28,4 +28,7 @@ class Command(BaseCommand):
                 raise CommandError(str(exc)) from exc
             self.stdout.write(f"  {n:,} 건")
         got = quakes.build(src, out, log=self.stdout.write)
+        # 기록 표에 — 원본의 자리·판과 구운 수 (jikhanjung P02 4 단계). 몇십 MB 라 다 읽어 셈한다
+        fetchlog.note(raw_path=rawstore.label(src), raw_sha256=rawstore.file_sha256(src),
+                      rows=got["rows"])
         self.stdout.write(f"{got['rows']:,} 곳 (좌표·규모 없는 것과 겹친 것 {got['skipped']:,}) · {got['seconds']} 초 → {out}")

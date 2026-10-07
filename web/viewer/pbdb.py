@@ -33,8 +33,8 @@ def collection_url(no: int) -> str:
     return f"https://paleobiodb.org/classic/displayCollectionDetails?collection_no={int(no)}"
 
 
-def download(dest: Path, timeout: int = 900) -> int:
-    """모든 산지를 CSV 로 `dest` 에 적는다. 적은 바이트 수."""
+def download(dest: Path, timeout: int = 900, digest=None) -> int:
+    """모든 산지를 CSV 로 `dest` 에 적는다. 적은 바이트 수. `digest`(hashlib 의 것)를 주면 받는 대로 셈한다 — 150 MB 를 다시 읽지 않게"""
     left = usage.paused()
     if left:
         raise PbdbError(f"차단 조짐이 있어 {int(left)}초 동안 상류에 묻지 않는다")
@@ -51,6 +51,8 @@ def download(dest: Path, timeout: int = 900) -> int:
                 for chunk in r.iter_content(1 << 20):
                     fh.write(chunk)
                     size += len(chunk)
+                    if digest is not None:
+                        digest.update(chunk)
     except requests.RequestException as exc:
         usage.record("pbdb", ok=False)
         raise PbdbError(f"PBDB 에 닿지 못했다: {exc}") from exc

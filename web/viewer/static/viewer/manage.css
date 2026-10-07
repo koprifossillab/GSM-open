@@ -202,6 +202,7 @@ body.manage { display: block; height: auto; min-height: 100vh; overflow: visible
 .mg-res.fail { background: #d4523a; }
 .mg-res.skip { background: var(--ink-faint); }
 .mg-said { max-width: 28em; overflow-wrap: anywhere; }
+.mg-seed { color: #b98a2e !important; }
 .mg-out { white-space: normal; }
 .mg-out .mono { overflow-wrap: anywhere; }   /* 원본 판 글이 길다(GVP·DOI 주소) — 꺾지 않으면 칸이 화면 밖으로 */
 .mg-out-what { color: var(--ink-faint); white-space: normal; }

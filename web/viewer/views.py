@@ -390,17 +390,28 @@ def _sources_view(lang):
             "estimated": bool((last or {}).get("estimated")),
             "seconds": (last or {}).get("seconds"), "said": said((last or {}).get("note")),
             "ok": when(item["last_ok"]), "late": item["late"], "failed": item["failed"], "unknown": item["unknown"],
-            "counts": counts, "outputs": outs,
+            "counts": counts, "outputs": outs, "seed_differs": ", ".join(item.get("seed_differs") or []),
+            # 상류의 판·앞 판과 견준 것 — 원본을 날짜 폴더에 두는 것(`rawstore`)이 적는다 (P02 §6)
+            "version": (last or {}).get("upstream_version") or "", "changed": _changed((last or {}).get("changed"), lang),
             "history": [{"at": when(h), "origin": label(sources.ORIGIN_LABELS, h["origin"]), "result": h["result"],
                          "result_label": label(sources.RESULT_LABELS, h["result"]), "seconds": h.get("seconds"),
                          "expected": h.get("expected"), "rows": h.get("rows"), "raw": fetchlog.shown(h.get("raw_path") or ""),
-                         "said": said(h.get("note")), "estimated": bool(h.get("estimated"))}
+                         "said": said(h.get("note")), "estimated": bool(h.get("estimated")),
+                         "version": h.get("upstream_version") or "", "changed": _changed(h.get("changed"), lang)}
                         for h in item["history"]],
         })
     problems = [(where, "; ".join(i18n.t(m, lang) for m in found)) for where, found in ov["problems"]]
     return {"rows": rows, "counts": ov["counts"], "problems": problems, "origin": ov["origin"],
+            "seed_differs": ov.get("seed_differs", 0),
             "origin_label": label(sources.SPEC_ORIGIN_LABELS, ov["origin"]),
             "spec_changed": when(ov["spec_changed"])}
+
+
+def _changed(n, lang) -> str:
+    """기록 표의 `changed` — 앞 판과 같으면 0, 다르면 바뀐 것(파일·레이어)의 수. 적지 않은 줄은 빈칸"""
+    if n is None:
+        return ""
+    return i18n.t(msg("앞 판과 같다"), lang) if n == 0 else i18n.t(msg("바뀐 것 {n}", n=n), lang)
 
 
 @require_POST
