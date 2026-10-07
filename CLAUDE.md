@@ -548,7 +548,7 @@ web/viewer/       뷰어 앱 하나뿐이다. 앱을 더 가르지 않는다
   sgb.py          브라질 지질조사소(SGB)로 나가는 문 (GeoServer 둘 — 1:250만 2025·1:100만·1:25만, 속성은 `propertyName` 으로, 범례는 보는 범위의 것). 단위 이름표는 모아 둔다(`fetch_sgb_units`). 노두·연대측정·화석 산지·광물 산출(wetherilli 265) 점도 같은 WMS 로
   segemar.py      아르헨티나 지질광업조사소(SEGEMAR)로 나가는 문 (SIGAM GeoServer — 1:250만 단위·구조선·화산, 1:25만 간행 도폭, 지역 판 1:100만·주별 1:75만·국경 1:50만·포클랜드(말비나스), 제4기 변형·화산 위험도, 금속·산업 광상 1:25만 — wetherilli 265). 이름은 `segemar:<상류 이름>`. CORS 가 없다
   dinamige.py     우루과이 광업지질국(DINAMIGE, MIEM)으로 나가는 문 (1:50만 ArcGIS WMS, 3857 로). 이름은 WMS 번호 — REST 와 거꾸로다. 범례는 REST 를 목록으로
-  pbdb.py         Paleobiology Database 로 나가는 문 (화석 산지를 통째로 한 번). 모아 둔다(`fetch_pbdb`)
+  pbdb.py         Paleobiology Database 로 나가는 문 (화석 산지를 통째로 한 번, 매주는 바뀐 것만 — `colls_modified_after`, jikhanjung 026). 모아 둔다(`fetch_pbdb`, `--changed`)
   gvp.py          스미스소니언 Global Volcanism Program 으로 나가는 문 (홀로세 화산 WFS 를 통째로 한 번). 모아 둔다(`fetch_gvp`)
   usgs.py         미국 지질조사국(USGS)으로 나가는 문 (지진 목록 FDSN, M5 이상을 5 년씩). 모아 둔다(`fetch_quakes`)
   neotoma.py      Neotoma 고생태 데이터베이스로 나가는 문 (자료 목록을 번호 500 개씩 묶어). 모아 둔다(`fetch_neotoma`)

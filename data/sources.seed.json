@@ -14,7 +14,7 @@
     "fetch_pbdb"
    ],
    "runs_on": "container",
-   "schedule": "monthly-first-monday",
+   "schedule": "weekly",
    "license": "CC BY 4.0",
    "flags": [],
    "outputs": [
@@ -22,9 +22,10 @@
    ],
    "raw": "earth/pbdb_collections.csv",
    "docs": [
-    "wetherilli 098"
+    "wetherilli 098",
+    "jikhanjung 026"
    ],
-   "note": "주간 백업이 매달 첫 월요일에 부른다(weekly_backup.sh)"
+   "note": "주간 백업이 매주 부른다 — 첫 월요일은 통째로, 그 밖은 바뀐 것만(--changed, weekly_backup.sh)"
   },
   {
    "id": "gvp",

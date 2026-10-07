@@ -64,6 +64,62 @@ def _num(v):
         return None
 
 
+class MergeError(ValueError):
+    """바뀐 것을 받아 둔 CSV 에 덮을 수 없다 — 열이 다르다 따위. 부르는 쪽이 통째로 받는다"""
+
+
+#: 지운 산지의 표시 — 문서에 `_status` 가 `deleted` 라고 있다(실제로 돌아오는 것은 아직 못 봤다)
+_DELETED = ("deleted",)
+
+
+def merge_changes(csv_path, changes_path) -> dict:
+    """바뀐 산지(`changes_path`, 같은 열의 CSV)를 받아 둔 CSV 에 `collection_no` 로 덮는다 — 있으면 바꾸고, 없으면 끝에 더하고,
+    지운 표시가 있으면 뺀다. 받아 둔 CSV 는 줄마다 흘려 읽는다(27 만 곳, 150 MB). 열이 다르면 `MergeError`.
+    돌려주는 것 — {"replaced", "added", "deleted", "rows"} (jikhanjung 026)"""
+    csv.field_size_limit(1 << 24)
+    csv_path, changes_path = Path(csv_path), Path(changes_path)
+    with open(changes_path, encoding="utf-8", newline="") as fh:
+        reader = csv.DictReader(fh)
+        new_head = reader.fieldnames or []
+        changes = {}
+        for rec in reader:
+            no = (rec.get("collection_no") or "").strip()
+            if no:
+                changes[no] = rec
+    gone = {no for no, rec in changes.items()
+            if (rec.get("_status") or rec.get("status") or "").strip().lower() in _DELETED}
+    out = csv_path.with_suffix(".merging")
+    replaced = deleted = rows = 0
+    with open(csv_path, encoding="utf-8", newline="") as src, open(out, "w", encoding="utf-8", newline="") as dst:
+        reader = csv.DictReader(src)
+        head = reader.fieldnames or []
+        if changes and [h for h in new_head if h not in ("_status", "status")] != head:
+            out.unlink(missing_ok=True)
+            raise MergeError("바뀐 것의 열이 받아 둔 CSV 와 다르다")
+        writer = csv.DictWriter(dst, fieldnames=head, extrasaction="ignore", lineterminator="\n")
+        writer.writeheader()
+        for rec in reader:
+            no = rec.get("collection_no", "")
+            if no in changes:
+                if no in gone:
+                    deleted += 1
+                    changes.pop(no)
+                    continue
+                rec = changes.pop(no)
+                replaced += 1
+            writer.writerow(rec)
+            rows += 1
+        added = 0
+        for no, rec in changes.items():
+            if no in gone:
+                continue
+            writer.writerow(rec)
+            rows += 1
+            added += 1
+    out.replace(csv_path)
+    return {"replaced": replaced, "added": added, "deleted": deleted, "rows": rows}
+
+
 def build(csv_path, out_path, log=print) -> dict:
     """PBDB 의 `colls/list.csv` → sqlite. 판을 붙이는 셈이 산지마다 1 ms 안이라 몇 분 걸린다."""
     m = paleo.model()

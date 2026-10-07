@@ -7,6 +7,8 @@
 - **화면이 부를 때 상류를 타지 않는다.** 산지는 27 만 곳 남짓이라 `manage.py fetch_pbdb` 가 한 번에 받아(CSV 110 MB 남짓)
   `fossils.py` 가 sqlite 로 굽는다 — 극지연구소 목록과 같은 틀이다(053). 살아 있는 DB 라 가끔 다시 받는다
 - 받는 것은 `colls/list` 의 `all_records` 하나다. 한 번 부르고 스트림으로 적는다 — 쪼개 여러 번 두드리지 않는다
+- **매주는 바뀐 것만**(jikhanjung 026) — 같은 질의에 `all_records` 대신 `colls_modified_after`. 새로 생긴 산지도 든다(2026-10-07 에
+  7 일로 대 봤다 — 새로 생긴 47 곳이 바뀐 81 곳 안에 다 있었다). 지운 산지가 돌아오는지는 못 봤다 — 매달 첫 월요일의 통째 받기가 맞춘다
 """
 import logging
 from pathlib import Path
@@ -33,14 +35,19 @@ def collection_url(no: int) -> str:
     return f"https://paleobiodb.org/classic/displayCollectionDetails?collection_no={int(no)}"
 
 
-def download(dest: Path, timeout: int = 900, digest=None) -> int:
-    """모든 산지를 CSV 로 `dest` 에 적는다. 적은 바이트 수. `digest`(hashlib 의 것)를 주면 받는 대로 셈한다 — 150 MB 를 다시 읽지 않게"""
+def download(dest: Path, timeout: int = 900, digest=None, since=None) -> int:
+    """모든 산지를 CSV 로 `dest` 에 적는다. 적은 바이트 수. `digest`(hashlib 의 것)를 주면 받는 대로 셈한다 — 150 MB 를 다시 읽지 않게.
+    `since`(날짜)를 주면 그날 뒤에 바뀐(새로 생긴 것 포함) 산지만 — 열은 통째 받기와 같다(`show` 가 같다)"""
+    params = dict(QUERY)
+    if since is not None:
+        params.pop("all_records")
+        params["colls_modified_after"] = f"{since:%Y-%m-%d}"
     left = usage.paused()
     if left:
         raise PbdbError(f"차단 조짐이 있어 {int(left)}초 동안 상류에 묻지 않는다")
     tmp = Path(str(dest) + ".part")
     try:
-        with requests.get(f"{API}/colls/list.csv", params=QUERY, stream=True, timeout=(settings.UPSTREAM_TIMEOUT, timeout),
+        with requests.get(f"{API}/colls/list.csv", params=params, stream=True, timeout=(settings.UPSTREAM_TIMEOUT, timeout),
                           verify=settings.CA_BUNDLE or True, headers={"User-Agent": "GSM/0.1"}) as r:
             log.info("PBDB %s -> %s", r.url, r.status_code)
             if r.status_code != 200:
