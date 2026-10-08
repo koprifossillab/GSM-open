@@ -37,11 +37,12 @@
       var m = /[?&]region=([\w-]+)/.exec(href || "");
       return !m || loaded(m[1]);
     };
-    var korea = document.querySelector('[data-go="map/?region=korea"]');
+    // 실리지 않은 지역으로 가던 장면은 정적 판이 여는 남극으로 돌린다 (2026-10-08)
+    var home = document.querySelector('[data-go="map/?region=antarctica"]');
     document.querySelectorAll("[data-go]").forEach(function (el) {
       if (shown(el.dataset.go)) return;
-      el.dataset.go = "map/?region=korea";
-      if (korea) el.dataset.goLabel = korea.dataset.goLabel;
+      el.dataset.go = "map/?region=antarctica";
+      if (home) el.dataset.goLabel = home.dataset.goLabel;
     });
     document.querySelectorAll(".door").forEach(function (a) { if (!shown(a.getAttribute("href"))) a.hidden = true; });
     // 둘째 장면에 쏟아지는 그림에서도 정적 판에 없는 화면(3D·온 지구·달·화성·수성·실리지 않은 묶음)은 뺀다

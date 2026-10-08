@@ -575,7 +575,8 @@
       }
     });
   }
-  var region = "korea";
+  // 정적 판은 남극으로 연다 — 키 없이 다 보이는 지역이다. 키는 한국 지질도·VWorld 에만 든다(사용자 결정, 2026-10-08)
+  var region = STATIC && REGIONS.antarctica ? "antarctica" : "korea";
 
   //: 남극 GeoMAP 타일의 격자. **우리 서버(`geomap/`)가 이 격자로 굽는다** —
   //  한 글자라도 다르면 타일이 어긋난다. 원점은 왼쪽 위, 256 픽셀, 줌 0 의
@@ -6660,6 +6661,7 @@
     }
     restack();
     closePopup();
+    askStaticKeys();
   }
 
   /** 지역에 딸린 겉모습 — 색 테마, 배경 고르개, 한국 전용 칸, 준비 중 알림. */
@@ -7779,10 +7781,7 @@
       open.addEventListener("click", openKeyDialog);
       box.append(text, open);
     }
-    // 처음 열 때(둘 가운데 하나라도 없으면) 묻는다. "나중에" 를 누르면 그 탭에서는 다시 묻지 않는다
-    var later = false;
-    try { later = sessionStorage.getItem("gsm.key.later") === "1"; } catch (e) { /* 사생활 모드 */ }
-    if (!later && STATIC_KEYS.some(function (k) { return !readKey(k.name); })) openKeyDialog();
+    askStaticKeys();
     // 넣어 둔 KIGAM 키가 받히는지 한 장 물어 본다. 휴대폰에서는 알림 줄이 접힌 패널 안이라, 안 받히면 키 창을 띄워 까닭을 보인다
     var kigam = readKey("kigam");
     if (kigam) probeKigam(kigam).then(function (result) {
@@ -7795,8 +7794,17 @@
       }
       var shown = document.querySelector("#key-dialog .key-check");
       if (shown) showVerdict(shown, result);
-      else openKeyDialog({ verdict: result });
+      else if (REGIONS[region].vworld) openKeyDialog({ verdict: result });
     });
+  }
+
+  /** 키가 드는 지역(한국·동아시아 — `vworld`)에 처음 들 때(둘 가운데 하나라도 없으면) 묻는다. 남극으로 여는 정적 판에서
+   *  열자마자 묻지 않게 (2026-10-08). "나중에" 를 누르면 그 탭에서는 다시 묻지 않는다 */
+  function askStaticKeys() {
+    if (!STATIC || !REGIONS[region].vworld) return;
+    var later = false;
+    try { later = sessionStorage.getItem("gsm.key.later") === "1"; } catch (e) { /* 사생활 모드 */ }
+    if (!later && STATIC_KEYS.some(function (k) { return !readKey(k.name); })) openKeyDialog();
   }
 
   /** KIGAM 이 이 키로 타일을 주는지 (wetherilli 179) — 한국 한가운데 512 타일 한 장을 화면이 묻는 것과 같은 꼴로 묻는다

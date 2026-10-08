@@ -34,9 +34,10 @@ try { if (localStorage.getItem("gsm.intro.skip") === "1" && !/[?&]intro=/.test(l
       <button type="button" data-lang="en" {% if lang == "en" %}aria-current="true"{% endif %}>English</button>
     </nav>
     <div class="skip-box">
-      <a class="skip" id="skip" href="{{ base }}map/?region=korea">
+      {# 정적 판은 남극으로 연다 — 키 없이 다 보인다 (2026-10-08) #}
+      <a class="skip" id="skip" href="{{ base }}map/?region={% if static_site %}antarctica{% else %}korea{% endif %}">
         <b>{% t "지도로 바로 가기" %} <span aria-hidden="true">→</span></b>
-        <span class="skip-to" id="skip-to">{% t "한국 지도" %}</span>
+        <span class="skip-to" id="skip-to">{% if static_site %}{% t "남극 지도" %}{% else %}{% t "한국 지도" %}{% endif %}</span>
       </a>
       <label class="skip-keep"><input type="checkbox" id="skip-intro"> {% t "소개 다시 보지 않기" %}</label>
     </div>
@@ -65,7 +66,7 @@ try { if (localStorage.getItem("gsm.intro.skip") === "1" && !/[?&]intro=/.test(l
 
 {# ── 타이틀 — 둥근 지구가 돌고 달·화성이 떠 있다 ── #}
 <section class="scene title" id="title" data-steps="1" data-stops="0" data-dwell="3200" data-theme="title"
-         data-go="map/?region=korea" data-go-label="{% t "한국 지도" %}">
+         {% if static_site %}data-go="map/?region=antarctica" data-go-label="{% t "남극 지도" %}"{% else %}data-go="map/?region=korea" data-go-label="{% t "한국 지도" %}"{% endif %}>
   <div class="stage">
     <canvas class="stars" aria-hidden="true"></canvas>
     {# 정적 판에는 달·화성·수성 화면이 없어 지구만 돈다 #}
