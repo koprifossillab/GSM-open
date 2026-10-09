@@ -1524,6 +1524,26 @@ button.proplink { font-family: inherit; line-height: inherit; cursor: pointer; }
 .del-meta { color: var(--ink-faint); font-size: 11.5px; }
 .del-done { font-size: 11.5px; color: var(--ink-faint); }
 
+/* 설정 — 오프라인 묶음 (wetherilli 382) */
+.offline-list { margin: 6px 0 4px; padding: 0; list-style: none; }
+.offline-list li { display: flex; align-items: center; gap: 8px; padding: 6px 2px;
+                   border-bottom: 1px solid var(--line); font-size: 12.5px; }
+.offline-list li.empty { color: var(--ink-faint); border: 0; }
+.offline-what { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+.offline-what .hint { margin: 0; }
+.offline-status:empty { display: none; }
+.offline-status.bad { color: var(--bad); }
+.offline-status .btn { margin-left: 6px; }
+#offline-file { max-width: 100%; font: inherit; font-size: 12.5px; }
+
+/* 지도 위 — 들인 묶음 안을 보는 동안 */
+.offline-badge { position: absolute; left: 50%; top: 64px; transform: translateX(-50%); z-index: 5;
+                 display: flex; flex-direction: column; align-items: center; gap: 1px; max-width: calc(100% - 32px);
+                 padding: 4px 10px; font-size: 12px; color: var(--ink); background: var(--panel);
+                 border: 1px solid var(--line); border-radius: 999px; box-shadow: var(--shadow); pointer-events: none;
+                 text-align: center; }
+.offline-badge span { font-size: 10.5px; color: var(--ink-faint); }
+
 /* ── 지역 탭 ── */
 .regions { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin: 0 16px 10px; }
 .region-tab { position: relative; padding: 5px 12px; font: inherit; font-size: 12.5px; color: var(--ink-soft);

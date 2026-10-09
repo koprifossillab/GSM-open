@@ -6,6 +6,7 @@
 <title>{% t "대돌여지도" %}</title>
 <meta name="description" content="{% t "지질도를 겹쳐 보고, 눌러 속성을 읽고, 내 좌표를 얹는 지도 — 쉰 남짓의 나라·지역과 온 지구, 그리고 달·화성·수성까지." %}">
 <meta name="theme-color" content="#0b0906">
+{% include "viewer/_app_head.html" %}
 <link rel="icon" type="image/svg+xml" href="{% static 'viewer/emblem.svg' %}?v={{ stamp|default:version }}">
 <link rel="stylesheet" href="{% static 'viewer/intro.css' %}?v={{ stamp|default:version }}">
 <script>

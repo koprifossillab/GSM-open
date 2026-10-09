@@ -52,6 +52,8 @@ usgs/
 # 한반도 지질도 음영판 — 출처를 모른다. 이미지에 굽지 않는다 (devlog 027)
 peninsula/
 # 달 지질도 원도를 구운 것 (devlog 039) — 운영은 /srv/GSM/db/moon/
+# 오프라인 묶음 (wetherilli 381) — 운영은 /srv/GSM/db/offline/
+offline/
 moon/
 # 남극 해저·빙저 지형 IBCSO v2 (devlog 047) — 운영은 /srv/GSM/db/ibcso/
 ibcso/

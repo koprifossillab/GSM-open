@@ -1005,6 +1005,32 @@
    "note": "download.geonames.org/export/dump 의 cities1000.zip·admin1CodesASCII.txt, 나라 이름은 Natural Earth admin 0"
   },
   {
+   "id": "offline_packs",
+   "name": {
+    "ko": "오프라인 묶음",
+    "en": "Offline packs"
+   },
+   "org": "GSM (KIGAM·VWorld 타일을 묶는다)",
+   "kind": "build",
+   "commands": [
+    "build_offline_pack"
+   ],
+   "runs_on": "person",
+   "schedule": "manual",
+   "license": "KIGAM·VWorld 조건 — 연구실 현장용으로만 나눈다(사람, 2026-10-09)",
+   "flags": [
+    "lab_only"
+   ],
+   "outputs": [
+    "offline/<박스>-YYYYMMDD.gsmpack"
+   ],
+   "docs": [
+    "wetherilli P13",
+    "wetherilli 381"
+   ],
+   "note": "박스는 data/offline_boxes.json. KIGAM 은 캐시 먼저·없으면 문으로 1 초 간격, VWorld 는 문으로. GSM_PUBLIC 이면 /GSM/offline/ 이 닫힌다"
+  },
+  {
    "id": "natural_earth",
    "name": {
     "ko": "지명·강·호수·빙하 Natural Earth",

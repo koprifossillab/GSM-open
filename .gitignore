@@ -46,6 +46,8 @@ geo3al.dbf
 /peninsula/
 # 달 지질도 원도를 구운 것 — 기본 자리 <DB 옆>/moon/. 84 MB, 원본은 NAS 에 있다 (devlog 039)
 /moon/
+# 오프라인 묶음 — 기본 자리 <DB 옆>/offline/. 연구실 현장용, 한 장 200 MB 까지 (wetherilli 381)
+/offline/
 
 # Claude Code 의 작업 자리 (에이전트 worktree 등)
 /.claude/

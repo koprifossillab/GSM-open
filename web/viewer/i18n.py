@@ -76,6 +76,14 @@ def client_table(lang: str) -> dict:
 # ── 화면·메시지 ──────────────────────────────────────────────────────
 
 EN = {
+    # 오프라인 묶음 (wetherilli 381)
+    "오프라인 묶음": "Offline packs",
+    "연구실 현장용 — 밖으로 나누지 않는다": "For lab fieldwork — do not share outside the lab",
+    "타일 {n} 장": "{n} tiles",
+    "구운 묶음이 아직 없다": "No packs have been built yet",
+    "연구소 망에서 묶음을 내려받는다": "Download a pack while on the institute network",
+    "공개 판을 홈 화면에 추가해 앱으로 연다": "Add the public site to your home screen and open it as an app",
+    "앱의 ‘오프라인 묶음 불러오기’ 로 내려받은 파일을 고른다": "Pick the downloaded file with “Load offline pack” in the app",
     # 대만 지질 민감구역의 갈래 (wetherilli 336)
     "활성단층 민감구역": "Active fault sensitive area", "지하수 함양 민감구역": "Groundwater recharge sensitive area",
     "지질 유산 민감구역": "Geoheritage sensitive area", "산사태·지활 민감구역": "Landslide sensitive area",
@@ -843,6 +851,16 @@ EN = {
     # 2D 지도의 방위 (wetherilli 114)
     "방위 — 바늘이 지도의 본래 위쪽을 가리킨다. 우클릭한 채 끌면 지도가 돌고, 누르면 처음 방위로 되돌린다":
         "Heading — the needle points to the map's original up. Right-drag to rotate the map; click to restore the original heading",
+    # 내 위치 (wetherilli 380)
+    "내 위치": "My location",
+    "내 위치 — 이 기기의 GPS 로 지금 자리를 띄우고 따라간다. 다시 누르면 끈다":
+        "My location — shows where you are from this device's GPS and follows it. Press again to turn off",
+    "내 위치가 이 지역의 지도 밖이다": "Your location is outside this region's map",
+    "내 위치 ±{m} m": "My location ±{m} m",
+    "위치를 찾는 중": "Finding your location",
+    "위치 권한이 막혀 있다 — 브라우저 설정에서 허용한다": "Location permission is blocked — allow it in the browser settings",
+    "위치를 제때 받지 못했다": "Location timed out",
+    "위치를 받지 못했다": "Could not get your location",
     "평면에서 그렇게 끌면 구로 넘어가며 기울어진다.": "Doing so on the flat map switches to the globe and tilts.",
     "화면 한가운데 점에서 본 기울기(곧장 내려다봄 0°)와 방위(달의 북쪽 0°)":
         "Tilt (0° looking straight down) and heading (0° lunar north) at the point in the middle of the screen",
@@ -2109,6 +2127,27 @@ EN = {
     "이 브라우저는 저장소(IndexedDB)를 쓰지 못한다": "This browser cannot use storage (IndexedDB)",
     "저장하지 못했다 — 저장소가 찼을 수 있다": "Could not save — storage may be full",
     "이름 없는 레이어": "Untitled layer",
+    # 오프라인 묶음 (wetherilli P13·382)
+    "오프라인": "Offline",
+    "오프라인 묶음 불러오기": "Load an offline pack",
+    "연구소에서 구운 묶음(.gsmpack)을 고르면 그 범위의 지질도·배경지도를 망과 인증키 없이 본다. 묶음은 이 브라우저에만 남는다.":
+        "Pick a pack (.gsmpack) built at the institute to view its geological maps and basemaps without a network or API keys. The pack stays in this browser only.",
+    "들인 묶음": "Loaded packs",
+    "연구실 현장용이다 — 묶음 파일을 밖으로 나누지 않는다.": "For the lab's fieldwork — do not share pack files outside.",
+    "들인 묶음이 없다": "No packs loaded",
+    "{built} 구움 · {size} · 타일 {n}장": "Built {built} · {size} · {n} tiles",
+    "가 보기": "Go there",
+    "{name} 묶음을 이 브라우저에서 지운다": "Delete the pack {name} from this browser",
+    "들이는 중…": "Loading…",
+    "{name} 을 들였다. 배경지도는 다시 열면 고르개에 오른다.": "Loaded {name}. Its basemaps appear in the picker after reopening.",
+    "{name} 을 들였다. 이 범위는 망 없이도 보인다.": "Loaded {name}. This extent now shows without a network.",
+    "다시 열기": "Reopen",
+    "묶음을 들이지 못했다": "Could not load the pack",
+    "오프라인: {name} · {date}": "Offline: {name} · {date}",
+    "출처: {names}": "Source: {names}",
+    "오프라인 묶음(.gsmpack)이 아니다": "Not an offline pack (.gsmpack)",
+    "묶음의 머리가 잘렸다": "The pack header is truncated",
+    "묶음의 머리를 읽지 못했다": "Could not read the pack header",
 }
 
 

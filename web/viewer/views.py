@@ -21,7 +21,7 @@ from django.conf import settings
 from django.contrib.staticfiles import finders
 from django.db import DatabaseError, transaction
 from django.db.models import Prefetch, Q
-from django.http import Http404, HttpResponse, JsonResponse
+from django.http import FileResponse, Http404, HttpResponse, JsonResponse
 from django.utils import timezone
 from django.utils.cache import patch_vary_headers
 from django.contrib import messages
@@ -39,7 +39,7 @@ from . import (coords, crs, datastatus, geo3al, geomap, geus, grportal, gsj, gsm
                fetchlog, marscraters, marsmap, mercurymap, sources, zhurong)
 from . import admap, arcpoints, kmag, caribmap, geonames, crust, glaciers, impacts, faults, minerals, stress, tectonics, seafloor, glim, heatflow, fossils, gvp, icemargins, kigam50k, macrostrat, mantle, metatile, naturalearth, neotoma, paleo, paleoeco, paleocoast, pbdb, quakes, recentquakes, verifylog, spamap, ocean, paleodem, usgs, volcanoes, wind
 from . import ags, austates, bas, basemaps, bcgs, bgr, bgs, brgm, calgs, cgs, dinamige, dmr, dov, egdi, emodnet, esdm, ga, georep, geosphere, gns, gsi, gsiindia, gtk, igme, iige, ineter, ingemmet, ispra, jmg, linked, lneg, mgb, mrdata, mris, natt, ngu, nrcan, nsgs, ogs, pig, segemar, sgb, sgc, sgm, sgs, sgu, sigeom, skgs, spw, stri, swisstopo, tno, twopen, usage, usgscarib, usstates, vmme, ygs
-from . import doors, earthpoints, pointvalues, profileband, static_tables, tilegrid, timescale
+from . import doors, earthpoints, offlinepack, pointvalues, profileband, static_tables, tilegrid, timescale
 from .i18n import msg
 from .models import Layer, LayerGroup, Point, PointSet, PointSetDeletion, Shape
 
@@ -6618,3 +6618,37 @@ def _int(value, default):
         return int(value)
     except (TypeError, ValueError):
         return default
+
+
+# ── 오프라인 묶음 (wetherilli P13·381) ──
+#
+# `manage.py build_offline_pack` 이 `OFFLINE_DIR` 에 구운 `.gsmpack` 의 목록과 내려받기. **연구실 현장용이라 밖에 연 판에서는 닫는다** —
+# KIGAM·VWorld 타일을 묶어 다시 내주는 것을 연구실 안에서만 받아들였다(사람, 2026-10-09).
+
+OFFLINE_FILE = re.compile(r"^[a-z0-9_-]{1,64}-\d{8}\.gsmpack$")
+
+
+def offline_view(request):
+    """묶음 목록 — 이름·날짜·크기·덮는 범위. `?format=json` 이면 JSON."""
+    if settings.PUBLIC:
+        raise Http404
+    lang = i18n.lang_of(request)
+    packs = offlinepack.listing(settings.OFFLINE_DIR) if Path(settings.OFFLINE_DIR).is_dir() else []
+    if request.GET.get("format") == "json":
+        return JsonResponse({"packs": packs})
+    for p in packs:
+        p["mb"] = f"{p['bytes'] / 1024 / 1024:.1f}"
+        p["extent"] = " · ".join(f"{v:g}" for v in p["bbox"]) if p.get("bbox") else ""
+    return render(request, "viewer/offline.html", {"lang": lang, "packs": packs, "version": VERSION})
+
+
+def offline_file(request, name):
+    """묶음 하나를 내려받는다. 이름은 굽는 명령이 짓는 꼴만 — 경로를 타고 나가지 못하게."""
+    if settings.PUBLIC or not OFFLINE_FILE.match(name):
+        raise Http404
+    path = Path(settings.OFFLINE_DIR) / name
+    if not path.is_file():
+        raise Http404
+    response = FileResponse(open(path, "rb"), as_attachment=True, filename=name, content_type="application/octet-stream")
+    response["Cache-Control"] = "private, no-cache"
+    return response

@@ -723,3 +723,101 @@ class Phone3D(PhoneBase):
         self.assertLessEqual(box["x"] + box["width"], 391, "3D 팝업이 오른쪽으로 넘친다")
         self.assertFits(self.measure(page), "3d 팝업")
         self.assertEqual(errors, [])
+
+
+def tiny_pack(bbox, layers, built="2026-10-10"):
+    """P13 꼴의 작은 묶음 — 레이어마다 (처음 격자 줌, 마지막 격자 줌), 타일은 빨간 한 장 (wetherilli 382).
+    열쇠는 화면의 tileCoord 그대로 — KIGAM 은 512 px 격자(격자 줌 = 화면 줌 − 1), VWorld 는 256 px.
+    굽는 쪽의 `offlinepack.write` 가 오면 그것으로 바꾼다"""
+    import io
+    import json
+    import math
+    import struct
+
+    from PIL import Image
+    buf = io.BytesIO()
+    Image.new("RGBA", (8, 8), (220, 30, 30, 255)).save(buf, "PNG")
+    png = buf.getvalue()
+
+    def xy(lon, lat, z):
+        n = 2 ** z
+        y = (1 - math.log(math.tan(math.radians(lat)) + 1 / math.cos(math.radians(lat))) / math.pi) / 2 * n
+        return int((lon + 180) / 360 * n), int(y)
+
+    tiles, body = {}, b""
+    for name, (z0, z1) in layers.items():
+        for z in range(z0, z1 + 1):
+            x0, y0 = xy(bbox[0] - 0.02, bbox[3] + 0.02, z)
+            x1, y1 = xy(bbox[2] + 0.02, bbox[1] - 0.02, z)
+            for x in range(x0, x1 + 1):
+                for y in range(y0, y1 + 1):
+                    tiles[f"{name}/{z}/{x}/{y}"] = [len(body), len(png)]
+                    body += png
+    head = {"box": "test", "title": "시험 묶음", "built": built, "bbox": bbox, "region": "korea",
+            "note": "시험", "dropped": {},
+            "layers": {n: {"grid": "EPSG:3857", "tile_size": 256 if n.startswith("vworld:") else 512,
+                           "type": "image/png", "zooms": list(z),
+                           "attribution": "VWorld" if n.startswith("vworld:") else "한국지질자원연구원"}
+                       for n, z in layers.items()},
+            "tiles": tiles}
+    raw = json.dumps(head, ensure_ascii=False, separators=(",", ":")).encode()
+    return b"GSMPACK1" + struct.pack("<I", len(raw)) + raw + body
+
+
+class OfflinePack(PhoneBase):
+    """오프라인 묶음 (wetherilli P13·382) — 망을 끊은 채(타일 요청은 다 끊긴다) 묶음을 들이면 그 범위의 타일이 묶음에서 그려지고,
+    지도 위에 "오프라인" 표가 뜬다. 열쇠가 없어도 묶음이 덮는 VWorld 배경이 고르개에 오른다"""
+
+    def test_묶음을_들이면_망_없이_그린다(self):
+        call_command("seed_catalog", stdout=open(os.devnull, "w"))
+        bbox = [128.85, 37.10, 128.86, 37.11]
+        pack = tiny_pack(bbox, {"L_50K_Geology_Map": (12, 17), "vworld:Base": (12, 18)})
+        # 정적 판처럼 남극에서 연다(wetherilli 379) — "가 보기" 가 묶음의 지역(한국)으로 넘어가야 한다
+        page, errors = self.open("map/?region=antarctica")
+        page.evaluate("""() => { window.__blobs = 0; const make = URL.createObjectURL;
+                                 URL.createObjectURL = function (b) { window.__blobs++; return make.call(URL, b); }; }""")
+        page.tap("#panel-handle")
+        page.wait_for_timeout(300)
+        page.tap("#gear")
+        page.wait_for_timeout(500)
+        page.tap(".stab[data-stab=offline]")
+        self.assertFits(self.measure(page), "map/ (설정 — 오프라인)")
+        page.set_input_files("#offline-file", files=[{"name": "test-20261010.gsmpack", "mimeType": "application/octet-stream",
+                                                      "buffer": pack}])
+        page.wait_for_selector("#offline-list li:not(.empty)", timeout=5000)
+        self.assertIn("시험 묶음", page.locator("#offline-list").inner_text())
+        self.assertIn("다시 열기", page.locator("#offline-status").inner_text())    # 열쇠가 없던 배경이 새로 덮였다
+
+        # 가 보기 — 묶음의 범위로 가면 표가 뜨고, 켠 5만 지질도 타일이 묶음에서 온다
+        page.locator("#offline-list button", has_text="가 보기").tap()
+        page.wait_for_timeout(2000)
+        self.assertEqual(page.evaluate("document.querySelector('#regions .region-tab.on').dataset.region"), "korea",
+                         "가 보기가 묶음의 지역으로 넘어가지 않았다")
+        badge = page.locator("#offline-badge")
+        self.assertTrue(badge.is_visible(), "묶음 안인데 오프라인 표가 없다")
+        self.assertIn("오프라인: 시험 묶음 · 10-10", badge.inner_text())
+        self.assertGreater(page.evaluate("window.__blobs"), 0, "묶음의 타일을 그리지 않았다")
+        self.assertFits(self.measure(page), "map/ (오프라인 표)")
+
+        # 다시 열면 열쇠 없이도 VWorld 배경이 고르개에 오르고, 키를 묻지 않는다
+        page.reload(wait_until="load")
+        page.wait_for_timeout(1500)
+        self.assertEqual(page.locator("#basemap option[value=vworld]").count(), 1, "묶음이 덮는 배경이 고르개에 없다")
+        self.assertEqual(page.locator("#basemap option[value=vworld_white]").count(), 0, "덮지 않는 배경이 올랐다")
+        self.assertEqual(errors, [])
+
+    def test_꼴이_아니면_거절한다(self):
+        page, errors = self.open("map/")
+        page.tap("#panel-handle")
+        page.wait_for_timeout(300)
+        page.tap("#gear")
+        page.wait_for_timeout(500)
+        page.tap(".stab[data-stab=offline]")
+        page.set_input_files("#offline-file", files=[{"name": "x.gsmpack", "mimeType": "application/octet-stream",
+                                                      "buffer": b"NOTAPACK" + b"\0" * 32}])
+        page.wait_for_timeout(800)
+        status = page.locator("#offline-status")
+        self.assertIn("오프라인 묶음(.gsmpack)이 아니다", status.inner_text())
+        self.assertIn("bad", status.get_attribute("class"))
+        self.assertIn("들인 묶음이 없다", page.locator("#offline-list").inner_text())
+        self.assertEqual(errors, [])

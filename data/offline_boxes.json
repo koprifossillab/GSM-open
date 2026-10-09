@@ -1,0 +1,190 @@
+{
+ "_note": "오프라인 묶음의 박스 (wetherilli P13·381). bbox 는 경위도 [서, 남, 동, 북]. layers 는 [처음 줌, 마지막 줌] — 화면 줌이고, 적은 차례가 앞설 차례다. 예산을 넘으면 뒤의 것부터 마지막 줌을 내린다. 배경은 vworld:<WMTS 레이어>",
+ "jangseong": {
+  "title": "장성 도폭 (태백)",
+  "region": "korea",
+  "sheet": "KIGAM 5만 도폭 틀 '장성'(IG00, 1967) — 129.00–129.25°E, 37.00–37.17°N. 둘레 0.02° 를 더했다(태백 시내가 서쪽 가장자리에 걸친다)",
+  "bbox": [
+   128.978,
+   36.983,
+   129.268,
+   37.19
+  ],
+  "layers": {
+   "L_50K_Geology_Map": [
+    8,
+    16
+   ],
+   "vworld:Base": [
+    8,
+    16
+   ],
+   "vworld:Satellite": [
+    8,
+    15
+   ],
+   "L_25k_coalfield_geologic_map": [
+    10,
+    15
+   ],
+   "L_10k_coalfield_geologic_map": [
+    10,
+    15
+   ],
+   "L_250K_Geology_Map": [
+    6,
+    13
+   ],
+   "l_50k_geology_frame_latest": [
+    8,
+    13
+   ],
+   "L_1M_Geology_Map": [
+    6,
+    11
+   ],
+   "G_tectonic": [
+    6,
+    11
+   ],
+   "Bouguer_Gravity_Raster_2018": [
+    6,
+    12
+   ],
+   "Magnetic_Raster_2018": [
+    6,
+    12
+   ],
+   "Isostatic_Gravity_Raster_2018": [
+    6,
+    12
+   ],
+   "L_1M_isotope_plutonic": [
+    6,
+    11
+   ],
+   "L_1M_isotope_volcanic": [
+    6,
+    11
+   ],
+   "L_1M_isotope_metamorphic": [
+    6,
+    11
+   ],
+   "L_1M_isotope_ore": [
+    6,
+    11
+   ],
+   "medical_clay": [
+    6,
+    11
+   ],
+   "L_geochemMP_CU": [
+    6,
+    11
+   ],
+   "L_geochemMP_PB": [
+    6,
+    11
+   ],
+   "L_geochemMP_ZN": [
+    6,
+    11
+   ],
+   "L_geochemMP_FE2O3": [
+    6,
+    11
+   ],
+   "L_geochemMP_CAO": [
+    6,
+    11
+   ],
+   "L_geochemMP_MGO": [
+    6,
+    11
+   ],
+   "L_geochemMP_K2O": [
+    6,
+    11
+   ],
+   "L_geochemMP_MNO": [
+    6,
+    11
+   ],
+   "L_geochemMP_TIO2": [
+    6,
+    11
+   ],
+   "L_geochemMP_V": [
+    6,
+    11
+   ],
+   "L_geochemMP_BA": [
+    6,
+    11
+   ],
+   "L_geochemMP_SR": [
+    6,
+    11
+   ],
+   "L_geochemMP_RB": [
+    6,
+    11
+   ],
+   "L_geochemMP_LI": [
+    6,
+    11
+   ],
+   "L_geochemMP_NI": [
+    6,
+    11
+   ],
+   "L_geochemMP_CO": [
+    6,
+    11
+   ],
+   "L_geochemMP_CR": [
+    6,
+    11
+   ],
+   "L_geochemMP_ZR": [
+    6,
+    11
+   ],
+   "L_geochemMP_SW_PH": [
+    6,
+    11
+   ],
+   "L_geochemMP_SW_EC": [
+    6,
+    11
+   ]
+  },
+  "budget_mb": 200
+ },
+ "korea": {
+  "title": "한국 전체 (얕게)",
+  "region": "korea",
+  "bbox": [
+   124.5,
+   33.0,
+   131.0,
+   38.7
+  ],
+  "layers": {
+   "L_250K_Geology_Map": [
+    6,
+    11
+   ],
+   "L_50K_Geology_Map": [
+    6,
+    11
+   ],
+   "vworld:Base": [
+    6,
+    10
+   ]
+  },
+  "budget_mb": 200
+ }
+}

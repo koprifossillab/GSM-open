@@ -66,6 +66,14 @@
   // 정적 판의 VWorld 는 페이지에 실린 키가 아니라 보는 사람이 넣은 키로 돈다(wetherilli 174) — 굽는 판에는 키가 없다
   if (STATIC) vworldKey = readKey("vworld");
 
+  // ── 오프라인 묶음 (wetherilli P13·382) ──
+  // 들인 묶음(`offline.js`)이 덮는 레이어·배경은 묶음에 그 타일이 있으면 묶음에서 그린다 — 망·키가 없어도. 소스를 지을 때
+  // `offlineWrap` 하나만 부른다
+  var Offline = window.GSMOffline || null;
+  if (Offline) Offline.setTranslator(T);
+  function offlineCovers(name) { return !!(Offline && Offline.coversSync(name)); }
+  function offlineWrap(source, name) { return Offline ? Offline.wrap(source, name) : source; }
+
   function writeKey(name, key, remember) {
     var slot = "gsm.key." + name;
     staticKeys[name] = key;
@@ -1293,7 +1301,7 @@
   function layerSource(name) {
     var source = (layerKind(name).source || wmsSource)(name);
     source.set("gsmName", name);
-    return source;
+    return offlineWrap(source, name);
   }
 
   /** 레이어의 출처 표기. KIGAM·GEUS 는 비워 둔다 — 레이어 이름이 곧 출처다.
@@ -1527,7 +1535,9 @@
   // **곧장 닿지 못할 때만**(사내 VPN) 서버를 거친다 — 아래 `vworldSource` (033).
   //
   // WMTS 의 자리 차례가 **z/y/x** 다. z/x/y 로 적으면 엉뚱한 곳이 그려진다.
-  if (vworldKey) {
+  //
+  // 열쇠가 없어도 오프라인 묶음이 덮는 배경은 오른다(wetherilli 382) — 묶음 밖은 빈다
+  if (vworldKey || ["Base", "white", "midnight", "Satellite"].some(function (l) { return offlineCovers("vworld:" + l); })) {
     BASEMAPS.vworld = {
       title: T("VWorld 배경지도"),
       note: T("국토지리정보원"),
@@ -1574,6 +1584,10 @@
         ]});
       },
     };
+    if (!vworldKey) {
+      [["vworld", "Base"], ["vworld_white", "white"], ["vworld_midnight", "midnight"], ["vworld_hybrid", "Satellite"]]
+        .forEach(function (pair) { if (!offlineCovers("vworld:" + pair[1])) delete BASEMAPS[pair[0]]; });
+    }
   }
   // ── 극지 배경 (017) ──
   //
@@ -2075,7 +2089,7 @@
   function vworldSource(layer, ext, extra) {
     var opts = { url: vworldUrl(layer, ext), crossOrigin: "anonymous", maxZoom: 19 };
     Object.keys(extra || {}).forEach(function (k) { opts[k] = extra[k]; });
-    var source = new ol.source.XYZ(opts);
+    var source = offlineWrap(new ol.source.XYZ(opts), "vworld:" + layer);
     vworldSources.push({ source: source, layer: layer, ext: ext });
     probeVworld();
     return source;
@@ -2203,11 +2217,13 @@
     map.on("moveend", saveView);
     map.on("moveend", function () { if (GEONAVI.here && GEONAVI.open) renderGeonavi(); });   // wetherilli 171
     map.on("moveend", refreshExtentLegends);
+    map.on("moveend", renderOfflineBadge);
     window.addEventListener("resize", renderEdges);
     map.on("singleclick", onClick);
     initAttitudes();
     rightDragRotate(map);
     initCompass();
+    initLocate();
   }
 
   /** 우클릭한 채 끌면 지도가 돈다 — 화면 가운데를 축으로, 누른 자리가 가운데를 도는 만큼 (wetherilli 114).
@@ -2262,6 +2278,73 @@
       needle.setAttribute("transform", "rotate(" + (r * 180 / Math.PI).toFixed(1) + " 12 12)");
       button.disabled = Math.abs(r) < 1e-6;
     });
+  }
+
+  /** "자세" 묶음의 내 위치 (wetherilli 380) — 이 기기의 GPS(`navigator.geolocation`)로 파란 점과 정확도 원을 띄우고 따라간다.
+   *  처음 잡힌 자리로 한 번 가고, 그 뒤로는 점만 옮긴다 — 지도를 끌어 보는 사람을 붙잡지 않게. 다시 누르면 끈다.
+   *  브라우저는 보안 연결(https·localhost)에서만 위치를 준다 — 연구소 판(평문 http)에서는 단추를 숨긴다.
+   *  자리는 위경도로 들고 그릴 때마다 지금 투영으로 옮긴다 — 지역을 바꿔도 따라온다. 어디에도 보내거나 적지 않는다 */
+  var here = null, hereNote = "";
+  function initLocate() {
+    var button = document.getElementById("tool-locate");
+    if (!button || !navigator.geolocation || !window.isSecureContext) return;
+    button.hidden = false;
+    var source = new ol.source.Vector();
+    var layer = new ol.layer.Vector({
+      source: source,
+      zIndex: 600,
+      style: function (f) {
+        return f.get("ring")
+          ? new ol.style.Style({ fill: new ol.style.Fill({ color: "rgba(30,136,229,0.15)" }),
+                                 stroke: new ol.style.Stroke({ color: "rgba(30,136,229,0.6)", width: 1 }) })
+          : new ol.style.Style({ image: new ol.style.Circle({ radius: 7, fill: new ol.style.Fill({ color: "#1e88e5" }),
+                                                               stroke: new ol.style.Stroke({ color: "#fff", width: 2.5 }) }) });
+      },
+    });
+    map.addLayer(layer);
+    var watch = null, moved = false;
+    function note(text) { hereNote = text; updateToolOut(); }
+    function draw() {
+      source.clear();
+      if (!here) return;
+      var proj = viewProj();
+      var at = fromLL([here.lon, here.lat]);
+      var inside = isMercator() ? Math.abs(here.lat) < 85 : ol.extent.containsCoordinate(proj.getExtent(), at);
+      if (!inside) { note(T("내 위치가 이 지역의 지도 밖이다")); return; }
+      var ring = ol.geom.Polygon.circular([here.lon, here.lat], Math.max(here.acc, 1), 64).transform("EPSG:4326", proj);
+      source.addFeatures([new ol.Feature({ geometry: ring, ring: true }), new ol.Feature({ geometry: new ol.geom.Point(at) })]);
+      note(T("내 위치 ±{m} m", { m: Math.round(here.acc) }));
+      if (!moved) {
+        moved = true;
+        var view = map.getView();
+        view.animate({ center: at, resolution: Math.min(view.getResolution(), 20), duration: 700 });
+      }
+    }
+    function stop() {
+      if (watch !== null) navigator.geolocation.clearWatch(watch);
+      watch = null; here = null; moved = false;
+      button.classList.remove("on");
+      button.setAttribute("aria-pressed", "false");
+      source.clear();
+      note("");
+    }
+    button.addEventListener("click", function () {
+      if (watch !== null) { stop(); return; }
+      button.classList.add("on");
+      button.setAttribute("aria-pressed", "true");
+      note(T("위치를 찾는 중"));
+      watch = navigator.geolocation.watchPosition(function (pos) {
+        here = { lat: pos.coords.latitude, lon: pos.coords.longitude, acc: pos.coords.accuracy || 0 };
+        draw();
+      }, function (err) {
+        var why = err.code === 1 ? T("위치 권한이 막혀 있다 — 브라우저 설정에서 허용한다")
+          : err.code === 3 ? T("위치를 제때 받지 못했다") : T("위치를 받지 못했다");
+        stop();
+        note(why);
+      }, { enableHighAccuracy: true, maximumAge: 10000, timeout: 30000 });
+    });
+    // 지역을 바꿔 투영이 달라지면 새 보기에 다시 그린다. 자리를 옮기지는 않는다 — 그 지역의 기억한 자리로 연다
+    map.on("change:view", function () { if (here) draw(); });
   }
 
   /** 투영 하나의 보기. **OpenLayers 는 보기의 투영을 바꾸지 못한다** — 지역을
@@ -3575,6 +3658,7 @@
     if (mode === "line" && !lastMeasure) bits.push(T("눌러 가며 잇는다 · 두 번 누르면 끝"));
     if (mode === "area" && !lastMeasure) bits.push(T("눌러 가며 두른다 · 두 번 누르면 끝"));
     if (mode === "box" && !rangeSource.getFeatures().length) bits.push(T("누른 채 끌어 네모를 그린다"));
+    if (hereNote) bits.push(hereNote);
     out.textContent = bits.join("  ·  ");
     out.hidden = !bits.length;
   }
@@ -7754,6 +7838,121 @@
     });
   }
 
+  /** 오프라인 묶음 (wetherilli P13·382) — 설정의 "오프라인" 칸. 고른 `.gsmpack` 을 이 브라우저(IndexedDB)에 들이고 목록을 보인다.
+   *  묶음이 덮는 레이어·배경은 소스가 지어질 때 감싸 두었다(`offlineWrap`) — 들이면 켠 것을 다시 그린다 */
+  function wireOffline() {
+    var input = document.getElementById("offline-file");
+    var host = document.getElementById("offline-list");
+    var status = document.getElementById("offline-status");
+    if (!input || !host) return;
+    if (!Offline) {
+      input.disabled = true;
+      status.textContent = T("이 브라우저는 저장소(IndexedDB)를 쓰지 못한다");
+      return;
+    }
+    function say(text, bad) {
+      status.textContent = text;
+      status.classList.toggle("bad", !!bad);
+    }
+    function render(rows) {
+      host.innerHTML = "";
+      if (!rows.length) {
+        host.innerHTML = '<li class="empty">' + esc(T("들인 묶음이 없다")) + "</li>";
+        return;
+      }
+      rows.forEach(function (p) {
+        var li = document.createElement("li");
+        var what = document.createElement("div");
+        what.className = "offline-what";
+        var name = document.createElement("b");
+        name.textContent = p.title;
+        var meta = document.createElement("span");
+        meta.className = "hint";
+        meta.textContent = T("{built} 구움 · {size} · 타일 {n}장", { built: p.built || "?", size: Offline.size(p.size), n: p.tiles });
+        what.append(name, meta);
+        if (p.note) {
+          var note = document.createElement("span");
+          note.className = "hint";
+          note.textContent = p.note;
+          what.appendChild(note);
+        }
+        var go = document.createElement("button");
+        go.type = "button";
+        go.className = "btn quiet";
+        go.textContent = T("가 보기");
+        go.disabled = !p.bbox;
+        go.addEventListener("click", function () {
+          var b = p.bbox;
+          // 정적 판은 남극으로 연다(wetherilli 379) — 묶음의 지역(한국)으로 먼저 넘어가야 그 투영으로 맞춘다
+          if (p.region && REGIONS[p.region] && p.region !== region) {
+            if (addedRegions.indexOf(p.region) < 0 && PINNED.indexOf(p.region) < 0) addedRegions.push(p.region);
+            switchRegion(p.region);
+          }
+          map.getView().fit(ol.proj.transformExtent(b, "EPSG:4326", viewProj()), { padding: [24, 24, 24, 24] });
+          document.getElementById("settings").hidden = true;
+        });
+        var del = document.createElement("button");
+        del.type = "button";
+        del.className = "btn quiet";
+        del.textContent = T("지운다");
+        del.addEventListener("click", function () {
+          if (!confirm(T("{name} 묶음을 이 브라우저에서 지운다", { name: p.title }))) return;
+          Offline.remove(p.id).catch(function (err) { say(err.message, true); });
+        });
+        li.append(what, go, del);
+        host.appendChild(li);
+      });
+    }
+    input.addEventListener("change", function () {
+      var file = input.files && input.files[0];
+      input.value = "";
+      if (!file) return;
+      say(T("들이는 중…"));
+      Offline.add(file).then(function (p) {
+        // 열쇠 없이 처음 덮인 배경은 고르개가 지어진 뒤라 다시 열어야 오른다
+        var later = ["Base", "white", "midnight", "Satellite"].some(function (l) {
+          return p.layers.indexOf("vworld:" + l) >= 0 && !BASEMAPS[{ Base: "vworld", white: "vworld_white",
+            midnight: "vworld_midnight", Satellite: "vworld_hybrid" }[l]];
+        });
+        say(later ? T("{name} 을 들였다. 배경지도는 다시 열면 고르개에 오른다.", { name: p.title })
+                  : T("{name} 을 들였다. 이 범위는 망 없이도 보인다.", { name: p.title }));
+        if (later) {
+          var again = document.createElement("button");
+          again.type = "button";
+          again.className = "btn quiet";
+          again.textContent = T("다시 열기");
+          again.addEventListener("click", function () { location.reload(); });
+          status.appendChild(again);
+        }
+      }, function (err) { say(err.message || T("묶음을 들이지 못했다"), true); });
+    });
+    Offline.onChange(function (rows) { render(rows); renderOfflineBadge(); });
+    Offline.ready.then(function () { render(Offline.list()); renderOfflineBadge(); });
+  }
+
+  /** 지도 가운데가 들인 묶음 안이면 작은 표 — "오프라인: 장성 · 10-10" 와 출처. 밖으로 나가면 망이 없으면 빈다 */
+  function renderOfflineBadge() {
+    var badge = document.getElementById("offline-badge");
+    if (!badge || !Offline || !map) return;
+    var ll = toLL(map.getView().getCenter());
+    var hits = Offline.at(ll[0], ll[1]);
+    badge.hidden = !hits.length;
+    if (!hits.length) return;
+    var p = hits[0];
+    var credit = [];
+    hits.forEach(function (h) { h.attribution.forEach(function (a) { if (credit.indexOf(a) < 0) credit.push(a); }); });
+    badge.innerHTML = "";
+    var head = document.createElement("b");
+    head.textContent = T("오프라인: {name} · {date}", { name: p.title, date: String(p.built).slice(5) });
+    badge.appendChild(head);
+    if (credit.length) {
+      var src = document.createElement("span");
+      src.textContent = T("출처: {names}", { names: credit.join(" · ") });
+      badge.appendChild(src);
+    }
+    badge.title = p.note || "";
+  }
+
   /** 정적 판의 키 (wetherilli P11·162·174) — **KIGAM·VWorld 둘 다 보는 사람이 각자 넣는다**(사용자 결정, 2026-10-02).
    *  공개 판을 처음 열 때 둘을 받는 창을 띄우고, 한국 탭 위 알림 줄에 상태와 "키 바꾸기" 를 둔다. 키는 이 브라우저에만
    *  남는다(30 일, "이 PC 에 기억하지 않기" 면 탭 동안만). VWorld 키는 배경·찾기가 시작할 때 읽으므로 넣으면 다시 연다 */
@@ -7794,7 +7993,8 @@
       }
       var shown = document.querySelector("#key-dialog .key-check");
       if (shown) showVerdict(shown, result);
-      else if (REGIONS[region].vworld) openKeyDialog({ verdict: result });
+      // 묶음을 들인 판은 현장에서 망 없이 열린다 — 닿지 못한 것을 키 창으로 알리지 않는다 (wetherilli 382)
+      else if (REGIONS[region].vworld && !(Offline && Offline.held())) openKeyDialog({ verdict: result });
     });
   }
 
@@ -7802,6 +8002,7 @@
    *  열자마자 묻지 않게 (2026-10-08). "나중에" 를 누르면 그 탭에서는 다시 묻지 않는다 */
   function askStaticKeys() {
     if (!STATIC || !REGIONS[region].vworld) return;
+    if (Offline && Offline.held()) return;        // 현장에서 묶음으로 본다 — 키를 묻지 않는다 (wetherilli 382)
     var later = false;
     try { later = sessionStorage.getItem("gsm.key.later") === "1"; } catch (e) { /* 사생활 모드 */ }
     if (!later && STATIC_KEYS.some(function (k) { return !readKey(k.name); })) openKeyDialog();
@@ -7966,6 +8167,7 @@
   wirePopup();
   wireEmblemMenu();
   wireStaticKey();
+  wireOffline();
 
   renderRegions();
   applyRegion();

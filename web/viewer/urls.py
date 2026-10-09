@@ -14,6 +14,8 @@ urlpatterns = [
     path("manage/sources/<slug:source_id>/", views.source_edit, name="source-edit"),
     path("linked/fetch/", views.linked_fetch, name="linked-fetch"),
     path("healthz/", views.healthz, name="healthz"),
+    path("offline/", views.offline_view, name="offline"),
+    re_path(r"^offline/(?P<name>[a-z0-9_-]{1,64}-\d{8}\.gsmpack)$", views.offline_file, name="offline-file"),
     path("3d/", views.map3d_view, name="map3d"),
     path("moon/", views.moon_view, name="moon"),
     re_path(r"^moon/tiles/(?P<layer>[a-z-]+)/(?P<z>\d{1,2})/(?P<x>\d{1,5})/(?P<y>\d{1,5})\.png$",

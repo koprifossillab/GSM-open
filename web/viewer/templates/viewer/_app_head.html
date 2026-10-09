@@ -1,0 +1,12 @@
+{% load static %}{% if static_site %}{% comment %}정적 판을 앱처럼 (wetherilli 380) — 홈 화면에 더하면 주소창 없이 열린다. `manifest.webmanifest`·`sw.js` 는
+`deploy/static_site.py` 가 판마다 굽는다. 연구소 판은 평문 http 라 브라우저가 설치·서비스 워커를 받지 않아 싣지 않는다.
+`/GSM/` 은 굽는 쪽이 Pages 앞머리(영어판은 `en/` 밑)로 바꾼다{% endcomment %}
+<link rel="manifest" href="/GSM/manifest.webmanifest">
+<link rel="apple-touch-icon" href="{% static 'viewer/app/apple-touch-icon.png' %}?v={{ stamp|default:version }}">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="GSM">
+<script>
+if ("serviceWorker" in navigator) addEventListener("load", function () { navigator.serviceWorker.register("/GSM/sw.js").catch(function () {}); });
+</script>
+{% endif %}

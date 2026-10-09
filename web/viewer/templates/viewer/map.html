@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>{% t "대돌여지도" %}</title>
 <meta name="theme-color" content="#2b1d10">
+{% include "viewer/_app_head.html" %}
 <link rel="icon" id="favicon" type="image/svg+xml" href="{% static 'viewer/emblem.svg' %}?v={{ stamp|default:version }}">
 {% comment %}대기 화면은 CSS 파일보다 먼저 그려져야 해서 여기 둔다. 바탕색은 gif 의
 바탕(#2b1d10)과 같아야 가장자리가 안 보인다.{% endcomment %}
@@ -242,6 +243,7 @@
       <button class="stab on" data-stab="look">{% t "모양" %}</button>
       <button class="stab" data-stab="notes">{% t "판 이력" %}</button>
       <button class="stab" data-stab="state">{% t "지금 상태" %}</button>
+      <button class="stab" data-stab="offline">{% t "오프라인" %}</button>
     </nav>
 
     <section id="stab-look" class="stabbody on">
@@ -303,11 +305,25 @@
       <ul id="deleted-list" class="deleted-list"><li class="empty">{% t "읽는 중…" %}</li></ul>
       <p class="hint">{% t "지울 때 사본을 남겨 둔다. 잘못 지웠으면 되살린다." %}</p>
     </section>
+
+    {% comment %}오프라인 묶음(wetherilli P13·382) — 고른 .gsmpack 을 이 브라우저(IndexedDB)에 들인다. 칸은 map.js 의 wireOffline 이 채운다{% endcomment %}
+    <section id="stab-offline" class="stabbody">
+      <div class="field">
+        <label for="offline-file">{% t "오프라인 묶음 불러오기" %}</label>
+        <input type="file" id="offline-file" accept=".gsmpack">
+        <p class="hint">{% t "연구소에서 구운 묶음(.gsmpack)을 고르면 그 범위의 지질도·배경지도를 망과 인증키 없이 본다. 묶음은 이 브라우저에만 남는다." %}</p>
+        <p id="offline-status" class="hint offline-status" role="status"></p>
+      </div>
+      <h3 class="sub-head">{% t "들인 묶음" %}</h3>
+      <ul id="offline-list" class="offline-list"><li class="empty">{% t "읽는 중…" %}</li></ul>
+      <p class="hint">{% t "연구실 현장용이다 — 묶음 파일을 밖으로 나누지 않는다." %}</p>
+    </section>
   </div>
 </div>
 
 <main id="map-wrap">
   <div id="map"></div>
+  <div id="offline-badge" class="offline-badge" role="status" hidden></div>
   <button type="button" id="panel-handle" class="panel-handle" aria-controls="panel" aria-expanded="true"
           title="{% t "패널을 접는다" %}">&lt;</button>
   <div id="map2" hidden></div>
@@ -366,6 +382,11 @@
         <svg viewBox="0 0 24 24" aria-hidden="true"><circle class="stroke" cx="12" cy="12" r="8.5"/><g id="compass-needle"><path class="fill" d="M12 4.5 14.2 12h-4.4Z"/><path class="stroke" d="M9.8 12 12 19.5 14.2 12"/></g></svg>
         <span>{% t "방위" %}</span>
       </button>
+      {% comment %}내 위치 — 휴대폰·브라우저의 GPS 로 파란 점과 정확도 원을 띄운다. 보안 연결(https)에서만 보인다 (wetherilli 380){% endcomment %}
+      <button type="button" class="tool" id="tool-locate" hidden aria-pressed="false" title="{% t "내 위치 — 이 기기의 GPS 로 지금 자리를 띄우고 따라간다. 다시 누르면 끈다" %}">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><circle class="stroke" cx="12" cy="12" r="6.5"/><circle class="fill" cx="12" cy="12" r="2.6"/><path class="stroke" d="M12 2.5v3M12 18.5v3M2.5 12h3M18.5 12h3"/></svg>
+        <span>{% t "내 위치" %}</span>
+      </button>
       <button type="button" class="tool antarctica-only" data-goto="jangbogo" title="{% t "장보고과학기지로 간다 — 74°37′26″S 164°13′44″E" %}">
         <svg viewBox="0 0 24 24" aria-hidden="true"><path class="stroke" d="M6 21V4"/><path class="stroke tint" d="M6 4h11l-2.5 3.5L17 11H6"/><path class="stroke" d="M3 21h8"/></svg>
         <span>{% t "장보고" %}</span>
@@ -420,6 +441,7 @@
 <script src="{% static 'viewer/vendor/ol.js' %}?v={{ stamp|default:version }}"></script>
 <script src="{% static 'viewer/vendor/proj4.js' %}?v={{ stamp|default:version }}"></script>
 <script src="{% static 'viewer/personal.js' %}?v={{ stamp|default:version }}"></script>
+<script src="{% static 'viewer/offline.js' %}?v={{ stamp|default:version }}"></script>
 {% if static_site %}{% comment %}정적 판의 상류를 브라우저가 곧장 부르는 소스(wetherilli P11·161) — map.js 보다 먼저{% endcomment %}
 <script src="{% static 'viewer/static-kinds.js' %}?v={{ stamp|default:version }}"></script>{% endif %}
 {% if not static_site %}<script src="{% static 'viewer/profile-band.js' %}?v={{ stamp|default:version }}"></script>{% endif %}

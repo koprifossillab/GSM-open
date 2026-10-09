@@ -111,6 +111,20 @@ class Build(SimpleTestCase):
         self.assertTrue((self.site / "index.html").is_file())
         self.assertTrue((self.site / ".nojekyll").is_file())
 
+    def test_앱으로_더할_매니페스트와_워커(self):
+        """홈 화면에 더하면 앱처럼 연다 — 말마다 제 뿌리에 매니페스트·워커, 아이콘이 실린다 (wetherilli 380)."""
+        from gsmweb.version import VERSION
+        for lang, folder, base in (("ko", self.site, PREFIX), ("en", self.site / "en", PREFIX + "en/")):
+            manifest = json.loads((folder / "manifest.webmanifest").read_text(encoding="utf-8"))
+            self.assertEqual((manifest["lang"], manifest["start_url"], manifest["scope"], manifest["display"]),
+                             (lang, base + "map/", base, "standalone"))
+            for icon in manifest["icons"]:
+                self.assertTrue((self.site / icon["src"][len(PREFIX):]).is_file(), icon["src"])
+            self.assertIn('"gsm-%s"' % VERSION, (folder / "sw.js").read_text(encoding="utf-8"))
+            page = (folder / "map" / "index.html").read_text(encoding="utf-8")
+            self.assertIn('<link rel="manifest" href="%smanifest.webmanifest">' % base, page)
+            self.assertIn('register("%ssw.js")' % base, page)
+
     def test_구운_것이_제자리에_얹히고_화면에_알린다(self):
         self.assertTrue((self.site / "geomap/geomap_simple_geology/0/0/0.png").is_file())
         self.assertTrue((self.site / "points/janmayen/units.en.json").is_file())
@@ -301,6 +315,30 @@ class Browser(SimpleTestCase):
         page, errors = self.open("antarctica")
         self.assertEqual(errors, [])
         self.assertIn("geomap_simple_geology", page.content())
+
+    def test_남극으로_열면_키를_묻지_않는다(self):
+        """정적 판은 남극으로 열고 키 창은 한국·동아시아에 들 때만 (wetherilli 379)."""
+        page, errors = self.open("antarctica", ask_keys=True)
+        self.assertEqual(errors, [])
+        self.assertFalse(page.query_selector("#key-dialog"))
+
+    def test_내_위치를_띄운다(self):
+        """GPS 로 받은 자리에 점과 정확도가 뜬다 — 세종기지 (wetherilli 380)."""
+        ctx = self.browser.new_context(viewport={"width": 390, "height": 844}, is_mobile=True, has_touch=True,
+                                       geolocation={"latitude": -62.2228, "longitude": -58.7883, "accuracy": 12},
+                                       permissions=["geolocation"])
+        self.addCleanup(ctx.close)
+        page = ctx.new_page()
+        errors = []
+        page.on("pageerror", lambda e: errors.append(str(e)))
+        page.route("**/*", lambda r: r.continue_() if r.request.url.startswith(self.base) else r.abort())
+        page.goto(self.base + "map/?region=antarctica", wait_until="load")
+        page.wait_for_timeout(2000)
+        page.evaluate("document.getElementById('tool-locate').click()")
+        page.wait_for_timeout(1500)
+        self.assertEqual(errors, [])
+        self.assertEqual(page.get_attribute("#tool-locate", "aria-pressed"), "true")
+        self.assertIn("±12 m", page.inner_text("#tool-out"))
 
     def test_스발바르는_NPI_를_곧장_부른다(self):
         # wetherilli 161 — 첫 레이어(NPI 지질 단위)의 그림을 서버가 아니라 NPI 지도 서버의 `export` 에 묻는다

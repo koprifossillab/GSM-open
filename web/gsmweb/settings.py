@@ -334,6 +334,11 @@ MERCURY_DIR = env("GSM_MERCURY_DIR") or str(_data_dir() / "mercury")
 #: 온 지구의 큰 자료 — 옛 해안선(`paleocoastlines_v7.json`, wetherilli 097, `manage.py build_paleocoastlines <zip>`) 따위.
 #: 우리 디스크의 파일이다. 없으면 그 레이어가 비고 나머지는 돈다. 운영은 /srv/GSM/db/earth (P07 §5)
 EARTH_DIR = env("GSM_EARTH_DIR") or str(_data_dir() / "earth")
+#: 오프라인 묶음(`.gsmpack`, `viewer/offlinepack.py`, wetherilli P13·381) — `manage.py build_offline_pack <박스>` 가 굽고 `/GSM/offline/` 이
+#: 목록·내려받기로 낸다. 연구실 현장용이라 밖에 연 판(`PUBLIC`)에서는 닫는다. 운영은 /srv/GSM/db/offline
+OFFLINE_DIR = env("GSM_OFFLINE_DIR") or str(_data_dir() / "offline")
+#: 박스 표 — 저장소에 둔다
+OFFLINE_BOXES_FILE = BASE_DIR.parent / "data" / "offline_boxes.json"
 #: 세계 활성단층 GEM Global Active Faults (wetherilli 279) — `manage.py build_faults` 가 굽는다. CC BY-SA 4.0, 2.9 MB 라 저장소 밖
 FAULTS_FILE = env("GSM_FAULTS_FILE") or str(Path(EARTH_DIR) / "earth_faults.json")
 #: 바람 — 구워 둔 u·v 텍스처 (`viewer/wind.py`, koprifossillab P02). 지금의 바람(GFS)은 호스트 cron 이 `fetch_gfs_wind` 로,

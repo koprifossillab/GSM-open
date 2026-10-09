@@ -102,6 +102,33 @@ def place_index(baked: pathlib.Path, out: pathlib.Path) -> dict:
             for region, names in views.PLACE_SOURCES.items() if any(n in written for n in names)}
 
 
+def write_app(out, prefix, version):
+    """정적 판을 앱처럼 (wetherilli 380) — 말마다 매니페스트와 서비스 워커를 그 말의 뿌리(`/`·`en/`)에 둔다.
+    워커는 제 폴더 밑만 맡으므로 뿌리에 있어야 하고, 영어판에서 더한 앱은 영어 지도로 열린다."""
+    worker = (ROOT / "deploy" / "static_sw.js").read_text(encoding="utf-8").replace("__VERSION__", version)
+    icons = prefix + "static/viewer/app/"
+    for lang, folder in (("ko", out), ("en", out / "en")):
+        base = prefix + ("en/" if lang == "en" else "")
+        manifest = {
+            "name": "대돌여지도 · GSM" if lang == "ko" else "Great Stone Map · GSM",
+            "short_name": "GSM",
+            "lang": lang,
+            "start_url": base + "map/",
+            "scope": base,
+            "display": "standalone",
+            "background_color": "#2b1d10",
+            "theme_color": "#2b1d10",
+            "icons": [
+                {"src": icons + "icon-192.png", "sizes": "192x192", "type": "image/png"},
+                {"src": icons + "icon-512.png", "sizes": "512x512", "type": "image/png"},
+                {"src": icons + "icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable"},
+            ],
+        }
+        folder.mkdir(parents=True, exist_ok=True)
+        (folder / "manifest.webmanifest").write_text(json.dumps(manifest, ensure_ascii=False, indent=1), encoding="utf-8")
+        (folder / "sw.js").write_text(worker, encoding="utf-8")
+
+
 def main():
     parser = argparse.ArgumentParser(description="연구소 밖 정적 판을 굽는다")
     parser.add_argument("out", help="출력 폴더 — 있으면 비운다")
@@ -177,6 +204,8 @@ def main():
         folder.mkdir(parents=True, exist_ok=True)
         (folder / "index.html").write_text(html, encoding="utf-8")
     (out / "patchnotes.json").write_bytes(patchnotes)
+    from gsmweb.version import VERSION
+    write_app(out, args.prefix, VERSION)
     (out / ".nojekyll").write_text("")   # 밑줄로 시작하는 파일을 Jekyll 이 버리지 않게
 
     if args.baked:
