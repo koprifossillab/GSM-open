@@ -1537,12 +1537,23 @@ button.proplink { font-family: inherit; line-height: inherit; cursor: pointer; }
 #offline-file { max-width: 100%; font: inherit; font-size: 12.5px; }
 
 /* 지도 위 — 들인 묶음 안을 보는 동안 */
+/* 이름·날짜는 한 줄(넘치면 말줄임), 출처는 그 밑 — 휴대폰에서는 눌렀을 때만 편다 (wetherilli 382) */
 .offline-badge { position: absolute; left: 50%; top: 64px; transform: translateX(-50%); z-index: 5;
                  display: flex; flex-direction: column; align-items: center; gap: 1px; max-width: calc(100% - 32px);
-                 padding: 4px 10px; font-size: 12px; color: var(--ink); background: var(--panel);
-                 border: 1px solid var(--line); border-radius: 999px; box-shadow: var(--shadow); pointer-events: none;
-                 text-align: center; }
-.offline-badge span { font-size: 10.5px; color: var(--ink-faint); }
+                 padding: 4px 12px; font: inherit; font-size: 12px; line-height: 1.35; color: var(--ink);
+                 background: var(--panel); border: 1px solid var(--line); border-radius: 14px; box-shadow: var(--shadow);
+                 text-align: center; cursor: pointer; }
+.offline-badge[hidden] { display: none; }
+.offline-head { display: flex; max-width: 100%; white-space: nowrap; }
+.offline-name { min-width: 0; overflow: hidden; text-overflow: ellipsis; }   /* 이름만 줄이고 날짜는 늘 보인다 */
+.offline-date { flex: none; white-space: pre; }
+.offline-src { font-size: 10.5px; color: var(--ink-faint); }
+@media (max-width: 760px) {
+  /* 왼쪽 확대 단추와 오른쪽 손잡이 사이에 선다 */
+  .offline-badge { max-width: calc(100% - 128px); }
+  .offline-src { display: none; }
+  .offline-badge.open .offline-src { display: block; }
+}
 
 /* ── 지역 탭 ── */
 .regions { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin: 0 16px 10px; }

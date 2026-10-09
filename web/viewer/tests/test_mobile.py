@@ -725,7 +725,7 @@ class Phone3D(PhoneBase):
         self.assertEqual(errors, [])
 
 
-def tiny_pack(bbox, layers, built="2026-10-10"):
+def tiny_pack(bbox, layers, built="2026-10-10", title="시험 묶음"):
     """P13 꼴의 작은 묶음 — 레이어마다 (처음 격자 줌, 마지막 격자 줌), 타일은 빨간 한 장 (wetherilli 382).
     열쇠는 화면의 tileCoord 그대로 — KIGAM 은 512 px 격자(격자 줌 = 화면 줌 − 1), VWorld 는 256 px.
     굽는 쪽의 `offlinepack.write` 가 오면 그것으로 바꾼다"""
@@ -753,7 +753,7 @@ def tiny_pack(bbox, layers, built="2026-10-10"):
                 for y in range(y0, y1 + 1):
                     tiles[f"{name}/{z}/{x}/{y}"] = [len(body), len(png)]
                     body += png
-    head = {"box": "test", "title": "시험 묶음", "built": built, "bbox": bbox, "region": "korea",
+    head = {"box": "test", "title": title, "built": built, "bbox": bbox, "region": "korea",
             "note": "시험", "dropped": {},
             "layers": {n: {"grid": "EPSG:3857", "tile_size": 256 if n.startswith("vworld:") else 512,
                            "type": "image/png", "zooms": list(z),
@@ -771,7 +771,9 @@ class OfflinePack(PhoneBase):
     def test_묶음을_들이면_망_없이_그린다(self):
         call_command("seed_catalog", stdout=open(os.devnull, "w"))
         bbox = [128.85, 37.10, 128.86, 37.11]
-        pack = tiny_pack(bbox, {"L_50K_Geology_Map": (12, 17), "vworld:Base": (12, 18)})
+        # 이름이 길어도 휴대폰의 표는 한 줄이다 (wetherilli 382)
+        pack = tiny_pack(bbox, {"L_50K_Geology_Map": (12, 17), "vworld:Base": (12, 18)},
+                         title="시험 묶음 — 장성 도폭 (태백) 둘레의 아주 긴 이름")
         # 정적 판처럼 남극에서 연다(wetherilli 379) — "가 보기" 가 묶음의 지역(한국)으로 넘어가야 한다
         page, errors = self.open("map/?region=antarctica")
         page.evaluate("""() => { window.__blobs = 0; const make = URL.createObjectURL;
@@ -795,7 +797,22 @@ class OfflinePack(PhoneBase):
                          "가 보기가 묶음의 지역으로 넘어가지 않았다")
         badge = page.locator("#offline-badge")
         self.assertTrue(badge.is_visible(), "묶음 안인데 오프라인 표가 없다")
-        self.assertIn("오프라인: 시험 묶음 · 10-10", badge.inner_text())
+        self.assertIn("오프라인: 시험 묶음", badge.inner_text())
+        self.assertNotIn("출처", badge.inner_text(), "휴대폰에서는 출처를 접어 둔다")
+        head = page.locator("#offline-badge b").bounding_box()
+        self.assertLessEqual(head["height"], 20, "표의 이름·날짜가 한 줄이 아니다")
+        self.assertLessEqual(badge.bounding_box()["height"], 32, "휴대폰의 표가 한 줄보다 높다")
+        self.assertEqual(page.evaluate(
+            "(() => { const b = document.querySelector('#offline-badge .offline-name'); return b.scrollWidth > b.clientWidth; })()"),
+            True, "긴 이름이 말줄임되지 않았다")
+        self.assertTrue(page.locator("#offline-badge .offline-date").is_visible(), "이름이 길어도 날짜는 보인다")
+        self.assertIn("· 10-10", badge.inner_text())
+        badge.tap()
+        page.wait_for_timeout(200)
+        self.assertIn("출처: 한국지질자원연구원 · VWorld", badge.inner_text(), "누르면 출처가 펴진다")
+        badge.tap()
+        page.wait_for_timeout(200)
+        self.assertNotIn("출처", badge.inner_text())
         self.assertGreater(page.evaluate("window.__blobs"), 0, "묶음의 타일을 그리지 않았다")
         self.assertFits(self.measure(page), "map/ (오프라인 표)")
 

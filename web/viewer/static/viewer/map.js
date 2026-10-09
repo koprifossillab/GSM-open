@@ -7927,6 +7927,11 @@
       }, function (err) { say(err.message || T("묶음을 들이지 못했다"), true); });
     });
     Offline.onChange(function (rows) { render(rows); renderOfflineBadge(); });
+    // 휴대폰에서는 출처를 접어 둔다 — 누르면 편다 (wetherilli 382)
+    var badge = document.getElementById("offline-badge");
+    if (badge) badge.addEventListener("click", function () {
+      badge.setAttribute("aria-expanded", String(badge.classList.toggle("open")));
+    });
     Offline.ready.then(function () { render(Offline.list()); renderOfflineBadge(); });
   }
 
@@ -7942,15 +7947,24 @@
     var credit = [];
     hits.forEach(function (h) { h.attribution.forEach(function (a) { if (credit.indexOf(a) < 0) credit.push(a); }); });
     badge.innerHTML = "";
+    // 이름은 길면 말줄임하고 날짜는 늘 보인다 — 둘을 따로 둔다 (wetherilli 382)
     var head = document.createElement("b");
-    head.textContent = T("오프라인: {name} · {date}", { name: p.title, date: String(p.built).slice(5) });
+    head.className = "offline-head";
+    var name = document.createElement("span");
+    name.className = "offline-name";
+    name.textContent = T("오프라인: {name}", { name: p.title });
+    var date = document.createElement("span");
+    date.className = "offline-date";
+    date.textContent = " · " + String(p.built).slice(5);
+    head.append(name, date);
     badge.appendChild(head);
     if (credit.length) {
       var src = document.createElement("span");
+      src.className = "offline-src";
       src.textContent = T("출처: {names}", { names: credit.join(" · ") });
       badge.appendChild(src);
     }
-    badge.title = p.note || "";
+    badge.title = head.textContent + (p.note ? " — " + p.note : "");
   }
 
   /** 정적 판의 키 (wetherilli P11·162·174) — **KIGAM·VWorld 둘 다 보는 사람이 각자 넣는다**(사용자 결정, 2026-10-02).

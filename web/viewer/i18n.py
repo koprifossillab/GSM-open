@@ -2143,7 +2143,7 @@ EN = {
     "{name} 을 들였다. 이 범위는 망 없이도 보인다.": "Loaded {name}. This extent now shows without a network.",
     "다시 열기": "Reopen",
     "묶음을 들이지 못했다": "Could not load the pack",
-    "오프라인: {name} · {date}": "Offline: {name} · {date}",
+    "오프라인: {name}": "Offline: {name}",
     "출처: {names}": "Source: {names}",
     "오프라인 묶음(.gsmpack)이 아니다": "Not an offline pack (.gsmpack)",
     "묶음의 머리가 잘렸다": "The pack header is truncated",
