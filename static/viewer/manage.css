@@ -1,0 +1,256 @@
+/* 관리 화면 (wetherilli P08·118). 색·단추·상자는 map.css 의 것을 쓰고 자리만 여기서 잡는다.
+ * 지도와 달리 페이지가 구른다 — map.css 의 html·body 고정을 푼다. */
+html { overflow: auto; }
+body.manage { display: block; height: auto; min-height: 100vh; overflow: visible; }
+
+.mg-head {
+  position: sticky;
+  top: 0;
+  z-index: 5;
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  padding: 10px 20px;
+  background: var(--panel-tint);
+  border-bottom: 1px solid var(--line);
+}
+.mg-brand { display: flex; align-items: center; gap: 10px; color: var(--ink); text-decoration: none; }
+.mg-brand b { color: var(--gold-bright); letter-spacing: .08em; }
+.mg-brand small { display: block; font-size: 11.5px; letter-spacing: .2em; color: var(--ink-faint); }
+.mg-tabs { display: flex; gap: 4px; flex-wrap: wrap; }
+.mg-tab {
+  height: 32px;
+  padding: 0 14px;
+  font: inherit;
+  font-size: 13px;
+  color: var(--ink-soft);
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 999px;
+  cursor: pointer;
+}
+.mg-tab:hover { border-color: var(--gold-edge); }
+.mg-tab.on { color: var(--on-hi); background: var(--hi); font-weight: 600; }
+.mg-back { margin-left: auto; text-decoration: none; }
+
+.mg-main { max-width: 1100px; margin: 0 auto; padding: 20px 16px 60px; }
+.mg-body { display: none; }
+.mg-body.on { display: block; }
+
+.mg-drop {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 140px;
+  padding: 20px;
+  color: var(--ink-soft);
+  text-align: center;
+  background: var(--panel-tint);
+  border: 1.5px dashed var(--line);
+  border-radius: 10px;
+  cursor: pointer;
+  transition: border-color .14s, background .14s;
+}
+.mg-drop:hover, .mg-drop.over { border-color: var(--gold); background: var(--gold-wash); }
+.mg-drop input { position: absolute; width: 1px; height: 1px; opacity: 0; }
+.mg-drop svg { width: 30px; height: 30px; color: var(--gold); }
+.mg-format { display: block; margin: 12px 0 0; line-height: 1.7; }
+.mg-format code, .mg-table .mono, .mg-val { font-family: var(--font-mono); font-size: 11.5px; }
+.mg-samples { display: flex; flex-wrap: wrap; align-items: center; gap: 4px; margin-top: 8px; }
+
+.mg-form { display: flex; flex-wrap: wrap; gap: 12px; margin-bottom: 12px; }
+.mg-form label { display: flex; flex-direction: column; gap: 4px; font-size: 12px; color: var(--ink-soft); }
+.mg-form label:first-child { flex: 1 1 280px; }
+.mg-form input[type="text"], .mg-form select, .mg-name-cell input[type="text"] {
+  height: 32px;
+  padding: 0 10px;
+  font: inherit;
+  color: var(--ink);
+  background: var(--panel-tint);
+  border: 1px solid var(--line);
+  border-radius: 6px;
+}
+.mg-form input[type="color"], .mg-name-cell input[type="color"] {
+  width: 40px; height: 32px; padding: 2px; background: var(--panel-tint); border: 1px solid var(--line); border-radius: 6px;
+}
+.mg-stats { margin-bottom: 10px; }
+
+.mg-note { margin: 10px 0; padding: 8px 12px; font-size: 12.5px; border-radius: 8px; }
+.mg-note ul { margin: 4px 0 0; padding-left: 18px; list-style: disc; }
+.mg-note li.more { list-style: none; color: var(--ink-faint); }
+.warn-list { color: var(--warn-ink); background: var(--warn-bg); border: 1px solid var(--warn-line); }
+.bad-list { color: var(--bad); background: var(--panel-tint); border: 1px solid var(--bad); }
+
+.mg-scroll { overflow-x: auto; margin-bottom: 10px; border: 1px solid var(--line-soft); border-radius: 8px; }
+.mg-table { width: 100%; border-collapse: collapse; font-size: 12.5px; }
+.mg-table th, .mg-table td { padding: 6px 10px; text-align: left; vertical-align: middle; border-bottom: 1px solid var(--line-soft); white-space: nowrap; }
+.mg-table th { font-weight: 600; color: var(--ink-soft); background: var(--raise); }
+.mg-table tr:last-child td { border-bottom: 0; }
+.mg-table td.empty { color: var(--ink-faint); white-space: normal; }
+.mg-val { max-width: 360px; overflow: hidden; text-overflow: ellipsis; }
+.mg-name-cell { display: flex; gap: 6px; align-items: center; }
+.mg-name-cell input[type="text"] { min-width: 150px; width: 100%; }
+.mg-row-acts { text-align: right; }
+.mg-row-acts .btn { height: 28px; }
+
+.mg-acts { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-top: 12px; }
+.mg-right { margin-left: auto; }
+
+@media (max-width: 640px) {
+  /* 상자 제목 옆의 안내 글이 제목을 밀어 "개인 레이 / 어"·"상류 응답 / 시간" 처럼 꺾였다 — 안내는 다음 줄로 (wetherilli 365) */
+  .box-head { flex-wrap: wrap; row-gap: 2px; }
+  .box-head .hint { flex-basis: 100%; margin-left: 0; font-weight: 400; }
+  /* 저장 탭의 표는 카드로 — 칸이 일곱이라 지우기·내려받기 단추가 가로로 굴려야 보였다 (wetherilli 369).
+     머리줄은 숨기고 칸 앞에 그 이름(`data-label`)을 적는다. 첫 줄은 보이기·색·이름, 끝 줄은 단추 */
+  .mg-layers thead { display: none; }
+  .mg-layers, .mg-layers tbody { display: block; }
+  .mg-layers tr { display: grid; grid-template-columns: auto 1fr; gap: 4px 10px; align-items: center; padding: 10px 4px;
+                  border-bottom: 1px solid var(--line-soft); }
+  .mg-layers tr:last-child { border-bottom: 0; }
+  .mg-layers td { display: block; padding: 0; border: 0; white-space: normal; min-width: 0; }
+  .mg-layers td.mg-name-cell { display: flex; gap: 6px; align-items: center; }
+  .mg-layers td.mg-name-cell input[type=text] { flex: 1; min-width: 0; width: auto; }
+  .mg-layers td[data-label] { grid-column: 2; font-size: 12px; overflow-wrap: anywhere; }
+  .mg-layers td[data-label]::before { content: attr(data-label); display: inline-block; min-width: 5.5em; margin-right: 6px;
+                                      color: var(--ink-faint); font-family: var(--font-sans, inherit); }
+  .mg-layers td.mg-row-acts { grid-column: 1 / -1; display: flex; flex-wrap: wrap; gap: 6px; margin-top: 4px; }
+  .mg-layers td.empty { grid-column: 1 / -1; }
+  .mg-head { flex-wrap: wrap; gap: 8px; padding: 10px 16px; }
+  .mg-back { margin-left: 0; }
+  .mg-main { padding: 14px 16px 40px; }
+}
+
+/* API 로 잇기 (wetherilli P09·122) */
+.mg-link-form label.wide { flex: 1 1 100%; }
+.mg-link-form input[type="url"], .mg-link-form input[type="password"] {
+  height: 32px; padding: 0 10px; font: inherit; color: var(--ink);
+  background: var(--panel-tint); border: 1px solid var(--line); border-radius: 6px;
+}
+.mg-link-cell { white-space: normal; min-width: 220px; }
+.mg-link-cell small { display: block; color: var(--ink-faint); font-size: 11px; }
+.mg-link-cell small.bad { color: var(--bad); }
+.mg-link-badge {
+  display: inline-block; padding: 0 6px; font-size: 10.5px; font-weight: 700; letter-spacing: .05em;
+  color: var(--on-hi); background: var(--gold-muted); border-radius: 4px;
+}
+
+/* 양식 예시 (wetherilli 130) */
+.mg-example-bar { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-bottom: 10px; }
+.mg-example-bar .seg { display: inline-flex; border: 1px solid var(--line); border-radius: 999px; overflow: hidden; }
+.mg-example-bar .seg button {
+  height: 28px; padding: 0 12px; font: inherit; font-size: 12.5px; color: var(--ink-soft);
+  background: transparent; border: 0; cursor: pointer;
+}
+.mg-example-bar .seg button.on { color: var(--on-hi); background: var(--hi); font-weight: 600; }
+.mg-example {
+  margin: 0; padding: 12px 14px; max-height: 360px; overflow: auto;
+  font-family: var(--font-mono); font-size: 11.5px; line-height: 1.6; white-space: pre; color: var(--ink);
+  background: var(--panel-tint); border: 1px solid var(--line-soft); border-radius: 8px;
+}
+.mg-example-notes { margin: 10px 0 0; padding-left: 18px; list-style: disc; font-size: 12.5px; line-height: 1.7; color: var(--ink-soft); }
+.mg-example-notes code { font-family: var(--font-mono); font-size: 11.5px; color: var(--ink); }
+
+/* 용량 (wetherilli 131) */
+.mg-capacity { margin-top: 12px; font-size: 12.5px; }
+.mg-cap-head { display: flex; flex-wrap: wrap; gap: 10px; align-items: baseline; color: var(--ink-soft); }
+.mg-cap-head b { color: var(--ink); }
+.mg-cap-bar { height: 8px; margin: 8px 0; background: var(--panel-tint); border: 1px solid var(--line-soft); border-radius: 999px; overflow: hidden; }
+.mg-cap-bar span { display: block; height: 100%; background: var(--good); }
+.mg-cap-bar span.warn { background: var(--gold); }
+.mg-cap-bar span.bad { background: var(--bad); }
+.mg-cap-warn { margin-top: 6px; padding: 6px 10px; border-radius: 6px; font-size: 12.5px; }
+.mg-cap-warn.warn { color: var(--warn-ink); background: var(--warn-bg); border: 1px solid var(--warn-line); }
+.mg-cap-warn.bad { color: var(--bad); background: var(--panel-tint); border: 1px solid var(--bad); }
+.mg-table td.mg-big { color: var(--bad); font-weight: 600; }
+.mg-size-check { margin-top: 10px; font-size: 12.5px; color: var(--ink-soft); }
+
+/* 상류 응답 시간 (wetherilli 295) — 수는 오른쪽에, 실패가 있으면 붉게 */
+.mg-upstream td.num, .mg-upstream th { text-align: right; font-variant-numeric: tabular-nums; }
+.mg-upstream th:first-child, .mg-upstream td:first-child { text-align: left; }
+.mg-upstream thead th[colspan] { text-align: center; }
+.mg-upstream td.bad { color: #d4523a; font-weight: 600; }
+/* 마지막 레이어 대조 (wetherilli 314) */
+.mg-verify b.bad { color: #d4523a; margin-left: 6px; }
+.mg-verify span { margin-left: 6px; font-family: var(--font-mono); font-size: 11px; }
+
+/* 데이터소스 (jikhanjung P02 3 단계) — "구운 자료" 탭(wetherilli 312)을 녹였다. 늦거나 깨진 줄은 붉게, 줄을 누르면 지난 차례 */
+.mg-sources td { vertical-align: top; white-space: normal; }
+.mg-sources td.mg-src-name { min-width: 11em; }
+.mg-sources td:nth-child(2) { min-width: 8em; }
+/* 마지막 실행·마지막 성공(때)은 꺾지 않는다. 결과 칸은 마지막 말이, 산출물 칸은 경로가 들어 넓게 */
+.mg-sources td:nth-child(4), .mg-sources td:nth-child(6) { white-space: nowrap; }
+.mg-sources td:nth-child(5) { min-width: 12em; }
+.mg-sources td:nth-child(7) { min-width: 16em; }
+.mg-sources td small { display: block; color: var(--ink-faint); font-size: 11px; }
+.mg-sources td small.bad, .mg-sources .bad { color: #d4523a; font-weight: 600; }
+.mg-sources .num { font-variant-numeric: tabular-nums; white-space: nowrap; }
+.mg-sources .mono, .mg-sources small.mono { font-family: var(--font-mono); font-size: 11px; }
+.mg-sources .faint { color: var(--ink-faint); }
+.mg-sources tr.mg-src { cursor: pointer; }
+.mg-sources tr.mg-src:hover td, .mg-sources tr.mg-src.open td { background: var(--panel-tint); }
+.mg-sources tr.mg-src.bad td:first-child { box-shadow: inset 3px 0 0 #d4523a; }
+.mg-src-name b { display: block; }
+/* 펼치는 단추 — 이름 그대로 보이게, 단추 모양은 지운다 (#375 검토) */
+.mg-src-toggle { display: block; padding: 0; border: 0; background: none; color: inherit; font: inherit; font-weight: bold;
+                 text-align: left; cursor: pointer; }
+.mg-src-toggle:focus-visible { outline: 2px solid var(--accent, currentColor); outline-offset: 2px; }
+.mg-out-by { display: block; color: var(--ink-faint); }
+.mg-flag { display: inline-block; padding: 0 5px; font-size: 10.5px; font-weight: 700; color: var(--on-hi); background: var(--gold-muted); border-radius: 4px; }
+.mg-res { display: inline-block; padding: 0 5px; font-size: 10.5px; font-weight: 700; border-radius: 4px; color: var(--on-hi); background: var(--good); }
+.mg-res.fail { background: #d4523a; }
+.mg-res.skip { background: var(--ink-faint); }
+.mg-said { max-width: 28em; overflow-wrap: anywhere; }
+.mg-seed { color: #b98a2e !important; }
+.mg-out { white-space: normal; }
+.mg-out .mono { overflow-wrap: anywhere; }   /* 원본 판 글이 길다(GVP·DOI 주소) — 꺾지 않으면 칸이 화면 밖으로 */
+.mg-out-what { color: var(--ink-faint); white-space: normal; }
+.mg-src-more td { background: var(--panel-tint); }
+.mg-src-meta { margin: 2px 0 6px; font-size: 12px; color: var(--ink-soft); }
+.mg-hist { margin: 0; padding-left: 1.4em; font-size: 12px; }
+.mg-hist li { margin: 3px 0; }
+.mg-hist small { display: inline; margin-left: 6px; }
+.mg-hist small.mg-said { display: block; margin-left: 0; }
+.mg-src-sum { display: flex; flex-wrap: wrap; gap: 6px 14px; margin: 0 0 8px; font-size: 12.5px; color: var(--ink-soft); }
+.mg-src-warn { margin: 4px 0; padding: 6px 10px; font-size: 12.5px; border: 1px solid #d4523a; border-radius: 6px; }
+/* 탭에서 고치기 (jikhanjung 020) — 로그인·알림·고치기 폼 */
+.mg-msgs { list-style: none; margin: 4px 0 8px; padding: 0; font-size: 12.5px; }
+.mg-msgs li { padding: 6px 10px; border-radius: 6px; border: 1px solid var(--line); margin-bottom: 4px; }
+.mg-msgs li.error { border-color: #d4523a; color: #d4523a; }
+.mg-msgs li.success { border-color: #6a9a4a; }
+.mg-src-login { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 10px; margin: 0 0 10px; font-size: 12.5px; color: var(--ink-soft); }
+.mg-src-login form { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin: 0; }
+.mg-src-login input, .mg-src-edit input, .mg-src-edit select, .mg-src-edit textarea {
+  height: 30px; padding: 0 8px; font: inherit; font-size: 12.5px; color: var(--ink);
+  background: var(--panel-tint); border: 1px solid var(--line); border-radius: 6px; min-width: 0;
+}
+.mg-src-login input { width: 11em; }
+.mg-src-h { margin: 10px 0 4px; font-size: 12px; font-weight: 600; color: var(--ink-soft); }
+.mg-src-edit { margin-top: 10px; font-size: 12.5px; }
+.mg-src-edit summary { cursor: pointer; font-weight: 600; }
+.mg-src-edit form { display: grid; grid-template-columns: repeat(auto-fill, minmax(16em, 1fr)); gap: 8px 12px; margin-top: 8px; }
+.mg-src-edit label, .mg-src-edit fieldset { display: flex; flex-direction: column; gap: 3px; margin: 0; color: var(--ink-soft); }
+.mg-src-edit label small { color: var(--ink-faint); font-size: 11px; }
+.mg-src-edit fieldset { flex-direction: row; flex-wrap: wrap; gap: 4px 10px; border: 1px solid var(--line); border-radius: 6px; padding: 4px 8px; }
+.mg-src-edit legend { padding: 0 4px; }
+.mg-src-edit .mg-check { flex-direction: row; align-items: center; gap: 4px; }
+.mg-src-edit .mg-check input { height: auto; }
+.mg-src-edit textarea { height: auto; padding: 6px 8px; font-family: var(--font-mono); resize: vertical; }
+.mg-src-edit button[type=submit] { justify-self: start; align-self: end; }
+
+@media (max-width: 640px) {
+  /* 데이터소스도 카드로 — 칸이 여섯이라 가로로 굴렀다. 저장 탭(wetherilli 369)과 같은 틀 */
+  .mg-sources thead { display: none; }
+  .mg-sources, .mg-sources tbody { display: block; }
+  .mg-sources tr.mg-src { display: grid; grid-template-columns: 1fr; gap: 4px; padding: 10px 4px; border-bottom: 1px solid var(--line-soft); }
+  .mg-sources tr.mg-src td { display: block; padding: 0; border: 0; min-width: 0; overflow-wrap: anywhere; white-space: normal; }
+  .mg-sources tr.mg-src td[data-label]::before { content: attr(data-label); display: inline-block; min-width: 4.5em; margin-right: 6px;
+                                                 color: var(--ink-faint); font-size: 11px; }
+  .mg-sources tr.mg-src td small { display: inline; margin-left: 4px; }
+  .mg-sources tr.mg-src td small.mg-said, .mg-sources tr.mg-src td small.mg-out { display: block; margin-left: 0; }
+  .mg-sources tr.mg-src-more { display: block; }
+  .mg-sources tr.mg-src-more[hidden] { display: none; }
+  .mg-sources tr.mg-src-more td { display: block; padding: 8px 4px; border: 0; }
+  .mg-out, .mg-said { white-space: normal; max-width: none; }
+}
