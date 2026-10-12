@@ -2148,6 +2148,7 @@ EN = {
     "오프라인 묶음(.gsmpack)이 아니다": "Not an offline pack (.gsmpack)",
     "묶음의 머리가 잘렸다": "The pack header is truncated",
     "묶음의 머리를 읽지 못했다": "Could not read the pack header",
+    "{title} · 오프라인 묶음": "{title} · offline pack",
 }
 
 

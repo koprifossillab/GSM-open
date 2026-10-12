@@ -336,6 +336,38 @@ def _wfs(params: dict):
     return r
 
 
+def describe_layer(name: str) -> list:
+    """화면 레이어(묶음일 수 있다)를 이루는 WFS 피처 타입 — `DescribeLayer`. 래스터(WCS)는 뺀다 (wetherilli 384)."""
+    left = usage.paused()
+    if left:
+        raise UpstreamError(f"차단 조짐이 있어 {int(left)}초 동안 상류에 묻지 않는다")
+    try:
+        r = requests.get(settings.CAPABILITIES_URL, timeout=settings.UPSTREAM_TIMEOUT, verify=_verify(),
+                         params={"service": "WMS", "version": "1.1.1", "request": "DescribeLayer",
+                                 "layers": f"{OPEN_WORKSPACE}:{name}", "outputFormat": "application/json"},
+                         headers={"User-Agent": "GSM/0.1"})
+    except requests.RequestException as exc:
+        usage.record("kigam", ok=False)
+        raise UpstreamError(f"상류에 닿지 못했다: {redact(str(exc))}") from exc
+    usage.record("kigam", ok=r.status_code == 200, elapsed=r.elapsed)
+    try:
+        rows = r.json().get("layerDescriptions") or []
+    except ValueError as exc:
+        raise UpstreamError("DescribeLayer 가 JSON 이 아니다", status=r.status_code) from exc
+    return [row["typeName"] for row in rows if row.get("owsType") == "WFS" and row.get("typeName")]
+
+
+def wfs_in_bbox(type_name: str, bbox) -> dict:
+    """피처 타입 하나의 범위(경위도 서, 남, 동, 북) 안 피처 — GeoJSON(경위도). 오프라인 묶음의 지층 면 (wetherilli 384)."""
+    west, south, east, north = bbox
+    r = _wfs({"typeNames": type_name, "outputFormat": "application/json",
+              "bbox": f"{south},{west},{north},{east},urn:ogc:def:crs:EPSG::4326"})
+    try:
+        return r.json()
+    except ValueError as exc:
+        raise UpstreamError("WFS 가 JSON 이 아니다") from exc
+
+
 def wfs_count(name: str) -> int:
     """상류가 센 수(`numberMatched`) — 본문 없이 `resultType=hits` 로."""
     r = _wfs({"typeNames": wfs_type(name), "resultType": "hits"})

@@ -5529,14 +5529,24 @@
       // 속성 주소는 레이어의 상류가 안다 (`LAYER_KINDS`)
       var info = layerKind(entry.name).info;
       var url = info && info(entry.layer.getSource(), evt.coordinate, view);
-      if (!url) { pending -= 1; return; }
+      // 오프라인 묶음의 지층 면(wetherilli 384) — 망으로 못 읽을 때(현장·정적 판)만 쓴다
+      var packed = Offline && Offline.hasUnits(entry.name);
+      if (!url && !packed) { pending -= 1; return; }
+      var fromPack = function () {
+        var ll = toLL(evt.coordinate);
+        return Offline.unitsAt(entry.name, ll[0], ll[1], LANG).then(function (rows) {
+          return { packed: true, features: rows.map(function (props) { return { props: props }; }) };
+        });
+      };
 
       // 정적 판의 상류(`GSM_STATIC_KINDS`)는 주소가 아니라 받은 것을 준다 — 그쪽 꼴로 이미 손질해서
-      (url.then ? url : fetch(url).then(function (r) { return r.json(); }))
-        .catch(function () { return { features: [] }; })
+      (!url ? fromPack()
+        : (url.then ? url : fetch(url).then(function (r) { if (!r.ok && packed) throw new Error(r.status); return r.json(); }))
+          .catch(function () { return packed ? fromPack() : { features: [] }; }))
         .then(function (data) {
+          var title = data.packed ? T("{title} · 오프라인 묶음", { title: entry.title }) : entry.title;
           results[index] = (data.features || []).map(function (f) {
-            return { title: entry.title, props: f.props };
+            return { title: title, props: f.props };
           });
           pending -= 1;
           if (pending === 0) {

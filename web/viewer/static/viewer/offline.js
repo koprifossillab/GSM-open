@@ -203,6 +203,80 @@
     return null;
   }
 
+  // ── 누른 자리의 속성 — 지층 면 (wetherilli 384) ──
+  //
+  // 묶음 머리의 `units.<레이어>` 는 `{key: "@units/<레이어>", …}` — 굽는 쪽이 박스 범위의 지층 면을 WFS 로 받아 GeoJSON 한 덩이로
+  // 넣었다. 처음 누를 때 읽어 면마다 네모를 셈해 두고, 누른 자리를 품은 면의 속성을 낸다. 범례 색으로 찾지 않는다 — 한 도폭
+  // 안에서도 단위 둘이 한 색이다
+
+  var shapes = {};                     // 레이어 → Promise<[{box, rings, props, props_en}]>
+
+  function unitsFor(name) {
+    for (var i = 0; i < packs.length; i++) {
+      var u = (packs[i].head.units || {})[name];
+      if (u && u.key && packs[i].head.tiles[u.key]) return { pack: packs[i], units: u };
+    }
+    return null;
+  }
+
+  function hasUnits(name) { return !!unitsFor(name); }
+
+  function loadShapes(name, found) {
+    var key = found.pack.id + "/" + name;
+    if (shapes[key]) return shapes[key];
+    var at = found.pack.head.tiles[found.units.key];
+    var part = found.pack.blob.slice(found.pack.base + at[0], found.pack.base + at[0] + at[1]);
+    shapes[key] = (part.text ? part.text() : new Response(part).text()).then(function (text) {
+      return (JSON.parse(text).features || []).map(function (f) {
+        var g = f.geometry || {};
+        var polys = g.type === "MultiPolygon" ? g.coordinates : [g.coordinates];
+        var box = [Infinity, Infinity, -Infinity, -Infinity];
+        polys.forEach(function (poly) {
+          (poly[0] || []).forEach(function (c) {
+            box[0] = Math.min(box[0], c[0]); box[1] = Math.min(box[1], c[1]);
+            box[2] = Math.max(box[2], c[0]); box[3] = Math.max(box[3], c[1]);
+          });
+        });
+        return { box: box, polys: polys, props: f.properties.props, props_en: f.properties.props_en };
+      });
+    });
+    return shapes[key];
+  }
+
+  /** 고리 하나 안인가 — 반직선이 변을 몇 번 건너나 */
+  function inRing(ring, x, y) {
+    var inside = false;
+    for (var i = 0, j = ring.length - 1; i < ring.length; j = i++) {
+      var a = ring[i], b = ring[j];
+      if ((a[1] > y) !== (b[1] > y) && x < (b[0] - a[0]) * (y - a[1]) / (b[1] - a[1]) + a[0]) inside = !inside;
+    }
+    return inside;
+  }
+
+  /** 면 하나(바깥 고리와 구멍들) 안인가 */
+  function inPolygon(poly, x, y) {
+    if (!poly.length || !inRing(poly[0], x, y)) return false;
+    for (var k = 1; k < poly.length; k++) if (inRing(poly[k], x, y)) return false;
+    return true;
+  }
+
+  /** 레이어의 누른 자리 속성 — `[props…]`(없으면 빈 목록). 묶음에 그 레이어의 지층 면이 없으면 null */
+  function unitsAt(name, lon, lat, lang) {
+    var found = unitsFor(name);
+    if (!found) return null;
+    return loadShapes(name, found).then(function (rows) {
+      var seen = {}, out = [];
+      rows.forEach(function (r) {
+        if (lon < r.box[0] || lon > r.box[2] || lat < r.box[1] || lat > r.box[3]) return;
+        if (!r.polys.some(function (poly) { return inPolygon(poly, lon, lat); })) return;
+        var props = lang === "en" && r.props_en ? r.props_en : r.props;
+        var mark = JSON.stringify(props);
+        if (!seen[mark]) { seen[mark] = true; out.push(props); }
+      });
+      return out;
+    }, function () { return []; });
+  }
+
   /** 경위도 한 자리를 덮는 묶음들 — 화면의 "오프라인: 장성 · 10-10" 표 */
   function at(lon, lat) {
     return packs.filter(function (p) {
@@ -256,6 +330,8 @@
     coversSync: coversSync,
     held: held,
     tileBlob: tileBlob,
+    hasUnits: hasUnits,
+    unitsAt: unitsAt,
     at: at,
     wrap: wrap,
     size: size,

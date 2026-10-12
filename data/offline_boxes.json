@@ -1,5 +1,5 @@
 {
- "_note": "오프라인 묶음의 박스 (wetherilli P13·381). bbox 는 경위도 [서, 남, 동, 북]. layers 는 [처음 줌, 마지막 줌] — 화면 줌이고, 적은 차례가 앞설 차례다. 예산을 넘으면 뒤의 것부터 마지막 줌을 내린다. 배경은 vworld:<WMTS 레이어>",
+ "_note": "오프라인 묶음의 박스 (wetherilli P13·381). bbox 는 경위도 [서, 남, 동, 북]. layers 는 [처음 줌, 마지막 줌] — 화면 줌이고, 적은 차례가 앞설 차례다. 예산을 넘으면 뒤의 것부터 마지막 줌을 내린다. 배경은 vworld:<WMTS 레이어> — 위성(Satellite)에는 지명(Hybrid)을 겹친다. units 는 누른 자리의 속성을 지층 면(WFS)으로 함께 담을 레이어 (wetherilli 384)",
  "jangseong": {
   "title": "장성 도폭 (태백)",
   "region": "korea",
@@ -22,6 +22,10 @@
    "vworld:Satellite": [
     8,
     15
+   ],
+   "vworld:Hybrid": [
+    8,
+    16
    ],
    "L_25k_coalfield_geologic_map": [
     10,
@@ -160,6 +164,11 @@
     11
    ]
   },
+  "units": [
+   "L_50K_Geology_Map",
+   "L_250K_Geology_Map",
+   "L_1M_Geology_Map"
+  ],
   "budget_mb": 200
  },
  "korea": {

@@ -725,7 +725,7 @@ class Phone3D(PhoneBase):
         self.assertEqual(errors, [])
 
 
-def tiny_pack(bbox, layers, built="2026-10-10", title="시험 묶음"):
+def tiny_pack(bbox, layers, built="2026-10-10", title="시험 묶음", units=None):
     """P13 꼴의 작은 묶음 — 레이어마다 (처음 격자 줌, 마지막 격자 줌), 타일은 빨간 한 장 (wetherilli 382).
     열쇠는 화면의 tileCoord 그대로 — KIGAM 은 512 px 격자(격자 줌 = 화면 줌 − 1), VWorld 는 256 px.
     굽는 쪽의 `offlinepack.write` 가 오면 그것으로 바꾼다"""
@@ -760,6 +760,11 @@ def tiny_pack(bbox, layers, built="2026-10-10", title="시험 묶음"):
                            "attribution": "VWorld" if n.startswith("vworld:") else "한국지질자원연구원"}
                        for n, z in layers.items()},
             "tiles": tiles}
+    if units:                    # 지층 면 — 타일처럼 몸통에 한 덩이로 (wetherilli 384)
+        blob = json.dumps(units, ensure_ascii=False).encode()
+        tiles["@units/L_50K_Geology_Map"] = [len(body), len(blob)]
+        body += blob
+        head["units"] = {"L_50K_Geology_Map": {"key": "@units/L_50K_Geology_Map", "type": "application/geo+json"}}
     raw = json.dumps(head, ensure_ascii=False, separators=(",", ":")).encode()
     return b"GSMPACK1" + struct.pack("<I", len(raw)) + raw + body
 
@@ -772,8 +777,12 @@ class OfflinePack(PhoneBase):
         call_command("seed_catalog", stdout=open(os.devnull, "w"))
         bbox = [128.85, 37.10, 128.86, 37.11]
         # 이름이 길어도 휴대폰의 표는 한 줄이다 (wetherilli 382)
+        # 지층 면 하나 — 묶음 범위를 덮는 네모가 "시험층" 이다 (wetherilli 384)
+        units = {"type": "FeatureCollection", "features": [{"type": "Feature", "geometry": {"type": "Polygon", "coordinates": [[
+            [bbox[0], bbox[1]], [bbox[2], bbox[1]], [bbox[2], bbox[3]], [bbox[0], bbox[3]], [bbox[0], bbox[1]]]]},
+            "properties": {"props": {"지층": "시험층", "기호": "Tt"}, "props_en": {"Formation": "Tt"}}}]}
         pack = tiny_pack(bbox, {"L_50K_Geology_Map": (12, 17), "vworld:Base": (12, 18)},
-                         title="시험 묶음 — 장성 도폭 (태백) 둘레의 아주 긴 이름")
+                         title="시험 묶음 — 장성 도폭 (태백) 둘레의 아주 긴 이름", units=units)
         # 정적 판처럼 남극에서 연다(wetherilli 379) — "가 보기" 가 묶음의 지역(한국)으로 넘어가야 한다
         page, errors = self.open("map/?region=antarctica")
         page.evaluate("""() => { window.__blobs = 0; const make = URL.createObjectURL;
@@ -813,6 +822,12 @@ class OfflinePack(PhoneBase):
         badge.tap()
         page.wait_for_timeout(200)
         self.assertNotIn("출처", badge.inner_text())
+
+        # 망이 없으니(속성 요청도 끊긴다) 누른 자리의 속성은 묶음의 범례 칸에서 온다
+        box = page.locator("#map").bounding_box()
+        page.touchscreen.tap(box["x"] + box["width"] / 2, box["y"] + box["height"] / 2)
+        page.wait_for_selector("#popup-body :text('시험층')", timeout=5000)
+        self.assertIn("오프라인 묶음", page.locator("#popup-body").inner_text())
         self.assertGreater(page.evaluate("window.__blobs"), 0, "묶음의 타일을 그리지 않았다")
         self.assertFits(self.measure(page), "map/ (오프라인 표)")
 

@@ -30,7 +30,9 @@ services:
       - "127.0.0.1:8094:9090"
     # 극지연구소 KPDC — 이 서버가 먼저 묻는 DNS(172.16.200.30)가 kopri.re.kr 을 NXDOMAIN 으로 답해(2026-09-30)
     # 컨테이너가 이름을 못 찾는다. 다른 DNS(203.250.179.4·8.8.8.8)가 주는 주소를 박아 둔다. KPDC 의 주소가 바뀌면
-    # 조용히 깨지므로, 서버의 DNS 가 고쳐지면 이 두 줄을 지운다 (wetherilli 095)
+    # 조용히 깨지므로, 서버의 DNS 가 고쳐지면 이 줄들을 지운다 (wetherilli 095). 암석 시료 DB(rock)도 2026-10-12 주간 백업의
+    # fetch_kopri 에서 같은 까닭으로 멈췄다 (wetherilli 383)
     extra_hosts:
       - "kpdcgeo.kopri.re.kr:203.250.180.198"
       - "kpdc.kopri.re.kr:203.250.180.198"
+      - "rock.kopri.re.kr:203.250.179.26"

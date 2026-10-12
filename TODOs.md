@@ -116,6 +116,8 @@
 
 되살아나거나 바뀌면 그때 한다.
 
+- [ ] **(사람) 운영 compose 에 한 줄** — `/srv/GSM/docker-compose.yml` 의 `extra_hosts` 에 `- "rock.kopri.re.kr:203.250.179.26"` 를 더하고 `docker compose up -d web`.
+      서버 DNS 가 rock 을 못 찾아 주간 백업의 `fetch_kopri` 가 멈추고 healthz 가 degraded 다(10-12). 급하지 않다 — 시료 목록이 묵을 뿐 (wetherilli 383)
 - GSJ 는 호출 제한 수치를 밝히지 않는다 — `upstream_stats` 의 `gsj` 를 지켜본다
 - 캐나다 지구물리(자력·중력 격자) — GSC 의 CAGDB WMS(`wms.agg.nrcan.gc.ca/wms2/wms2.aspx`)·자료 꾸러미(`gdr.agg.nrcan.gc.ca`)가 2026-10-05 에 두 번
   60 초 안에 답하지 않았다(`agg.nrcan.gc.ca` 전체). 살아나면 캐나다 탭에(wetherilli 250·319). 유콘은 50 m 잔류 자력을 타일로 따로 연다(OGL–Yukon)

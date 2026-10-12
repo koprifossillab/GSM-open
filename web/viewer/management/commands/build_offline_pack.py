@@ -15,6 +15,10 @@
 - 묶음의 타일 열쇠는 **화면의 tileCoord** — KIGAM 은 512 px 격자라 화면 줌보다 하나 작고, VWorld 는 256 px 라 화면 줌 그대로다.
   머리의 `layers.<이름>.zooms` 는 그 격자의 줌이고 `tile_size` 가 격자를 밝힌다
 - 빈 타일(투명 한 장, VWorld 의 자료 밖)은 넣지 않는다. **키는 머리에도 주소에도 없다**
+- **누른 자리의 속성은 지층 면으로 담는다**(wetherilli 384) — 박스의 `units` 에 적은 레이어(5만·25만·100만 지질도)만. 레이어를
+  이루는 지층 피처 타입(`DescribeLayer` 에서 이름에 `litho` 가 든 것)을 박스 범위로 WFS 한 번에 받아, 속성은 서버의 `feature_info`
+  처럼 추리고 좌표는 소수 다섯 자리(1 m 남짓)로 줄여 묶음 안에 `@units/<레이어>` 한 덩이(GeoJSON)로 넣는다. 화면은 망이 없을 때
+  누른 자리를 품은 면의 속성을 낸다. 범례 색으로 찾지 않는 까닭 — 한 도폭 안에서도 단위 둘이 한 색이다(장성의 풍촌석회암층·화절층)
 """
 import datetime
 import io
@@ -30,7 +34,7 @@ from django.conf import settings
 from django.core.management.base import BaseCommand, CommandError
 
 from gsmweb.version import VERSION
-from viewer import kigam, offlinepack, tilecache, tilegrid, usage, vworld
+from viewer import i18n, kigam, offlinepack, tilecache, tilegrid, usage, views, vworld
 from viewer.management.commands.prewarm import PREWARM_ERRORS, WmsPlan, plan_for
 from viewer.models import Layer
 
@@ -39,6 +43,7 @@ GUESS_BYTES = {"kigam": 60_000, "vworld:Base": 18_000, "vworld:Satellite": 22_00
 META = 4                       # KIGAM 큰 그림 한 변의 타일 수 — `prewarm --meta 4`
 VWORLD_ATTRIBUTION = "VWorld (국토교통부 공간정보 오픈플랫폼)"
 KIGAM_ATTRIBUTION = "한국지질자원연구원 지오빅데이터 오픈플랫폼"
+UNITS_DIGITS = 5               # 지층 면 좌표의 소수 자리 — 1 m 남짓. 5만 지질도(1 mm = 50 m)에 넉넉하다
 
 
 def load_boxes(path=None) -> dict:
@@ -137,6 +142,28 @@ class Parts:
     def remove(self):
         self.db.close()
         self.path.unlink(missing_ok=True)
+
+
+def _round(coords, digits=UNITS_DIGITS):
+    if coords and isinstance(coords[0], (int, float)):
+        return [round(coords[0], digits), round(coords[1], digits)]
+    return [_round(c, digits) for c in coords]
+
+
+def unit_features(data: dict) -> list:
+    """WFS GeoJSON → 묶음에 넣을 면 — 서버의 `feature_info` 처럼 빈 값을 버리고 링크를 가르고, 영어판 속성도 붙인다."""
+    out = []
+    for feature in data.get("features") or []:
+        geometry = feature.get("geometry") or {}
+        if "Polygon" not in geometry.get("type", ""):
+            continue
+        props = {k: views._split_links(v) for k, v in (feature.get("properties") or {}).items()
+                 if v not in (None, "", "null")}
+        if not props:
+            continue
+        out.append({"type": "Feature", "geometry": {"type": geometry["type"], "coordinates": _round(geometry["coordinates"])},
+                    "properties": {"props": props, "props_en": i18n.props_en(props)}})
+    return out
 
 
 def fit_budget(order, zooms, sizes, budget):
@@ -261,11 +288,15 @@ class Command(BaseCommand):
         if stop:
             raise CommandError(f"{stop} — 다시 부르면 이어서 받는다")
 
+        # 지층 면(속성)은 예산에서 먼저 뗀다 — 묶음 하나가 예산을 넘지 않게 타일 쪽을 던다 (wetherilli 384)
+        units = self.gather_units(box, sources, bbox, gap)
+        reserved = sum(len(body) for body, _ in units.values())
+
         # 받은 뒤의 실제 크기로 다시 맞춘다
         actual = {}
         for name, z, data in got.values():
             actual[(name, z)] = actual.get((name, z), 0) + len(data)
-        fitted, more, size = fit_budget(order, fitted, lambda n, z: actual.get((n, z), 0), budget)
+        fitted, more, size = fit_budget(order, fitted, lambda n, z: actual.get((n, z), 0), budget - reserved)
         for name, z in more.items():
             dropped[name] = min(dropped.get(name, z), z)
         keep = {k: v for k, v in got.items() if fitted[v[0]][0] <= v[1] <= fitted[v[0]][1]}
@@ -281,11 +312,41 @@ class Command(BaseCommand):
                               "attribution": sources[name].attribution}
                        for name in order if any(v[0] == name for v in keep.values())},
         }
+        if units:
+            header["units"] = {name: {"key": f"@units/{name}", "types": types, "type": "application/geo+json"}
+                               for name, (_, types) in units.items()}
         path = out_dir / f"{o['box']}-{built:%Y%m%d}{offlinepack.SUFFIX}"
-        offlinepack.write(path, header, ((k, v[2]) for k, v in keep.items()))
+        offlinepack.write(path, header, [*((k, v[2]) for k, v in keep.items()),
+                                         *((f"@units/{name}", body) for name, (body, _) in units.items())])
         parts.remove()
         self.stdout.write(self.style.SUCCESS(
             f"{path} — 타일 {len(keep):,} 장, {path.stat().st_size / 1024 / 1024:.1f} MB, 상류에 {asked:,} 번, 실패 {fails}"))
+
+
+    def gather_units(self, box, sources, bbox, gap):
+        """박스의 `units` 레이어마다 지층 면 — `{레이어: (GeoJSON 바이트, 피처 타입)}`. 상류에 레이어마다 두 번(DescribeLayer·WFS),
+        1 초 간격. 실패해도 묶음은 굽는다(속성 없이)"""
+        out = {}
+        for name in box.get("units", []):
+            if not isinstance(sources.get(name), KigamSource):
+                continue
+            try:
+                types = [t for t in kigam.describe_layer(name) if "litho" in t.lower()]
+                time.sleep(gap)
+                features = []
+                for type_name in types:
+                    features += unit_features(kigam.wfs_in_bbox(type_name, bbox))
+                    time.sleep(gap)
+            except PREWARM_ERRORS as exc:
+                self.stderr.write(f"  {name} 지층 면을 받지 못했다 — 속성 없이 굽는다: {exc}")
+                continue
+            if not features:
+                continue
+            body = json.dumps({"type": "FeatureCollection", "features": features},
+                              ensure_ascii=False, separators=(",", ":")).encode("utf-8")
+            out[name] = (body, types)
+            self.stdout.write(f"  {name} 지층 면 {len(features)} — {', '.join(types)}, {len(body) / 1024:.0f} KB")
+        return out
 
 
 class _NoParts:

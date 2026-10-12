@@ -52,7 +52,19 @@ def png(alpha=255, size=512):
 
 
 BOX = {"_note": "시험", "tiny": {"title": "작은 박스", "region": "korea", "bbox": [129.0, 37.0, 129.05, 37.05],
-                                 "layers": {"L_50K_Geology_Map": [10, 12], "vworld:Base": [10, 12]}, "budget_mb": 200}}
+                                 "layers": {"L_50K_Geology_Map": [10, 12], "vworld:Base": [10, 12]},
+                                 "units": ["L_50K_Geology_Map"], "budget_mb": 200}}
+
+UNITS = {"features": [
+    {"id": "l_50k_geology_litho_latest.7", "geometry": {"type": "MultiPolygon", "coordinates": [[[
+        [129.0, 37.0], [129.05, 37.0], [129.05, 37.05], [129.0, 37.05], [129.0, 37.0]]]]},
+     "properties": {"시대": "현생누대 고생대 캄브리아기", "지층": "풍촌석회암층", "기호": "CEp", "설명": None,
+                    "도폭": '장성[1967]<a href="https://doi.org/10.22747/x">(수치지질도)</a>'}},
+    {"id": "l_50k_geology_litho_latest.8", "geometry": {"type": "Polygon", "coordinates": [
+        [[129.0123456789, 37.0], [129.02, 37.0], [129.02, 37.01], [129.0123456789, 37.0]]]},
+     "properties": {"지층": "화절층", "기호": "CEw"}},
+    {"id": "l_50k_geology_boundary_latest.1", "geometry": {"type": "MultiLineString", "coordinates": [[[129, 37], [129.1, 37]]]},
+     "properties": {"유형": "지질경계"}}]}
 
 
 class Build(TestCase):
@@ -69,11 +81,15 @@ class Build(TestCase):
                                           TILE_CACHE_DIR=str(root / "tiles"), VWORLD_KEY="SECRET-VW", KIGAM_KEY="SECRET-KG")
         self.settings.enable()
         self.kigam_calls = []
+        self.info_calls = []
         patches = [
             mock.patch.object(build_offline_pack.KigamSource, "fetch", lambda s, z, x, y: self.kigam_calls.append(z) or png()),
             # 바다처럼 자료 밖(투명)도 하나 섞는다 — 넣지 않아야 한다
             mock.patch.object(vworld, "get_wmts_tile", lambda layer, z, y, x: None if (x + y) % 5 == 0 else (b"\x89PNG-vw" * 100, "image/png")),
             mock.patch.object(kigam, "has_key", lambda: True),
+            mock.patch.object(kigam, "describe_layer", lambda name: ["geoOpen:l_50k_geology_litho_latest",
+                                                                      "geoOpen:l_50k_geology_fault_latest"]),
+            mock.patch.object(kigam, "wfs_in_bbox", lambda t, bbox: self.info_calls.append((t, bbox)) or UNITS),
             mock.patch.object(build_offline_pack.time, "sleep", lambda s: None),
         ]
         for p in patches:
@@ -108,6 +124,24 @@ class Build(TestCase):
         # 다 구우면 받다 둔 VWorld 를 지운다
         self.assertEqual(list(Path(settings.OFFLINE_DIR).glob(".*parts*")), [])
 
+    def test_지층_면을_담는다(self):
+        """누른 자리의 속성은 박스 범위의 지층 면(WFS)으로 — 면만, 속성은 서버처럼 추려서 (wetherilli 384)"""
+        self.build()
+        path = next(Path(settings.OFFLINE_DIR).glob("tiny-*.gsmpack"))
+        head, base = offlinepack.read_header(path)
+        units = head["units"]["L_50K_Geology_Map"]
+        self.assertEqual(units["key"], "@units/L_50K_Geology_Map")
+        self.assertEqual(units["types"], ["geoOpen:l_50k_geology_litho_latest"])          # 지층(litho)만 — 단층은 아니다
+        self.assertEqual(self.info_calls, [("geoOpen:l_50k_geology_litho_latest", (129.0, 37.0, 129.05, 37.05))])
+        shapes = json.loads(offlinepack.read_tile(path, units["key"], (head, base)))
+        self.assertEqual(len(shapes["features"]), 2)                                       # 선은 버린다
+        first = shapes["features"][0]["properties"]
+        self.assertEqual(first["props"]["지층"], "풍촌석회암층")
+        self.assertNotIn("설명", first["props"])                                            # 빈 값은 버린다
+        self.assertEqual(first["props"]["도폭"]["links"][0]["url"], "https://doi.org/10.22747/x")   # 링크는 갈라 둔다
+        self.assertIn("props_en", first)
+        self.assertEqual(shapes["features"][1]["geometry"]["coordinates"][0][0], [129.01235, 37.0])   # 소수 다섯 자리
+
     def test_머리에_키가_없다(self):
         self.build()
         raw = next(Path(settings.OFFLINE_DIR).glob("tiny-*.gsmpack")).read_bytes()
@@ -127,6 +161,9 @@ class Build(TestCase):
         head, _ = offlinepack.read_header(next(Path(settings.OFFLINE_DIR).glob("tiny-*.gsmpack")))
         self.assertIn("vworld:Base", head["dropped"])                     # 뒤의 것(VWorld)부터
         self.assertLess(head["layers"]["vworld:Base"]["zooms"][1], 12)
+        path = next(Path(settings.OFFLINE_DIR).glob("tiny-*.gsmpack"))
+        _, base = offlinepack.read_header(path)
+        self.assertLessEqual(path.stat().st_size - base, 0.05 * 1024 * 1024)   # 지층 면까지 쳐서 예산 안이다
 
 
 class FitBudget(SimpleTestCase):
