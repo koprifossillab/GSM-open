@@ -681,6 +681,8 @@ GEO3AL_CATALOG_SEED = REPO_DIR / "data" / "geo3al_layers.json"
 PHYLOSERVER_CATALOG_SEED = REPO_DIR / "data" / "phyloserver_layers.json"
 #: 한반도 지질도 음영판 — 우리 디스크의 PDF (devlog 027)
 PENINSULA_CATALOG_SEED = REPO_DIR / "data" / "peninsula_layers.json"
+#: 온 세계 지구물리 격자 — 자력 이상(EMAG2v3), 부게 중력 이상(EIGEN-6C4) (wetherilli 391)
+GRAVMAG_CATALOG_SEED = REPO_DIR / "data" / "gravmag_layers.json"
 CHINA4M_CATALOG_SEED = REPO_DIR / "data" / "china4m_layers.json"
 #: 중국 지질도 1:400만의 범례 173 칸 — 누른 자리의 색을 대어 시기·암상을 띄운다 (wetherilli 388)
 CHINA4M_LEGEND = REPO_DIR / "data" / "china4m_legend.json"

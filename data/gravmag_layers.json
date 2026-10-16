@@ -1,0 +1,18 @@
+{
+ "_주석": "온 세계 지구물리 격자의 씨앗이다 — 자력 이상 EMAG2v3(공공 도메인). 원본은 NAS N:\\GSM\\sources\\earth\\emag2\\ 의 CSV 묶음이고 manage.py build_gravmag 가 <EARTH_DIR>/gravmag_* 로 굽는다(web/viewer/gravmag.py). 지역 탭이 경위도 타일을 제 투영으로 옮겨 그린다. 부게 중력 이상(EIGEN-6C4)은 ICGEM 격자가 들어오면 같은 꼴로 더한다 (wetherilli 391).",
+ "_뽑은날": "2026-10-16",
+ "_지역": "china",
+ "_상류": "gravmag",
+ "레이어군순서": [
+  "지구물리 격자"
+ ],
+ "레이어": [
+  {
+   "name": "gravmag:magnetic",
+   "title": "자력 이상 (EMAG2v3, 4 km 높이)",
+   "group": "지구물리 격자",
+   "abstract": "온 세계 자력 이상 EMAG2v3 (NOAA, 공공 도메인) — 항공·선상·위성 자료를 엮어 4 km 높이로 올린 값, 4′(약 7 km) 격자. 크라톤·분지·봉합대의 경계를 읽는 바탕. 누르면 그 자리의 nT",
+   "bbox": [72.5, 17.9, 136.5, 54.3]
+  }
+ ]
+}

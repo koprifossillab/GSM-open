@@ -1526,6 +1526,8 @@ EN = {
     "layer·lat·lon 이 없다": "layer, lat or lon is missing",
     # 남극 자력 이상 ADMAP-2 (wetherilli 262)
     "자력 이상": "Magnetic anomaly",
+    "온 세계 지구물리 격자 — EMAG2v3·EIGEN-6C4": "Global geophysical grids — EMAG2v3·EIGEN-6C4",
+    "자력 이상 (4 km 높이)": "Magnetic anomaly (4 km altitude)", "자력 이상 (EMAG2v3)": "Magnetic anomaly (EMAG2v3)", "부게 중력 이상": "Bouguer gravity anomaly",
     "자력 이상 자료(ADMAP-2)가 서버에 없다": "The magnetic anomaly data (ADMAP-2) is not on the server",
     "영국 남극조사소": "British Antarctic Survey",
     # 대앤틸리스 — USGS SIM 3534 를 우리가 굽는다 (wetherilli 254)
@@ -3632,6 +3634,7 @@ GROUP_EN = {
     "심리스 지질도 (GSJ)": "Seamless geological map (GSJ)",
     # 중국 (geo3al.py, devlog 025)
     "중국·동아시아 지질 (USGS)": "China & East Asia geology (USGS)",
+    "지구물리 격자": "Geophysical grids",
     "중국 지질도 1:400만 (2002)": "Geological Map of China 1:4M (2002)",
     # 우리가 모은 자료로 그린 레이어 — 첫째가 phyloserver 의 암맥 (devlog 026)
     "커스텀 지질도": "Custom geological maps",
@@ -4349,6 +4352,9 @@ LAYER_EN = {
     # 중국 — USGS geo3al (geo3al.py)
     "geo3al:age": "Geologic age (1:5M)",
     "geo3al:rock": "Igneous rocks & eolian deposits",
+    # 온 세계 지구물리 격자 (gravmag.py, wetherilli 391)
+    "gravmag:magnetic": "Magnetic anomaly (EMAG2v3, 4 km altitude)",
+    "gravmag:bouguer": "Bouguer gravity anomaly (EIGEN-6C4)",
     # 중국 지질도 1:400만 스캔 (china4m.py, wetherilli 387)
     "china4m:geology": "Geological Map of China 1:4M (scan)",
     "china4m:places": "Place names (Natural Earth)",
@@ -4414,6 +4420,7 @@ LAYER_EN = {
 #: 레이어 설명(`abstract`)의 영어 — 이름으로 찾는다. 한국어가 든 설명만 적는다(wetherilli 333). 원어 제목(독일어·프랑스어·일본어 …)은 그대로 두고
 #: 한국어로 적은 덧말만 옮겼다. 표에 없고 한국어가 든 설명은 영어판에서 숨긴다(`views._catalog`). `manage.py i18n_missing` 이 빠진 것을 센다
 ABSTRACT_EN = {
+    "gravmag:magnetic": "Global magnetic anomaly EMAG2v3 (NOAA, public domain) — airborne, marine and satellite data merged and upward-continued to 4 km, on a 4′ (about 7 km) grid. A base for reading the edges of cratons, basins and sutures. Click for the value in nT",
     "admap:anomaly": "Magnetic anomaly (nT) joining airborne and marine magnetic surveys of Antarctica — 1.5 km grid. Red is positive, blue negative. Click for the nT value there",
     "ags:minocc": "Mineral Occurrences — metallic minerals (DIG 2019-0026), industrial minerals (DIG 2019-0027), lithium, silica sand, producers and mineral cores; 5,454 points",
     "bas:bedmap3_bed": "Height of the bedrock and seabed with the ice removed (relative to sea level) — Bedmap3 500 m grid, 2025",

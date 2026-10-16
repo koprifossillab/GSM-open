@@ -127,6 +127,10 @@ urlpatterns = [
     re_path(r"^earth/seafloor/(?P<layer>seaage|sediment)/(?P<z>\d{1,2})/(?P<x>\d{1,4})/(?P<y>\d{1,4})\.png$",
             views.earth_seafloor_tile, name="earth-seafloor-tile"),
     path("earth/seafloor/at/", views.earth_seafloor_at, name="earth-seafloor-at"),
+    # 자력 이상·부게 중력 이상 (gravmag.py, wetherilli 391) — 지역 탭이 경위도 타일을 옮겨 그린다
+    re_path(r"^earth/gravmag/(?P<kind>magnetic|bouguer)/(?P<z>\d{1,2})/(?P<x>\d{1,4})/(?P<y>\d{1,4})\.png$",
+            views.earth_gravmag_tile, name="earth-gravmag-tile"),
+    path("gravmag/info/", views.gravmag_info, name="gravmag-info"),
     re_path(r"^earth/ne/tiles/(?P<style>water|ice)/(?P<z>\d{1,2})/(?P<x>\d{1,4})/(?P<y>\d{1,4})\.png$",
             views.earth_ne_tile, name="earth-ne-tile"),
     re_path(r"^earth/icemargins/tiles/(?P<ka>\d{1,4})/(?P<z>\d{1,2})/(?P<x>\d{1,4})/(?P<y>\d{1,4})\.png$",

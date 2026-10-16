@@ -69,6 +69,7 @@ ITEMS = [
     Item("earth/mantle", "EARTH_DIR", "mantle", msg("맨틀 슬랩"), "build_mantle"),
     Item("earth/seafloor_age.json", "EARTH_DIR", "seafloor_age.json", msg("해양 지각 연대"), "build_seafloor"),
     Item("earth/seafloor_sediment.json", "EARTH_DIR", "seafloor_sediment.json", msg("해저 퇴적층 두께"), "build_seafloor"),
+    Item("earth/gravmag_magnetic.json", "EARTH_DIR", "gravmag_magnetic.json", msg("자력 이상 (EMAG2v3)"), "build_gravmag"),
     Item("earth/heatflow.sqlite", "EARTH_DIR", "heatflow.sqlite", msg("지열류"), "build_heatflow"),
     Item("earth/stress.sqlite", "EARTH_DIR", "stress.sqlite", msg("지각 응력"), "build_stress"),
     Item("earth/minerals.sqlite", "EARTH_DIR", "minerals.sqlite", msg("광상"), "build_minerals"),

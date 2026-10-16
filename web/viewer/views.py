@@ -34,7 +34,7 @@ from django.views.decorators.http import require_GET, require_POST
 
 from gsmweb.version import VERSION
 
-from . import (china4m, coords, crs, datastatus, geo3al, geomap, geus, grportal, gsj, gsmma, i18n, ibcso, janmayen, kigam, kopri, npolar, ntgeo,
+from . import (china4m, coords, gravmag, crs, datastatus, geo3al, geomap, geus, grportal, gsj, gsmma, i18n, ibcso, janmayen, kigam, kopri, npolar, ntgeo,
                patchnotes, elevation, moonmap, peninsula, phyloserver, pointsets, tilecache, tiles, trek, vworld, warp,
                fetchlog, marscraters, marsmap, mercurymap, sources, zhurong)
 from . import admap, arcpoints, kmag, caribmap, geonames, crust, glaciers, impacts, faults, minerals, stress, tectonics, seafloor, glim, heatflow, fossils, gvp, icemargins, kigam50k, macrostrat, mantle, metatile, naturalearth, neotoma, paleo, paleoeco, paleocoast, pbdb, quakes, recentquakes, verifylog, spamap, ocean, paleodem, usgs, volcanoes, wind
@@ -2283,6 +2283,46 @@ def earth_seafloor_tile(request, layer, z, x, y):
 
 
 @require_GET
+def earth_gravmag_tile(request, kind, z, x, y):
+    """`earth/gravmag/<magnetic|bouguer>/<z>/<x>/<y>.png` — 자력 이상·부게 중력 이상, 경위도 격자 (`gravmag.render_tile`, wetherilli 391)"""
+    z, x, y = int(z), int(x), int(y)
+    if kind not in gravmag.KINDS or not gravmag.valid_tile(z, x, y):
+        return JsonResponse({"error": i18n.t(msg("그런 타일은 없다"), i18n.lang_of(request))}, status=404)
+    if not gravmag.available(kind):
+        return _tile(tiles.notice_tile(256, 256, tiles.NO_MAP), store=False)
+    version = gravmag_version(kind)
+    key = tilecache.key_text("gravmag", f"{kind}/{version}/{z}/{x}/{y}")
+    hit = tilecache.get(key)
+    if hit is not None:
+        return _immutable(request, _tile(hit, cached=True), version)
+    png = gravmag.render_tile(kind, z, x, y)
+    tilecache.put(key, png)
+    response = _tile(png)
+    response["X-GSM-Cache"] = "miss"
+    return _immutable(request, response, version)
+
+
+@require_GET
+@browser_cached
+def gravmag_info(request):
+    """`?layer=gravmag:magnetic&lat=&lon=` — 누른 자리의 값 (wetherilli 391). 팝업이 받는 꼴은 `/featureinfo/` 와 같다"""
+    lang = i18n.lang_of(request)
+    kind = gravmag.LAYERS.get(request.GET.get("layer", ""))
+    lat, lon = _float(request.GET.get("lat")), _float(request.GET.get("lon"))
+    if kind is None or lat is None or lon is None:
+        return JsonResponse({"error": i18n.t(msg("layer·lat·lon 이 없다"), lang), "features": []}, status=400)
+    value = gravmag.at(kind, lon, lat)
+    if value is None:
+        return JsonResponse({"features": []})
+    unit = gravmag.KINDS[kind][0]
+    key = "자력 이상 (nT)" if kind == "magnetic" else "부게 이상 (mGal)"
+    props = {key: f"{value:+,}".replace("-", "−"), "출처": gravmag.KINDS[kind][3]}
+    if lang == "en":
+        props = i18n.props_en(props)
+    return JsonResponse({"features": [{"id": f"{kind}:{lon:.2f},{lat:.2f}", "props": props, "unit": unit}]})
+
+
+@require_GET
 def earth_seafloor_at(request):
     """`?layer=seaage|sediment&lon=&lat=` — 누른 자리의 해양 지각 연대(Ma)·퇴적층 두께(m)"""
     lang = i18n.lang_of(request)
@@ -3571,6 +3611,13 @@ def _layer_extra_base(layer, lang: str = "ko") -> dict:
         # 한반도 지질도(026) — phyloserver 의 카카오 격자 타일. 5181 격자를 화면이 옮겨 그린다
         return {"attribution": phyloserver.ATTRIBUTION, "queryable": False, "noLegend": True,
                 "tiles": f"phyloserver/{layer.name.split(':', 1)[1]}/{{z}}/{{x}}_{{y}}.png"}
+    if layer.upstream == "gravmag" and layer.name in gravmag.LAYERS:
+        # 자력 이상·부게 중력 이상(wetherilli 391) — 온 세계 격자를 칠한 경위도 타일(줌 6 까지). 지역 탭이 제 투영으로 옮겨 그린다.
+        # 범례는 칸 표를 그대로 보낸다(IBCSO·ADMAP 과 같다). 누르면 그 자리의 값
+        kind = gravmag.LAYERS[layer.name]
+        return {"attribution": gravmag.KINDS[kind][3], "projection": "EPSG:4326", "maxZoom": gravmag.MAX_ZOOM,
+                "tiles": _versioned_url(f"earth/gravmag/{kind}/{{z}}/{{x}}/{{y}}.png", gravmag_version(kind)),
+                "classLegend": {"groups": [{"name": i18n.t(gravmag.KINDS[kind][2], lang), "rows": gravmag.legend(kind)}]}}
     if layer.upstream == "admap" and layer.name == admap.NAME:
         # 남극 자력 이상 ADMAP-2(wetherilli 262) — 우리가 칠해 잘라 둔 3031 타일(GeoMAP 격자, 줌 4 까지). 범례는 갈래 표
         return {"attribution": admap.ATTRIBUTION, "projection": "EPSG:3031", "maxZoom": admap.MAX_ZOOM,
@@ -5159,6 +5206,12 @@ def glim_version() -> str:
 
 def heatflow_version() -> str:
     return _stamp(heatflow.RENDERER, heatflow.built(), _file_stamp(heatflow.path()))
+
+
+def gravmag_version(kind: str) -> str:
+    if not gravmag.available(kind):
+        return ""
+    return _stamp(gravmag.RENDERER, *(_content_stamp(p) for p in gravmag.files(kind)[::2]))
 
 
 def seafloor_version(kind: str) -> str:

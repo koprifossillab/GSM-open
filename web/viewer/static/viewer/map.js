@@ -923,6 +923,25 @@
     return BASE + "featureinfo/?" + q.toString();
   }
 
+  /** 온 세계 경위도 격자(온 지구 화면의 타일과 같다, `paleo.render_tile`) — 줌 0 이 180° 네모 두 장, 256 화소. 지역 탭이 제 투영으로
+   *  옮겨 그린다. 자력 이상·부게 중력 이상(wetherilli 391) */
+  var LONLAT_GRID = (function () {
+    var resolutions = [];
+    for (var z = 0; z <= 6; z++) resolutions.push(180 / 256 / Math.pow(2, z));
+    return new ol.tilegrid.TileGrid({ extent: [-180, -90, 180, 90], origin: [-180, 90], resolutions: resolutions, tileSize: 256 });
+  })();
+  function lonlatSource(name) {
+    var row = byName[name] || {};
+    return new ol.source.XYZ({ url: BASE + row.tiles, projection: "EPSG:4326", tileGrid: LONLAT_GRID, transition: 0,
+                               attributions: row.attribution || undefined });
+  }
+  function gravmagInfoUrl(source, coordinate) {
+    var ll = toLL(coordinate);
+    return BASE + "gravmag/info/?" + new URLSearchParams({
+      layer: source.get("gsmName"), lat: ll[1].toFixed(6), lon: ll[0].toFixed(6),
+    }).toString();
+  }
+
   /** 남극 자력 이상(ADMAP-2)의 속성 주소 — 누른 자리의 위경도로 묻는다(`admap/info/`, wetherilli 262). */
   function admapInfoUrl(source, coordinate) {
     var ll = toLL(coordinate);
@@ -1172,6 +1191,8 @@
     ibcso: { source: geomapSource, info: ibcsoInfoUrl },
     // 남극 자력 이상 ADMAP-2(wetherilli 262) — 우리가 잘라 둔 3031 타일, 누른 자리는 위경도로
     admap: { source: geomapSource, info: admapInfoUrl },
+    // 자력 이상·부게 중력 이상(wetherilli 391) — 우리가 칠한 경위도 타일을 옮겨 그린다
+    gravmag: { source: lonlatSource, info: gravmagInfoUrl },
   };
 
   function layerKind(name) {
@@ -4719,7 +4740,7 @@
         sw.style.background = r.color;
         var label = document.createElement("span");
         label.textContent = r.label;
-        label.title = "TID " + r.code;
+        if (table.tid) label.title = "TID " + r.code;
         line.append(sw, label);
         box.appendChild(line);
       });

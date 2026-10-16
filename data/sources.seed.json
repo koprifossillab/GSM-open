@@ -806,6 +806,28 @@
    ]
   },
   {
+   "id": "gravmag",
+   "name": {
+    "ko": "자력 이상 EMAG2v3",
+    "en": "Magnetic anomaly EMAG2v3"
+   },
+   "org": "NOAA NCEI",
+   "kind": "build",
+   "commands": [
+    "build_gravmag"
+   ],
+   "runs_on": "person",
+   "schedule": "manual",
+   "license": "공공 도메인",
+   "flags": [],
+   "outputs": [
+    "earth/gravmag_magnetic.json"
+   ],
+   "docs": [
+    "wetherilli 391"
+   ]
+  },
+  {
    "id": "heatflow",
    "name": {
     "ko": "지열류 IHFC 2024",
