@@ -655,6 +655,7 @@ EN = {
     "한반도 지질도 음영판": "Korean Peninsula geological map (shaded)",
     "한반도 지질도 민판": "Korean Peninsula geological map (plain)",
     "중국 USGS geo3al": "China USGS geo3al",
+    "중국 지질도 1:400만 스캔": "China geological map 1:4M (scan)",
     "대만 지질운 열린자료": "Taiwan Geology Cloud open data",
     # 대만 지질운 열린자료 (wetherilli 305)
     "5만 탄층": "1:50k coal seam",
@@ -1499,6 +1500,9 @@ EN = {
     "원본 뷰어에서 본다 — GSJ": "See it in the original viewer — GSJ",
     # 중국 — USGS geo3al (geo3al.py·views.py·map.js, devlog 025)
     "중국 지질도 자료(USGS geo3al)가 서버에 없다": "The China geology data (USGS geo3al) is not on the server",
+    # 중국 지질도 1:400만 스캔 (china4m.py, wetherilli 388·389)
+    "중국 지질도 1:400만의 색 번호 격자가 서버에 없다": "The colour-index grid of the China 1:4M map is not on the server",
+    "원본 자료 — Natural Earth 10 m, 퍼블릭 도메인": "Source dataset — Natural Earth 10 m, public domain",
     "중국 지질도 자료(USGS geo3al)를 읽지 못했다": "Could not read the China geology data (USGS geo3al)",
     "원본 자료 — USGS geo3al (OFR 97-470F). 연구실 내부용, 재배포 금지":
         "Source dataset — USGS geo3al (OFR 97-470F). Internal lab use only, no redistribution",
@@ -2158,6 +2162,10 @@ EN = {
 # 모았다. 영문 열(`symnum`·`GRAY_INDEX` …)은 그대로 둔다.
 
 PROP_EN = {
+    # 중국 지질도 1:400만 스캔 — 범례 칸 (china4m.py, wetherilli 389)
+    "대표 층군": "Representative units (Chinese)",
+    "같은 색의 칸": "Legend boxes of the same colour",
+    "범례 색의 몫": "Share of the legend colour",
     # 다누리 KMAG (wetherilli 378)
     "시각": "Time",
     "자기장 세기 |B|": "Field strength |B|",
@@ -3614,6 +3622,7 @@ GROUP_EN = {
     "심리스 지질도 (GSJ)": "Seamless geological map (GSJ)",
     # 중국 (geo3al.py, devlog 025)
     "중국·동아시아 지질 (USGS)": "China & East Asia geology (USGS)",
+    "중국 지질도 1:400만 (2002)": "Geological Map of China 1:4M (2002)",
     # 우리가 모은 자료로 그린 레이어 — 첫째가 phyloserver 의 암맥 (devlog 026)
     "커스텀 지질도": "Custom geological maps",
     "극지연구소 시료": "KOPRI samples",
@@ -4330,6 +4339,9 @@ LAYER_EN = {
     # 중국 — USGS geo3al (geo3al.py)
     "geo3al:age": "Geologic age (1:5M)",
     "geo3al:rock": "Igneous rocks & eolian deposits",
+    # 중국 지질도 1:400만 스캔 (china4m.py, wetherilli 387)
+    "china4m:geology": "Geological Map of China 1:4M (scan)",
+    "china4m:places": "Place names (Natural Earth)",
     # 연구실의 암맥 기록 — phyloserver (devlog 026)
     "phyloserver:dikes": "Dike records",
     "phyloserver:peninsula": "Korean Peninsula geology (scan)",
@@ -4647,6 +4659,8 @@ ABSTRACT_EN = {
     "nrcan:ree": "Prospectivity of carbonatites for REE and Nb (deep-learning model)",
     "nsgs:9": "Faults — from zoom 8",
     "ogs:11": "OMEIS Mineral Inventory — 18,697 sites",
+    "china4m:places": "Cities, ranges, basins, deserts, rivers and lakes inside China from Natural Earth 10 m (public domain), with the English and Chinese names side by side — the scan's own labels are part of the picture and cannot be clicked. Larger names first when zoomed out",
+    "china4m:geology": "A scan of the Geological Map of China, 2nd ed. (Institute of Geology, CAGS, 2002) georeferenced from its graticule — with stratigraphic codes, faults and place names. The graticule fits within one pixel (430 m); the land drawn on it is off by 2–10 km from the original map's generalization. Internal lab use only",
     "peninsula:plain": "The Korean Peninsula geological map (shaded) without hillshade — 85 m per pixel; the flat colours overlay well on other basemaps. Jeju is not included",
     "peninsula:shaded": "The same map as the Korean Peninsula geological map (scan) blended with hillshade — 59 m per pixel; up close the scan is more detailed",
     "pgc:antarctica_contours": "25 m contours from REMA 2 m elevation. Drawn from zoom 10. Click for the elevation",

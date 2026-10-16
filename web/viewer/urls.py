@@ -165,6 +165,10 @@ urlpatterns = [
     # 한반도 지질도 음영판 — 우리가 잘라 둔 EPSG:5179 타일 (peninsula.py, devlog 027)
     re_path(r"^peninsula/(?P<layer>[\w-]+)/(?P<z>\d{1,2})/(?P<x>\d{1,4})/(?P<y>\d{1,4})\.webp$",
             views.peninsula_tile, name="peninsula-tile"),
+    # 중국 지질도 1:400만 스캔 — 우리가 좌표를 붙여 잘라 둔 3857 타일 (china4m.py, wetherilli 387)
+    re_path(r"^china4m/(?P<z>\d{1,2})/(?P<x>\d{1,4})/(?P<y>\d{1,4})\.webp$", views.china4m_tile, name="china4m-tile"),
+    path("china4m/info/", views.china4m_info, name="china4m-info"),
+    path("china4m/legend/", views.china4m_legend, name="china4m-legend"),
     # 남극 해저·빙저 지형 IBCSO v2 — 우리가 잘라 둔 EPSG:3031 타일 (ibcso.py, devlog 047)
     re_path(r"^ibcso/(?P<layer>bed|ice)/(?P<z>\d{1,2})/(?P<x>\d{1,3})/(?P<y>\d{1,3})\.webp$",
             views.ibcso_tile, name="ibcso-tile"),

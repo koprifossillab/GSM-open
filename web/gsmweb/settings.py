@@ -375,6 +375,10 @@ USGS_DIR = env("GSM_USGS_DIR") or str(_data_dir() / "usgs")
 #: `<여기>/*.pdf` 를 `manage.py build_peninsula` 가 `<여기>/tiles/` 로 자른다. 출처를 몰라
 #: 저장소·이미지에 두지 않는다. 없으면 안내 타일이 뜰 뿐 뷰어는 돈다. 기본은 `<DB 옆>/peninsula/`.
 PENINSULA_DIR = env("GSM_PENINSULA_DIR") or str(_data_dir() / "peninsula")
+#: 중국 지질도 1:400만 (2002) 스캔 — 좌표 없는 JPEG 한 장과 마스크, 그것을 잘라 둔 타일 (wetherilli 386).
+#: `<여기>/GeoChina400*.jpg` 에 `manage.py build_china4m_mask` 가 마스크를 굽는다. **연구실 내부용**이라
+#: 저장소·이미지에 두지 않는다. 없으면 안내 타일이 뜰 뿐 뷰어는 돈다. 기본은 `<DB 옆>/china4m/`.
+CHINA4M_DIR = env("GSM_CHINA4M_DIR") or str(_data_dir() / "china4m")
 #: 남극 해저·빙저 지형 IBCSO v2 — PANGAEA 의 칠한 GeoTIFF 둘과 그것을 잘라 둔 타일 (devlog 047).
 #: `<여기>/IBCSO_v2_{bed,ice-surface}_RGB.tif` 를 `manage.py build_ibcso` 가 `<여기>/tiles-{bed,ice}/`
 #: 로 자른다. 340 MB 라 저장소·이미지에 두지 않는다. 없으면 안내 타일이 뜰 뿐 뷰어는 돈다.
@@ -677,6 +681,9 @@ GEO3AL_CATALOG_SEED = REPO_DIR / "data" / "geo3al_layers.json"
 PHYLOSERVER_CATALOG_SEED = REPO_DIR / "data" / "phyloserver_layers.json"
 #: 한반도 지질도 음영판 — 우리 디스크의 PDF (devlog 027)
 PENINSULA_CATALOG_SEED = REPO_DIR / "data" / "peninsula_layers.json"
+CHINA4M_CATALOG_SEED = REPO_DIR / "data" / "china4m_layers.json"
+#: 중국 지질도 1:400만의 범례 173 칸 — 누른 자리의 색을 대어 시기·암상을 띄운다 (wetherilli 388)
+CHINA4M_LEGEND = REPO_DIR / "data" / "china4m_legend.json"
 #: 남극 IBCSO 자료 출처(TID) — 우리가 잘라 둔 3031 타일 (071)
 IBCSO_CATALOG_SEED = REPO_DIR / "data" / "ibcso_layers.json"
 ADMAP_CATALOG_SEED = REPO_DIR / "data" / "admap_layers.json"

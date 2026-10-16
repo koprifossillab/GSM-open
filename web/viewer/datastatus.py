@@ -97,6 +97,7 @@ ITEMS = [
     Item("peninsula/tiles", "PENINSULA_DIR", "tiles", msg("한반도 지질도 음영판"), "build_peninsula", lab=True),
     Item("peninsula/tiles-plain", "PENINSULA_DIR", "tiles-plain", msg("한반도 지질도 민판"), "build_peninsula", lab=True),
     Item("usgs/geo3al", "USGS_DIR", "geo3al", msg("중국 USGS geo3al"), MANUAL, lab=True),
+    Item("china4m/tiles", "CHINA4M_DIR", "tiles", msg("중국 지질도 1:400만 스캔"), "build_china4m", lab=True),
 ]
 # 대만 지질운 열린자료(wetherilli 305) — 그 판이 들어온 뒤에만
 if hasattr(settings, "TAIWAN_OPEN_DIR"):

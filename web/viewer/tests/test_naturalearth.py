@@ -20,6 +20,10 @@ class Search(SimpleTestCase):
         self.assertEqual(naturalearth.search("nile")[0]["title"], "나일강 (Nile)")
         self.assertEqual(naturalearth.search("nile", "en")[0]["title"], "Nile")
 
+    def test_한자로도_찾는다(self):
+        """중국 지질도 1:400만에 적힌 이름을 그대로 친다 (wetherilli 389)."""
+        self.assertEqual(naturalearth.search("西安")[0]["title"], "시안시 (西安)")
+
     def test_이름표는_큰_것부터(self):
         rows = naturalearth.labels()
         self.assertEqual(rows[0][3], 0)

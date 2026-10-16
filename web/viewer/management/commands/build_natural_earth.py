@@ -124,24 +124,26 @@ def _rank(row) -> int:
 
 
 def places(folder: Path) -> list:
-    """`[이름, 한국어 이름, 갈래, 경도, 위도, 순위]` — 찾기와 이름표가 쓴다. 순위는 작을수록 크다(scalerank)."""
+    """`[이름, 한국어 이름, 갈래, 경도, 위도, 순위, 중국어 이름]` — 찾기와 이름표가 쓴다. 순위는 작을수록 크다(scalerank).
+    중국어(간체 `name_zh`)는 중국 지질도 1:400만의 지명 이름표·한자 찾기가 쓴다 (wetherilli 389)"""
     out = []
     for name in ("ne_10m_geography_regions_polys.zip", "ne_10m_geography_marine_polys.zip"):
         rows, shp = read(folder, name)
         for row, parts in zip(rows, shp):
             if row.get("name") and parts:
                 lon, lat = anchor(parts)
-                out.append([row["name"], row.get("name_ko", ""), row["featurecla"], round(lon, 3), round(lat, 3), _rank(row)])
+                out.append([row["name"], row.get("name_ko", ""), row["featurecla"], round(lon, 3), round(lat, 3), _rank(row),
+                            row.get("name_zh", "")])
     rows, shp = read(folder, "ne_10m_populated_places.zip")
     for row in rows:
         if row.get("name") and row.get("longitude"):
             out.append([row["name"], row.get("name_ko", ""), "city", round(float(row["longitude"]), 3),
-                        round(float(row["latitude"]), 3), _rank(row)])
+                        round(float(row["latitude"]), 3), _rank(row), row.get("name_zh", "")])
     rows, shp = read(folder, "ne_10m_lakes.zip")
     for row, parts in zip(rows, shp):
         if row.get("name") and parts:
             lon, lat = anchor(parts)
-            out.append([row["name"], row.get("name_ko", ""), "lake", round(lon, 3), round(lat, 3), _rank(row)])
+            out.append([row["name"], row.get("name_ko", ""), "lake", round(lon, 3), round(lat, 3), _rank(row), row.get("name_zh", "")])
     rows, shp = read(folder, "ne_10m_rivers_lake_centerlines.zip")
     seen = set()
     for row, parts in zip(rows, shp):
@@ -150,7 +152,7 @@ def places(folder: Path) -> list:
         seen.add(row["name"])                      # 한 강이 여러 토막이다 — 첫 토막의 가운데 하나
         longest = max(parts, key=len)
         lon, lat = longest[len(longest) // 2]
-        out.append([row["name"], row.get("name_ko", ""), "river", round(lon, 3), round(lat, 3), _rank(row)])
+        out.append([row["name"], row.get("name_ko", ""), "river", round(lon, 3), round(lat, 3), _rank(row), row.get("name_zh", "")])
     return out
 
 
@@ -192,7 +194,7 @@ class Command(BaseCommand):
         out = Path(opts["out"] or Path(settings.EARTH_PLACES_FILE).parent)
         meta = {"source": CREDIT, "license": "public domain", "tolerance": TOLERANCE}
         written = {
-            "earth_places.json": {"meta": meta, "fields": ["name", "name_ko", "kind", "lon", "lat", "rank"],
+            "earth_places.json": {"meta": meta, "fields": ["name", "name_ko", "kind", "lon", "lat", "rank", "name_zh"],
                                   "places": places(folder)},
             "earth_water.json": {"meta": meta, **water(folder)},
             "earth_ice.json": {"meta": meta, **ice(folder)},

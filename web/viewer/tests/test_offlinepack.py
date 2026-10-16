@@ -115,7 +115,9 @@ class Build(TestCase):
         self.assertEqual(head["layers"]["vworld:Base"]["zooms"], [10, 12])
         self.assertEqual(head["dropped"], {})
         key = next(k for k in head["tiles"] if k.startswith("L_50K_Geology_Map/11/"))
-        self.assertEqual(offlinepack.read_tile(packs[0], key), png())
+        # 작은 박스라 타일이 다 가장자리다 — 박스 밖은 비우고 안은 받은 그림 그대로 (wetherilli 385)
+        image = Image.open(io.BytesIO(offlinepack.read_tile(packs[0], key))).convert("RGBA")
+        self.assertIn((200, 100, 50, 255), [c for _, c in image.getcolors(512 * 512)])
         # 자료 밖의 VWorld 칸은 넣지 않는다
         for k in head["tiles"]:
             if k.startswith("vworld:Base/"):
@@ -164,6 +166,42 @@ class Build(TestCase):
         path = next(Path(settings.OFFLINE_DIR).glob("tiny-*.gsmpack"))
         _, base = offlinepack.read_header(path)
         self.assertLessEqual(path.stat().st_size - base, 0.05 * 1024 * 1024)   # 지층 면까지 쳐서 예산 안이다
+
+
+class Clip(SimpleTestCase):
+    """타일·지층 면을 박스로 잘라 낸다 — 도폭 하나를 구우면 묶음도 그 도폭만이다 (wetherilli 385)"""
+
+    def test_타일(self):
+        from viewer import tilegrid
+        bbox = (129.0, 37.0, 129.25, 37.17)
+        tile = png()
+        # 도폭 안쪽의 깊은 타일은 그대로
+        _, x, y = next(tilegrid.tiles_for((129.1, 37.1, 129.1, 37.1), 14))
+        self.assertEqual(build_offline_pack.clip_tile(tile, 14, x, y, bbox), tile)
+        # 박스 밖의 타일은 버린다
+        _, x, y = next(tilegrid.tiles_for((127.0, 36.0, 127.0, 36.0), 14))
+        self.assertEqual(build_offline_pack.clip_tile(tile, 14, x, y, bbox), b"")
+        # 얕은 줌의 넓은 타일은 박스 밖이 투명하다
+        _, x, y = next(tilegrid.tiles_for((129.1, 37.1, 129.1, 37.1), 7))
+        image = Image.open(io.BytesIO(build_offline_pack.clip_tile(tile, 7, x, y, bbox))).convert("RGBA")
+        alpha = image.getchannel("A")
+        self.assertEqual(alpha.getpixel((0, 0)), 0)
+        self.assertLess(sum(1 for v in alpha.getdata() if v) / (512 * 512), 0.01)     # 2.8° 타일에 0.25° 도폭
+
+    def test_지층_면(self):
+        box = (129.0, 37.0, 129.1, 37.1)
+        inside = {"type": "Polygon", "coordinates": [[[129.02, 37.02], [129.05, 37.02], [129.05, 37.05], [129.02, 37.02]]]}
+        self.assertEqual(build_offline_pack.clip_polygons(inside, box)["coordinates"][0][0], [129.02, 37.02])
+        across = {"type": "MultiPolygon", "coordinates": [
+            [[[128.9, 37.05], [129.05, 37.05], [129.05, 37.2], [128.9, 37.2], [128.9, 37.05]]],
+            [[[130.0, 38.0], [130.1, 38.0], [130.1, 38.1], [130.0, 38.0]]]]}             # 둘째 면은 다 밖
+        got = build_offline_pack.clip_polygons(across, box)
+        self.assertEqual(got["type"], "Polygon")
+        xs = [p[0] for p in got["coordinates"][0]]
+        ys = [p[1] for p in got["coordinates"][0]]
+        self.assertEqual((min(xs), max(xs), min(ys), max(ys)), (129.0, 129.05, 37.05, 37.1))
+        outside = {"type": "Polygon", "coordinates": [[[130.0, 38.0], [130.1, 38.0], [130.1, 38.1], [130.0, 38.0]]]}
+        self.assertIsNone(build_offline_pack.clip_polygons(outside, box))
 
 
 class FitBudget(SimpleTestCase):

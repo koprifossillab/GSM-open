@@ -322,7 +322,7 @@ WMS·z/x/y·우리가 굽는 것) 계획을 따로 둔다 (029).
   프랑스·독일·스페인·아일랜드가 영국에 둔 EGDI 1:100만을(143·147). 레이어명이 지역 하나에만 걸리기 때문이다.
   상류 이름 대신 `:` 로 끝나는 레이어 이름 앞머리도 된다 — 브라질·페루·에콰도르·아르헨티나·우루과이가 콜롬비아 지역의 SGC 가운데 남미 1:500만(`sgc:sa:`)만 빌린다(191·195·196·198)
 - 레이어군은 지역을 갖고(`LayerGroup.region`), 레이어는 상류를 갖는다
-  (`Layer.upstream` — kigam·kigam50k·geus·geusarc·vworld·grportal·npolar·gsj·gsitile·ccop·gsjows·gsmma·emodnet·ngu·gtk·sgu·natt·bgs·bgsgi·brgm·egdi·bgr·igme·gsi·gsni·sgc·sgb·ingemmet·segemar·dinamige·iige·mrdata·sgm·cgmw·aga·ispra·lneg·swisstopo·cgs·gsn·bumigeb·irgm·ga·gsq·gsv·gssa·ntgs·gns·mris·gsiindia·sgs·esdm·jmg·mgb·dmr·nrcan·ogs·sigeom·ygs·skgs·nsgs·ags·bcgs·calgs·nbmg·wadnr·dogami·dggs·geosphere·pig·tno·dov·spw·ineter·stri·usgscarib·vmme·georep·bas·phyloserver·geomap·janmayen·geo3al·kopri·earth). 서버는 레이어의
+  (`Layer.upstream` — kigam·kigam50k·geus·geusarc·vworld·grportal·npolar·gsj·gsitile·ccop·gsjows·gsmma·emodnet·ngu·gtk·sgu·natt·bgs·bgsgi·brgm·egdi·bgr·igme·gsi·gsni·sgc·sgb·ingemmet·segemar·dinamige·iige·mrdata·sgm·cgmw·aga·ispra·lneg·swisstopo·cgs·gsn·bumigeb·irgm·ga·gsq·gsv·gssa·ntgs·gns·mris·gsiindia·sgs·esdm·jmg·mgb·dmr·nrcan·ogs·sigeom·ygs·skgs·nsgs·ags·bcgs·calgs·nbmg·wadnr·dogami·dggs·geosphere·pig·tno·dov·spw·ineter·stri·usgscarib·vmme·georep·bas·phyloserver·china4m·geomap·janmayen·geo3al·kopri·earth). 서버는 레이어의
   상류를 보고 문을 고른다
 - 레이어는 그리는 법도 갖는다 — 타일(WMS)이 거의 전부이고, `kind: vector` 는 단층
   선을 1° 칸으로 받아 우리가 그리고(020), `kind: points` 는 점·모양을 한 덩이로
@@ -373,7 +373,7 @@ WMS·z/x/y·우리가 굽는 것) 계획을 따로 둔다 (029).
 - **중국 geo3al 은 연구실 내부용이다** — USGS 메타데이터의 이용 조건이 "내부 용도만,
   가공물 포함 제3자 재배포 금지" 다(UNESCO·CGMW·ESRI 지적재산). 화면에 보이는 것 자체가
   재배포라 **밖에 열 때는 이 레이어를 먼저 내린다.** 파일은 `.gitignore`·`.dockerignore` 가 막는다 (025).
-  내리는 스위치는 `GSM_PUBLIC=1`(또는 `<DB 옆>/public`)이다 — geo3al·phyloserver·peninsula 를
+  내리는 스위치는 `GSM_PUBLIC=1`(또는 `<DB 옆>/public`)이다 — geo3al·phyloserver·peninsula·china4m 을
   목록에서 빼고 그 길도 닫는다(`views.LAB_ONLY`). 연구실 내부용 상류가 새로 오면 거기 더한다 (029).
   극지연구소(`kopri`)도 KPDC 공개 정책을 사람이 읽기 전까지 거기 있다 (053)
 - GEUS 는 부르는 이를 `whoami` 로 밝혀 달라고 한다. 이메일이라 **저장소에
@@ -390,7 +390,9 @@ WMS·z/x/y·우리가 굽는 것) 계획을 따로 둔다 (029).
   `manage.py build_mars_originals <zip…>`, 달 원도의 틀을 빌렸다), 수성 지질도 — USGS 1:500만 도폭 합본(`GSM_MERCURY_DIR`, 기본
   `<DB 옆>/mercury`, wetherilli 144 — `manage.py build_mercury_geology <zip>`), 온 지구의 옛 해안선(`GSM_EARTH_DIR`, 기본 `<DB 옆>/earth`,
   wetherilli 097), 카리브 대앤틸리스 지질도 USGS SIM 3534(`GSM_CARIBBEAN_DIR`, 기본 `<DB 옆>/caribbean`, wetherilli 254 —
-  `manage.py build_caribbean <zip>`, 옛 판 OFR 2019-1036 의 셰이프 zip — 웹서비스가 없다). 운영은
+  `manage.py build_caribbean <zip>`, 옛 판 OFR 2019-1036 의 셰이프 zip — 웹서비스가 없다), 중국 지질도 1:400만 스캔(`GSM_CHINA4M_DIR`,
+  기본 `<DB 옆>/china4m`, wetherilli P14·386–389 — 좌표 없는 JPEG 에 경위선으로 람베르트(25°·47°)를 맞췄다. numpy 가 있는 호스트에서
+  `manage.py build_china4m_mask` 로 중국 땅 마스크를 굽고 `build_china4m` 이 3857 타일과 범례 색 번호 격자를 굽는다. 연구실 내부용). 운영은
   `/srv/GSM/db/` 아래다 — 배포한 자리의 compose 를 못 고쳐도 `db/` 는 붙어 있다. **저장소에 두지 않는다.** 원본은 NAS 의 `N:\GSM\sources\` 에 있다.
   파일이 없어도 뷰어는 돌고 그 자리에 안내가 뜬다. **새로 굽는 파일을 더하면 `datastatus.ITEMS` 에 한 줄 더한다** —
   `manage.py data_status` 가 운영에 무엇이 있고 언제 구웠는지 한 표로 내고, healthz 가 없는 것의 수를 낸다(wetherilli 312). GeoMAP 의 그리는 법을 고치면
@@ -561,6 +563,7 @@ web/viewer/       뷰어 앱 하나뿐이다. 앱을 더 가르지 않는다
   kpds.py         항우연 KPDS 로 나가는 문 (다누리 KPLO 과학자료 — 문서에 없는 검색 화면의 목록·라벨·내려받기). 모아 둔다(`fetch_kmag`)
   trek.py         NASA Trek 으로 나가는 문 (달·화성·수성의 지질도·표고·지명·착륙지). 달·화성·수성 화면(Cesium)만 쓴다
   macrostrat.py   Macrostrat 으로 나가는 문 (온 지구의 지질도 타일·누른 자리의 단위·범례). 온 지구 화면만 쓴다
+  china4m.py      중국 지질도 1:400만 스캔(2002) — 경위선으로 맞춘 좌표, 3857 타일, 범례 173 칸(data/china4m_legend.json)의 색 번호 격자로 누른 자리·범례, 지명 이름표. 연구실 내부용. 문이 아니다
   phyloserver.py  연구실 phyloserver 로 나가는 문 (암맥 기록 한 덩이, 한반도 지질도 카카오 격자 타일). 읽기만 한다
   zhurong.py      주룽 로버 경로 파일(data/mars_zhurong.json) -> 착륙지·경로. Trek 에 없는 것을 덧붙인다. 문이 아니다
   elevation.py    표고로 나가는 문 — AWS 표고 타일·국토지리원 표고 타일·PGC(ArcticDEM·REMA). 시료 고도, 3D 의 일본 지형
@@ -639,7 +642,7 @@ devlog/           왜 그렇게 했는지 — 색인은 devlog/README.md
 이 일흔일곱 말고는 어디서도 `requests` 를 쓰지 않는다. `gfs.py`·`era5.py`·`gmgsi.py`·`ecco.py` 는 **호스트에서만** 부른다 — 바람·해류를 받아
 굽는 일(numpy·ecCodes·numcodecs, `requirements-wind.txt`)이 `/srv/GSM/scripts/run.sh` 의 전용 venv 에서 돌고(koprifossillab 005), 컨테이너는 구운 PNG 를 내주기만 한다(koprifossillab P02). **호스트는 `GSM.db` 를 열지 않는다**(사람, 2026-10-07, jikhanjung P03) — `run.sh` 가 거는 `GSM_RUN_PLACE=host` 면 설정이 DB 엔진을 dummy 로 바꿔 실수로 열면 곧장 깨진다. 호스트의 명령은 파일만 남기고(`hourly_status.json`·`fetch_log_host/`·`upstream_host/` — 날마다 한 파일, 다 들인 그제 것부터 컨테이너가 지운다, jikhanjung 023) 컨테이너가 들인다(`hourly.sh` 끝의 `docker compose exec … sources_log --sync-only`). DB 가 필요한 일은 호스트에서 돌리지 않고 컨테이너 안에서 부른다(`docker compose exec web python manage.py …`) — 주간 백업의 DB 사본도 그렇다(`manage.py backup_db` 가 표준 출력으로 낸다, jikhanjung 017). `linked.py` 만은 주소를 우리가 정하지 않는다 — 개인 레이어를 남의 API 에
 이을 때 브라우저가 곧장 못 받으면 거친다(wetherilli P09·122). 사설망은 `GSM_LINKED_ALLOW` 에 적은 호스트만, 밖에 열면 닫는다. 뷰가 직접 부르지 않는다. 상류가 바뀌거나 주소가
-닫힐 때 고칠 자리를 하나로 묶어두려는 것이다. `geomap.py`·`janmayen.py`·`geo3al.py`·`peninsula.py`·`moonmap.py`·`caribmap.py`·`ibcso.py`·`admap.py`·`ntgeo.py`·`sarad.py`·`kigam50k.py`·`kigamdata.py`·`twopen.py`·`zhurong.py`·`marscraters.py`·`marsmap.py`·`mercurymap.py`·`spamap.py`·`paleo.py`·`paleocoast.py`·`fossils.py`·`volcanoes.py`·`quakes.py`·`paleoeco.py`·`crust.py`·`glaciers.py`·`impacts.py`·`faults.py`·`minerals.py`·`stress.py`·`tectonics.py`·`seafloor.py`·`glim.py`·`heatflow.py`·`naturalearth.py`·`geonames.py`·`icemargins.py`·`mantle.py`·`earthpoints.py`·`pointvalues.py`·`sources.py`·`fetchlog.py`·`rawstore.py` 는
+닫힐 때 고칠 자리를 하나로 묶어두려는 것이다. `geomap.py`·`janmayen.py`·`geo3al.py`·`peninsula.py`·`china4m.py`·`moonmap.py`·`caribmap.py`·`ibcso.py`·`admap.py`·`ntgeo.py`·`sarad.py`·`kigam50k.py`·`kigamdata.py`·`twopen.py`·`zhurong.py`·`marscraters.py`·`marsmap.py`·`mercurymap.py`·`spamap.py`·`paleo.py`·`paleocoast.py`·`fossils.py`·`volcanoes.py`·`quakes.py`·`paleoeco.py`·`crust.py`·`glaciers.py`·`impacts.py`·`faults.py`·`minerals.py`·`stress.py`·`tectonics.py`·`seafloor.py`·`glim.py`·`heatflow.py`·`naturalearth.py`·`geonames.py`·`icemargins.py`·`mantle.py`·`earthpoints.py`·`pointvalues.py`·`sources.py`·`fetchlog.py`·`rawstore.py` 는
 상류가 아니라 우리 디스크의 파일을 읽으므로 문이 아니다. `warp.py` 도 문이 아니다 — 원본은 부르는 쪽이 넘긴다. 문은 서로를 타지 않는다 —
 주소 검색은 KIGAM 을 거치지 않고, KIGAM 인증키도 쓰지 않는다.
 

@@ -32,6 +32,8 @@ NO_DATA = "GSM: no GeoMAP data file"
 NO_PENINSULA = "GSM: no peninsula tiles"
 #: 남극 IBCSO 판을 아직 잘라 두지 않았다 — ibcso.py (047)
 NO_IBCSO = "GSM: no IBCSO tiles"
+#: 중국 지질도 1:400만 스캔을 아직 잘라 두지 않았다 — china4m.py (wetherilli 387)
+NO_CHINA4M = "GSM: no China 1:4M tiles"
 #: 달 지질도 원도 6 장을 아직 굽지 않았다 — moonmap.py (039)
 NO_MOON = "GSM: no lunar original maps file"
 #: 화성 크레이터 목록을 아직 굽지 않았다 — marscraters.py (067)

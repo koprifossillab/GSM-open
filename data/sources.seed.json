@@ -644,6 +644,32 @@
    ]
   },
   {
+   "id": "china4m",
+   "name": {
+    "ko": "중국 지질도 1:400만 스캔",
+    "en": "Geological Map of China 1:4M (scan)"
+   },
+   "org": "中国地质科学院地质研究所 · 地质出版社 2002",
+   "kind": "build",
+   "commands": [
+    "build_china4m_mask",
+    "build_china4m"
+   ],
+   "runs_on": "person",
+   "schedule": "manual",
+   "license": "출판 지도 — 조건이 적혀 있지 않다. 밖에 열지 않는다",
+   "flags": [
+    "lab_only"
+   ],
+   "outputs": [
+    "china4m/tiles"
+   ],
+   "docs": [
+    "wetherilli 386",
+    "wetherilli 387"
+   ]
+  },
+  {
    "id": "geo3al",
    "name": {
     "ko": "중국 USGS geo3al",

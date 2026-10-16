@@ -3,7 +3,7 @@
 저장소의 `data/earth_places.json`·`earth_water.json`·`earth_ice.json`(`manage.py build_natural_earth <폴더>`, 퍼블릭 도메인)을
 읽는다. 문이 아니다.
 
-- **지명 찾기** — 온 지구 화면의 첫 찾기다. 도시·산맥·바다·호수·강 1 만여 이름을 영어·한국어 이름으로 찾는다
+- **지명 찾기** — 온 지구 화면의 첫 찾기다. 도시·산맥·바다·호수·강 1 만여 이름을 영어·한국어·중국어(간체) 이름으로 찾는다
   (`arcpoints.fold`·`match_index` 를 빌린다 — 지역 탭의 지명 찾기와 같은 차례, 096)
 - **이름표** — 산맥·고원·사막 따위와 바다의 이름. 화면이 순위(scalerank)로 멀리서는 큰 것만 띄운다
 - **강·호수**와 **빙하·빙붕**은 서버가 경위도 타일로 그린다(판 조각과 같은 격자). 강은 줌마다 순위로 거른다
@@ -55,12 +55,14 @@ def _index(lang: str) -> list:
     """찾기 색인 — 보이는 이름은 그 말의 것(한국어판은 한국어 이름이 먼저), 다른 말의 이름으로도 찾는다.
     같은 이름이면 큰 것(순위가 작은 것)이 먼저다."""
     feats = []
-    for name, ko, kind, lon, lat, rank in places():
-        names = {"a": ko or name, "b": name} if lang == "ko" else {"a": name, "b": ko}
+    for name, ko, kind, lon, lat, rank, *rest in places():
+        # 한자로도 찾는다 — 중국 지질도 1:400만에 적힌 이름을 그대로 치면 잡힌다 (wetherilli 389)
+        zh = rest[0] if rest else ""
+        names = {"a": ko or name, "b": name, "c": zh} if lang == "ko" else {"a": name, "b": ko, "c": zh}
         side = KIND_KO.get(kind, kind) if lang == "ko" else kind.replace("Range/mtn", "Range").lower()
         feats.append({"properties": {**names, "side": side, "rank": "0" if rank <= 3 else "1"},
                       "geometry": {"coordinates": [lon, lat]}})
-    return arcpoints.name_index(feats, names=("a", "b"), sub=("side",), prefer=("rank", {"0"}))
+    return arcpoints.name_index(feats, names=("a", "b", "c"), sub=("side",), prefer=("rank", {"0"}))
 
 
 def search(query: str, lang: str = "ko", limit: int = 20) -> list:
@@ -73,7 +75,7 @@ def search(query: str, lang: str = "ko", limit: int = 20) -> list:
 def labels(lang: str = "ko") -> list:
     """이름표 — `[이름, 경도, 위도, 순위]`, 큰 것부터."""
     rows = [[(ko or name) if lang == "ko" else name, lon, lat, rank]
-            for name, ko, kind, lon, lat, rank in places() if kind in LABEL_KINDS]
+            for name, ko, kind, lon, lat, rank, *_ in places() if kind in LABEL_KINDS]
     return sorted(rows, key=lambda r: r[3])
 
 

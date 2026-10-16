@@ -1062,6 +1062,14 @@
     }).toString();
   }
 
+  /** 중국 지질도 1:400만 스캔의 속성 주소 (wetherilli 389) — 범례 색으로 칠해 둔 격자라 누른 자리의 위경도로 묻는다(`china4m/info/`). */
+  function china4mInfoUrl(source, coordinate) {
+    var ll = toLL(coordinate);
+    return BASE + "china4m/info/?" + new URLSearchParams({
+      layer: source.get("gsmName"), lat: ll[1].toFixed(6), lon: ll[0].toFixed(6),
+    }).toString();
+  }
+
   /** 대앤틸리스 지질도의 속성 주소 (wetherilli 254) — 우리가 구운 타일이라 누른 자리의 위경도로 묻는다(`sim3534/info/`). */
   function sim3534InfoUrl(source, coordinate) {
     var ll = toLL(coordinate);
@@ -1135,6 +1143,8 @@
     bas: { source: esriGridSource, info: null },
     phyloserver: { source: phyloserverSource, info: null },
     peninsula: { source: peninsulaSource, info: null },
+    // 중국 지질도 1:400만 스캔(wetherilli 387) — 우리가 3857 로 잘라 둔 z/x/y. 그리는 손은 일본의 것과 같다. 누르면 범례 칸(389)
+    china4m: { source: gsjSource, info: china4mInfoUrl },
     // 남극 IBCSO 자료 출처(071) — GeoMAP 과 같은 3031 격자에 우리가 잘라 둔 것
     ibcso: { source: geomapSource, info: ibcsoInfoUrl },
     // 남극 자력 이상 ADMAP-2(wetherilli 262) — 우리가 잘라 둔 3031 타일, 누른 자리는 위경도로
@@ -4267,12 +4277,14 @@
     layer = new Kind({
       source: source,
       style: row.style === "dike" ? dikeStyle()
+        : row.style === "label" ? placeLabelStyle()
         : row.style === "sheet" ? sheetStyle()
         : row.style === "value" ? valueStyle(function () { return layer; })
         : LEGEND_STYLED[row.style] ? legendStyle(row.style, function () { return layer; })
         : portalPointStyle(row.style || "sample"),
       opacity: 1,
-      // 겹친 점을 하나씩 그린다 — 2 만 점이라 글자처럼 걸러내지(declutter) 않는다
+      // 겹친 점을 하나씩 그린다 — 2 만 점이라 글자처럼 걸러내지(declutter) 않는다. 지명 이름표만은 겹친 글자를 거른다
+      declutter: row.style === "label",
     });
     layer.set("gsmPoints", row.name);
     if (row.periods) layer.set("gsmPeriods", row.periods);
@@ -6343,6 +6355,29 @@
 
   //: 이름표를 보이기 시작하는 줌. 이보다 멀리서 보면 글자가 점을 덮는다.
   var LABEL_MIN_ZOOM = 11;
+
+  /** 지명 이름표 (중국 지질도 1:400만, wetherilli 389) — 서버가 준 `label`(한국어·영어 이름과 한자)을 적는다. 멀리서는 큰 것만 —
+   *  Natural Earth 의 순위(`rank`, 작을수록 크다)를 화면 줌에 대어 거른다. 도시는 점을 곁들인다 */
+  function placeLabelStyle() {
+    var dot = new ol.style.Circle({ radius: 2.5, fill: new ol.style.Fill({ color: "#1f1409" }),
+                                    stroke: new ol.style.Stroke({ color: "#fff", width: 1 }) });
+    return function (feature, resolution) {
+      var rank = +feature.get("rank"), z = mercZoom(resolution);
+      if (rank > z - 1) return null;
+      var city = feature.get("kind") === "city";
+      var water = feature.get("kind") === "river" || feature.get("kind") === "lake";
+      return new ol.style.Style({
+        image: city ? dot : undefined,
+        text: new ol.style.Text({
+          text: String(feature.get("label") || ""),
+          font: (city ? "" : "italic ") + (rank <= 2 ? "600 13px" : "12px") + " sans-serif",
+          offsetX: city ? 6 : 0, textAlign: city ? "left" : "center",
+          fill: new ol.style.Fill({ color: water ? "#0b4f7a" : "#1f1409" }),
+          stroke: new ol.style.Stroke({ color: "rgba(255,255,255,0.9)", width: 3 }),
+        }),
+      });
+    };
+  }
 
   /** 점묶음의 모양. 점은 동그라미, 선·면은 점묶음의 색으로 그린다.
    *  가까이 보면 **이름표를 곁에 적는다** — 전에는 눌러야 떴다. 겹치는

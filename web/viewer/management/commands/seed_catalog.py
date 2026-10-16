@@ -180,6 +180,8 @@ class Command(BaseCommand):
                 (settings.SWISSTOPO_CATALOG_SEED, "스위스 (swisstopo)", "switzerland", "swisstopo"),
                 # 중국 — USGS geo3al, 우리 디스크의 셰이프파일 (025)
                 (settings.GEO3AL_CATALOG_SEED, "중국 (USGS)", "china", "geo3al"),
+                # 중국 지질도 1:400만 스캔 — 우리가 좌표를 붙여 잘라 둔 타일 (wetherilli 387)
+                (settings.CHINA4M_CATALOG_SEED, "중국 1:400만 스캔", "china", "china4m"),
                 # KIGAM 5만 구조 요소 — 받아 둔 WFS 파일의 화석산지·시료·광산·도폭 틀 (wetherilli 199, jikhanjung P01)
                 (settings.KIGAM50K_CATALOG_SEED, "KIGAM 5만 구조 요소", "korea", "kigam50k"),
                 # 연구실의 암맥 기록 — phyloserver (026)

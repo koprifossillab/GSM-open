@@ -444,6 +444,12 @@
 | wetherilli 381 | 2026-10-09 | [오프라인 묶음 굽기 — 박스 표·build_offline_pack·/GSM/offline/](20261009_wetherilli_381_offline_pack_build.md) |
 | wetherilli 383 | 2026-10-12 | [암석 시료 DB 의 이름도 박아 둔다 — 주간 백업의 fetch_kopri 가 DNS 로 멈췄다](20261012_wetherilli_383_kopri_rock_host.md) |
 | wetherilli 384 | 2026-10-12 | [오프라인 묶음에 누른 자리의 속성 — 범례 색이 아니라 지층 면으로](20261012_wetherilli_384_offline_pack_attributes.md) |
+| wetherilli 385 | 2026-10-12 | [오프라인 묶음을 박스로 잘라 낸다 — 도폭 하나면 묶음도 그 도폭만](20261012_wetherilli_385_offline_pack_clip.md) |
+| wetherilli P14 | 2026-10-16 | [중국 지질도 1:400만 스캔 — 좌표를 붙이고, 범례로 속성을 짓고, 지명을 얹는다 (계획)](20261016_wetherilli_P14_china_4m_scan.md) |
+| wetherilli 386 | 2026-10-16 | [중국 지질도 1:400만 — 경위선으로 좌표를 붙이고 중국 땅 마스크를 굽는다](20261016_wetherilli_386_china_4m_georeference.md) |
+| wetherilli 387 | 2026-10-16 | [중국 지질도 1:400만 — 3857 타일로 잘라 중국 탭에 올린다](20261016_wetherilli_387_china_4m_tiles.md) |
+| wetherilli 388 | 2026-10-16 | [중국 지질도 1:400만 — 범례 173 칸을 옮기고, 색으로 누른 자리의 시기·암상을 읽는다](20261016_wetherilli_388_china_4m_legend_attributes.md) |
+| wetherilli 389 | 2026-10-16 | [중국 지질도 1:400만 — 지명을 한자로도 찾고, 한국어·한자 이름표를 얹는다](20261016_wetherilli_389_china_4m_place_names.md) |
 | wetherilli 374 | 2026-10-07 | [온 세계 지명 찾기 — GeoNames 도시를 받아 두고, 지역 탭이 온 지구 찾기를 빌린다](20261007_wetherilli_374_world_place_search.md) |
 | wetherilli 375 | 2026-10-07 | [그때의 지구 — 판 조각 대신 PaleoDEM 고도·음영을 깐다](20261007_wetherilli_375_paleodem_relief.md) |
 | wetherilli 376 | 2026-10-07 | [온 지구 시간 막대 — 처음엔 접고, 띠는 대·기·세 세 줄로](20261007_wetherilli_376_timebar_folded_fewer_rows.md) |

@@ -15,6 +15,9 @@
 - 묶음의 타일 열쇠는 **화면의 tileCoord** — KIGAM 은 512 px 격자라 화면 줌보다 하나 작고, VWorld 는 256 px 라 화면 줌 그대로다.
   머리의 `layers.<이름>.zooms` 는 그 격자의 줌이고 `tile_size` 가 격자를 밝힌다
 - 빈 타일(투명 한 장, VWorld 의 자료 밖)은 넣지 않는다. **키는 머리에도 주소에도 없다**
+- **타일과 지층 면을 박스로 잘라 낸다**(wetherilli 385) — 얕은 줌의 타일 한 장은 도폭보다 훨씬 넓다(화면 줌 8 의 5만 타일 한 장이 2.8°).
+  그대로 두면 축소했을 때 둘레 도폭까지 그려져 "어디까지가 묶음인가" 가 흐려진다. 박스에 걸친 타일은 박스 밖을 투명하게 비워 PNG 로
+  다시 적고(위성 JPEG 도), 박스 밖의 타일은 넣지 않는다. 지층 면도 박스 네모로 잘라 이웃 도폭의 면이 묶음 밖으로 나가지 않게 한다
 - **누른 자리의 속성은 지층 면으로 담는다**(wetherilli 384) — 박스의 `units` 에 적은 레이어(5만·25만·100만 지질도)만. 레이어를
   이루는 지층 피처 타입(`DescribeLayer` 에서 이름에 `litho` 가 든 것)을 박스 범위로 WFS 한 번에 받아, 속성은 서버의 `feature_info`
   처럼 추리고 좌표는 소수 다섯 자리(1 m 남짓)로 줄여 묶음 안에 `@units/<레이어>` 한 덩이(GeoJSON)로 넣는다. 화면은 망이 없을 때
@@ -150,13 +153,81 @@ def _round(coords, digits=UNITS_DIGITS):
     return [_round(c, digits) for c in coords]
 
 
-def unit_features(data: dict) -> list:
-    """WFS GeoJSON → 묶음에 넣을 면 — 서버의 `feature_info` 처럼 빈 값을 버리고 링크를 가르고, 영어판 속성도 붙인다."""
+def clip_tile(data: bytes, z: int, x: int, y: int, bbox) -> bytes:
+    """3857 타일(격자 줌 z, 칸 수 2^z)에서 박스(경위도) 밖을 투명하게 비운다. 다 안이면 그대로, 다 밖이면 b""."""
+    span = 2 * tilegrid.HALF / 2 ** z
+    left, top = -tilegrid.HALF + x * span, tilegrid.HALF - y * span
+    west, south = tilegrid.lonlat_to_3857(bbox[0], bbox[1])
+    east, north = tilegrid.lonlat_to_3857(bbox[2], bbox[3])
+    if east <= left or west >= left + span or north <= top - span or south >= top:
+        return b""
+    if west <= left and east >= left + span and south <= top - span and north >= top:
+        return data
+    try:
+        image = Image.open(io.BytesIO(data)).convert("RGBA")
+    except (OSError, ValueError):
+        return data
+    size = image.size[0]
+    box = (max(0, math.floor((west - left) / span * size)), max(0, math.floor((top - north) / span * size)),
+           min(size, math.ceil((east - left) / span * size)), min(size, math.ceil((top - south) / span * size)))
+    out = Image.new("RGBA", image.size, (0, 0, 0, 0))
+    out.paste(image.crop(box), box[:2])
+    buf = io.BytesIO()
+    out.save(buf, format="PNG", optimize=True)
+    return buf.getvalue()
+
+
+def _clip_ring(ring, bbox):
+    """닫힌 고리 하나를 네모로 자른다(서덜랜드–호지먼). 남는 것이 없으면 빈 목록."""
+    west, south, east, north = bbox
+    edges = [(lambda p: p[0] >= west, lambda a, b: (west, a[1] + (b[1] - a[1]) * (west - a[0]) / (b[0] - a[0]))),
+             (lambda p: p[0] <= east, lambda a, b: (east, a[1] + (b[1] - a[1]) * (east - a[0]) / (b[0] - a[0]))),
+             (lambda p: p[1] >= south, lambda a, b: (a[0] + (b[0] - a[0]) * (south - a[1]) / (b[1] - a[1]), south)),
+             (lambda p: p[1] <= north, lambda a, b: (a[0] + (b[0] - a[0]) * (north - a[1]) / (b[1] - a[1]), north))]
+    points = [tuple(p[:2]) for p in ring[:-1]] if ring and ring[0] == ring[-1] else [tuple(p[:2]) for p in ring]
+    for inside, cross in edges:
+        if not points:
+            break
+        kept = []
+        for k, cur in enumerate(points):
+            prev = points[k - 1]
+            if inside(cur):
+                if not inside(prev):
+                    kept.append(cross(prev, cur))
+                kept.append(cur)
+            elif inside(prev):
+                kept.append(cross(prev, cur))
+        points = kept
+    if len(points) < 3:
+        return []
+    return [list(p) for p in points] + [list(points[0])]
+
+
+def clip_polygons(geometry: dict, bbox):
+    """면(Polygon·MultiPolygon)을 네모로 자른다 — 바깥 고리가 사라지면 그 면을 버린다. 남는 것이 없으면 None."""
+    polys = geometry["coordinates"] if geometry["type"] == "MultiPolygon" else [geometry["coordinates"]]
+    out = []
+    for poly in polys:
+        rings = [_clip_ring(r, bbox) for r in poly]
+        if rings and rings[0]:
+            out.append([rings[0]] + [r for r in rings[1:] if r])
+    if not out:
+        return None
+    return {"type": "MultiPolygon", "coordinates": out} if len(out) > 1 else {"type": "Polygon", "coordinates": out[0]}
+
+
+def unit_features(data: dict, bbox=None) -> list:
+    """WFS GeoJSON → 묶음에 넣을 면 — 서버의 `feature_info` 처럼 빈 값을 버리고 링크를 가르고, 영어판 속성도 붙인다.
+    `bbox` 가 있으면 그 네모로 잘라 낸다(wetherilli 385)."""
     out = []
     for feature in data.get("features") or []:
         geometry = feature.get("geometry") or {}
         if "Polygon" not in geometry.get("type", ""):
             continue
+        if bbox:
+            geometry = clip_polygons(geometry, bbox)
+            if geometry is None:
+                continue
         props = {k: views._split_links(v) for k, v in (feature.get("properties") or {}).items()
                  if v not in (None, "", "null")}
         if not props:
@@ -279,6 +350,7 @@ class Command(BaseCommand):
                             self.stdout.write(f"  상류에 {asked:,} 번 — {name} 줌 {z}, 실패 {fails}")
                     if stop:
                         break
+                    data = clip_tile(data, z, x, y, bbox) if data else data
                     if data and not is_blank(data):
                         got[offlinepack.tile_key(name, z, x, y)] = (name, z, data)
                 if stop:
@@ -335,7 +407,7 @@ class Command(BaseCommand):
                 time.sleep(gap)
                 features = []
                 for type_name in types:
-                    features += unit_features(kigam.wfs_in_bbox(type_name, bbox))
+                    features += unit_features(kigam.wfs_in_bbox(type_name, bbox), bbox)
                     time.sleep(gap)
             except PREWARM_ERRORS as exc:
                 self.stderr.write(f"  {name} 지층 면을 받지 못했다 — 속성 없이 굽는다: {exc}")

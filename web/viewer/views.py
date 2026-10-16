@@ -34,7 +34,7 @@ from django.views.decorators.http import require_GET, require_POST
 
 from gsmweb.version import VERSION
 
-from . import (coords, crs, datastatus, geo3al, geomap, geus, grportal, gsj, gsmma, i18n, ibcso, janmayen, kigam, kopri, npolar, ntgeo,
+from . import (china4m, coords, crs, datastatus, geo3al, geomap, geus, grportal, gsj, gsmma, i18n, ibcso, janmayen, kigam, kopri, npolar, ntgeo,
                patchnotes, elevation, moonmap, peninsula, phyloserver, pointsets, tilecache, tiles, trek, vworld, warp,
                fetchlog, marscraters, marsmap, mercurymap, sources, zhurong)
 from . import admap, arcpoints, kmag, caribmap, geonames, crust, glaciers, impacts, faults, minerals, stress, tectonics, seafloor, glim, heatflow, fossils, gvp, icemargins, kigam50k, macrostrat, mantle, metatile, naturalearth, neotoma, paleo, paleoeco, paleocoast, pbdb, quakes, recentquakes, verifylog, spamap, ocean, paleodem, usgs, volcanoes, wind
@@ -640,7 +640,7 @@ def map3d_view(request):
                                    or (l.get("upstream") == "geomap" and l["name"] in geomap.LAYERS)
                                    # IBCSO 자료 출처·ADMAP 자력 이상도 GeoMAP 처럼 서버가 3857 로 편다 (wetherilli 335)
                                    or l["name"] in ("ibcso:tid", admap.NAME)
-                                   or (l.get("upstream") in ("gsj", "gsitile", "ingemmet", "ags", "sim3534", "gsjows") and l.get("tiles")))])
+                                   or (l.get("upstream") in ("gsj", "gsitile", "ingemmet", "ags", "sim3534", "gsjows", "china4m") and l.get("tiles")))])
               for g in catalog]
     # 커스텀 지질도 — 한반도 지질도 셋은 서버가 3857 로 다시 펴 주고(`warp/`), 암맥은
     # 모양 한 덩이(`points/`)라 3D 가 그대로 그린다. 밖에 열면 `_catalog` 가 이미 뺐다
@@ -2943,7 +2943,7 @@ def earth_legend(request):
 #: 연구실 안에서만 보는 상류. 밖에 열면(`settings.PUBLIC`) 목록에서 빠지고 길도
 #: 닫힌다. 레이어 이름이 `<상류>:…` 꼴이라 이름만 보고 가른다.
 #: 극지연구소(`kopri`)는 KPDC 공개 자료라 싣는다 — 사용자가 정했다(2026-10-02, wetherilli P11)
-LAB_ONLY = ("geo3al", "phyloserver", "peninsula")
+LAB_ONLY = ("geo3al", "phyloserver", "peninsula", "china4m")
 
 
 def _lab_only(name: str) -> bool:
@@ -2996,7 +2996,7 @@ def _catalog(lang="ko"):
             "bbox": l.bbox,
             "queryable": l.queryable,
             # 대조할 상류가 없는 것(우리가 그리는 GeoMAP)은 "대조 안 함" 표를 달지 않는다
-            "verified": bool(l.verified_at) or l.upstream in ("geomap", "janmayen", "geo3al", "peninsula", "kopri", "usgscarib", "stri", "sim3534", "vmme", "ntgs")
+            "verified": bool(l.verified_at) or l.upstream in ("geomap", "janmayen", "geo3al", "peninsula", "china4m", "kopri", "usgscarib", "stri", "sim3534", "vmme", "ntgs")
                         or twopen.knows(l.name),
             # 영어판은 설명의 영어(`i18n.ABSTRACT_EN`, wetherilli 333) — 없으면 한국어가 든 설명을 숨긴다
             "abstract": _abstract_en(l) if en else l.abstract,
@@ -3589,6 +3589,16 @@ def _layer_extra_base(layer, lang: str = "ko") -> dict:
                 "projection": "EPSG:5179", "grid": sheet.grid(),
                 "tiles": _versioned_url(f"peninsula/{layer.name.split(':', 1)[1]}/{{z}}/{{x}}/{{y}}.{peninsula.FORMAT}",
                                         _dir_version(sheet.tiles_dir()))}
+    if layer.upstream == "china4m" and layer.name == china4m.PLACES:
+        # 중국 지질도 1:400만의 지명 이름표(wetherilli 389) — Natural Earth 의 한국어·영어 이름과 한자. 화면이 글자로 그린다
+        return {"kind": "points", "queryable": False, "style": "label", "attribution": naturalearth.CREDIT,
+                "source": "https://www.naturalearthdata.com/", "sourceLabel": str(msg("원본 자료 — Natural Earth 10 m, 퍼블릭 도메인"))}
+    if layer.upstream == "china4m" and layer.name == china4m.NAME:
+        # 중국 지질도 1:400만 스캔(wetherilli 387) — 우리가 경위선으로 좌표를 붙여 3857 로 잘라 둔 z/x/y. 그 위 줌은 화면이 늘린다
+        # 누른 자리·범례는 범례 색으로 칠해 둔 색 번호 격자에서 읽는다(`china4m/info/`·`china4m/legend/`, wetherilli 388·389)
+        return {"attribution": china4m.ATTRIBUTION, "projection": "EPSG:3857", "maxZoom": china4m.MAX_ZOOM,
+                "legend": "extent", "legendUrl": "china4m/legend/",
+                "tiles": _versioned_url(f"china4m/{{z}}/{{x}}/{{y}}.{china4m.FORMAT}", _dir_version(china4m.tiles_dir()))}
     return {}
 
 
@@ -3974,6 +3984,66 @@ def peninsula_tile(request, layer, z, x, y):
     if data is None:
         return _immutable(request, _tile(tiles.blank_tile(256, 256)), version)
     return _immutable(request, _tile(data, content_type="image/webp"), version)
+
+
+@require_GET
+def china4m_tile(request, z, x, y):
+    """중국 지질도 1:400만 스캔 타일 — `china4m/<z>/<x>/<y>.webp` (wetherilli 387).
+
+    `manage.py build_china4m` 이 잘라 둔 파일을 내주기만 한다. 캐시에 담지 않는다 — 이미 우리 디스크의 타일이다.
+    잘라 둔 것이 없으면 안내 타일, 중국 밖은 빈 타일이다. 연구실 내부용이라 밖에 열면 길을 닫는다"""
+    z, x, y = int(z), int(x), int(y)
+    if _lab_only(china4m.NAME) or not china4m.valid_tile(z, x, y):
+        return JsonResponse({"error": i18n.t(msg("그런 타일은 없다"), i18n.lang_of(request))}, status=404)
+    if not china4m.available():
+        return _tile(tiles.notice_tile(256, 256, tiles.NO_CHINA4M), store=False)
+    data = china4m.read_tile(z, x, y)
+    version = _dir_version(china4m.tiles_dir())
+    if data is None:
+        return _immutable(request, _tile(tiles.blank_tile(256, 256)), version)
+    return _immutable(request, _tile(data, content_type="image/webp"), version)
+
+
+@require_GET
+@browser_cached
+def china4m_info(request):
+    """`?layer=china4m:geology&lat=34.3&lon=108.9` — 누른 자리의 범례 칸 (wetherilli 389). 둘레의 색을 범례 색에 대어 고른다.
+    팝업이 받는 꼴은 `/featureinfo/` 와 같다. 색이 같은 범례 칸이 여럿이면 "같은 색의 칸" 에 적는다"""
+    lang = i18n.lang_of(request)
+    lat, lon = _float(request.GET.get("lat")), _float(request.GET.get("lon"))
+    if request.GET.get("layer") != china4m.NAME or lat is None or lon is None or _lab_only(china4m.NAME):
+        return JsonResponse({"error": i18n.t(msg("layer·lat·lon 이 없다"), lang), "features": []}, status=400)
+    if not china4m.units_available():
+        return JsonResponse({"error": i18n.t(msg("중국 지질도 1:400만의 색 번호 격자가 서버에 없다"), lang), "features": []},
+                            status=503)
+    hit = china4m.unit_at(lon, lat)
+    if not hit:
+        return JsonResponse({"features": []})
+    index, share = hit
+    props = china4m.friendly(index, lang)
+    if not props:
+        return JsonResponse({"features": []})
+    props["범례 색의 몫"] = f"{share * 100:.0f} %"
+    if lang == "en":
+        props = i18n.props_en(props)
+    return JsonResponse({"features": [{"id": f"{china4m.NAME}:{index}", "props": props}]})
+
+
+@require_GET
+@browser_cached
+def china4m_legend(request):
+    """`?layer=china4m:geology&bbox=서,남,동,북` — 보는 범위에 든 범례 칸 (wetherilli 388). 색 번호 격자를 표본으로 센다"""
+    lang = i18n.lang_of(request)
+    if request.GET.get("layer") != china4m.NAME or _lab_only(china4m.NAME):
+        return JsonResponse({"error": i18n.t(msg("범례가 없는 레이어다"), lang), "rows": []}, status=400)
+    parts = [_float(v) for v in (request.GET.get("bbox") or "").split(",")]
+    if len(parts) != 4 or None in parts:
+        return JsonResponse({"error": i18n.t(msg("bbox 가 없다"), lang), "rows": []}, status=400)
+    if not china4m.units_available():
+        return JsonResponse({"error": i18n.t(msg("중국 지질도 1:400만의 색 번호 격자가 서버에 없다"), lang), "rows": []},
+                            status=503)
+    rows, more = china4m.extent_legend(*parts, lang=lang)
+    return JsonResponse({"rows": rows, "more": more})
 
 
 @require_GET
@@ -5648,6 +5718,8 @@ def point_layer(request):
         return _kopri_layer(name, lang)
     if earthpoints.knows(name):
         return _earth_points_layer(request, name, lang)
+    if name == china4m.PLACES:
+        return _china4m_places(name, lang)
     if kigam50k.knows_file(name):
         return _kigam50k_layer(name, lang)
     _, module = _point_door(name)
@@ -5871,6 +5943,17 @@ def _kigam50k_layer(name, lang):
         log.warning("5만 구조 요소를 읽지 못했다 (%s): %s", name, exc)
         return JsonResponse({"error": i18n.t(msg("모아 둔 자료를 읽지 못했다"), lang)}, status=500)
     response = HttpResponse(content, content_type="application/geo+json")
+    if settings.TILE_CACHE_SECONDS > 0:
+        response["Cache-Control"] = f"public, max-age={settings.TILE_CACHE_SECONDS}"
+    return response
+
+
+def _china4m_places(name, lang):
+    """중국 지질도 1:400만의 지명 이름표(wetherilli 389) — Natural Earth 지명 가운데 중국 땅 안의 것, 한국어(영어)와 한자를 나란히.
+    저장소의 파일과 색 번호 격자에서 고를 뿐이라 상류를 타지 않는다. 연구실 내부용 레이어군에 딸려 밖에 열면 닫는다"""
+    if _lab_only(name):
+        return JsonResponse({"error": i18n.t(msg("그런 레이어는 없다"), lang)}, status=404)
+    response = HttpResponse(china4m.places_body(lang), content_type="application/geo+json")
     if settings.TILE_CACHE_SECONDS > 0:
         response["Cache-Control"] = f"public, max-age={settings.TILE_CACHE_SECONDS}"
     return response

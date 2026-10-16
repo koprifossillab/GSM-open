@@ -7,7 +7,7 @@
 
 ## 작업 방식 (2026-09-30 부터)
 
-**브랜치** `main` = `0.78.0`(2026-10-12 배포). 코드 작업은 각자 자기 계정에서 `feature/<기능 이름>` 브랜치를 `main` 에서 만들고, 끝나면 PR 을 만든다.
+**브랜치** `main` = `0.79.0`(2026-10-16 배포). 코드 작업은 각자 자기 계정에서 `feature/<기능 이름>` 브랜치를 `main` 에서 만들고, 끝나면 PR 을 만든다.
 **PR 병합과 판 올리기·배포는 판 세션(gsm-31)이 한다** — 다른 세션은 PR 을 열고 알린다. 판은 몇 PR 이 모이면 따로 올린다. 문서만 고치는 것은 `main` 에 바로. devlog 는 글쓴이마다 번호를 센다 — CLAUDE.md "커밋과 PR"·"devlog",
 [devlog/README.md](devlog/README.md). WegenersDream 과 같은 규약이다.
 
@@ -65,6 +65,7 @@
 | `npolar/` | 얀마옌 지질도 GeoJSON | 파일을 둔다 (022) |
 | `usgs/geo3al/` | 중국 geo3al `{shp,dbf,prj}` | 파일을 둔다 (025) |
 | `peninsula/` | 한반도 지질도 음영판·민판과 잘라 둔 타일 | `manage.py build_peninsula [--layer plain]` (027·028) |
+| `china4m/` | 중국 지질도 1:400만 스캔·마스크·타일·색 번호 격자 | 호스트(numpy)에서 `build_china4m_mask`, 그다음 `build_china4m` (wetherilli 386–388) |
 | `moon/` | 달 원도 6 장 sqlite, SPA 지질도 원본 `spa_geomap_iqbal2026.tif`(112 MB) | `manage.py build_moon_originals <zip>` (039). SPA 는 Zenodo `GeoMap.tif.zip` 을 풀어 이름만 바꿔 둔다 (wetherilli 081) |
 | `ibcso/` | IBCSO 타일·수치 격자·TID | `manage.py build_ibcso` (047·051·071) |
 | `mars/` | 화성 크레이터·옛 지질도 sqlite | `manage.py build_mars_craters <zip>`·`build_mars_originals <zip>` (067·068) |

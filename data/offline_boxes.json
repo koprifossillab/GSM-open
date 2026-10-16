@@ -1,5 +1,5 @@
 {
- "_note": "오프라인 묶음의 박스 (wetherilli P13·381). bbox 는 경위도 [서, 남, 동, 북]. layers 는 [처음 줌, 마지막 줌] — 화면 줌이고, 적은 차례가 앞설 차례다. 예산을 넘으면 뒤의 것부터 마지막 줌을 내린다. 배경은 vworld:<WMTS 레이어> — 위성(Satellite)에는 지명(Hybrid)을 겹친다. units 는 누른 자리의 속성을 지층 면(WFS)으로 함께 담을 레이어 (wetherilli 384)",
+ "_note": "오프라인 묶음의 박스 (wetherilli P13·381). bbox 는 경위도 [서, 남, 동, 북]. layers 는 [처음 줌, 마지막 줌] — 화면 줌이고, 적은 차례가 앞설 차례다. 예산을 넘으면 뒤의 것부터 마지막 줌을 내린다. 배경은 vworld:<WMTS 레이어> — 위성(Satellite)에는 지명(Hybrid)을 겹친다. units 는 누른 자리의 속성을 지층 면(WFS)으로 함께 담을 레이어 (wetherilli 384). 타일과 지층 면은 bbox 로 잘라 낸다 (wetherilli 385)",
  "jangseong": {
   "title": "장성 도폭 (태백)",
   "region": "korea",
@@ -15,6 +15,18 @@
     8,
     16
    ],
+   "L_250K_Geology_Map": [
+    6,
+    13
+   ],
+   "L_1M_Geology_Map": [
+    6,
+    11
+   ],
+   "l_50k_geology_frame_latest": [
+    8,
+    13
+   ],
    "vworld:Base": [
     8,
     16
@@ -26,26 +38,6 @@
    "vworld:Hybrid": [
     8,
     16
-   ],
-   "L_25k_coalfield_geologic_map": [
-    10,
-    15
-   ],
-   "L_10k_coalfield_geologic_map": [
-    10,
-    15
-   ],
-   "L_250K_Geology_Map": [
-    6,
-    13
-   ],
-   "l_50k_geology_frame_latest": [
-    8,
-    13
-   ],
-   "L_1M_Geology_Map": [
-    6,
-    11
    ],
    "G_tectonic": [
     6,
@@ -169,7 +161,8 @@
    "L_250K_Geology_Map",
    "L_1M_Geology_Map"
   ],
-  "budget_mb": 200
+  "budget_mb": 200,
+  "order_note": "지질도(5만·25만·100만)를 앞에, VWorld 배경을 그 뒤에 둔다 — 예산이 모자라면 뒤의 것부터 던다. 앞서는 배경이 지질도보다 앞에 있어 VWorld(109 MB)가 예산을 차지하고 25만·100만 지질도가 거의 다 덜렸다. 탄전 지질도는 사람이 뺐다(2026-10-12, wetherilli 385)"
  },
  "korea": {
   "title": "한국 전체 (얕게)",

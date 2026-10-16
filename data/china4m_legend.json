@@ -1,0 +1,6577 @@
+{
+ "_주석": "《中国地质图》1:400만 제2판(2002) 범례를 칸마다 옮긴 것이다 (wetherilli 388). 지도를 누르면 그 자리의 색을 이 칸들의 rgb 에 대어 시기·암상·대표 층군을 띄운다(web/viewer/china4m.py). rgb 는 원본 스캔의 범례 칸 안쪽(글자·테두리를 뺀)의 중앙값을 스크립트로 잰 것, swatch 는 그 칸의 원본 화소 상자다. 글은 원본 조각을 키워 사람(Claude)이 읽었다 — 흐린 것은 uncertain·note 에 적었다. 시대: 현생누대 지층은 ICS 2023/09, 선캄브리아 지층과 화성암은 이 지도의 연대표·범례의 억 년 값. 한국어 시대는 ICS 한글판(대한지질학회)의 표기. 지층 칸에는 범례가 암상을 적지 않는다 — lith 가 빈다. same_color_as 는 색만으로 가를 수 없는 칸이다.",
+ "_뽑은날": "2026-10-16",
+ "_출처": "中国地质科学院地质研究所 编制, 《中国地质图》(第二版) 1:4 000 000, 地质出版社 2002",
+ "units": [
+  {
+   "id": "Q",
+   "code": "Q",
+   "kind": "stratum",
+   "group_zh": "第四系",
+   "group_ko": "제4계",
+   "age_zh": "第四系",
+   "age_ko": "제4기",
+   "age_en": "Quaternary",
+   "age_top_ma": 0,
+   "age_base_ma": 2.58,
+   "lith_zh": "",
+   "lith_ko": "",
+   "lith_en": "",
+   "desc_zh": "",
+   "desc_ko": "",
+   "desc_en": "",
+   "swatch": [
+    266,
+    6833,
+    306,
+    7299
+   ],
+   "rgb": [
+    254,
+    255,
+    115
+   ],
+   "bar": true,
+   "uncertain": false,
+   "note": "계 막대(묶음 칸) 색 — 지도에 세분 없이 Q 로 칠한 곳이 있을 수 있다"
+  },
+  {
+   "id": "Qh",
+   "code": "Qh",
+   "kind": "stratum",
+   "group_zh": "第四系",
+   "group_ko": "제4계",
+   "age_zh": "全新统",
+   "age_ko": "홀로세",
+   "age_en": "Holocene",
+   "age_top_ma": 0,
+   "age_base_ma": 0.0117,
+   "lith_zh": "",
+   "lith_ko": "",
+   "lith_en": "",
+   "desc_zh": "冲积、洪积、湖积、风积、化学沉积、沿海海积",
+   "desc_ko": "충적·홍적(선상지)·호성·풍성·화학 퇴적, 연안 해성 퇴적",
+   "desc_en": "alluvial, proluvial, lacustrine, aeolian and chemical deposits; coastal marine deposits",
+   "swatch": [
+    313,
+    6833,
+    424,
+    6886
+   ],
+   "rgb": [
+    255,
+    255,
+    203
+   ],
+   "bar": false,
+   "uncertain": false,
+   "note": "설명 둘째 줄이 Qp³Qh 칸 높이까지 내려온다"
+  },
+  {
+   "id": "Qp3Qh",
+   "code": "Qp3Qh",
+   "kind": "stratum",
+   "group_zh": "第四系",
+   "group_ko": "제4계",
+   "age_zh": "上更新统—全新统",
+   "age_ko": "플라이스토세 후기~홀로세",
+   "age_en": "Late Pleistocene–Holocene",
+   "age_top_ma": 0,
+   "age_base_ma": 0.129,
+   "lith_zh": "",
+   "lith_ko": "",
+   "lith_en": "",
+   "desc_zh": "",
+   "desc_ko": "",
+   "desc_en": "",
+   "swatch": [
+    313,
+    6893,
+    424,
+    6945
+   ],
+   "rgb": [
+    254,
+    255,
+    177
+   ],
+   "bar": false,
+   "uncertain": true,
+   "note": "오른쪽 글은 Qh 설명의 둘째 줄로 보인다 — 이 칸만의 설명은 없다"
+  },
+  {
+   "id": "Qp3",
+   "code": "Qp3",
+   "kind": "stratum",
+   "group_zh": "第四系",
+   "group_ko": "제4계",
+   "age_zh": "上更新统",
+   "age_ko": "플라이스토세 후기",
+   "age_en": "Late Pleistocene",
+   "age_top_ma": 0.0117,
+   "age_base_ma": 0.129,
+   "lith_zh": "",
+   "lith_ko": "",
+   "lith_en": "",
+   "desc_zh": "马兰黄土、新疆群、绒布寺冰碛组",
+   "desc_ko": "대표 층군: 马兰黄土、新疆群、绒布寺冰碛组",
+   "desc_en": "Representative units: 马兰黄土、新疆群、绒布寺冰碛组",
+   "swatch": [
+    313,
+    6952,
+    424,
+    7004
+   ],
+   "rgb": [
+    255,
+    255,
+    165
+   ],
+   "bar": false,
+   "uncertain": false,
+   "note": ""
+  },
+  {
+   "id": "Qp2-3",
+   "code": "Qp2-3",
+   "kind": "stratum",
+   "group_zh": "第四系",
+   "group_ko": "제4계",
+   "age_zh": "中—上更新统",
+   "age_ko": "플라이스토세 중기~후기",
+   "age_en": "Middle–Late Pleistocene",
+   "age_top_ma": 0.0117,
+   "age_base_ma": 0.774,
+   "lith_zh": "",
+   "lith_ko": "",
+   "lith_en": "",
+   "desc_zh": "并层",
+   "desc_ko": "병층(이웃한 통을 합쳐 그림)",
+   "desc_en": "combined (adjacent series mapped together)",
+   "swatch": [
+    313,
+    7011,
+    424,
+    7063
+   ],
+   "rgb": [
+    254,
+    255,
+    153
+   ],
+   "bar": false,
+   "uncertain": false,
+   "note": ""
+  },
+  {
+   "id": "Qp2",
+   "code": "Qp2",
+   "kind": "stratum",
+   "group_zh": "第四系",
+   "group_ko": "제4계",
+   "age_zh": "中更新统",
+   "age_ko": "플라이스토세 중기",
+   "age_en": "Middle Pleistocene",
+   "age_top_ma": 0.129,
+   "age_base_ma": 0.774,
+   "lith_zh": "",
+   "lith_ko": "",
+   "lith_en": "",
+   "desc_zh": "周口店组、聂聂雄拉冰碛组、庐山冰碛层",
+   "desc_ko": "대표 층군: 周口店组、聂聂雄拉冰碛组、庐山冰碛层",
+   "desc_en": "Representative units: 周口店组、聂聂雄拉冰碛组、庐山冰碛层",
+   "swatch": [
+    313,
+    7070,
+    424,
+    7122
+   ],
+   "rgb": [
+    254,
+    255,
+    127
+   ],
+   "bar": false,
+   "uncertain": false,
+   "note": ""
+  },
+  {
+   "id": "Qp1-2",
+   "code": "Qp1-2",
+   "kind": "stratum",
+   "group_zh": "第四系",
+   "group_ko": "제4계",
+   "age_zh": "下—中更新统",
+   "age_ko": "플라이스토세 전기~중기",
+   "age_en": "Early–Middle Pleistocene",
+   "age_top_ma": 0.129,
+   "age_base_ma": 2.58,
+   "lith_zh": "",
+   "lith_ko": "",
+   "lith_en": "",
+   "desc_zh": "并层",
+   "desc_ko": "병층(이웃한 통을 합쳐 그림)",
+   "desc_en": "combined (adjacent series mapped together)",
+   "swatch": [
+    313,
+    7129,
+    424,
+    7181
+   ],
+   "rgb": [
+    255,
+    255,
+    102
+   ],
+   "bar": false,
+   "uncertain": false,
+   "note": ""
+  },
+  {
+   "id": "Qp1",
+   "code": "Qp1",
+   "kind": "stratum",
+   "group_zh": "第四系",
+   "group_ko": "제4계",
+   "age_zh": "下更新统",
+   "age_ko": "플라이스토세 전기",
+   "age_en": "Early Pleistocene",
+   "age_top_ma": 0.774,
+   "age_base_ma": 2.58,
+   "lith_zh": "",
+   "lith_ko": "",
+   "lith_en": "",
+   "desc_zh": "元谋组、泥河湾组、西域组、雨花台组",
+   "desc_ko": "대표 층군: 元谋组、泥河湾组、西域组、雨花台组",
+   "desc_en": "Representative units: 元谋组、泥河湾组、西域组、雨花台组",
+   "swatch": [
+    313,
+    7188,
+    424,
+    7240
+   ],
+   "rgb": [
+    255,
+    255,
+    76
+   ],
+   "bar": false,
+   "uncertain": false,
+   "note": ""
+  },
+  {
+   "id": "Qp",
+   "code": "Qp",
+   "kind": "stratum",
+   "group_zh": "第四系",
+   "group_ko": "제4계",
+   "age_zh": "更新统",
+   "age_ko": "플라이스토세",
+   "age_en": "Pleistocene",
+   "age_top_ma": 0.0117,
+   "age_base_ma": 2.58,
+   "lith_zh": "",
+   "lith_ko": "",
+   "lith_en": "",
+   "desc_zh": "更新统",
+   "desc_ko": "플라이스토통(세분 없음)",
+   "desc_en": "Pleistocene Series (not subdivided)",
+   "swatch": [
+    313,
+    7247,
+    424,
+    7299
+   ],
+   "rgb": [
+    255,
+    255,
+    139
+   ],
+   "bar": false,
+   "uncertain": false,
+   "note": ""
+  },
+  {
+   "id": "N2Qp",
+   "code": "N2Qp",
+   "kind": "stratum",
+   "group_zh": "(跨系)",
+   "group_ko": "(여러 계에 걸침)",
+   "age_zh": "上新统—更新统",
+   "age_ko": "플라이오세~플라이스토세",
+   "age_en": "Pliocene–Pleistocene",
+   "age_top_ma": 0.0117,
+   "age_base_ma": 5.333,
+   "lith_zh": "",
+   "lith_ko": "",
+   "lith_en": "",
+   "desc_zh": "含N2Qp1，未分",
+   "desc_ko": "N2Qp1 포함, 미분",
+   "desc_en": "includes N2Qp1; undivided",
+   "swatch": [
+    313,
+    7330,
+    424,
+    7382
+   ],
+   "rgb": [
+    255,
+    240,
+    75
+   ],
+   "bar": false,
+   "uncertain": false,
+   "note": ""
+  },
+  {
+   "id": "N",
+   "code": "N",
+   "kind": "stratum",
+   "group_zh": "新近系",
+   "group_ko": "신진계",
+   "age_zh": "新近系",
+   "age_ko": "신진기",
+   "age_en": "Neogene",
+   "age_top_ma": 2.58,
+   "age_base_ma": 23.03,
+   "lith_zh": "",
+   "lith_ko": "",
+   "lith_en": "",
+   "desc_zh": "",
+   "desc_ko": "",
+   "desc_en": "",
+   "swatch": [
+    265,
+    7412,
+    306,
+    7523
+   ],
+   "rgb": [
+    254,
+    229,
+    102
+   ],
+   "bar": true,
+   "uncertain": false,
+   "note": "계 막대 색"
+  },
+  {
+   "id": "N2",
+   "code": "N2",
+   "kind": "stratum",
+   "group_zh": "新近系",
+   "group_ko": "신진계",
+   "age_zh": "上新统",
+   "age_ko": "플라이오세",
+   "age_en": "Pliocene",
+   "age_top_ma": 2.58,
+   "age_base_ma": 5.333,
+   "lith_zh": "",
+   "lith_ko": "",
+   "lith_en": "",
+   "desc_zh": "甘肃群（N）、台湾省海相层、庐山组",
+   "desc_ko": "대표 층군: 甘肃群（N）、台湾省海相层、庐山组",
+   "desc_en": "Representative units: 甘肃群（N）、台湾省海相层、庐山组",
+   "swatch": [
+    313,
+    7412,
+    424,
+    7464
+   ],
+   "rgb": [
+    254,
+    229,
+    128
+   ],
+   "bar": false,
+   "uncertain": true,
+   "note": "설명이 N₂·N₁ 두 칸 사이에 걸쳐 있어 N 전체 설명일 수 있다"
+  },
+  {
+   "id": "N1",
+   "code": "N1",
+   "kind": "stratum",
+   "group_zh": "新近系",
+   "group_ko": "신진계",
+   "age_zh": "中新统",
+   "age_ko": "마이오세",
+   "age_en": "Miocene",
+   "age_top_ma": 5.333,
+   "age_base_ma": 23.03,
+   "lith_zh": "",
+   "lith_ko": "",
+   "lith_en": "",
+   "desc_zh": "甘肃群（N）、台湾省海相层、庐山组",
+   "desc_ko": "대표 층군: 甘肃群（N）、台湾省海相层、庐山组",
+   "desc_en": "Representative units: 甘肃群（N）、台湾省海相层、庐山组",
+   "swatch": [
+    313,
+    7471,
+    424,
+    7523
+   ],
+   "rgb": [
+    254,
+    217,
+    76
+   ],
+   "bar": false,
+   "uncertain": true,
+   "note": "N₂ 와 같은 설명(두 칸에 걸침)"
+  },
+  {
+   "id": "EN1",
+   "code": "EN1",
+   "kind": "stratum",
+   "group_zh": "(跨系)",
+   "group_ko": "(여러 계에 걸침)",
+   "age_zh": "古近系—中新统",
+   "age_ko": "고진기~마이오세",
+   "age_en": "Paleogene–Miocene",
+   "age_top_ma": 5.333,
+   "age_base_ma": 66,
+   "lith_zh": "",
+   "lith_ko": "",
+   "lith_en": "",
+   "desc_zh": "含E3N1、E3N、E2N，未分",
+   "desc_ko": "E3N1、E3N、E2N 포함, 미분",
+   "desc_en": "includes E3N1、E3N、E2N; undivided",
+   "swatch": [
+    313,
+    7554,
+    424,
+    7606
+   ],
+   "rgb": [
+    255,
+    203,
+    127
+   ],
+   "bar": false,
+   "uncertain": false,
+   "note": ""
+  },
+  {
+   "id": "E",
+   "code": "E",
+   "kind": "stratum",
+   "group_zh": "古近系",
+   "group_ko": "고진계",
+   "age_zh": "古近系",
+   "age_ko": "고진기",
+   "age_en": "Paleogene",
+   "age_top_ma": 23.03,
+   "age_base_ma": 66,
+   "lith_zh": "",
+   "lith_ko": "",
+   "lith_en": "",
+   "desc_zh": "",
+   "desc_ko": "",
+   "desc_en": "",
+   "swatch": [
+    265,
+    7637,
+    306,
+    7925
+   ],
+   "rgb": [
+    255,
+    203,
+    153
+   ],
+   "bar": true,
+   "uncertain": false,
+   "note": "계 막대 색 · 같은 색: Pt3², Nh — 색만으로 가를 수 없다",
+   "same_color_as": [
+    "Pt3²",
+    "Nh"
+   ]
+  },
+  {
+   "id": "E3",
+   "code": "E3",
+   "kind": "stratum",
+   "group_zh": "古近系",
+   "group_ko": "고진계",
+   "age_zh": "渐新统",
+   "age_ko": "올리고세",
+   "age_en": "Oligocene",
+   "age_top_ma": 23.03,
+   "age_base_ma": 33.9,
+   "lith_zh": "",
+   "lith_ko": "",
+   "lith_en": "",
+   "desc_zh": "蔡家冲组、五指山组",
+   "desc_ko": "대표 층군: 蔡家冲组、五指山组",
+   "desc_en": "Representative units: 蔡家冲组、五指山组",
+   "swatch": [
+    313,
+    7637,
+    424,
+    7689
+   ],
+   "rgb": [
+    255,
+    228,
+    217
+   ],
+   "bar": false,
+   "uncertain": true,
+   "note": "글이 E₃ 와 E₂₋₃ 칸 경계에 걸쳐 있다"
+  },
+  {
+   "id": "E2-3",
+   "code": "E2-3",
+   "kind": "stratum",
+   "group_zh": "古近系",
+   "group_ko": "고진계",
+   "age_zh": "始新统—渐新统",
+   "age_ko": "에오세~올리고세",
+   "age_en": "Eocene–Oligocene",
+   "age_top_ma": 23.03,
+   "age_base_ma": 56,
+   "lith_zh": "",
+   "lith_ko": "",
+   "lith_en": "",
+   "desc_zh": "",
+   "desc_ko": "",
+   "desc_en": "",
+   "swatch": [
+    313,
+    7696,
+    424,
+    7748
+   ],
+   "rgb": [
+    255,
+    229,
+    204
+   ],
+   "bar": false,
+   "uncertain": true,
+   "note": "제 설명이 따로 없다 — 위 E₃ 글이 걸쳐 있다"
+  },
+  {
+   "id": "E2",
+   "code": "E2",
+   "kind": "stratum",
+   "group_zh": "古近系",
+   "group_ko": "고진계",
+   "age_zh": "始新统",
+   "age_ko": "에오세",
+   "age_en": "Eocene",
+   "age_top_ma": 33.9,
+   "age_base_ma": 56,
+   "lith_zh": "",
+   "lith_ko": "",
+   "lith_en": "",
+   "desc_zh": "喀什群与固原群（E）、东北舒兰组、西藏及台湾省海相沉积",
+   "desc_ko": "대표 층군: 喀什群与固原群（E）、东北舒兰组、西藏及台湾省海相沉积",
+   "desc_en": "Representative units: 喀什群与固原群（E）、东北舒兰组、西藏及台湾省海相沉积",
+   "swatch": [
+    313,
+    7755,
+    424,
+    7807
+   ],
+   "rgb": [
+    255,
+    217,
+    204
+   ],
+   "bar": false,
+   "uncertain": false,
+   "note": ""
+  },
+  {
+   "id": "E1-2",
+   "code": "E1-2",
+   "kind": "stratum",
+   "group_zh": "古近系",
+   "group_ko": "고진계",
+   "age_zh": "古新统—始新统",
+   "age_ko": "팔레오세~에오세",
+   "age_en": "Paleocene–Eocene",
+   "age_top_ma": 33.9,
+   "age_base_ma": 66,
+   "lith_zh": "",
+   "lith_ko": "",
+   "lith_en": "",
+   "desc_zh": "未分",
+   "desc_ko": "미분",
+   "desc_en": "undivided",
+   "swatch": [
+    313,
+    7814,
+    424,
+    7866
+   ],
+   "rgb": [
+    255,
+    217,
+    178
+   ],
+   "bar": false,
+   "uncertain": false,
+   "note": "같은 색: Pt3³, Z — 색만으로 가를 수 없다",
+   "same_color_as": [
+    "Pt3³",
+    "Z"
+   ]
+  },
+  {
+   "id": "E1",
+   "code": "E1",
+   "kind": "stratum",
+   "group_zh": "古近系",
+   "group_ko": "고진계",
+   "age_zh": "古新统",
+   "age_ko": "팔레오세",
+   "age_en": "Paleocene",
+   "age_top_ma": 56,
+   "age_base_ma": 66,
+   "lith_zh": "",
+   "lith_ko": "",
+   "lith_en": "",
+   "desc_zh": "阜宁组、狮子口组",
+   "desc_ko": "대표 층군: 阜宁组、狮子口组",
+   "desc_en": "Representative units: 阜宁组、狮子口组",
+   "swatch": [
+    313,
+    7873,
+    424,
+    7925
+   ],
+   "rgb": [
+    255,
+    204,
+    165
+   ],
+   "bar": false,
+   "uncertain": false,
+   "note": ""
+  },
+  {
+   "id": "R",
+   "code": "R",
+   "kind": "stratum",
+   "group_zh": "(跨系)",
+   "group_ko": "(여러 계에 걸침)",
+   "age_zh": "第三系",
+   "age_ko": "제3기",
+   "age_en": "Tertiary",
+   "age_top_ma": 2.58,
+   "age_base_ma": 66,
+   "lith_zh": "",
+   "lith_ko": "",
+   "lith_en": "",
+   "desc_zh": "第三系未分",
+   "desc_ko": "제3계 미분",
+   "desc_en": "Tertiary undivided",
+   "swatch": [
+    312,
+    7956,
+    424,
+    8008
+   ],
+   "rgb": [
+    254,
+    217,
+    51
+   ],
+   "bar": false,
+   "uncertain": false,
+   "note": ""
+  },
+  {
+   "id": "KE",
+   "code": "KE",
+   "kind": "stratum",
+   "group_zh": "(跨系)",
+   "group_ko": "(여러 계에 걸침)",
+   "age_zh": "白垩系—古近系",
+   "age_ko": "백악기~고진기",
+   "age_en": "Cretaceous–Paleogene",
+   "age_top_ma": 23.03,
+   "age_base_ma": 145,
+   "lith_zh": "",
+   "lith_ko": "",
+   "lith_en": "",
+   "desc_zh": "含K2E2，K2E1日喀则群",
+   "desc_ko": "K2E2 포함; 대표 층군: K2E1日喀则群",
+   "desc_en": "includes K2E2; representative units: K2E1日喀则群",
+   "swatch": [
+    313,
+    8038,
+    424,
+    8090
+   ],
+   "rgb": [
+    203,
+    254,
+    51
+   ],
+   "bar": false,
+   "uncertain": false,
+   "note": ""
+  },
+  {
+   "id": "KR",
+   "code": "KR",
+   "kind": "stratum",
+   "group_zh": "(跨系)",
+   "group_ko": "(여러 계에 걸침)",
+   "age_zh": "白垩系—第三系",
+   "age_ko": "백악기~제3기",
+   "age_en": "Cretaceous–Tertiary",
+   "age_top_ma": 2.58,
+   "age_base_ma": 145,
+   "lith_zh": "",
+   "lith_ko": "",
+   "lith_en": "",
+   "desc_zh": "未分",
+   "desc_ko": "미분",
+   "desc_en": "undivided",
+   "swatch": [
+    312,
+    8097,
+    424,
+    8149
+   ],
+   "rgb": [
+    217,
+    254,
+    76
+   ],
+   "bar": false,
+   "uncertain": false,
+   "note": ""
+  },
+  {
+   "id": "K",
+   "code": "K",
+   "kind": "stratum",
+   "group_zh": "白垩系",
+   "group_ko": "백악계",
+   "age_zh": "白垩系",
+   "age_ko": "백악기",
+   "age_en": "Cretaceous",
+   "age_top_ma": 66,
+   "age_base_ma": 145,
+   "lith_zh": "",
+   "lith_ko": "",
+   "lith_en": "",
+   "desc_zh": "",
+   "desc_ko": "",
+   "desc_en": "",
+   "swatch": [
+    265,
+    8180,
+    306,
+    8291
+   ],
+   "rgb": [
+    141,
+    255,
+    141
+   ],
+   "bar": true,
+   "uncertain": false,
+   "note": "계 막대 색"
+  },
+  {
+   "id": "K2",
+   "code": "K2",
+   "kind": "stratum",
+   "group_zh": "白垩系",
+   "group_ko": "백악계",
+   "age_zh": "上白垩统",
+   "age_ko": "백악기 후기",
+   "age_en": "Late Cretaceous",
+   "age_top_ma": 66,
+   "age_base_ma": 100.5,
+   "lith_zh": "",
+   "lith_ko": "",
+   "lith_en": "",
+   "desc_zh": "嫩江组、馆头组、罗定群、山东王氏组",
+   "desc_ko": "대표 층군: 嫩江组、馆头组、罗定群、山东王氏组",
+   "desc_en": "Representative units: 嫩江组、馆头组、罗定群、山东王氏组",
+   "swatch": [
+    312,
+    8180,
+    424,
+    8232
+   ],
+   "rgb": [
+    178,
+    255,
+    177
+   ],
+   "bar": false,
+   "uncertain": false,
+   "note": ""
+  },
+  {
+   "id": "K1",
+   "code": "K1",
+   "kind": "stratum",
+   "group_zh": "白垩系",
+   "group_ko": "백악계",
+   "age_zh": "下白垩统",
+   "age_ko": "백악기 전기",
+   "age_en": "Early Cretaceous",
+   "age_top_ma": 100.5,
+   "age_base_ma": 145,
+   "lith_zh": "",
+   "lith_ko": "",
+   "lith_en": "",
+   "desc_zh": "义县组古鸟类、六盘山群、甘河组、寿昌组",
+   "desc_ko": "대표 층군: 义县组古鸟类、六盘山群、甘河组、寿昌组",
+   "desc_en": "Representative units: 义县组古鸟类、六盘山群、甘河组、寿昌组",
+   "swatch": [
+    313,
+    8239,
+    423,
+    8291
+   ],
+   "rgb": [
+    114,
+    255,
+    115
+   ],
+   "bar": false,
+   "uncertain": false,
+   "note": ""
+  },
+  {
+   "id": "JK",
+   "code": "JK",
+   "kind": "stratum",
+   "group_zh": "(跨系)",
+   "group_ko": "(여러 계에 걸침)",
+   "age_zh": "侏罗系—白垩系",
+   "age_ko": "쥐라기~백악기",
+   "age_en": "Jurassic–Cretaceous",
+   "age_top_ma": 66,
+   "age_base_ma": 201.4,
+   "lith_zh": "",
+   "lith_ko": "",
+   "lith_en": "",
+   "desc_zh": "含JK1、J3K1，大王山组",
+   "desc_ko": "JK1、J3K1 포함; 대표 층군: 大王山组",
+   "desc_en": "includes JK1、J3K1; representative units: 大王山组",
+   "swatch": [
+    313,
+    8322,
+    423,
+    8374
+   ],
+   "rgb": [
+    178,
+    255,
+    153
+   ],
+   "bar": false,
+   "uncertain": false,
+   "note": ""
+  },
+  {
+   "id": "J",
+   "code": "J",
+   "kind": "stratum",
+   "group_zh": "侏罗系",
+   "group_ko": "쥐라계",
+   "age_zh": "侏罗系",
+   "age_ko": "쥐라기",
+   "age_en": "Jurassic",
+   "age_top_ma": 145,
+   "age_base_ma": 201.4,
+   "lith_zh": "",
+   "lith_ko": "",
+   "lith_en": "",
+   "desc_zh": "",
+   "desc_ko": "",
+   "desc_en": "",
+   "swatch": [
+    265,
+    8404,
+    306,
+    8693
+   ],
+   "rgb": [
+    51,
+    255,
+    254
+   ],
+   "bar": true,
+   "uncertain": false,
+   "note": "계 막대 색 · 같은 색: sea_6000 — 색만으로 가를 수 없다",
+   "same_color_as": [
+    "sea_6000"
+   ]
+  },
+  {
+   "id": "J3",
+   "code": "J3",
+   "kind": "stratum",
+   "group_zh": "侏罗系",
+   "group_ko": "쥐라계",
+   "age_zh": "上侏罗统",
+   "age_ko": "쥐라기 후기",
+   "age_en": "Late Jurassic",
+   "age_top_ma": 145,
+   "age_base_ma": 161.5,
+   "lith_zh": "",
+   "lith_ko": "",
+   "lith_en": "",
+   "desc_zh": "张家口组、大兴安岭火山岩、遂宁组",
+   "desc_ko": "대표 층군: 张家口组、大兴安岭火山岩、遂宁组",
+   "desc_en": "Representative units: 张家口组、大兴安岭火山岩、遂宁组",
+   "swatch": [
+    313,
+    8404,
+    423,
+    8456
+   ],
+   "rgb": [
+    177,
+    255,
+    255
+   ],
+   "bar": false,
+   "uncertain": false,
+   "note": "같은 색: sea_200 — 색만으로 가를 수 없다",
+   "same_color_as": [
+    "sea_200"
+   ]
+  },
+  {
+   "id": "J2-3",
+   "code": "J2-3",
+   "kind": "stratum",
+   "group_zh": "侏罗系",
+   "group_ko": "쥐라계",
+   "age_zh": "中—上侏罗统",
+   "age_ko": "쥐라기 중기~후기",
+   "age_en": "Middle–Late Jurassic",
+   "age_top_ma": 145,
+   "age_base_ma": 174.7,
+   "lith_zh": "",
+   "lith_ko": "",
+   "lith_en": "",
+   "desc_zh": "并层",
+   "desc_ko": "병층(이웃한 통을 합쳐 그림)",
+   "desc_en": "combined (adjacent series mapped together)",
+   "swatch": [
+    313,
+    8463,
+    423,
+    8515
+   ],
+   "rgb": [
+    153,
+    255,
+    255
+   ],
+   "bar": false,
+   "uncertain": false,
+   "note": "같은 색: sea_1000 — 색만으로 가를 수 없다",
+   "same_color_as": [
+    "sea_1000"
+   ]
+  },
+  {
+   "id": "J2",
+   "code": "J2",
+   "kind": "stratum",
+   "group_zh": "侏罗系",
+   "group_ko": "쥐라계",
+   "age_zh": "中侏罗统",
+   "age_ko": "쥐라기 중기",
+   "age_en": "Middle Jurassic",
+   "age_top_ma": 161.5,
+   "age_base_ma": 174.7,
+   "lith_zh": "",
+   "lith_ko": "",
+   "lith_en": "",
+   "desc_zh": "大北沟组、漠河组、大同组、沙溪庙组",
+   "desc_ko": "대표 층군: 大北沟组、漠河组、大同组、沙溪庙组",
+   "desc_en": "Representative units: 大北沟组、漠河组、大同组、沙溪庙组",
+   "swatch": [
+    313,
+    8522,
+    423,
+    8574
+   ],
+   "rgb": [
+    127,
+    255,
+    255
+   ],
+   "bar": false,
+   "uncertain": true,
+   "note": "\"漠河组\" 의 첫 글자가 흐리다 · 같은 색: sea_3000 — 색만으로 가를 수 없다",
+   "same_color_as": [
+    "sea_3000"
+   ]
+  },
+  {
+   "id": "J1-2",
+   "code": "J1-2",
+   "kind": "stratum",
+   "group_zh": "侏罗系",
+   "group_ko": "쥐라계",
+   "age_zh": "下—中侏罗统",
+   "age_ko": "쥐라기 전기~중기",
+   "age_en": "Early–Middle Jurassic",
+   "age_top_ma": 161.5,
+   "age_base_ma": 201.4,
+   "lith_zh": "",
+   "lith_ko": "",
+   "lith_en": "",
+   "desc_zh": "门头沟群、北方煤系地层",
+   "desc_ko": "대표 층군: 门头沟群、北方煤系地层",
+   "desc_en": "Representative units: 门头沟群、北方煤系地层",
+   "swatch": [
+    313,
+    8581,
+    423,
+    8634
+   ],
+   "rgb": [
+    101,
+    255,
+    255
+   ],
+   "bar": false,
+   "uncertain": false,
+   "note": "같은 색: sea_5000 — 색만으로 가를 수 없다",
+   "same_color_as": [
+    "sea_5000"
+   ]
+  },
+  {
+   "id": "J1",
+   "code": "J1",
+   "kind": "stratum",
+   "group_zh": "侏罗系",
+   "group_ko": "쥐라계",
+   "age_zh": "下侏罗统",
+   "age_ko": "쥐라기 전기",
+   "age_en": "Early Jurassic",
+   "age_top_ma": 174.7,
+   "age_base_ma": 201.4,
+   "lith_zh": "",
+   "lith_ko": "",
+   "lith_en": "",
+   "desc_zh": "北票组、八道湾组、自流井组、白田坝组",
+   "desc_ko": "대표 층군: 北票组、八道湾组、自流井组、白田坝组",
+   "desc_en": "Representative units: 北票组、八道湾组、自流井组、白田坝组",
+   "swatch": [
+    313,
+    8641,
+    423,
+    8693
+   ],
+   "rgb": [
+    75,
+    255,
+    254
+   ],
+   "bar": false,
+   "uncertain": false,
+   "note": ""
+  },
+  {
+   "id": "TJ",
+   "code": "TJ",
+   "kind": "stratum",
+   "group_zh": "(跨系)",
+   "group_ko": "(여러 계에 걸침)",
+   "age_zh": "三叠系—侏罗系",
+   "age_ko": "트라이아스기~쥐라기",
+   "age_en": "Triassic–Jurassic",
+   "age_top_ma": 145,
+   "age_base_ma": 251.902,
+   "lith_zh": "",
+   "lith_ko": "",
+   "lith_en": "",
+   "desc_zh": "含T3J  T3J1，未分",
+   "desc_ko": "T3J  T3J1 포함, 미분",
+   "desc_en": "includes T3J  T3J1; undivided",
+   "swatch": [
+    313,
+    8723,
+    423,
+    8775
+   ],
+   "rgb": [
+    178,
+    229,
+    255
+   ],
+   "bar": false,
+   "uncertain": false,
+   "note": ""
+  },
+  {
+   "id": "T",
+   "code": "T",
+   "kind": "stratum",
+   "group_zh": "三叠系",
+   "group_ko": "트라이아스계",
+   "age_zh": "三叠系",
+   "age_ko": "트라이아스기",
+   "age_en": "Triassic",
+   "age_top_ma": 201.4,
+   "age_base_ma": 251.902,
+   "lith_zh": "",
+   "lith_ko": "",
+   "lith_en": "",
+   "desc_zh": "",
+   "desc_ko": "",
+   "desc_en": "",
+   "swatch": [
+    265,
+    8806,
+    306,
+    9094
+   ],
+   "rgb": [
+    229,
+    152,
+    254
+   ],
+   "bar": true,
+   "uncertain": false,
+   "note": "계 막대 색"
+  },
+  {
+   "id": "T3",
+   "code": "T3",
+   "kind": "stratum",
+   "group_zh": "三叠系",
+   "group_ko": "트라이아스계",
+   "age_zh": "上三叠统",
+   "age_ko": "트라이아스기 후기",
+   "age_en": "Late Triassic",
+   "age_top_ma": 201.4,
+   "age_base_ma": 237,
+   "lith_zh": "",
+   "lith_ko": "",
+   "lith_en": "",
+   "desc_zh": "瓦窑堡组、贵州关岭海相化石群，新都桥组、雅江组、须家河组",
+   "desc_ko": "대표 층군: 瓦窑堡组、贵州关岭海相化石群，新都桥组、雅江组、须家河组",
+   "desc_en": "Representative units: 瓦窑堡组、贵州关岭海相化石群，新都桥组、雅江组、须家河组",
+   "swatch": [
+    313,
+    8806,
+    423,
+    8858
+   ],
+   "rgb": [
+    247,
+    217,
+    255
+   ],
+   "bar": false,
+   "uncertain": false,
+   "note": ""
+  },
+  {
+   "id": "T2-3",
+   "code": "T2-3",
+   "kind": "stratum",
+   "group_zh": "三叠系",
+   "group_ko": "트라이아스계",
+   "age_zh": "中—上三叠统",
+   "age_ko": "트라이아스기 중기~후기",
+   "age_en": "Middle–Late Triassic",
+   "age_top_ma": 201.4,
+   "age_base_ma": 246.7,
+   "lith_zh": "",
+   "lith_ko": "",
+   "lith_en": "",
+   "desc_zh": "并层",
+   "desc_ko": "병층(이웃한 통을 합쳐 그림)",
+   "desc_en": "combined (adjacent series mapped together)",
+   "swatch": [
+    313,
+    8865,
+    423,
+    8917
+   ],
+   "rgb": [
+    247,
+    205,
+    255
+   ],
+   "bar": false,
+   "uncertain": false,
+   "note": ""
+  },
+  {
+   "id": "T2",
+   "code": "T2",
+   "kind": "stratum",
+   "group_zh": "三叠系",
+   "group_ko": "트라이아스계",
+   "age_zh": "中三叠统",
+   "age_ko": "트라이아스기 중기",
+   "age_en": "Middle Triassic",
+   "age_top_ma": 237,
+   "age_base_ma": 246.7,
+   "lith_zh": "",
+   "lith_ko": "",
+   "lith_en": "",
+   "desc_zh": "二马营组、克拉玛依组、雷口坡组、个旧组",
+   "desc_ko": "대표 층군: 二马营组、克拉玛依组、雷口坡组、个旧组",
+   "desc_en": "Representative units: 二马营组、克拉玛依组、雷口坡组、个旧组",
+   "swatch": [
+    313,
+    8924,
+    423,
+    8976
+   ],
+   "rgb": [
+    242,
+    178,
+    255
+   ],
+   "bar": false,
+   "uncertain": false,
+   "note": ""
+  },
+  {
+   "id": "T1-2",
+   "code": "T1-2",
+   "kind": "stratum",
+   "group_zh": "三叠系",
+   "group_ko": "트라이아스계",
+   "age_zh": "下—中三叠统",
+   "age_ko": "트라이아스기 전기~중기",
+   "age_en": "Early–Middle Triassic",
+   "age_top_ma": 237,
+   "age_base_ma": 251.902,
+   "lith_zh": "",
+   "lith_ko": "",
+   "lith_en": "",
+   "desc_zh": "并层",
+   "desc_ko": "병층(이웃한 통을 합쳐 그림)",
+   "desc_en": "combined (adjacent series mapped together)",
+   "swatch": [
+    313,
+    8983,
+    423,
+    9035
+   ],
+   "rgb": [
+    229,
+    178,
+    255
+   ],
+   "bar": false,
+   "uncertain": false,
+   "note": ""
+  },
+  {
+   "id": "T1",
+   "code": "T1",
+   "kind": "stratum",
+   "group_zh": "三叠系",
+   "group_ko": "트라이아스계",
+   "age_zh": "下三叠统",
+   "age_ko": "트라이아스기 전기",
+   "age_en": "Early Triassic",
+   "age_top_ma": 246.7,
+   "age_base_ma": 251.902,
+   "lith_zh": "",
+   "lith_ko": "",
+   "lith_en": "",
+   "desc_zh": "大龙口组、巢湖组、飞仙关组、大冶组",
+   "desc_ko": "대표 층군: 大龙口组、巢湖组、飞仙关组、大冶组",
+   "desc_en": "Representative units: 大龙口组、巢湖组、飞仙关组、大冶组",
+   "swatch": [
+    313,
+    9042,
+    422,
+    9094
+   ],
+   "rgb": [
+    218,
+    153,
+    255
+   ],
+   "bar": false,
+   "uncertain": false,
+   "note": ""
+  },
+  {
+   "id": "Mz",
+   "code": "Mz",
+   "kind": "stratum",
+   "group_zh": "中生界",
+   "group_ko": "중생계",
+   "age_zh": "中生界",
+   "age_ko": "중생대",
+   "age_en": "Mesozoic",
+   "age_top_ma": 66,
+   "age_base_ma": 251.902,
+   "lith_zh": "",
+   "lith_ko": "",
+   "lith_en": "",
+   "desc_zh": "中生界未分",
+   "desc_ko": "중생계 미분",
+   "desc_en": "Mesozoic undivided",
+   "swatch": [
+    313,
+    9125,
+    422,
+    9177
+   ],
+   "rgb": [
+    154,
+    242,
+    218
+   ],
+   "bar": false,
+   "uncertain": false,
+   "note": ""
+  },
+  {
+   "id": "PT",
+   "code": "PT",
+   "kind": "stratum",
+   "group_zh": "(跨系)",
+   "group_ko": "(여러 계에 걸침)",
+   "age_zh": "二叠系—三叠系",
+   "age_ko": "페름기~트라이아스기",
+   "age_en": "Permian–Triassic",
+   "age_top_ma": 201.4,
+   "age_base_ma": 298.9,
+   "lith_zh": "",
+   "lith_ko": "",
+   "lith_en": "",
+   "desc_zh": "含PT1、PT2、P2T1、P3T1、P3T2、P3T，梧桐沟组",
+   "desc_ko": "PT1、PT2、P2T1、P3T1、P3T2、P3T 포함; 대표 층군: 梧桐沟组",
+   "desc_en": "includes PT1、PT2、P2T1、P3T1、P3T2、P3T; representative units: 梧桐沟组",
+   "swatch": [
+    313,
+    9207,
+    422,
+    9260
+   ],
+   "rgb": [
+    241,
+    204,
+    178
+   ],
+   "bar": false,
+   "uncertain": false,
+   "note": ""
+  },
+  {
+   "id": "P",
+   "code": "P",
+   "kind": "stratum",
+   "group_zh": "二叠系",
+   "group_ko": "페름계",
+   "age_zh": "二叠系",
+   "age_ko": "페름기",
+   "age_en": "Permian",
+   "age_top_ma": 251.902,
+   "age_base_ma": 298.9,
+   "lith_zh": "",
+   "lith_ko": "",
+   "lith_en": "",
+   "desc_zh": "",
+   "desc_ko": "",
+   "desc_en": "",
+   "swatch": [
+    265,
+    9290,
+    307,
+    9578
+   ],
+   "rgb": [
+    243,
+    153,
+    75
+   ],
+   "bar": true,
+   "uncertain": false,
+   "note": "계 막대 색"
+  },
+  {
+   "id": "P3",
+   "code": "P3",
+   "kind": "stratum",
+   "group_zh": "二叠系",
+   "group_ko": "페름계",
+   "age_zh": "上二叠统(乐平统)",
+   "age_ko": "러핑세",
+   "age_en": "Lopingian",
+   "age_top_ma": 251.902,
+   "age_base_ma": 259.51,
+   "lith_zh": "",
+   "lith_ko": "",
+   "lith_en": "",
+   "desc_zh": "乐平统、孙家沟组、五道岭组、长兴组",
+   "desc_ko": "대표 층군: 乐平统、孙家沟组、五道岭组、长兴组",
+   "desc_en": "Representative units: 乐平统、孙家沟组、五道岭组、长兴组",
+   "swatch": [
+    314,
+    9290,
+    422,
+    9342
+   ],
+   "rgb": [
+    242,
+    204,
+    103
+   ],
+   "bar": false,
+   "uncertain": false,
+   "note": ""
+  },
+  {
+   "id": "P2-3",
+   "code": "P2-3",
+   "kind": "stratum",
+   "group_zh": "二叠系",
+   "group_ko": "페름계",
+   "age_zh": "中—上二叠统",
+   "age_ko": "과달루페세~러핑세",
+   "age_en": "Guadalupian–Lopingian",
+   "age_top_ma": 251.902,
+   "age_base_ma": 273.01,
+   "lith_zh": "",
+   "lith_ko": "",
+   "lith_en": "",
+   "desc_zh": "并层，峨眉玄武岩",
+   "desc_ko": "병층, 峨眉玄武岩(어메이 현무암)",
+   "desc_en": "combined; Emeishan basalt (峨眉玄武岩)",
+   "swatch": [
+    314,
+    9349,
+    422,
+    9401
+   ],
+   "rgb": [
+    241,
+    178,
+    101
+   ],
+   "bar": false,
+   "uncertain": false,
+   "note": ""
+  },
+  {
+   "id": "P2",
+   "code": "P2",
+   "kind": "stratum",
+   "group_zh": "二叠系",
+   "group_ko": "페름계",
+   "age_zh": "中二叠统(阳新统)",
+   "age_ko": "과달루페세",
+   "age_en": "Guadalupian",
+   "age_top_ma": 259.51,
+   "age_base_ma": 273.01,
+   "lith_zh": "",
+   "lith_ko": "",
+   "lith_en": "",
+   "desc_zh": "阳新统、栖霞组、茅口组、石盒子组、孤峰组、哲斯组",
+   "desc_ko": "대표 층군: 阳新统、栖霞组、茅口组、石盒子组、孤峰组、哲斯组",
+   "desc_en": "Representative units: 阳新统、栖霞组、茅口组、石盒子组、孤峰组、哲斯组",
+   "swatch": [
+    314,
+    9408,
+    422,
+    9460
+   ],
+   "rgb": [
+    229,
+    153,
+    77
+   ],
+   "bar": false,
+   "uncertain": false,
+   "note": "栖霞组 은 ICS 로는 시스우랄세 꼭대기 — 중국 3분법을 따랐다"
+  },
+  {
+   "id": "P1-2",
+   "code": "P1-2",
+   "kind": "stratum",
+   "group_zh": "二叠系",
+   "group_ko": "페름계",
+   "age_zh": "下—中二叠统",
+   "age_ko": "시스우랄세~과달루페세",
+   "age_en": "Cisuralian–Guadalupian",
+   "age_top_ma": 259.51,
+   "age_base_ma": 298.9,
+   "lith_zh": "",
+   "lith_ko": "",
+   "lith_en": "",
+   "desc_zh": "并层",
+   "desc_ko": "병층(이웃한 통을 합쳐 그림)",
+   "desc_en": "combined (adjacent series mapped together)",
+   "swatch": [
+    314,
+    9467,
+    422,
+    9519
+   ],
+   "rgb": [
+    242,
+    153,
+    51
+   ],
+   "bar": false,
+   "uncertain": false,
+   "note": ""
+  },
+  {
+   "id": "P1",
+   "code": "P1",
+   "kind": "stratum",
+   "group_zh": "二叠系",
+   "group_ko": "페름계",
+   "age_zh": "下二叠统(船山统)",
+   "age_ko": "시스우랄세",
+   "age_en": "Cisuralian",
+   "age_top_ma": 273.01,
+   "age_base_ma": 298.9,
+   "lith_zh": "",
+   "lith_ko": "",
+   "lith_en": "",
+   "desc_zh": "船山统、山西组、龙吟组",
+   "desc_ko": "대표 층군: 船山统、山西组、龙吟组",
+   "desc_en": "Representative units: 船山统、山西组、龙吟组",
+   "swatch": [
+    314,
+    9526,
+    422,
+    9578
+   ],
+   "rgb": [
+    227,
+    127,
+    51
+   ],
+   "bar": false,
+   "uncertain": false,
+   "note": "船山统 은 중국 구분 — ICS 경계와 꼭 맞지 않는다"
+  },
+  {
+   "id": "CP",
+   "code": "CP",
+   "kind": "stratum",
+   "group_zh": "(跨系)",
+   "group_ko": "(여러 계에 걸침)",
+   "age_zh": "石炭系—二叠系",
+   "age_ko": "석탄기~페름기",
+   "age_en": "Carboniferous–Permian",
+   "age_top_ma": 251.902,
+   "age_base_ma": 358.86,
+   "lith_zh": "",
+   "lith_ko": "",
+   "lith_en": "",
+   "desc_zh": "含C2P、C2P1、C2P2",
+   "desc_ko": "C2P、C2P1、C2P2 포함",
+   "desc_en": "includes C2P、C2P1、C2P2",
+   "swatch": [
+    314,
+    9609,
+    422,
+    9661
+   ],
+   "rgb": [
+    230,
+    204,
+    179
+   ],
+   "bar": false,
+   "uncertain": false,
+   "note": ""
+  },
+  {
+   "id": "C",
+   "code": "C",
+   "kind": "stratum",
+   "group_zh": "石炭系",
+   "group_ko": "석탄계",
+   "age_zh": "石炭系",
+   "age_ko": "석탄기",
+   "age_en": "Carboniferous",
+   "age_top_ma": 298.9,
+   "age_base_ma": 358.86,
+   "lith_zh": "",
+   "lith_ko": "",
+   "lith_en": "",
+   "desc_zh": "",
+   "desc_ko": "",
+   "desc_en": "",
+   "swatch": [
+    265,
+    9692,
+    307,
+    9803
+   ],
+   "rgb": [
+    178,
+    204,
+    203
+   ],
+   "bar": true,
+   "uncertain": false,
+   "note": "계 막대 색"
+  },
+  {
+   "id": "C2",
+   "code": "C2",
+   "kind": "stratum",
+   "group_zh": "石炭系",
+   "group_ko": "석탄계",
+   "age_zh": "上石炭统",
+   "age_ko": "펜실베니아아기",
+   "age_en": "Pennsylvanian",
+   "age_top_ma": 298.9,
+   "age_base_ma": 323.4,
+   "lith_zh": "",
+   "lith_ko": "",
+   "lith_en": "",
+   "desc_zh": "壶天灰岩、本溪组、太原组、宝力格庙组",
+   "desc_ko": "대표 층군: 壶天灰岩、本溪组、太原组、宝力格庙组",
+   "desc_en": "Representative units: 壶天灰岩、本溪组、太原组、宝力格庙组",
+   "swatch": [
+    314,
+    9692,
+    422,
+    9744
+   ],
+   "rgb": [
+    215,
+    229,
+    229
+   ],
+   "bar": false,
+   "uncertain": false,
+   "note": ""
+  },
+  {
+   "id": "C1",
+   "code": "C1",
+   "kind": "stratum",
+   "group_zh": "石炭系",
+   "group_ko": "석탄계",
+   "age_zh": "下石炭统(丰宁统)",
+   "age_ko": "미시시피아기",
+   "age_en": "Mississippian",
+   "age_top_ma": 323.4,
+   "age_base_ma": 358.86,
+   "lith_zh": "",
+   "lith_ko": "",
+   "lith_en": "",
+   "desc_zh": "丰宁统、臭牛沟组、大塘组、雅满苏组",
+   "desc_ko": "대표 층군: 丰宁统、臭牛沟组、大塘组、雅满苏组",
+   "desc_en": "Representative units: 丰宁统、臭牛沟组、大塘组、雅满苏组",
+   "swatch": [
+    314,
+    9751,
+    422,
+    9803
+   ],
+   "rgb": [
+    153,
+    192,
+    191
+   ],
+   "bar": false,
+   "uncertain": false,
+   "note": ""
+  },
+  {
+   "id": "AnC",
+   "code": "AnC",
+   "kind": "stratum",
+   "group_zh": "(跨系)",
+   "group_ko": "(여러 계에 걸침)",
+   "age_zh": "前石炭系",
+   "age_ko": "석탄기 이전",
+   "age_en": "pre-Carboniferous",
+   "age_top_ma": 358.86,
+   "age_base_ma": null,
+   "lith_zh": "",
+   "lith_ko": "",
+   "lith_en": "",
+   "desc_zh": "未分（青藏）",
+   "desc_ko": "미분(칭짱 지역)",
+   "desc_en": "undivided (Qinghai–Tibet region)",
+   "swatch": [
+    948,
+    6725,
+    1056,
+    6777
+   ],
+   "rgb": [
+    205,
+    229,
+    205
+   ],
+   "bar": false,
+   "uncertain": false,
+   "note": "칭짱(티베트) 지역 미분"
+  },
+  {
+   "id": "DC",
+   "code": "DC",
+   "kind": "stratum",
+   "group_zh": "(跨系)",
+   "group_ko": "(여러 계에 걸침)",
+   "age_zh": "泥盆系—石炭系",
+   "age_ko": "데본기~석탄기",
+   "age_en": "Devonian–Carboniferous",
+   "age_top_ma": 298.9,
+   "age_base_ma": 419.62,
+   "lith_zh": "",
+   "lith_ko": "",
+   "lith_en": "",
+   "desc_zh": "含DC1、D2C、D2C1、D3C、D3C1",
+   "desc_ko": "DC1、D2C、D2C1、D3C、D3C1 포함",
+   "desc_en": "includes DC1、D2C、D2C1、D3C、D3C1",
+   "swatch": [
+    949,
+    6808,
+    1056,
+    6860
+   ],
+   "rgb": [
+    217,
+    179,
+    178
+   ],
+   "bar": false,
+   "uncertain": false,
+   "note": ""
+  },
+  {
+   "id": "D",
+   "code": "D",
+   "kind": "stratum",
+   "group_zh": "泥盆系",
+   "group_ko": "데본계",
+   "age_zh": "泥盆系",
+   "age_ko": "데본기",
+   "age_en": "Devonian",
+   "age_top_ma": 358.86,
+   "age_base_ma": 419.62,
+   "lith_zh": "",
+   "lith_ko": "",
+   "lith_en": "",
+   "desc_zh": "",
+   "desc_ko": "",
+   "desc_en": "",
+   "swatch": [
+    904,
+    6893,
+    944,
+    7181
+   ],
+   "rgb": [
+    177,
+    127,
+    126
+   ],
+   "bar": true,
+   "uncertain": false,
+   "note": "계 막대 색"
+  },
+  {
+   "id": "D3",
+   "code": "D3",
+   "kind": "stratum",
+   "group_zh": "泥盆系",
+   "group_ko": "데본계",
+   "age_zh": "上泥盆统",
+   "age_ko": "데본기 후기",
+   "age_en": "Late Devonian",
+   "age_top_ma": 358.86,
+   "age_base_ma": 382.31,
+   "lith_zh": "",
+   "lith_ko": "",
+   "lith_en": "",
+   "desc_zh": "锡矿山组、古道岭组、大民山组、岳麓山组、五通组",
+   "desc_ko": "대표 층군: 锡矿山组、古道岭组、大民山组、岳麓山组、五通组",
+   "desc_en": "Representative units: 锡矿山组、古道岭组、大民山组、岳麓山组、五通组",
+   "swatch": [
+    951,
+    6893,
+    1062,
+    6945
+   ],
+   "rgb": [
+    215,
+    178,
+    126
+   ],
+   "bar": false,
+   "uncertain": false,
+   "note": ""
+  },
+  {
+   "id": "D2-3",
+   "code": "D2-3",
+   "kind": "stratum",
+   "group_zh": "泥盆系",
+   "group_ko": "데본계",
+   "age_zh": "中—上泥盆统",
+   "age_ko": "데본기 중기~후기",
+   "age_en": "Middle–Late Devonian",
+   "age_top_ma": 358.86,
+   "age_base_ma": 393.47,
+   "lith_zh": "",
+   "lith_ko": "",
+   "lith_en": "",
+   "desc_zh": "舒家坝群、波曲群",
+   "desc_ko": "대표 층군: 舒家坝群、波曲群",
+   "desc_en": "Representative units: 舒家坝群、波曲群",
+   "swatch": [
+    951,
+    6952,
+    1062,
+    7004
+   ],
+   "rgb": [
+    204,
+    153,
+    126
+   ],
+   "bar": false,
+   "uncertain": false,
+   "note": ""
+  },
+  {
+   "id": "D2",
+   "code": "D2",
+   "kind": "stratum",
+   "group_zh": "泥盆系",
+   "group_ko": "데본계",
+   "age_zh": "中泥盆统",
+   "age_ko": "데본기 중기",
+   "age_en": "Middle Devonian",
+   "age_top_ma": 382.31,
+   "age_base_ma": 393.47,
+   "lith_zh": "",
+   "lith_ko": "",
+   "lith_en": "",
+   "desc_zh": "东岗岭组、阿勒泰组、宏川组、牛耳川组",
+   "desc_ko": "대표 층군: 东岗岭组、阿勒泰组、宏川组、牛耳川组",
+   "desc_en": "Representative units: 东岗岭组、阿勒泰组、宏川组、牛耳川组",
+   "swatch": [
+    951,
+    7011,
+    1062,
+    7063
+   ],
+   "rgb": [
+    203,
+    127,
+    127
+   ],
+   "bar": false,
+   "uncertain": false,
+   "note": ""
+  },
+  {
+   "id": "D1-2",
+   "code": "D1-2",
+   "kind": "stratum",
+   "group_zh": "泥盆系",
+   "group_ko": "데본계",
+   "age_zh": "下—中泥盆统",
+   "age_ko": "데본기 전기~중기",
+   "age_en": "Early–Middle Devonian",
+   "age_top_ma": 382.31,
+   "age_base_ma": 419.62,
+   "lith_zh": "",
+   "lith_ko": "",
+   "lith_en": "",
+   "desc_zh": "树沟子组、雅西尔群",
+   "desc_ko": "대표 층군: 树沟子组、雅西尔群",
+   "desc_en": "Representative units: 树沟子组、雅西尔群",
+   "swatch": [
+    951,
+    7070,
+    1062,
+    7122
+   ],
+   "rgb": [
+    178,
+    102,
+    128
+   ],
+   "bar": false,
+   "uncertain": false,
+   "note": ""
+  },
+  {
+   "id": "D1",
+   "code": "D1",
+   "kind": "stratum",
+   "group_zh": "泥盆系",
+   "group_ko": "데본계",
+   "age_zh": "下泥盆统",
+   "age_ko": "데본기 전기",
+   "age_en": "Early Devonian",
+   "age_top_ma": 393.47,
+   "age_base_ma": 419.62,
+   "lith_zh": "",
+   "lith_ko": "",
+   "lith_en": "",
+   "desc_zh": "郁江组、罕达气组、莲花山组、钦州组",
+   "desc_ko": "대표 층군: 郁江组、罕达气组、莲花山组、钦州组",
+   "desc_en": "Representative units: 郁江组、罕达气组、莲花山组、钦州组",
+   "swatch": [
+    951,
+    7129,
+    1062,
+    7181
+   ],
+   "rgb": [
+    152,
+    102,
+    127
+   ],
+   "bar": false,
+   "uncertain": false,
+   "note": ""
+  },
+  {
+   "id": "Pz2",
+   "code": "Pz2",
+   "kind": "stratum",
+   "group_zh": "上古生界",
+   "group_ko": "후기 고생계",
+   "age_zh": "上古生界",
+   "age_ko": "고생대 후기",
+   "age_en": "Late Paleozoic",
+   "age_top_ma": 251.902,
+   "age_base_ma": 419.62,
+   "lith_zh": "",
+   "lith_ko": "",
+   "lith_en": "",
+   "desc_zh": "并层或未分",
+   "desc_ko": "병층 또는 미분",
+   "desc_en": "combined or undivided",
+   "swatch": [
+    951,
+    7212,
+    1062,
+    7264
+   ],
+   "rgb": [
+    230,
+    204,
+    153
+   ],
+   "bar": false,
+   "uncertain": false,
+   "note": ""
+  },
+  {
+   "id": "AnD",
+   "code": "AnD",
+   "kind": "stratum",
+   "group_zh": "(跨系)",
+   "group_ko": "(여러 계에 걸침)",
+   "age_zh": "前泥盆系",
+   "age_ko": "데본기 이전",
+   "age_en": "pre-Devonian",
+   "age_top_ma": 419.62,
+   "age_base_ma": null,
+   "lith_zh": "",
+   "lith_ko": "",
+   "lith_en": "",
+   "desc_zh": "未分（青藏）",
+   "desc_ko": "미분(칭짱 지역)",
+   "desc_en": "undivided (Qinghai–Tibet region)",
+   "swatch": [
+    951,
+    7295,
+    1062,
+    7347
+   ],
+   "rgb": [
+    204,
+    178,
+    179
+   ],
+   "bar": false,
+   "uncertain": false,
+   "note": "칭짱 지역 미분"
+  },
+  {
+   "id": "SD",
+   "code": "SD",
+   "kind": "stratum",
+   "group_zh": "(跨系)",
+   "group_ko": "(여러 계에 걸침)",
+   "age_zh": "志留系—泥盆系",
+   "age_ko": "실루리아기~데본기",
+   "age_en": "Silurian–Devonian",
+   "age_top_ma": 358.86,
+   "age_base_ma": 443.1,
+   "lith_zh": "",
+   "lith_ko": "",
+   "lith_en": "",
+   "desc_zh": "含SD2、S2D2、S2D、S3D、S3D1、S3D2",
+   "desc_ko": "SD2、S2D2、S2D、S3D、S3D1、S3D2 포함",
+   "desc_en": "includes SD2、S2D2、S2D、S3D、S3D1、S3D2",
+   "swatch": [
+    951,
+    7377,
+    1062,
+    7429
+   ],
+   "rgb": [
+    176,
+    202,
+    75
+   ],
+   "bar": false,
+   "uncertain": false,
+   "note": ""
+  },
+  {
+   "id": "S",
+   "code": "S",
+   "kind": "stratum",
+   "group_zh": "志留系",
+   "group_ko": "실루리아계",
+   "age_zh": "志留系",
+   "age_ko": "실루리아기",
+   "age_en": "Silurian",
+   "age_top_ma": 419.62,
+   "age_base_ma": 443.1,
+   "lith_zh": "",
+   "lith_ko": "",
+   "lith_en": "",
+   "desc_zh": "",
+   "desc_ko": "",
+   "desc_en": "",
+   "swatch": [
+    903,
+    7460,
+    943,
+    7866
+   ],
+   "rgb": [
+    151,
+    201,
+    50
+   ],
+   "bar": true,
+   "uncertain": false,
+   "note": "계 막대 색"
+  },
+  {
+   "id": "S3-4",
+   "code": "S3-4",
+   "kind": "stratum",
+   "group_zh": "志留系",
+   "group_ko": "실루리아계",
+   "age_zh": "上志留统—顶志留统",
+   "age_ko": "러들로세~프리돌리세",
+   "age_en": "Ludlow–Pridoli",
+   "age_top_ma": 419.62,
+   "age_base_ma": 426.7,
+   "lith_zh": "",
+   "lith_ko": "",
+   "lith_en": "",
+   "desc_zh": "旱峡群、西别河组、雍忍组",
+   "desc_ko": "대표 층군: 旱峡群、西别河组、雍忍组",
+   "desc_en": "Representative units: 旱峡群、西别河组、雍忍组",
+   "swatch": [
+    950,
+    7460,
+    1062,
+    7512
+   ],
+   "rgb": [
+    202,
+    241,
+    0
+   ],
+   "bar": false,
+   "uncertain": true,
+   "note": "첫 지층명 \"旱峡群/阜峡群\" 이 흐리다. S 는 4 통 구분(S₁ 란도베리·S₂ 웬록·S₃ 러들로·S₄ 프리돌리)으로 보았다"
+  },
+  {
+   "id": "S3",
+   "code": "S3",
+   "kind": "stratum",
+   "group_zh": "志留系",
+   "group_ko": "실루리아계",
+   "age_zh": "上志留统",
+   "age_ko": "러들로세",
+   "age_en": "Ludlow",
+   "age_top_ma": 422.7,
+   "age_base_ma": 426.7,
+   "lith_zh": "",
+   "lith_ko": "",
+   "lith_en": "",
+   "desc_zh": "卧都河组、瓦房店组、合浦群",
+   "desc_ko": "대표 층군: 卧都河组、瓦房店组、合浦群",
+   "desc_en": "Representative units: 卧都河组、瓦房店组、合浦群",
+   "swatch": [
+    950,
+    7519,
+    1062,
+    7571
+   ],
+   "rgb": [
+    177,
+    240,
+    0
+   ],
+   "bar": false,
+   "uncertain": true,
+   "note": "S 4 통 구분이라 보고 매겼다"
+  },
+  {
+   "id": "S2-4",
+   "code": "S2-4",
+   "kind": "stratum",
+   "group_zh": "志留系",
+   "group_ko": "실루리아계",
+   "age_zh": "中—顶志留统",
+   "age_ko": "웬록세~프리돌리세",
+   "age_en": "Wenlock–Pridoli",
+   "age_top_ma": 419.62,
+   "age_base_ma": 432.9,
+   "lith_zh": "",
+   "lith_ko": "",
+   "lith_en": "",
+   "desc_zh": "竹溪群",
+   "desc_ko": "대표 층군: 竹溪群",
+   "desc_en": "Representative units: 竹溪群",
+   "swatch": [
+    950,
+    7578,
+    1062,
+    7630
+   ],
+   "rgb": [
+    177,
+    228,
+    0
+   ],
+   "bar": false,
+   "uncertain": true,
+   "note": ""
+  },
+  {
+   "id": "S2-3",
+   "code": "S2-3",
+   "kind": "stratum",
+   "group_zh": "志留系",
+   "group_ko": "실루리아계",
+   "age_zh": "中—上志留统",
+   "age_ko": "웬록세~러들로세",
+   "age_en": "Wenlock–Ludlow",
+   "age_top_ma": 422.7,
+   "age_base_ma": 432.9,
+   "lith_zh": "",
+   "lith_ko": "",
+   "lith_en": "",
+   "desc_zh": "徐尼乌苏组",
+   "desc_ko": "대표 층군: 徐尼乌苏组",
+   "desc_en": "Representative units: 徐尼乌苏组",
+   "swatch": [
+    950,
+    7637,
+    1062,
+    7689
+   ],
+   "rgb": [
+    176,
+    215,
+    0
+   ],
+   "bar": false,
+   "uncertain": true,
+   "note": ""
+  },
+  {
+   "id": "S2",
+   "code": "S2",
+   "kind": "stratum",
+   "group_zh": "志留系",
+   "group_ko": "실루리아계",
+   "age_zh": "中志留统",
+   "age_ko": "웬록세",
+   "age_en": "Wenlock",
+   "age_top_ma": 426.7,
+   "age_base_ma": 432.9,
+   "lith_zh": "",
+   "lith_ko": "",
+   "lith_en": "",
+   "desc_zh": "安康组、公婆泉组、茅山组",
+   "desc_ko": "대표 층군: 安康组、公婆泉组、茅山组",
+   "desc_en": "Representative units: 安康组、公婆泉组、茅山组",
+   "swatch": [
+    950,
+    7696,
+    1062,
+    7748
+   ],
+   "rgb": [
+    152,
+    241,
+    1
+   ],
+   "bar": false,
+   "uncertain": true,
+   "note": ""
+  },
+  {
+   "id": "S1-2",
+   "code": "S1-2",
+   "kind": "stratum",
+   "group_zh": "志留系",
+   "group_ko": "실루리아계",
+   "age_zh": "下—中志留统",
+   "age_ko": "란도베리세~웬록세",
+   "age_en": "Llandovery–Wenlock",
+   "age_top_ma": 426.7,
+   "age_base_ma": 443.1,
+   "lith_zh": "",
+   "lith_ko": "",
+   "lith_en": "",
+   "desc_zh": "陀烈群",
+   "desc_ko": "대표 층군: 陀烈群",
+   "desc_en": "Representative units: 陀烈群",
+   "swatch": [
+    950,
+    7755,
+    1062,
+    7807
+   ],
+   "rgb": [
+    152,
+    227,
+    0
+   ],
+   "bar": false,
+   "uncertain": true,
+   "note": ""
+  },
+  {
+   "id": "S1",
+   "code": "S1",
+   "kind": "stratum",
+   "group_zh": "志留系",
+   "group_ko": "실루리아계",
+   "age_zh": "下志留统",
+   "age_ko": "란도베리세",
+   "age_en": "Llandovery",
+   "age_top_ma": 432.9,
+   "age_base_ma": 443.1,
+   "lith_zh": "",
+   "lith_ko": "",
+   "lith_en": "",
+   "desc_zh": "紫阳组、龙马溪组、柯坪塔格组、高家边组",
+   "desc_ko": "대표 층군: 紫阳组、龙马溪组、柯坪塔格组、高家边组",
+   "desc_en": "Representative units: 紫阳组、龙马溪组、柯坪塔格组、高家边组",
+   "swatch": [
+    950,
+    7814,
+    1062,
+    7866
+   ],
+   "rgb": [
+    151,
+    216,
+    0
+   ],
+   "bar": false,
+   "uncertain": false,
+   "note": ""
+  },
+  {
+   "id": "AnS",
+   "code": "AnS",
+   "kind": "stratum",
+   "group_zh": "(跨系)",
+   "group_ko": "(여러 계에 걸침)",
+   "age_zh": "前志留系",
+   "age_ko": "실루리아기 이전",
+   "age_en": "pre-Silurian",
+   "age_top_ma": 443.1,
+   "age_base_ma": null,
+   "lith_zh": "",
+   "lith_ko": "",
+   "lith_en": "",
+   "desc_zh": "未分",
+   "desc_ko": "미분",
+   "desc_en": "undivided",
+   "swatch": [
+    950,
+    7897,
+    1062,
+    7949
+   ],
+   "rgb": [
+    151,
+    216,
+    50
+   ],
+   "bar": false,
+   "uncertain": false,
+   "note": ""
+  },
+  {
+   "id": "OS",
+   "code": "OS",
+   "kind": "stratum",
+   "group_zh": "(跨系)",
+   "group_ko": "(여러 계에 걸침)",
+   "age_zh": "奥陶系—志留系",
+   "age_ko": "오르도비스기~실루리아기",
+   "age_en": "Ordovician–Silurian",
+   "age_top_ma": 419.62,
+   "age_base_ma": 486.85,
+   "lith_zh": "",
+   "lith_ko": "",
+   "lith_en": "",
+   "desc_zh": "含OS1、OS2、O2S1、O3S1",
+   "desc_ko": "OS1、OS2、O2S1、O3S1 포함",
+   "desc_en": "includes OS1、OS2、O2S1、O3S1",
+   "swatch": [
+    950,
+    7980,
+    1062,
+    8032
+   ],
+   "rgb": [
+    153,
+    241,
+    128
+   ],
+   "bar": false,
+   "uncertain": false,
+   "note": ""
+  },
+  {
+   "id": "O",
+   "code": "O",
+   "kind": "stratum",
+   "group_zh": "奥陶系",
+   "group_ko": "오르도비스계",
+   "age_zh": "奥陶系",
+   "age_ko": "오르도비스기",
+   "age_en": "Ordovician",
+   "age_top_ma": 443.1,
+   "age_base_ma": 486.85,
+   "lith_zh": "",
+   "lith_ko": "",
+   "lith_en": "",
+   "desc_zh": "",
+   "desc_ko": "",
+   "desc_en": "",
+   "swatch": [
+    903,
+    8062,
+    943,
+    8351
+   ],
+   "rgb": [
+    126,
+    255,
+    128
+   ],
+   "bar": true,
+   "uncertain": false,
+   "note": "계 막대 색"
+  },
+  {
+   "id": "O3",
+   "code": "O3",
+   "kind": "stratum",
+   "group_zh": "奥陶系",
+   "group_ko": "오르도비스계",
+   "age_zh": "上奥陶统",
+   "age_ko": "오르도비스기 후기",
+   "age_en": "Late Ordovician",
+   "age_top_ma": 443.1,
+   "age_base_ma": 458.2,
+   "lith_zh": "",
+   "lith_ko": "",
+   "lith_en": "",
+   "desc_zh": "钱塘江组、艾家山组、多宝山组、爱辉组、峰峰组",
+   "desc_ko": "대표 층군: 钱塘江组、艾家山组、多宝山组、爱辉组、峰峰组",
+   "desc_en": "Representative units: 钱塘江组、艾家山组、多宝山组、爱辉组、峰峰组",
+   "swatch": [
+    950,
+    8062,
+    1062,
+    8114
+   ],
+   "rgb": [
+    178,
+    255,
+    203
+   ],
+   "bar": false,
+   "uncertain": false,
+   "note": ""
+  },
+  {
+   "id": "O2-3",
+   "code": "O2-3",
+   "kind": "stratum",
+   "group_zh": "奥陶系",
+   "group_ko": "오르도비스계",
+   "age_zh": "中—上奥陶统",
+   "age_ko": "오르도비스기 중기~후기",
+   "age_en": "Middle–Late Ordovician",
+   "age_top_ma": 443.1,
+   "age_base_ma": 471.3,
+   "lith_zh": "",
+   "lith_ko": "",
+   "lith_en": "",
+   "desc_zh": "硫磺山组、寺岗组、花牛山群",
+   "desc_ko": "대표 층군: 硫磺山组、寺岗组、花牛山群",
+   "desc_en": "Representative units: 硫磺山组、寺岗组、花牛山群",
+   "swatch": [
+    950,
+    8121,
+    1062,
+    8173
+   ],
+   "rgb": [
+    153,
+    255,
+    179
+   ],
+   "bar": false,
+   "uncertain": false,
+   "note": ""
+  },
+  {
+   "id": "O2",
+   "code": "O2",
+   "kind": "stratum",
+   "group_zh": "奥陶系",
+   "group_ko": "오르도비스계",
+   "age_zh": "中奥陶统",
+   "age_ko": "오르도비스기 중기",
+   "age_en": "Middle Ordovician",
+   "age_top_ma": 458.2,
+   "age_base_ma": 471.3,
+   "lith_zh": "",
+   "lith_ko": "",
+   "lith_en": "",
+   "desc_zh": "大湾组、南阳河组、宁国组、甲村组",
+   "desc_ko": "대표 층군: 大湾组、南阳河组、宁国组、甲村组",
+   "desc_en": "Representative units: 大湾组、南阳河组、宁国组、甲村组",
+   "swatch": [
+    950,
+    8180,
+    1062,
+    8232
+   ],
+   "rgb": [
+    127,
+    255,
+    178
+   ],
+   "bar": false,
+   "uncertain": false,
+   "note": ""
+  },
+  {
+   "id": "O1-2",
+   "code": "O1-2",
+   "kind": "stratum",
+   "group_zh": "奥陶系",
+   "group_ko": "오르도비스계",
+   "age_zh": "下—中奥陶统",
+   "age_ko": "오르도비스기 전기~중기",
+   "age_en": "Early–Middle Ordovician",
+   "age_top_ma": 458.2,
+   "age_base_ma": 486.85,
+   "lith_zh": "",
+   "lith_ko": "",
+   "lith_en": "",
+   "desc_zh": "焕古滩群、包尔汉图群",
+   "desc_ko": "대표 층군: 焕古滩群、包尔汉图群",
+   "desc_en": "Representative units: 焕古滩群、包尔汉图群",
+   "swatch": [
+    950,
+    8239,
+    1062,
+    8291
+   ],
+   "rgb": [
+    126,
+    255,
+    154
+   ],
+   "bar": false,
+   "uncertain": false,
+   "note": ""
+  },
+  {
+   "id": "O1",
+   "code": "O1",
+   "kind": "stratum",
+   "group_zh": "奥陶系",
+   "group_ko": "오르도비스계",
+   "age_zh": "下奥陶统",
+   "age_ko": "오르도비스기 전기",
+   "age_en": "Early Ordovician",
+   "age_top_ma": 471.3,
+   "age_base_ma": 486.85,
+   "lith_zh": "",
+   "lith_ko": "",
+   "lith_en": "",
+   "desc_zh": "宜昌统、新厂组、康纳森河组",
+   "desc_ko": "대표 층군: 宜昌统、新厂组、康纳森河组",
+   "desc_en": "Representative units: 宜昌统、新厂组、康纳森河组",
+   "swatch": [
+    950,
+    8298,
+    1062,
+    8351
+   ],
+   "rgb": [
+    102,
+    255,
+    128
+   ],
+   "bar": false,
+   "uncertain": false,
+   "note": ""
+  },
+  {
+   "id": "AnO",
+   "code": "AnO",
+   "kind": "stratum",
+   "group_zh": "(跨系)",
+   "group_ko": "(여러 계에 걸침)",
+   "age_zh": "前奥陶系",
+   "age_ko": "오르도비스기 이전",
+   "age_en": "pre-Ordovician",
+   "age_top_ma": 486.85,
+   "age_base_ma": null,
+   "lith_zh": "",
+   "lith_ko": "",
+   "lith_en": "",
+   "desc_zh": "未分（青藏）",
+   "desc_ko": "미분(칭짱 지역)",
+   "desc_en": "undivided (Qinghai–Tibet region)",
+   "swatch": [
+    950,
+    8381,
+    1062,
+    8433
+   ],
+   "rgb": [
+    127,
+    242,
+    151
+   ],
+   "bar": false,
+   "uncertain": false,
+   "note": "칭짱 지역 미분"
+  },
+  {
+   "id": "ЄD",
+   "code": "ЄD",
+   "kind": "stratum",
+   "group_zh": "(跨系)",
+   "group_ko": "(여러 계에 걸침)",
+   "age_zh": "寒武系—泥盆系",
+   "age_ko": "캄브리아기~데본기",
+   "age_en": "Cambrian–Devonian",
+   "age_top_ma": 358.86,
+   "age_base_ma": 538.8,
+   "lith_zh": "",
+   "lith_ko": "",
+   "lith_en": "",
+   "desc_zh": "含ЄD1",
+   "desc_ko": "ЄD1 포함",
+   "desc_en": "includes ЄD1",
+   "swatch": [
+    950,
+    8464,
+    1062,
+    8516
+   ],
+   "rgb": [
+    178,
+    229,
+    154
+   ],
+   "bar": false,
+   "uncertain": false,
+   "note": ""
+  },
+  {
+   "id": "ЄO",
+   "code": "ЄO",
+   "kind": "stratum",
+   "group_zh": "(跨系)",
+   "group_ko": "(여러 계에 걸침)",
+   "age_zh": "寒武系—奥陶系",
+   "age_ko": "캄브리아기~오르도비스기",
+   "age_en": "Cambrian–Ordovician",
+   "age_top_ma": 443.1,
+   "age_base_ma": 538.8,
+   "lith_zh": "",
+   "lith_ko": "",
+   "lith_en": "",
+   "desc_zh": "含ЄO1、ЄO2、Є2O、Є2O1、Є2O2、Є3O、Є3O1、Є3O2",
+   "desc_ko": "ЄO1、ЄO2、Є2O、Є2O1、Є2O2、Є3O、Є3O1、Є3O2 포함",
+   "desc_en": "includes ЄO1、ЄO2、Є2O、Є2O1、Є2O2、Є3O、Є3O1、Є3O2",
+   "swatch": [
+    950,
+    8547,
+    1062,
+    8599
+   ],
+   "rgb": [
+    127,
+    246,
+    126
+   ],
+   "bar": false,
+   "uncertain": false,
+   "note": ""
+  },
+  {
+   "id": "Є",
+   "code": "Є",
+   "kind": "stratum",
+   "group_zh": "寒武系",
+   "group_ko": "캄브리아계",
+   "age_zh": "寒武系",
+   "age_ko": "캄브리아기",
+   "age_en": "Cambrian",
+   "age_top_ma": 486.85,
+   "age_base_ma": 538.8,
+   "lith_zh": "",
+   "lith_ko": "",
+   "lith_en": "",
+   "desc_zh": "",
+   "desc_ko": "",
+   "desc_en": "",
+   "swatch": [
+    903,
+    8629,
+    943,
+    8917
+   ],
+   "rgb": [
+    102,
+    217,
+    51
+   ],
+   "bar": true,
+   "uncertain": false,
+   "note": "계 막대 색"
+  },
+  {
+   "id": "Є3",
+   "code": "Є3",
+   "kind": "stratum",
+   "group_zh": "寒武系",
+   "group_ko": "캄브리아계",
+   "age_zh": "上寒武统",
+   "age_ko": "푸롱세",
+   "age_en": "Furongian",
+   "age_top_ma": 486.85,
+   "age_base_ma": 497,
+   "lith_zh": "",
+   "lith_ko": "",
+   "lith_en": "",
+   "desc_zh": "长山组、三山子组、娄山关组、三游洞组",
+   "desc_ko": "대표 층군: 长山组、三山子组、娄山关组、三游洞组",
+   "desc_en": "Representative units: 长山组、三山子组、娄山关组、三游洞组",
+   "swatch": [
+    950,
+    8629,
+    1062,
+    8681
+   ],
+   "rgb": [
+    152,
+    241,
+    75
+   ],
+   "bar": false,
+   "uncertain": false,
+   "note": "중국 옛 3분법 — 대략 푸롱세"
+  },
+  {
+   "id": "Є2-3",
+   "code": "Є2-3",
+   "kind": "stratum",
+   "group_zh": "寒武系",
+   "group_ko": "캄브리아계",
+   "age_zh": "中—上寒武统",
+   "age_ko": "미아오링세~푸롱세",
+   "age_en": "Miaolingian–Furongian",
+   "age_top_ma": 486.85,
+   "age_base_ma": 506.5,
+   "lith_zh": "",
+   "lith_ko": "",
+   "lith_en": "",
+   "desc_zh": "观音台组、西双鹰山组",
+   "desc_ko": "대표 층군: 观音台组、西双鹰山组",
+   "desc_en": "Representative units: 观音台组、西双鹰山组",
+   "swatch": [
+    950,
+    8688,
+    1062,
+    8740
+   ],
+   "rgb": [
+    152,
+    229,
+    75
+   ],
+   "bar": false,
+   "uncertain": true,
+   "note": "\"西双鹰山组\" 의 둘째 글자가 흐리다"
+  },
+  {
+   "id": "Є2",
+   "code": "Є2",
+   "kind": "stratum",
+   "group_zh": "寒武系",
+   "group_ko": "캄브리아계",
+   "age_zh": "中寒武统",
+   "age_ko": "미아오링세",
+   "age_en": "Miaolingian",
+   "age_top_ma": 497,
+   "age_base_ma": 506.5,
+   "lith_zh": "",
+   "lith_ko": "",
+   "lith_en": "",
+   "desc_zh": "张夏组、大豁落井组、高台组",
+   "desc_ko": "대표 층군: 张夏组、大豁落井组、高台组",
+   "desc_en": "Representative units: 张夏组、大豁落井组、高台组",
+   "swatch": [
+    950,
+    8747,
+    1062,
+    8799
+   ],
+   "rgb": [
+    128,
+    228,
+    50
+   ],
+   "bar": false,
+   "uncertain": false,
+   "note": "중국 옛 3분법 — 대략 미아오링세"
+  },
+  {
+   "id": "Є1-2",
+   "code": "Є1-2",
+   "kind": "stratum",
+   "group_zh": "寒武系",
+   "group_ko": "캄브리아계",
+   "age_zh": "下—中寒武统",
+   "age_ko": "캄브리아기 전기~미아오링세",
+   "age_en": "Early Cambrian–Miaolingian",
+   "age_top_ma": 497,
+   "age_base_ma": 538.8,
+   "lith_zh": "",
+   "lith_ko": "",
+   "lith_en": "",
+   "desc_zh": "公养河群、小内冲组",
+   "desc_ko": "대표 층군: 公养河群、小内冲组",
+   "desc_en": "Representative units: 公养河群、小内冲组",
+   "swatch": [
+    950,
+    8806,
+    1062,
+    8858
+   ],
+   "rgb": [
+    126,
+    215,
+    25
+   ],
+   "bar": false,
+   "uncertain": false,
+   "note": ""
+  },
+  {
+   "id": "Є1",
+   "code": "Є1",
+   "kind": "stratum",
+   "group_zh": "寒武系",
+   "group_ko": "캄브리아계",
+   "age_zh": "下寒武统",
+   "age_ko": "캄브리아기 전기(테레누브세~제2세)",
+   "age_en": "Early Cambrian (Terreneuvian–Series 2)",
+   "age_top_ma": 506.5,
+   "age_base_ma": 538.8,
+   "lith_zh": "",
+   "lith_ko": "",
+   "lith_en": "",
+   "desc_zh": "筇竹寺组原始古脊椎、额尔古纳河组、牛蹄塘组",
+   "desc_ko": "대표 층군: 筇竹寺组原始古脊椎、额尔古纳河组、牛蹄塘组",
+   "desc_en": "Representative units: 筇竹寺组原始古脊椎、额尔古纳河组、牛蹄塘组",
+   "swatch": [
+    950,
+    8865,
+    1062,
+    8917
+   ],
+   "rgb": [
+    99,
+    202,
+    0
+   ],
+   "bar": false,
+   "uncertain": false,
+   "note": ""
+  },
+  {
+   "id": "Pz1",
+   "code": "Pz1",
+   "kind": "stratum",
+   "group_zh": "下古生界",
+   "group_ko": "전기 고생계",
+   "age_zh": "下古生界",
+   "age_ko": "고생대 전기",
+   "age_en": "Early Paleozoic",
+   "age_top_ma": 419.62,
+   "age_base_ma": 538.8,
+   "lith_zh": "",
+   "lith_ko": "",
+   "lith_en": "",
+   "desc_zh": "并层",
+   "desc_ko": "병층(이웃한 통을 합쳐 그림)",
+   "desc_en": "combined (adjacent series mapped together)",
+   "swatch": [
+    950,
+    8948,
+    1062,
+    9000
+   ],
+   "rgb": [
+    176,
+    241,
+    75
+   ],
+   "bar": false,
+   "uncertain": false,
+   "note": ""
+  },
+  {
+   "id": "Pz",
+   "code": "Pz",
+   "kind": "stratum",
+   "group_zh": "古生界",
+   "group_ko": "고생계",
+   "age_zh": "古生界",
+   "age_ko": "고생대",
+   "age_en": "Paleozoic",
+   "age_top_ma": 251.902,
+   "age_base_ma": 538.8,
+   "lith_zh": "",
+   "lith_ko": "",
+   "lith_en": "",
+   "desc_zh": "并层",
+   "desc_ko": "병층(이웃한 통을 합쳐 그림)",
+   "desc_en": "combined (adjacent series mapped together)",
+   "swatch": [
+    950,
+    9031,
+    1062,
+    9083
+   ],
+   "rgb": [
+    178,
+    243,
+    127
+   ],
+   "bar": false,
+   "uncertain": false,
+   "note": ""
+  },
+  {
+   "id": "AnЄ",
+   "code": "AnЄ",
+   "kind": "stratum",
+   "group_zh": "(跨系)",
+   "group_ko": "(여러 계에 걸침)",
+   "age_zh": "前寒武系",
+   "age_ko": "캄브리아기 이전",
+   "age_en": "pre-Cambrian",
+   "age_top_ma": 538.8,
+   "age_base_ma": null,
+   "lith_zh": "",
+   "lith_ko": "",
+   "lith_en": "",
+   "desc_zh": "未分",
+   "desc_ko": "미분",
+   "desc_en": "undivided",
+   "swatch": [
+    950,
+    9113,
+    1062,
+    9165
+   ],
+   "rgb": [
+    127,
+    216,
+    126
+   ],
+   "bar": false,
+   "uncertain": false,
+   "note": ""
+  },
+  {
+   "id": "ZЄ",
+   "code": "ZЄ",
+   "kind": "stratum",
+   "group_zh": "(跨系)",
+   "group_ko": "(여러 계에 걸침)",
+   "age_zh": "震旦系—寒武系",
+   "age_ko": "진단기~캄브리아기",
+   "age_en": "Sinian–Cambrian",
+   "age_top_ma": 486.85,
+   "age_base_ma": 680,
+   "lith_zh": "",
+   "lith_ko": "",
+   "lith_en": "",
+   "desc_zh": "含Pt3³Є、ZЄ肉切村组",
+   "desc_ko": "Pt3³Є、ZЄ肉切村组 포함",
+   "desc_en": "includes Pt3³Є、ZЄ肉切村组",
+   "swatch": [
+    950,
+    9196,
+    1062,
+    9248
+   ],
+   "rgb": [
+    229,
+    177,
+    153
+   ],
+   "bar": false,
+   "uncertain": false,
+   "note": "연대 아래 끝은 지도 연대표(진단계 6.8 억 년)"
+  },
+  {
+   "id": "Pt3",
+   "code": "Pt3",
+   "kind": "stratum",
+   "group_zh": "新元古界",
+   "group_ko": "신원생계",
+   "age_zh": "新元古界",
+   "age_ko": "신원생대",
+   "age_en": "Neoproterozoic",
+   "age_top_ma": 543,
+   "age_base_ma": 1000,
+   "lith_zh": "",
+   "lith_ko": "",
+   "lith_en": "",
+   "desc_zh": "",
+   "desc_ko": "",
+   "desc_en": "",
+   "swatch": [
+    902,
+    9279,
+    943,
+    9508
+   ],
+   "rgb": [
+    255,
+    191,
+    127
+   ],
+   "bar": true,
+   "uncertain": false,
+   "note": "묶음 막대 색. 선캄브리아는 지도 연대표의 연대"
+  },
+  {
+   "id": "Pt3³",
+   "code": "Pt3³",
+   "kind": "stratum",
+   "group_zh": "新元古界",
+   "group_ko": "신원생계",
+   "age_zh": "震旦系相当的中—浅变质地层",
+   "age_ko": "신원생대 3기(진단기 상당)",
+   "age_en": "Neoproterozoic III (≈Sinian/Ediacaran)",
+   "age_top_ma": 543,
+   "age_base_ma": 680,
+   "lith_zh": "",
+   "lith_ko": "",
+   "lith_en": "",
+   "desc_zh": "Pt3³：中—浅变质地层（以下同）",
+   "desc_ko": "Pt₃³: 중~저변성 지층(아래도 같다)",
+   "desc_en": "Pt₃³: medium- to low-grade metamorphic strata (same below)",
+   "swatch": [
+    950,
+    9279,
+    1038,
+    9331
+   ],
+   "rgb": [
+    255,
+    217,
+    178
+   ],
+   "bar": false,
+   "uncertain": false,
+   "note": "Pt 칸 = 중~천변성 지층, 오른쪽 Z·Nh 칸 = 변성되지 않은 덮개 · 같은 색: E1-2, Z — 색만으로 가를 수 없다",
+   "same_color_as": [
+    "E1-2",
+    "Z"
+   ]
+  },
+  {
+   "id": "Z",
+   "code": "Z",
+   "kind": "stratum",
+   "group_zh": "新元古界",
+   "group_ko": "신원생계",
+   "age_zh": "震旦系",
+   "age_ko": "진단계(震旦系, 약 6.8~5.4 억 년, 에디아카라계 상당)",
+   "age_en": "Sinian (≈Ediacaran)",
+   "age_top_ma": 543,
+   "age_base_ma": 680,
+   "lith_zh": "",
+   "lith_ko": "",
+   "lith_en": "",
+   "desc_zh": "Z：未变质盖层（以下同）",
+   "desc_ko": "Z: 변성되지 않은 덮개층(아래도 같다)",
+   "desc_en": "Z: unmetamorphosed cover (same below)",
+   "swatch": [
+    1045,
+    9279,
+    1109,
+    9331
+   ],
+   "rgb": [
+    255,
+    217,
+    178
+   ],
+   "bar": false,
+   "uncertain": false,
+   "note": "변성되지 않은 덮개층 · 같은 색: E1-2, Pt3³ — 색만으로 가를 수 없다",
+   "same_color_as": [
+    "E1-2",
+    "Pt3³"
+   ]
+  },
+  {
+   "id": "Pt3²⁻³",
+   "code": "Pt3²⁻³",
+   "kind": "stratum",
+   "group_zh": "新元古界",
+   "group_ko": "신원생계",
+   "age_zh": "南华—震旦系相当的变质地层",
+   "age_ko": "남화계~진단계 상당 변성 지층",
+   "age_en": "Nanhuan–Sinian equivalent (metamorphic)",
+   "age_top_ma": 543,
+   "age_base_ma": 800,
+   "lith_zh": "",
+   "lith_ko": "",
+   "lith_en": "",
+   "desc_zh": "南华—震旦系与相当的变质地层",
+   "desc_ko": "남화계~진단계와 그에 상당하는 변성 지층",
+   "desc_en": "Nanhuan–Sinian Systems and equivalent metamorphic strata",
+   "swatch": [
+    950,
+    9338,
+    1038,
+    9390
+   ],
+   "rgb": [
+    255,
+    211,
+    166
+   ],
+   "bar": false,
+   "uncertain": false,
+   "note": "같은 색: NhZ — 색만으로 가를 수 없다",
+   "same_color_as": [
+    "NhZ"
+   ]
+  },
+  {
+   "id": "NhZ",
+   "code": "NhZ",
+   "kind": "stratum",
+   "group_zh": "新元古界",
+   "group_ko": "신원생계",
+   "age_zh": "南华—震旦系",
+   "age_ko": "남화계~진단계(약 8~5.4 억 년)",
+   "age_en": "Nanhuan–Sinian",
+   "age_top_ma": 543,
+   "age_base_ma": 800,
+   "lith_zh": "",
+   "lith_ko": "",
+   "lith_en": "",
+   "desc_zh": "南华—震旦系与相当的变质地层",
+   "desc_ko": "남화계~진단계와 그에 상당하는 변성 지층",
+   "desc_en": "Nanhuan–Sinian Systems and equivalent metamorphic strata",
+   "swatch": [
+    1045,
+    9338,
+    1109,
+    9390
+   ],
+   "rgb": [
+    255,
+    211,
+    166
+   ],
+   "bar": false,
+   "uncertain": false,
+   "note": "같은 색: Pt3²⁻³ — 색만으로 가를 수 없다",
+   "same_color_as": [
+    "Pt3²⁻³"
+   ]
+  },
+  {
+   "id": "Pt3²",
+   "code": "Pt3²",
+   "kind": "stratum",
+   "group_zh": "新元古界",
+   "group_ko": "신원생계",
+   "age_zh": "南华系相当的变质地层",
+   "age_ko": "남화계 상당 변성 지층",
+   "age_en": "Nanhuan equivalent (metamorphic)",
+   "age_top_ma": 680,
+   "age_base_ma": 800,
+   "lith_zh": "",
+   "lith_ko": "",
+   "lith_en": "",
+   "desc_zh": "南华系与相当的变质地层",
+   "desc_ko": "남화계와 그에 상당하는 변성 지층",
+   "desc_en": "Nanhuan System and equivalent metamorphic strata",
+   "swatch": [
+    950,
+    9397,
+    1038,
+    9449
+   ],
+   "rgb": [
+    255,
+    203,
+    153
+   ],
+   "bar": false,
+   "uncertain": false,
+   "note": "같은 색: E, Nh — 색만으로 가를 수 없다",
+   "same_color_as": [
+    "E",
+    "Nh"
+   ]
+  },
+  {
+   "id": "Nh",
+   "code": "Nh",
+   "kind": "stratum",
+   "group_zh": "新元古界",
+   "group_ko": "신원생계",
+   "age_zh": "南华系",
+   "age_ko": "남화계(南华系, 약 8~6.8 억 년, 크라이오스진계 상당)",
+   "age_en": "Nanhuan (≈Cryogenian)",
+   "age_top_ma": 680,
+   "age_base_ma": 800,
+   "lith_zh": "",
+   "lith_ko": "",
+   "lith_en": "",
+   "desc_zh": "南华系与相当的变质地层",
+   "desc_ko": "남화계와 그에 상당하는 변성 지층",
+   "desc_en": "Nanhuan System and equivalent metamorphic strata",
+   "swatch": [
+    1045,
+    9397,
+    1109,
+    9449
+   ],
+   "rgb": [
+    255,
+    203,
+    153
+   ],
+   "bar": false,
+   "uncertain": false,
+   "note": "같은 색: E, Pt3² — 색만으로 가를 수 없다",
+   "same_color_as": [
+    "E",
+    "Pt3²"
+   ]
+  },
+  {
+   "id": "Pt3¹",
+   "code": "Pt3¹",
+   "kind": "stratum",
+   "group_zh": "新元古界",
+   "group_ko": "신원생계",
+   "age_zh": "青白口系相当的变质地层",
+   "age_ko": "청백구계 상당 변성 지층",
+   "age_en": "Qingbaikou equivalent (metamorphic)",
+   "age_top_ma": 800,
+   "age_base_ma": 1000,
+   "lith_zh": "",
+   "lith_ko": "",
+   "lith_en": "",
+   "desc_zh": "青白口系与相当的变质地层",
+   "desc_ko": "청백구계와 그에 상당하는 변성 지층",
+   "desc_en": "Qingbaikou System and equivalent metamorphic strata",
+   "swatch": [
+    949,
+    9456,
+    1038,
+    9508
+   ],
+   "rgb": [
+    254,
+    198,
+    139
+   ],
+   "bar": false,
+   "uncertain": false,
+   "note": "같은 색: Qb — 색만으로 가를 수 없다",
+   "same_color_as": [
+    "Qb"
+   ]
+  },
+  {
+   "id": "Qb",
+   "code": "Qb",
+   "kind": "stratum",
+   "group_zh": "新元古界",
+   "group_ko": "신원생계",
+   "age_zh": "青白口系",
+   "age_ko": "청백구계(青白口系, 약 10~8 억 년, 토노스계 상당)",
+   "age_en": "Qingbaikou (≈Tonian)",
+   "age_top_ma": 800,
+   "age_base_ma": 1000,
+   "lith_zh": "",
+   "lith_ko": "",
+   "lith_en": "",
+   "desc_zh": "青白口系与相当的变质地层",
+   "desc_ko": "청백구계와 그에 상당하는 변성 지층",
+   "desc_en": "Qingbaikou System and equivalent metamorphic strata",
+   "swatch": [
+    1045,
+    9456,
+    1109,
+    9508
+   ],
+   "rgb": [
+    254,
+    198,
+    139
+   ],
+   "bar": false,
+   "uncertain": false,
+   "note": "같은 색: Pt3¹ — 색만으로 가를 수 없다",
+   "same_color_as": [
+    "Pt3¹"
+   ]
+  },
+  {
+   "id": "Pt2-3",
+   "code": "Pt2-3",
+   "kind": "stratum",
+   "group_zh": "(跨系)",
+   "group_ko": "(여러 계에 걸침)",
+   "age_zh": "中—新元古界",
+   "age_ko": "중원생대~신원생대",
+   "age_en": "Meso–Neoproterozoic",
+   "age_top_ma": 543,
+   "age_base_ma": 1800,
+   "lith_zh": "",
+   "lith_ko": "",
+   "lith_en": "",
+   "desc_zh": "并层",
+   "desc_ko": "병층(이웃한 통을 합쳐 그림)",
+   "desc_en": "combined (adjacent series mapped together)",
+   "swatch": [
+    950,
+    9535,
+    1062,
+    9587
+   ],
+   "rgb": [
+    255,
+    185,
+    115
+   ],
+   "bar": false,
+   "uncertain": false,
+   "note": ""
+  },
+  {
+   "id": "Pt2",
+   "code": "Pt2",
+   "kind": "stratum",
+   "group_zh": "中元古界",
+   "group_ko": "중원생계",
+   "age_zh": "中元古界",
+   "age_ko": "중원생대",
+   "age_en": "Mesoproterozoic",
+   "age_top_ma": 1000,
+   "age_base_ma": 1800,
+   "lith_zh": "",
+   "lith_ko": "",
+   "lith_en": "",
+   "desc_zh": "",
+   "desc_ko": "",
+   "desc_en": "",
+   "swatch": [
+    902,
+    9615,
+    943,
+    9726
+   ],
+   "rgb": [
+    255,
+    166,
+    76
+   ],
+   "bar": true,
+   "uncertain": false,
+   "note": "묶음 막대 색"
+  },
+  {
+   "id": "Pt2²",
+   "code": "Pt2²",
+   "kind": "stratum",
+   "group_zh": "中元古界",
+   "group_ko": "중원생계",
+   "age_zh": "蓟县系相当的变质地层",
+   "age_ko": "계현계 상당 변성 지층",
+   "age_en": "Jixian equivalent (metamorphic)",
+   "age_top_ma": 1000,
+   "age_base_ma": 1400,
+   "lith_zh": "",
+   "lith_ko": "",
+   "lith_en": "",
+   "desc_zh": "蓟县系与相当的变质地层",
+   "desc_ko": "계현계와 그에 상당하는 변성 지층",
+   "desc_en": "Jixian System and equivalent metamorphic strata",
+   "swatch": [
+    950,
+    9615,
+    1038,
+    9667
+   ],
+   "rgb": [
+    255,
+    179,
+    103
+   ],
+   "bar": false,
+   "uncertain": false,
+   "note": "같은 색: Jx — 색만으로 가를 수 없다",
+   "same_color_as": [
+    "Jx"
+   ]
+  },
+  {
+   "id": "Jx",
+   "code": "Jx",
+   "kind": "stratum",
+   "group_zh": "中元古界",
+   "group_ko": "중원생계",
+   "age_zh": "蓟县系",
+   "age_ko": "계현계(蓟县系, 약 14~10 억 년)",
+   "age_en": "Jixian",
+   "age_top_ma": 1000,
+   "age_base_ma": 1400,
+   "lith_zh": "",
+   "lith_ko": "",
+   "lith_en": "",
+   "desc_zh": "蓟县系与相当的变质地层",
+   "desc_ko": "계현계와 그에 상당하는 변성 지층",
+   "desc_en": "Jixian System and equivalent metamorphic strata",
+   "swatch": [
+    1045,
+    9615,
+    1109,
+    9667
+   ],
+   "rgb": [
+    255,
+    179,
+    103
+   ],
+   "bar": false,
+   "uncertain": false,
+   "note": "같은 색: Pt2² — 색만으로 가를 수 없다",
+   "same_color_as": [
+    "Pt2²"
+   ]
+  },
+  {
+   "id": "Pt2¹",
+   "code": "Pt2¹",
+   "kind": "stratum",
+   "group_zh": "中元古界",
+   "group_ko": "중원생계",
+   "age_zh": "长城系相当的变质地层",
+   "age_ko": "장성계 상당 변성 지층",
+   "age_en": "Changcheng equivalent (metamorphic)",
+   "age_top_ma": 1400,
+   "age_base_ma": 1800,
+   "lith_zh": "",
+   "lith_ko": "",
+   "lith_en": "",
+   "desc_zh": "长城系与相当的变质地层",
+   "desc_ko": "장성계와 그에 상당하는 변성 지층",
+   "desc_en": "Changcheng System and equivalent metamorphic strata",
+   "swatch": [
+    950,
+    9674,
+    1038,
+    9726
+   ],
+   "rgb": [
+    254,
+    172,
+    88
+   ],
+   "bar": false,
+   "uncertain": false,
+   "note": "같은 색: Ch — 색만으로 가를 수 없다",
+   "same_color_as": [
+    "Ch"
+   ]
+  },
+  {
+   "id": "Ch",
+   "code": "Ch",
+   "kind": "stratum",
+   "group_zh": "中元古界",
+   "group_ko": "중원생계",
+   "age_zh": "长城系",
+   "age_ko": "장성계(长城系, 약 18~14 억 년)",
+   "age_en": "Changcheng",
+   "age_top_ma": 1400,
+   "age_base_ma": 1800,
+   "lith_zh": "",
+   "lith_ko": "",
+   "lith_en": "",
+   "desc_zh": "长城系与相当的变质地层",
+   "desc_ko": "장성계와 그에 상당하는 변성 지층",
+   "desc_en": "Changcheng System and equivalent metamorphic strata",
+   "swatch": [
+    1045,
+    9674,
+    1109,
+    9726
+   ],
+   "rgb": [
+    254,
+    172,
+    88
+   ],
+   "bar": false,
+   "uncertain": false,
+   "note": "같은 색: Pt2¹ — 색만으로 가를 수 없다",
+   "same_color_as": [
+    "Pt2¹"
+   ]
+  },
+  {
+   "id": "Pt1-2",
+   "code": "Pt1-2",
+   "kind": "stratum",
+   "group_zh": "(跨系)",
+   "group_ko": "(여러 계에 걸침)",
+   "age_zh": "古—中元古界",
+   "age_ko": "고원생대~중원생대",
+   "age_en": "Paleo–Mesoproterozoic",
+   "age_top_ma": 1000,
+   "age_base_ma": 2500,
+   "lith_zh": "",
+   "lith_ko": "",
+   "lith_en": "",
+   "desc_zh": "并层",
+   "desc_ko": "병층(이웃한 통을 합쳐 그림)",
+   "desc_en": "combined (adjacent series mapped together)",
+   "swatch": [
+    950,
+    9750,
+    1062,
+    9802
+   ],
+   "rgb": [
+    255,
+    153,
+    52
+   ],
+   "bar": false,
+   "uncertain": false,
+   "note": ""
+  },
+  {
+   "id": "Pt1",
+   "code": "Pt1",
+   "kind": "stratum",
+   "group_zh": "古元古界",
+   "group_ko": "고원생계",
+   "age_zh": "古元古界",
+   "age_ko": "고원생대",
+   "age_en": "Paleoproterozoic",
+   "age_top_ma": 1800,
+   "age_base_ma": 2500,
+   "lith_zh": "",
+   "lith_ko": "",
+   "lith_en": "",
+   "desc_zh": "",
+   "desc_ko": "",
+   "desc_en": "",
+   "swatch": [
+    1542,
+    6728,
+    1582,
+    6839
+   ],
+   "rgb": [
+    255,
+    102,
+    52
+   ],
+   "bar": true,
+   "uncertain": false,
+   "note": "묶음 막대 색 · 같은 색: γ6² — 색만으로 가를 수 없다",
+   "same_color_as": [
+    "γ6²"
+   ]
+  },
+  {
+   "id": "Pt1²",
+   "code": "Pt1²",
+   "kind": "stratum",
+   "group_zh": "古元古界",
+   "group_ko": "고원생계",
+   "age_zh": "滹沱系相当",
+   "age_ko": "호타계 상당(약 23~18 억 년)",
+   "age_en": "Hutuo equivalent",
+   "age_top_ma": 1800,
+   "age_base_ma": 2300,
+   "lith_zh": "",
+   "lith_ko": "",
+   "lith_en": "",
+   "desc_zh": "滹沱系、中条群、秦岭群、二道凹群、粉子山群、阿拉善群",
+   "desc_ko": "대표 층군: 滹沱系、中条群、秦岭群、二道凹群、粉子山群、阿拉善群",
+   "desc_en": "Representative units: 滹沱系、中条群、秦岭群、二道凹群、粉子山群、阿拉善群",
+   "swatch": [
+    1589,
+    6728,
+    1678,
+    6780
+   ],
+   "rgb": [
+    255,
+    128,
+    51
+   ],
+   "bar": false,
+   "uncertain": true,
+   "note": "설명 두 줄이 Pt₁²·Ht·Pt₁¹ 에 걸쳐 있어 어느 군이 어느 칸인지 가를 수 없다 · 같은 색: Ht — 색만으로 가를 수 없다",
+   "same_color_as": [
+    "Ht"
+   ]
+  },
+  {
+   "id": "Ht",
+   "code": "Ht",
+   "kind": "stratum",
+   "group_zh": "古元古界",
+   "group_ko": "고원생계",
+   "age_zh": "滹沱系",
+   "age_ko": "호타계(滹沱系, 약 23~18 억 년)",
+   "age_en": "Hutuo",
+   "age_top_ma": 1800,
+   "age_base_ma": 2300,
+   "lith_zh": "",
+   "lith_ko": "",
+   "lith_en": "",
+   "desc_zh": "滹沱系、中条群、秦岭群、二道凹群、粉子山群、阿拉善群",
+   "desc_ko": "대표 층군: 滹沱系、中条群、秦岭群、二道凹群、粉子山群、阿拉善群",
+   "desc_en": "Representative units: 滹沱系、中条群、秦岭群、二道凹群、粉子山群、阿拉善群",
+   "swatch": [
+    1685,
+    6728,
+    1748,
+    6780
+   ],
+   "rgb": [
+    255,
+    128,
+    51
+   ],
+   "bar": false,
+   "uncertain": true,
+   "note": "Pt₁² 와 같음 · 같은 색: Pt1² — 색만으로 가를 수 없다",
+   "same_color_as": [
+    "Pt1²"
+   ]
+  },
+  {
+   "id": "Pt1¹",
+   "code": "Pt1¹",
+   "kind": "stratum",
+   "group_zh": "古元古界",
+   "group_ko": "고원생계",
+   "age_zh": "古元古界下部",
+   "age_ko": "고원생대 전기(약 25~23 억 년)",
+   "age_en": "early Paleoproterozoic",
+   "age_top_ma": 2300,
+   "age_base_ma": 2500,
+   "lith_zh": "",
+   "lith_ko": "",
+   "lith_en": "",
+   "desc_zh": "滹沱系、中条群、秦岭群、二道凹群、粉子山群、阿拉善群",
+   "desc_ko": "대표 층군: 滹沱系、中条群、秦岭群、二道凹群、粉子山群、阿拉善群",
+   "desc_en": "Representative units: 滹沱系、中条群、秦岭群、二道凹群、粉子山群、阿拉善群",
+   "swatch": [
+    1589,
+    6787,
+    1748,
+    6839
+   ],
+   "rgb": [
+    254,
+    127,
+    76
+   ],
+   "bar": false,
+   "uncertain": true,
+   "note": "Pt₁² 와 같음"
+  },
+  {
+   "id": "Ar3Pt1",
+   "code": "Ar3Pt1",
+   "kind": "stratum",
+   "group_zh": "(跨系)",
+   "group_ko": "(여러 계에 걸침)",
+   "age_zh": "新太古界—古元古界",
+   "age_ko": "신시생대~고원생대",
+   "age_en": "Neoarchean–Paleoproterozoic",
+   "age_top_ma": 1800,
+   "age_base_ma": 2800,
+   "lith_zh": "",
+   "lith_ko": "",
+   "lith_en": "",
+   "desc_zh": "含Ar3Pt1¹，五台群、康定杂岩、大别群、金水口群",
+   "desc_ko": "Ar3Pt1¹ 포함; 대표 층군: 五台群、康定杂岩、大别群、金水口群",
+   "desc_en": "includes Ar3Pt1¹; representative units: 五台群、康定杂岩、大别群、金水口群",
+   "swatch": [
+    1589,
+    6874,
+    1701,
+    6927
+   ],
+   "rgb": [
+    246,
+    204,
+    205
+   ],
+   "bar": false,
+   "uncertain": false,
+   "note": ""
+  },
+  {
+   "id": "Ar",
+   "code": "Ar",
+   "kind": "stratum",
+   "group_zh": "太古宇",
+   "group_ko": "시생누층",
+   "age_zh": "太古宇",
+   "age_ko": "시생누대",
+   "age_en": "Archean",
+   "age_top_ma": 2500,
+   "age_base_ma": null,
+   "lith_zh": "",
+   "lith_ko": "",
+   "lith_en": "",
+   "desc_zh": "",
+   "desc_ko": "",
+   "desc_en": "",
+   "swatch": [
+    1541,
+    6968,
+    1582,
+    7256
+   ],
+   "rgb": [
+    255,
+    153,
+    255
+   ],
+   "bar": true,
+   "uncertain": false,
+   "note": "묶음 막대 색 · 같은 색: γ — 색만으로 가를 수 없다",
+   "same_color_as": [
+    "γ"
+   ]
+  },
+  {
+   "id": "Ar3",
+   "code": "Ar3",
+   "kind": "stratum",
+   "group_zh": "太古宇",
+   "group_ko": "시생누층",
+   "age_zh": "新太古界",
+   "age_ko": "신시생대",
+   "age_en": "Neoarchean",
+   "age_top_ma": 2500,
+   "age_base_ma": 2800,
+   "lith_zh": "",
+   "lith_ko": "",
+   "lith_en": "",
+   "desc_zh": "含Ar3¹、Ar3²，乌拉山群、遵化群",
+   "desc_ko": "Ar3¹、Ar3² 포함; 대표 층군: 乌拉山群、遵化群",
+   "desc_en": "includes Ar3¹、Ar3²; representative units: 乌拉山群、遵化群",
+   "swatch": [
+    1589,
+    6968,
+    1700,
+    7020
+   ],
+   "rgb": [
+    255,
+    217,
+    255
+   ],
+   "bar": false,
+   "uncertain": false,
+   "note": ""
+  },
+  {
+   "id": "Ar2-3",
+   "code": "Ar2-3",
+   "kind": "stratum",
+   "group_zh": "太古宇",
+   "group_ko": "시생누층",
+   "age_zh": "中—新太古界",
+   "age_ko": "중시생대~신시생대",
+   "age_en": "Meso–Neoarchean",
+   "age_top_ma": 2500,
+   "age_base_ma": 3200,
+   "lith_zh": "",
+   "lith_ko": "",
+   "lith_en": "",
+   "desc_zh": "贺兰山群、建平群、泰山群、界河口群、迭布斯克群",
+   "desc_ko": "대표 층군: 贺兰山群、建平群、泰山群、界河口群、迭布斯克群",
+   "desc_en": "Representative units: 贺兰山群、建平群、泰山群、界河口群、迭布斯克群",
+   "swatch": [
+    1588,
+    7027,
+    1700,
+    7079
+   ],
+   "rgb": [
+    254,
+    204,
+    255
+   ],
+   "bar": false,
+   "uncertain": true,
+   "note": "설명이 Ar₂₋₃·Ar₂ 두 칸에 걸쳐 있다"
+  },
+  {
+   "id": "Ar2",
+   "code": "Ar2",
+   "kind": "stratum",
+   "group_zh": "太古宇",
+   "group_ko": "시생누층",
+   "age_zh": "中太古界",
+   "age_ko": "중시생대",
+   "age_en": "Mesoarchean",
+   "age_top_ma": 2800,
+   "age_base_ma": 3200,
+   "lith_zh": "",
+   "lith_ko": "",
+   "lith_en": "",
+   "desc_zh": "贺兰山群、建平群、泰山群、界河口群、迭布斯克群",
+   "desc_ko": "대표 층군: 贺兰山群、建平群、泰山群、界河口群、迭布斯克群",
+   "desc_en": "Representative units: 贺兰山群、建平群、泰山群、界河口群、迭布斯克群",
+   "swatch": [
+    1588,
+    7086,
+    1700,
+    7138
+   ],
+   "rgb": [
+    255,
+    190,
+    254
+   ],
+   "bar": false,
+   "uncertain": true,
+   "note": "Ar₂₋₃ 와 같은 설명"
+  },
+  {
+   "id": "Ar1-2",
+   "code": "Ar1-2",
+   "kind": "stratum",
+   "group_zh": "太古宇",
+   "group_ko": "시생누층",
+   "age_zh": "古—中太古界",
+   "age_ko": "고시생대~중시생대",
+   "age_en": "Paleo–Mesoarchean",
+   "age_top_ma": 2800,
+   "age_base_ma": 3600,
+   "lith_zh": "",
+   "lith_ko": "",
+   "lith_en": "",
+   "desc_zh": "桑干杂岩、迁西群、龙岗群、胶东群、鞍山群",
+   "desc_ko": "대표 층군: 桑干杂岩、迁西群、龙岗群、胶东群、鞍山群",
+   "desc_en": "Representative units: 桑干杂岩、迁西群、龙岗群、胶东群、鞍山群",
+   "swatch": [
+    1588,
+    7145,
+    1700,
+    7197
+   ],
+   "rgb": [
+    255,
+    178,
+    255
+   ],
+   "bar": false,
+   "uncertain": true,
+   "note": "설명이 Ar₁₋₂·Ar₁ 두 칸에 걸쳐 있다"
+  },
+  {
+   "id": "Ar1",
+   "code": "Ar1",
+   "kind": "stratum",
+   "group_zh": "太古宇",
+   "group_ko": "시생누층",
+   "age_zh": "古太古界",
+   "age_ko": "고시생대",
+   "age_en": "Paleoarchean",
+   "age_top_ma": 3200,
+   "age_base_ma": 3600,
+   "lith_zh": "",
+   "lith_ko": "",
+   "lith_en": "",
+   "desc_zh": "桑干杂岩、迁西群、龙岗群、胶东群、鞍山群",
+   "desc_ko": "대표 층군: 桑干杂岩、迁西群、龙岗群、胶东群、鞍山群",
+   "desc_en": "Representative units: 桑干杂岩、迁西群、龙岗群、胶东群、鞍山群",
+   "swatch": [
+    1588,
+    7204,
+    1700,
+    7256
+   ],
+   "rgb": [
+    242,
+    165,
+    243
+   ],
+   "bar": false,
+   "uncertain": true,
+   "note": "Ar₁₋₂ 와 같은 설명. 지도 연대표에서 Ar₁ = 古太古代(36~32 억 년), 그보다 오랜 것은 Ar₀"
+  },
+  {
+   "id": "γ6",
+   "code": "γ6",
+   "kind": "intrusive",
+   "group_zh": "酸性岩类",
+   "group_ko": "산성암류",
+   "age_zh": "新生代",
+   "age_ko": "신생대",
+   "age_en": "Cenozoic",
+   "age_top_ma": 0,
+   "age_base_ma": 65,
+   "lith_zh": "花岗岩",
+   "lith_ko": "화강암",
+   "lith_en": "granite",
+   "desc_zh": "花岗岩（新生代）",
+   "desc_ko": "화강암 — 신생대 (0~65 Ma)",
+   "desc_en": "Granite — Cenozoic (0–65 Ma)",
+   "swatch": [
+    1540,
+    7785,
+    1581,
+    7896
+   ],
+   "rgb": [
+    255,
+    50,
+    0
+   ],
+   "bar": true,
+   "uncertain": false,
+   "note": "시대 막대 색 · 연대는 범례에 적힌 억 년 값(지도 자체 연대)"
+  },
+  {
+   "id": "γ6²",
+   "code": "γ6²",
+   "kind": "intrusive",
+   "group_zh": "酸性岩类",
+   "group_ko": "산성암류",
+   "age_zh": "新近纪",
+   "age_ko": "신진기",
+   "age_en": "Neogene",
+   "age_top_ma": 2.6,
+   "age_base_ma": 23.3,
+   "lith_zh": "花岗岩",
+   "lith_ko": "화강암",
+   "lith_en": "granite",
+   "desc_zh": "新近纪（2330～260万年）",
+   "desc_ko": "화강암 — 신진기 (2.6~23.3 Ma)",
+   "desc_en": "Granite — Neogene (2.6–23.3 Ma)",
+   "swatch": [
+    1588,
+    7785,
+    1699,
+    7837
+   ],
+   "rgb": [
+    255,
+    102,
+    52
+   ],
+   "bar": false,
+   "uncertain": false,
+   "note": "연대는 범례에 적힌 억 년 값(지도 자체 연대) · 같은 색: Pt1 — 색만으로 가를 수 없다",
+   "same_color_as": [
+    "Pt1"
+   ]
+  },
+  {
+   "id": "γ6¹",
+   "code": "γ6¹",
+   "kind": "intrusive",
+   "group_zh": "酸性岩类",
+   "group_ko": "산성암류",
+   "age_zh": "古近纪",
+   "age_ko": "고진기",
+   "age_en": "Paleogene",
+   "age_top_ma": 23.3,
+   "age_base_ma": 65,
+   "lith_zh": "花岗岩",
+   "lith_ko": "화강암",
+   "lith_en": "granite",
+   "desc_zh": "古近纪（6500～2330万年）",
+   "desc_ko": "화강암 — 고진기 (23.3~65 Ma)",
+   "desc_en": "Granite — Paleogene (23.3–65 Ma)",
+   "swatch": [
+    1588,
+    7844,
+    1699,
+    7896
+   ],
+   "rgb": [
+    255,
+    76,
+    25
+   ],
+   "bar": false,
+   "uncertain": false,
+   "note": "연대는 범례에 적힌 억 년 값(지도 자체 연대)"
+  },
+  {
+   "id": "γ5-6³",
+   "code": "γ5-6³",
+   "kind": "intrusive",
+   "group_zh": "酸性岩类",
+   "group_ko": "산성암류",
+   "age_zh": "白垩纪～新生代（未分）",
+   "age_ko": "백악기~신생대(미분)",
+   "age_en": "Cretaceous–Cenozoic undivided",
+   "age_top_ma": 0,
+   "age_base_ma": 137,
+   "lith_zh": "花岗岩",
+   "lith_ko": "화강암",
+   "lith_en": "granite",
+   "desc_zh": "白垩纪～新生代（未分）",
+   "desc_ko": "화강암 — 백악기~신생대(미분) (0~137 Ma)",
+   "desc_en": "Granite — Cretaceous–Cenozoic undivided (0–137 Ma)",
+   "swatch": [
+    1588,
+    7935,
+    1699,
+    7987
+   ],
+   "rgb": [
+    254,
+    100,
+    100
+   ],
+   "bar": false,
+   "uncertain": false,
+   "note": "부호는 γ³₅₋₆ · 연대는 범례에 적힌 억 년 값(지도 자체 연대) · 같은 색: γ5³ — 색만으로 가를 수 없다",
+   "same_color_as": [
+    "γ5³"
+   ]
+  },
+  {
+   "id": "γ5",
+   "code": "γ5",
+   "kind": "intrusive",
+   "group_zh": "酸性岩类",
+   "group_ko": "산성암류",
+   "age_zh": "中生代",
+   "age_ko": "중생대",
+   "age_en": "Mesozoic",
+   "age_top_ma": 65,
+   "age_base_ma": 250,
+   "lith_zh": "花岗岩",
+   "lith_ko": "화강암",
+   "lith_en": "granite",
+   "desc_zh": "花岗岩（中生代）",
+   "desc_ko": "화강암 — 중생대 (65~250 Ma)",
+   "desc_en": "Granite — Mesozoic (65–250 Ma)",
+   "swatch": [
+    1540,
+    8022,
+    1581,
+    8251
+   ],
+   "rgb": [
+    254,
+    0,
+    0
+   ],
+   "bar": true,
+   "uncertain": false,
+   "note": "시대 막대 색 · 연대는 범례에 적힌 억 년 값(지도 자체 연대)"
+  },
+  {
+   "id": "γ5³",
+   "code": "γ5³",
+   "kind": "intrusive",
+   "group_zh": "酸性岩类",
+   "group_ko": "산성암류",
+   "age_zh": "白垩纪",
+   "age_ko": "백악기",
+   "age_en": "Cretaceous",
+   "age_top_ma": 65,
+   "age_base_ma": 137,
+   "lith_zh": "花岗岩",
+   "lith_ko": "화강암",
+   "lith_en": "granite",
+   "desc_zh": "白垩纪（1.37～0.65亿年）",
+   "desc_ko": "화강암 — 백악기 (65~137 Ma)",
+   "desc_en": "Granite — Cretaceous (65–137 Ma)",
+   "swatch": [
+    1588,
+    8022,
+    1699,
+    8074
+   ],
+   "rgb": [
+    255,
+    103,
+    102
+   ],
+   "bar": false,
+   "uncertain": false,
+   "note": "연대는 범례에 적힌 억 년 값(지도 자체 연대) · 같은 색: γ5-6³ — 색만으로 가를 수 없다",
+   "same_color_as": [
+    "γ5-6³"
+   ]
+  },
+  {
+   "id": "γ5²⁻³",
+   "code": "γ5²⁻³",
+   "kind": "intrusive",
+   "group_zh": "酸性岩类",
+   "group_ko": "산성암류",
+   "age_zh": "侏罗纪—白垩纪",
+   "age_ko": "쥐라기~백악기",
+   "age_en": "Jurassic–Cretaceous",
+   "age_top_ma": 65,
+   "age_base_ma": 205,
+   "lith_zh": "花岗岩",
+   "lith_ko": "화강암",
+   "lith_en": "granite",
+   "desc_zh": "侏罗纪—白垩纪",
+   "desc_ko": "화강암 — 쥐라기~백악기 (65~205 Ma)",
+   "desc_en": "Granite — Jurassic–Cretaceous (65–205 Ma)",
+   "swatch": [
+    1588,
+    8081,
+    1699,
+    8133
+   ],
+   "rgb": [
+    255,
+    77,
+    77
+   ],
+   "bar": false,
+   "uncertain": false,
+   "note": "연대는 범례에 적힌 억 년 값(지도 자체 연대)"
+  },
+  {
+   "id": "γ5²",
+   "code": "γ5²",
+   "kind": "intrusive",
+   "group_zh": "酸性岩类",
+   "group_ko": "산성암류",
+   "age_zh": "侏罗纪",
+   "age_ko": "쥐라기",
+   "age_en": "Jurassic",
+   "age_top_ma": 137,
+   "age_base_ma": 205,
+   "lith_zh": "花岗岩",
+   "lith_ko": "화강암",
+   "lith_en": "granite",
+   "desc_zh": "侏罗纪（2.05～1.37亿年）",
+   "desc_ko": "화강암 — 쥐라기 (137~205 Ma)",
+   "desc_en": "Granite — Jurassic (137–205 Ma)",
+   "swatch": [
+    1588,
+    8140,
+    1699,
+    8192
+   ],
+   "rgb": [
+    255,
+    51,
+    52
+   ],
+   "bar": false,
+   "uncertain": false,
+   "note": "연대는 범례에 적힌 억 년 값(지도 자체 연대)"
+  },
+  {
+   "id": "γ5¹",
+   "code": "γ5¹",
+   "kind": "intrusive",
+   "group_zh": "酸性岩类",
+   "group_ko": "산성암류",
+   "age_zh": "三叠纪",
+   "age_ko": "트라이아스기",
+   "age_en": "Triassic",
+   "age_top_ma": 205,
+   "age_base_ma": 250,
+   "lith_zh": "花岗岩",
+   "lith_ko": "화강암",
+   "lith_en": "granite",
+   "desc_zh": "三叠纪（2.50～2.05亿年）",
+   "desc_ko": "화강암 — 트라이아스기 (205~250 Ma)",
+   "desc_en": "Granite — Triassic (205–250 Ma)",
+   "swatch": [
+    1588,
+    8199,
+    1699,
+    8251
+   ],
+   "rgb": [
+    255,
+    0,
+    254
+   ],
+   "bar": false,
+   "uncertain": false,
+   "note": "연대는 범례에 적힌 억 년 값(지도 자체 연대)"
+  },
+  {
+   "id": "γ4³-γ5¹",
+   "code": "γ4³-γ5¹",
+   "kind": "intrusive",
+   "group_zh": "酸性岩类",
+   "group_ko": "산성암류",
+   "age_zh": "二叠纪—三叠纪",
+   "age_ko": "페름기~트라이아스기",
+   "age_en": "Permian–Triassic",
+   "age_top_ma": 205,
+   "age_base_ma": 295,
+   "lith_zh": "花岗岩",
+   "lith_ko": "화강암",
+   "lith_en": "granite",
+   "desc_zh": "二叠纪—三叠纪",
+   "desc_ko": "화강암 — 페름기~트라이아스기 (205~295 Ma)",
+   "desc_en": "Granite — Permian–Triassic (205–295 Ma)",
+   "swatch": [
+    1588,
+    8284,
+    1699,
+    8336
+   ],
+   "rgb": [
+    255,
+    127,
+    152
+   ],
+   "bar": false,
+   "uncertain": false,
+   "note": "연대는 범례에 적힌 억 년 값(지도 자체 연대)"
+  },
+  {
+   "id": "γ4",
+   "code": "γ4",
+   "kind": "intrusive",
+   "group_zh": "酸性岩类",
+   "group_ko": "산성암류",
+   "age_zh": "晚古生代",
+   "age_ko": "고생대 후기",
+   "age_en": "Late Paleozoic",
+   "age_top_ma": 250,
+   "age_base_ma": 410,
+   "lith_zh": "花岗岩",
+   "lith_ko": "화강암",
+   "lith_en": "granite",
+   "desc_zh": "花岗岩（晚古生代）",
+   "desc_ko": "화강암 — 고생대 후기 (250~410 Ma)",
+   "desc_en": "Granite — Late Paleozoic (250–410 Ma)",
+   "swatch": [
+    1540,
+    8368,
+    1581,
+    8538
+   ],
+   "rgb": [
+    254,
+    51,
+    255
+   ],
+   "bar": true,
+   "uncertain": false,
+   "note": "시대 막대 색 · 연대는 범례에 적힌 억 년 값(지도 자체 연대)"
+  },
+  {
+   "id": "γ4³",
+   "code": "γ4³",
+   "kind": "intrusive",
+   "group_zh": "酸性岩类",
+   "group_ko": "산성암류",
+   "age_zh": "二叠纪",
+   "age_ko": "페름기",
+   "age_en": "Permian",
+   "age_top_ma": 250,
+   "age_base_ma": 295,
+   "lith_zh": "花岗岩",
+   "lith_ko": "화강암",
+   "lith_en": "granite",
+   "desc_zh": "二叠纪（2.95～2.50亿年）",
+   "desc_ko": "화강암 — 페름기 (250~295 Ma)",
+   "desc_en": "Granite — Permian (250–295 Ma)",
+   "swatch": [
+    1588,
+    8368,
+    1699,
+    8420
+   ],
+   "rgb": [
+    255,
+    127,
+    254
+   ],
+   "bar": false,
+   "uncertain": false,
+   "note": "연대는 범례에 적힌 억 년 값(지도 자체 연대)"
+  },
+  {
+   "id": "γ4²",
+   "code": "γ4²",
+   "kind": "intrusive",
+   "group_zh": "酸性岩类",
+   "group_ko": "산성암류",
+   "age_zh": "石炭纪",
+   "age_ko": "석탄기",
+   "age_en": "Carboniferous",
+   "age_top_ma": 295,
+   "age_base_ma": 354,
+   "lith_zh": "花岗岩",
+   "lith_ko": "화강암",
+   "lith_en": "granite",
+   "desc_zh": "石炭纪（3.54～2.95亿年）",
+   "desc_ko": "화강암 — 석탄기 (295~354 Ma)",
+   "desc_en": "Granite — Carboniferous (295–354 Ma)",
+   "swatch": [
+    1588,
+    8427,
+    1699,
+    8479
+   ],
+   "rgb": [
+    255,
+    102,
+    255
+   ],
+   "bar": false,
+   "uncertain": false,
+   "note": "연대는 범례에 적힌 억 년 값(지도 자체 연대) · 같은 색: γπ — 색만으로 가를 수 없다",
+   "same_color_as": [
+    "γπ"
+   ]
+  },
+  {
+   "id": "γ4¹",
+   "code": "γ4¹",
+   "kind": "intrusive",
+   "group_zh": "酸性岩类",
+   "group_ko": "산성암류",
+   "age_zh": "泥盆纪",
+   "age_ko": "데본기",
+   "age_en": "Devonian",
+   "age_top_ma": 354,
+   "age_base_ma": 410,
+   "lith_zh": "花岗岩",
+   "lith_ko": "화강암",
+   "lith_en": "granite",
+   "desc_zh": "泥盆纪（4.10～3.54亿年）",
+   "desc_ko": "화강암 — 데본기 (354~410 Ma)",
+   "desc_en": "Granite — Devonian (354–410 Ma)",
+   "swatch": [
+    1588,
+    8486,
+    1699,
+    8538
+   ],
+   "rgb": [
+    255,
+    76,
+    255
+   ],
+   "bar": false,
+   "uncertain": false,
+   "note": "연대는 범례에 적힌 억 년 값(지도 자체 연대)"
+  },
+  {
+   "id": "γ3",
+   "code": "γ3",
+   "kind": "intrusive",
+   "group_zh": "酸性岩类",
+   "group_ko": "산성암류",
+   "age_zh": "早古生代",
+   "age_ko": "고생대 전기",
+   "age_en": "Early Paleozoic",
+   "age_top_ma": 410,
+   "age_base_ma": 540,
+   "lith_zh": "花岗岩",
+   "lith_ko": "화강암",
+   "lith_en": "granite",
+   "desc_zh": "花岗岩（早古生代）",
+   "desc_ko": "화강암 — 고생대 전기 (410~540 Ma)",
+   "desc_en": "Granite — Early Paleozoic (410–540 Ma)",
+   "swatch": [
+    1540,
+    8545,
+    1581,
+    8715
+   ],
+   "rgb": [
+    229,
+    25,
+    0
+   ],
+   "bar": true,
+   "uncertain": false,
+   "note": "시대 막대 색 · 연대는 범례에 적힌 억 년 값(지도 자체 연대)"
+  },
+  {
+   "id": "γ3³",
+   "code": "γ3³",
+   "kind": "intrusive",
+   "group_zh": "酸性岩类",
+   "group_ko": "산성암류",
+   "age_zh": "志留纪",
+   "age_ko": "실루리아기",
+   "age_en": "Silurian",
+   "age_top_ma": 410,
+   "age_base_ma": 438,
+   "lith_zh": "花岗岩",
+   "lith_ko": "화강암",
+   "lith_en": "granite",
+   "desc_zh": "志留纪（4.38～4.10亿年）",
+   "desc_ko": "화강암 — 실루리아기 (410~438 Ma)",
+   "desc_en": "Granite — Silurian (410–438 Ma)",
+   "swatch": [
+    1588,
+    8545,
+    1699,
+    8597
+   ],
+   "rgb": [
+    241,
+    75,
+    0
+   ],
+   "bar": false,
+   "uncertain": false,
+   "note": "연대는 범례에 적힌 억 년 값(지도 자체 연대)"
+  },
+  {
+   "id": "γ3²",
+   "code": "γ3²",
+   "kind": "intrusive",
+   "group_zh": "酸性岩类",
+   "group_ko": "산성암류",
+   "age_zh": "奥陶纪",
+   "age_ko": "오르도비스기",
+   "age_en": "Ordovician",
+   "age_top_ma": 438,
+   "age_base_ma": 490,
+   "lith_zh": "花岗岩",
+   "lith_ko": "화강암",
+   "lith_en": "granite",
+   "desc_zh": "奥陶纪（4.90～4.38亿年）",
+   "desc_ko": "화강암 — 오르도비스기 (438~490 Ma)",
+   "desc_en": "Granite — Ordovician (438–490 Ma)",
+   "swatch": [
+    1588,
+    8604,
+    1699,
+    8656
+   ],
+   "rgb": [
+    227,
+    51,
+    1
+   ],
+   "bar": false,
+   "uncertain": false,
+   "note": "연대는 범례에 적힌 억 년 값(지도 자체 연대)"
+  },
+  {
+   "id": "γ3¹",
+   "code": "γ3¹",
+   "kind": "intrusive",
+   "group_zh": "酸性岩类",
+   "group_ko": "산성암류",
+   "age_zh": "寒武纪",
+   "age_ko": "캄브리아기",
+   "age_en": "Cambrian",
+   "age_top_ma": 490,
+   "age_base_ma": 540,
+   "lith_zh": "花岗岩",
+   "lith_ko": "화강암",
+   "lith_en": "granite",
+   "desc_zh": "寒武纪（5.4～4.9亿年）",
+   "desc_ko": "화강암 — 캄브리아기 (490~540 Ma)",
+   "desc_en": "Granite — Cambrian (490–540 Ma)",
+   "swatch": [
+    1588,
+    8663,
+    1699,
+    8715
+   ],
+   "rgb": [
+    216,
+    50,
+    0
+   ],
+   "bar": false,
+   "uncertain": false,
+   "note": "연대는 범례에 적힌 억 년 값(지도 자체 연대)"
+  },
+  {
+   "id": "γ2",
+   "code": "γ2",
+   "kind": "intrusive",
+   "group_zh": "酸性岩类",
+   "group_ko": "산성암류",
+   "age_zh": "元古宙",
+   "age_ko": "원생누대",
+   "age_en": "Proterozoic",
+   "age_top_ma": 540,
+   "age_base_ma": 2500,
+   "lith_zh": "花岗岩",
+   "lith_ko": "화강암",
+   "lith_en": "granite",
+   "desc_zh": "花岗岩（元古宙）",
+   "desc_ko": "화강암 — 원생누대 (540~2500 Ma)",
+   "desc_en": "Granite — Proterozoic (540–2500 Ma)",
+   "swatch": [
+    1540,
+    8722,
+    1580,
+    9140
+   ],
+   "rgb": [
+    216,
+    50,
+    100
+   ],
+   "bar": true,
+   "uncertain": false,
+   "note": "시대 막대 색 · 연대는 범례에 적힌 억 년 값(지도 자체 연대)"
+  },
+  {
+   "id": "γ2⁷",
+   "code": "γ2⁷",
+   "kind": "intrusive",
+   "group_zh": "酸性岩类",
+   "group_ko": "산성암류",
+   "age_zh": "震旦纪",
+   "age_ko": "진단기",
+   "age_en": "Sinian",
+   "age_top_ma": 540,
+   "age_base_ma": 680,
+   "lith_zh": "花岗岩",
+   "lith_ko": "화강암",
+   "lith_en": "granite",
+   "desc_zh": "震旦纪（6.8～5.4亿年）",
+   "desc_ko": "화강암 — 진단기 (540~680 Ma)",
+   "desc_en": "Granite — Sinian (540–680 Ma)",
+   "swatch": [
+    1587,
+    8722,
+    1699,
+    8773
+   ],
+   "rgb": [
+    216,
+    76,
+    102
+   ],
+   "bar": false,
+   "uncertain": false,
+   "note": "연대는 범례에 적힌 억 년 값(지도 자체 연대) · 같은 색: γ2⁶, γ2⁵, γ2⁴ — 색만으로 가를 수 없다",
+   "same_color_as": [
+    "γ2⁶",
+    "γ2⁵",
+    "γ2⁴"
+   ]
+  },
+  {
+   "id": "γ2⁶",
+   "code": "γ2⁶",
+   "kind": "intrusive",
+   "group_zh": "酸性岩类",
+   "group_ko": "산성암류",
+   "age_zh": "南华纪",
+   "age_ko": "남화기",
+   "age_en": "Nanhuan",
+   "age_top_ma": 680,
+   "age_base_ma": 800,
+   "lith_zh": "花岗岩",
+   "lith_ko": "화강암",
+   "lith_en": "granite",
+   "desc_zh": "南华纪（8～6.8亿年）",
+   "desc_ko": "화강암 — 남화기 (680~800 Ma)",
+   "desc_en": "Granite — Nanhuan (680–800 Ma)",
+   "swatch": [
+    1587,
+    8781,
+    1699,
+    8832
+   ],
+   "rgb": [
+    216,
+    76,
+    102
+   ],
+   "bar": false,
+   "uncertain": false,
+   "note": "연대는 범례에 적힌 억 년 값(지도 자체 연대) · 같은 색: γ2⁷, γ2⁵, γ2⁴ — 색만으로 가를 수 없다",
+   "same_color_as": [
+    "γ2⁷",
+    "γ2⁵",
+    "γ2⁴"
+   ]
+  },
+  {
+   "id": "γ2⁵",
+   "code": "γ2⁵",
+   "kind": "intrusive",
+   "group_zh": "酸性岩类",
+   "group_ko": "산성암류",
+   "age_zh": "青白口纪",
+   "age_ko": "청백구기",
+   "age_en": "Qingbaikou",
+   "age_top_ma": 800,
+   "age_base_ma": 1000,
+   "lith_zh": "花岗岩",
+   "lith_ko": "화강암",
+   "lith_en": "granite",
+   "desc_zh": "青白口纪（10～8亿年）",
+   "desc_ko": "화강암 — 청백구기 (800~1000 Ma)",
+   "desc_en": "Granite — Qingbaikou (800–1000 Ma)",
+   "swatch": [
+    1587,
+    8840,
+    1699,
+    8892
+   ],
+   "rgb": [
+    216,
+    76,
+    102
+   ],
+   "bar": false,
+   "uncertain": false,
+   "note": "연대는 범례에 적힌 억 년 값(지도 자체 연대) · 같은 색: γ2⁷, γ2⁶, γ2⁴ — 색만으로 가를 수 없다",
+   "same_color_as": [
+    "γ2⁷",
+    "γ2⁶",
+    "γ2⁴"
+   ]
+  },
+  {
+   "id": "γ2⁴",
+   "code": "γ2⁴",
+   "kind": "intrusive",
+   "group_zh": "酸性岩类",
+   "group_ko": "산성암류",
+   "age_zh": "蓟县纪",
+   "age_ko": "계현기",
+   "age_en": "Jixian",
+   "age_top_ma": 1000,
+   "age_base_ma": 1400,
+   "lith_zh": "花岗岩",
+   "lith_ko": "화강암",
+   "lith_en": "granite",
+   "desc_zh": "蓟县纪（14～10亿年）",
+   "desc_ko": "화강암 — 계현기 (1000~1400 Ma)",
+   "desc_en": "Granite — Jixian (1000–1400 Ma)",
+   "swatch": [
+    1587,
+    8899,
+    1699,
+    8951
+   ],
+   "rgb": [
+    216,
+    76,
+    102
+   ],
+   "bar": false,
+   "uncertain": false,
+   "note": "연대는 범례에 적힌 억 년 값(지도 자체 연대) · 같은 색: γ2⁷, γ2⁶, γ2⁵ — 색만으로 가를 수 없다",
+   "same_color_as": [
+    "γ2⁷",
+    "γ2⁶",
+    "γ2⁵"
+   ]
+  },
+  {
+   "id": "γ2³",
+   "code": "γ2³",
+   "kind": "intrusive",
+   "group_zh": "酸性岩类",
+   "group_ko": "산성암류",
+   "age_zh": "长城纪",
+   "age_ko": "장성기",
+   "age_en": "Changcheng",
+   "age_top_ma": 1400,
+   "age_base_ma": 1800,
+   "lith_zh": "花岗岩",
+   "lith_ko": "화강암",
+   "lith_en": "granite",
+   "desc_zh": "长城纪（18～14亿年）",
+   "desc_ko": "화강암 — 장성기 (1400~1800 Ma)",
+   "desc_en": "Granite — Changcheng (1400–1800 Ma)",
+   "swatch": [
+    1587,
+    8958,
+    1699,
+    9010
+   ],
+   "rgb": [
+    204,
+    52,
+    103
+   ],
+   "bar": false,
+   "uncertain": false,
+   "note": "연대는 범례에 적힌 억 년 값(지도 자체 연대) · 같은 색: γ2², γ2¹ — 색만으로 가를 수 없다",
+   "same_color_as": [
+    "γ2²",
+    "γ2¹"
+   ]
+  },
+  {
+   "id": "γ2²",
+   "code": "γ2²",
+   "kind": "intrusive",
+   "group_zh": "酸性岩类",
+   "group_ko": "산성암류",
+   "age_zh": "滹沱纪",
+   "age_ko": "호타기",
+   "age_en": "Hutuo",
+   "age_top_ma": 1800,
+   "age_base_ma": 2300,
+   "lith_zh": "花岗岩",
+   "lith_ko": "화강암",
+   "lith_en": "granite",
+   "desc_zh": "滹沱纪（23～18亿年）",
+   "desc_ko": "화강암 — 호타기 (1800~2300 Ma)",
+   "desc_en": "Granite — Hutuo (1800–2300 Ma)",
+   "swatch": [
+    1587,
+    9017,
+    1699,
+    9081
+   ],
+   "rgb": [
+    204,
+    52,
+    103
+   ],
+   "bar": false,
+   "uncertain": false,
+   "note": "연대는 범례에 적힌 억 년 값(지도 자체 연대) · 같은 색: γ2³, γ2¹ — 색만으로 가를 수 없다",
+   "same_color_as": [
+    "γ2³",
+    "γ2¹"
+   ]
+  },
+  {
+   "id": "γ2¹",
+   "code": "γ2¹",
+   "kind": "intrusive",
+   "group_zh": "酸性岩类",
+   "group_ko": "산성암류",
+   "age_zh": "早古元古代",
+   "age_ko": "고원생대 전기",
+   "age_en": "early Paleoproterozoic",
+   "age_top_ma": 2300,
+   "age_base_ma": 2500,
+   "lith_zh": "花岗岩",
+   "lith_ko": "화강암",
+   "lith_en": "granite",
+   "desc_zh": "早古元古代（25～23亿年）",
+   "desc_ko": "화강암 — 고원생대 전기 (2300~2500 Ma)",
+   "desc_en": "Granite — early Paleoproterozoic (2300–2500 Ma)",
+   "swatch": [
+    1587,
+    9088,
+    1699,
+    9140
+   ],
+   "rgb": [
+    204,
+    52,
+    103
+   ],
+   "bar": false,
+   "uncertain": false,
+   "note": "연대는 범례에 적힌 억 년 값(지도 자체 연대) · 같은 색: γ2³, γ2² — 색만으로 가를 수 없다",
+   "same_color_as": [
+    "γ2³",
+    "γ2²"
+   ]
+  },
+  {
+   "id": "γ1-2",
+   "code": "γ1-2",
+   "kind": "intrusive",
+   "group_zh": "酸性岩类",
+   "group_ko": "산성암류",
+   "age_zh": "太古宙—元古宙",
+   "age_ko": "시생누대~원생누대",
+   "age_en": "Archean–Proterozoic",
+   "age_top_ma": 540,
+   "age_base_ma": null,
+   "lith_zh": "花岗岩",
+   "lith_ko": "화강암",
+   "lith_en": "granite",
+   "desc_zh": "太古宙—元古宙",
+   "desc_ko": "화강암 — 시생누대~원생누대",
+   "desc_en": "Granite — Archean–Proterozoic",
+   "swatch": [
+    1587,
+    9178,
+    1698,
+    9230
+   ],
+   "rgb": [
+    176,
+    49,
+    126
+   ],
+   "bar": false,
+   "uncertain": false,
+   "note": "연대는 범례에 적힌 억 년 값(지도 자체 연대)"
+  },
+  {
+   "id": "γ1",
+   "code": "γ1",
+   "kind": "intrusive",
+   "group_zh": "酸性岩类",
+   "group_ko": "산성암류",
+   "age_zh": "太古宙",
+   "age_ko": "시생누대",
+   "age_en": "Archean",
+   "age_top_ma": 2500,
+   "age_base_ma": null,
+   "lith_zh": "花岗岩",
+   "lith_ko": "화강암",
+   "lith_en": "granite",
+   "desc_zh": "花岗岩（太古宙）",
+   "desc_ko": "화강암 — 시생누대",
+   "desc_en": "Granite — Archean",
+   "swatch": [
+    1539,
+    9263,
+    1580,
+    9492
+   ],
+   "rgb": [
+    152,
+    51,
+    127
+   ],
+   "bar": true,
+   "uncertain": false,
+   "note": "시대 막대 색 · 연대는 범례에 적힌 억 년 값(지도 자체 연대) · 같은 색: γ1⁴, γ1³, γ1², γ1¹ — 색만으로 가를 수 없다",
+   "same_color_as": [
+    "γ1⁴",
+    "γ1³",
+    "γ1²",
+    "γ1¹"
+   ]
+  },
+  {
+   "id": "γ1⁴",
+   "code": "γ1⁴",
+   "kind": "intrusive",
+   "group_zh": "酸性岩类",
+   "group_ko": "산성암류",
+   "age_zh": "新太古代",
+   "age_ko": "신시생대",
+   "age_en": "Neoarchean",
+   "age_top_ma": 2500,
+   "age_base_ma": 2800,
+   "lith_zh": "花岗岩",
+   "lith_ko": "화강암",
+   "lith_en": "granite",
+   "desc_zh": "新太古代（28～25亿年）",
+   "desc_ko": "화강암 — 신시생대 (2500~2800 Ma)",
+   "desc_en": "Granite — Neoarchean (2500–2800 Ma)",
+   "swatch": [
+    1587,
+    9263,
+    1698,
+    9315
+   ],
+   "rgb": [
+    152,
+    51,
+    127
+   ],
+   "bar": false,
+   "uncertain": false,
+   "note": "연대는 범례에 적힌 억 년 값(지도 자체 연대) · 같은 색: γ1, γ1³, γ1², γ1¹ — 색만으로 가를 수 없다",
+   "same_color_as": [
+    "γ1",
+    "γ1³",
+    "γ1²",
+    "γ1¹"
+   ]
+  },
+  {
+   "id": "γ1³",
+   "code": "γ1³",
+   "kind": "intrusive",
+   "group_zh": "酸性岩类",
+   "group_ko": "산성암류",
+   "age_zh": "中太古代",
+   "age_ko": "중시생대",
+   "age_en": "Mesoarchean",
+   "age_top_ma": 2800,
+   "age_base_ma": 3200,
+   "lith_zh": "花岗岩",
+   "lith_ko": "화강암",
+   "lith_en": "granite",
+   "desc_zh": "中太古代（32～28亿年）",
+   "desc_ko": "화강암 — 중시생대 (2800~3200 Ma)",
+   "desc_en": "Granite — Mesoarchean (2800–3200 Ma)",
+   "swatch": [
+    1587,
+    9322,
+    1698,
+    9374
+   ],
+   "rgb": [
+    152,
+    51,
+    127
+   ],
+   "bar": false,
+   "uncertain": false,
+   "note": "연대는 범례에 적힌 억 년 값(지도 자체 연대) · 같은 색: γ1, γ1⁴, γ1², γ1¹ — 색만으로 가를 수 없다",
+   "same_color_as": [
+    "γ1",
+    "γ1⁴",
+    "γ1²",
+    "γ1¹"
+   ]
+  },
+  {
+   "id": "γ1²",
+   "code": "γ1²",
+   "kind": "intrusive",
+   "group_zh": "酸性岩类",
+   "group_ko": "산성암류",
+   "age_zh": "古太古代",
+   "age_ko": "고시생대",
+   "age_en": "Paleoarchean",
+   "age_top_ma": 3200,
+   "age_base_ma": 3600,
+   "lith_zh": "花岗岩",
+   "lith_ko": "화강암",
+   "lith_en": "granite",
+   "desc_zh": "古太古代（36～32亿年）",
+   "desc_ko": "화강암 — 고시생대 (3200~3600 Ma)",
+   "desc_en": "Granite — Paleoarchean (3200–3600 Ma)",
+   "swatch": [
+    1587,
+    9381,
+    1698,
+    9433
+   ],
+   "rgb": [
+    152,
+    51,
+    127
+   ],
+   "bar": false,
+   "uncertain": false,
+   "note": "연대는 범례에 적힌 억 년 값(지도 자체 연대) · 같은 색: γ1, γ1⁴, γ1³, γ1¹ — 색만으로 가를 수 없다",
+   "same_color_as": [
+    "γ1",
+    "γ1⁴",
+    "γ1³",
+    "γ1¹"
+   ]
+  },
+  {
+   "id": "γ1¹",
+   "code": "γ1¹",
+   "kind": "intrusive",
+   "group_zh": "酸性岩类",
+   "group_ko": "산성암류",
+   "age_zh": "始太古代",
+   "age_ko": "초시생대",
+   "age_en": "Eoarchean",
+   "age_top_ma": 3600,
+   "age_base_ma": null,
+   "lith_zh": "花岗岩",
+   "lith_ko": "화강암",
+   "lith_en": "granite",
+   "desc_zh": "始太古代（大于36亿年）",
+   "desc_ko": "화강암 — 초시생대",
+   "desc_en": "Granite — Eoarchean",
+   "swatch": [
+    1587,
+    9440,
+    1698,
+    9492
+   ],
+   "rgb": [
+    152,
+    51,
+    127
+   ],
+   "bar": false,
+   "uncertain": false,
+   "note": "연대는 범례에 적힌 억 년 값(지도 자체 연대) · 같은 색: γ1, γ1⁴, γ1³, γ1² — 색만으로 가를 수 없다",
+   "same_color_as": [
+    "γ1",
+    "γ1⁴",
+    "γ1³",
+    "γ1²"
+   ]
+  },
+  {
+   "id": "γ",
+   "code": "γ",
+   "kind": "intrusive",
+   "group_zh": "酸性岩类",
+   "group_ko": "산성암류",
+   "age_zh": "时代不明",
+   "age_ko": "시대 미상",
+   "age_en": "Age unknown",
+   "age_top_ma": null,
+   "age_base_ma": null,
+   "lith_zh": "花岗岩",
+   "lith_ko": "화강암",
+   "lith_en": "granite",
+   "desc_zh": "时代不明，包括γδ、γo、γη等",
+   "desc_ko": "화강암 — 시대 미상",
+   "desc_en": "Granite — Age unknown",
+   "swatch": [
+    1587,
+    9525,
+    1698,
+    9577
+   ],
+   "rgb": [
+    255,
+    153,
+    255
+   ],
+   "bar": false,
+   "uncertain": false,
+   "note": "연대는 범례에 적힌 억 년 값(지도 자체 연대) · 같은 색: Ar — 색만으로 가를 수 없다",
+   "same_color_as": [
+    "Ar"
+   ]
+  },
+  {
+   "id": "δ",
+   "code": "δ",
+   "kind": "intrusive",
+   "group_zh": "中性岩类(SiO₂ 52～63%)",
+   "group_ko": "중성암류",
+   "age_zh": "",
+   "age_ko": "",
+   "age_en": "",
+   "age_top_ma": null,
+   "age_base_ma": null,
+   "lith_zh": "闪长岩",
+   "lith_ko": "섬록암",
+   "lith_en": "diorite",
+   "desc_zh": "δ1～δ6（以下各类岩石同）",
+   "desc_ko": "섬록암 — 대표 칸, 시대는 첨자로 붙인다",
+   "desc_en": "diorite — representative swatch; age given by sub/superscript",
+   "swatch": [
+    2191,
+    7460,
+    2302,
+    7512
+   ],
+   "rgb": [
+    0,
+    204,
+    127
+   ],
+   "bar": false,
+   "uncertain": false,
+   "note": "대표 칸 — 아래첨자 1~6 은 γ 와 같은 시대 구분(γ1…γ6)"
+  },
+  {
+   "id": "ν",
+   "code": "ν",
+   "kind": "intrusive",
+   "group_zh": "基性岩类(铁镁质岩类)(SiO₂ 45～52%)",
+   "group_ko": "염기성암류(고철질암류)",
+   "age_zh": "",
+   "age_ko": "",
+   "age_en": "",
+   "age_top_ma": null,
+   "age_base_ma": null,
+   "lith_zh": "辉长岩",
+   "lith_ko": "반려암",
+   "lith_en": "gabbro",
+   "desc_zh": "ν1～ν6",
+   "desc_ko": "반려암 — 대표 칸, 시대는 첨자로 붙인다",
+   "desc_en": "gabbro — representative swatch; age given by sub/superscript",
+   "swatch": [
+    2191,
+    7725,
+    2302,
+    7777
+   ],
+   "rgb": [
+    0,
+    255,
+    1
+   ],
+   "bar": false,
+   "uncertain": false,
+   "note": "같은 색: β — 색만으로 가를 수 없다",
+   "same_color_as": [
+    "β"
+   ]
+  },
+  {
+   "id": "Σ",
+   "code": "Σ",
+   "kind": "intrusive",
+   "group_zh": "超基性岩类(超铁镁质岩类)(SiO₂<45%)",
+   "group_ko": "초염기성암류(초고철질암류)",
+   "age_zh": "",
+   "age_ko": "",
+   "age_en": "",
+   "age_top_ma": null,
+   "age_base_ma": null,
+   "lith_zh": "未分的超基性岩",
+   "lith_ko": "미분 초염기성암",
+   "lith_en": "undivided ultramafic rock",
+   "desc_zh": "Σ1～Σ6",
+   "desc_ko": "미분 초염기성암 — 대표 칸, 시대는 첨자로 붙인다",
+   "desc_en": "undivided ultramafic rock — representative swatch; age given by sub/superscript",
+   "swatch": [
+    2191,
+    8102,
+    2302,
+    8154
+   ],
+   "rgb": [
+    126,
+    51,
+    255
+   ],
+   "bar": false,
+   "uncertain": false,
+   "note": ""
+  },
+  {
+   "id": "Oφ",
+   "code": "Oφ",
+   "kind": "intrusive",
+   "group_zh": "杂岩类",
+   "group_ko": "잡암류(복합암류)",
+   "age_zh": "",
+   "age_ko": "",
+   "age_en": "",
+   "age_top_ma": null,
+   "age_base_ma": null,
+   "lith_zh": "蛇绿混杂岩",
+   "lith_ko": "오피올라이트 혼잡암",
+   "lith_en": "ophiolitic mélange",
+   "desc_zh": "OφPt3～OφK、OφMz",
+   "desc_ko": "오피올라이트 혼잡암 — 대표 칸, 시대는 첨자로 붙인다",
+   "desc_en": "ophiolitic mélange — representative swatch; age given by sub/superscript",
+   "swatch": [
+    2193,
+    8372,
+    2304,
+    8424
+   ],
+   "rgb": [
+    37,
+    63,
+    202
+   ],
+   "bar": false,
+   "uncertain": false,
+   "note": "오른쪽 아래첨자가 시대"
+  },
+  {
+   "id": "ξ",
+   "code": "ξ",
+   "kind": "intrusive",
+   "group_zh": "偏碱性—碱性岩类",
+   "group_ko": "준알칼리~알칼리암류",
+   "age_zh": "",
+   "age_ko": "",
+   "age_en": "",
+   "age_top_ma": null,
+   "age_base_ma": null,
+   "lith_zh": "正长岩",
+   "lith_ko": "섬장암",
+   "lith_en": "syenite",
+   "desc_zh": "ξ1～ξ6",
+   "desc_ko": "섬장암 — 대표 칸, 시대는 첨자로 붙인다",
+   "desc_en": "syenite — representative swatch; age given by sub/superscript",
+   "swatch": [
+    2191,
+    8729,
+    2302,
+    8781
+   ],
+   "rgb": [
+    255,
+    102,
+    0
+   ],
+   "bar": false,
+   "uncertain": false,
+   "note": ""
+  },
+  {
+   "id": "κσ",
+   "code": "κσ",
+   "kind": "intrusive",
+   "group_zh": "煌斑岩类",
+   "group_ko": "램프로파이어류",
+   "age_zh": "",
+   "age_ko": "",
+   "age_en": "",
+   "age_top_ma": null,
+   "age_base_ma": null,
+   "lith_zh": "金伯利岩与钾镁煌斑岩",
+   "lith_ko": "킴벌라이트·램프로아이트",
+   "lith_en": "kimberlite and lamproite",
+   "desc_zh": "κσ3",
+   "desc_ko": "킴벌라이트·램프로아이트 — 대표 칸, 시대는 첨자로 붙인다",
+   "desc_en": "kimberlite and lamproite — representative swatch; age given by sub/superscript",
+   "swatch": [
+    2191,
+    8942,
+    2302,
+    8994
+   ],
+   "rgb": [
+    255,
+    255,
+    255
+   ],
+   "bar": false,
+   "uncertain": false,
+   "note": "칸은 흰 바탕에 자홍 글자 — 색이 아니라 부호로 그린다"
+  },
+  {
+   "id": "γπ",
+   "code": "γπ",
+   "kind": "hypabyssal",
+   "group_zh": "酸性岩类(浅成岩及潜火山岩)",
+   "group_ko": "산성 천성암·잠화산암",
+   "age_zh": "",
+   "age_ko": "",
+   "age_en": "",
+   "age_top_ma": null,
+   "age_base_ma": null,
+   "lith_zh": "花岗斑岩",
+   "lith_ko": "화강반암",
+   "lith_en": "granite porphyry",
+   "desc_zh": "γπ1～γπ6",
+   "desc_ko": "화강반암 — 대표 칸, 시대는 첨자로 붙인다",
+   "desc_en": "granite porphyry — representative swatch; age given by sub/superscript",
+   "swatch": [
+    2191,
+    9294,
+    2302,
+    9346
+   ],
+   "rgb": [
+    255,
+    102,
+    255
+   ],
+   "bar": false,
+   "uncertain": false,
+   "note": "같은 색: γ4² — 색만으로 가를 수 없다",
+   "same_color_as": [
+    "γ4²"
+   ]
+  },
+  {
+   "id": "δμ",
+   "code": "δμ",
+   "kind": "hypabyssal",
+   "group_zh": "中性岩类(浅成岩及潜火山岩)",
+   "group_ko": "중성 천성암·잠화산암",
+   "age_zh": "",
+   "age_ko": "",
+   "age_en": "",
+   "age_top_ma": null,
+   "age_base_ma": null,
+   "lith_zh": "闪长玢岩",
+   "lith_ko": "섬록반암",
+   "lith_en": "diorite porphyrite",
+   "desc_zh": "δμ3～δμ6",
+   "desc_ko": "섬록반암 — 대표 칸, 시대는 첨자로 붙인다",
+   "desc_en": "diorite porphyrite — representative swatch; age given by sub/superscript",
+   "swatch": [
+    2191,
+    9498,
+    2302,
+    9550
+   ],
+   "rgb": [
+    75,
+    227,
+    152
+   ],
+   "bar": false,
+   "uncertain": false,
+   "note": ""
+  },
+  {
+   "id": "βμ",
+   "code": "βμ",
+   "kind": "hypabyssal",
+   "group_zh": "基性岩类(浅成岩及潜火山岩)",
+   "group_ko": "염기성 천성암·잠화산암",
+   "age_zh": "",
+   "age_ko": "",
+   "age_en": "",
+   "age_top_ma": null,
+   "age_base_ma": null,
+   "lith_zh": "粗玄岩",
+   "lith_ko": "조립현무암(돌레라이트)",
+   "lith_en": "dolerite",
+   "desc_zh": "βμ3～βμ4",
+   "desc_ko": "조립현무암(돌레라이트) — 대표 칸, 시대는 첨자로 붙인다",
+   "desc_en": "dolerite — representative swatch; age given by sub/superscript",
+   "swatch": [
+    2191,
+    9750,
+    2302,
+    9802
+   ],
+   "rgb": [
+    75,
+    255,
+    0
+   ],
+   "bar": false,
+   "uncertain": false,
+   "note": ""
+  },
+  {
+   "id": "ξπ",
+   "code": "ξπ",
+   "kind": "hypabyssal",
+   "group_zh": "碱性岩类(浅成岩及潜火山岩)",
+   "group_ko": "알칼리 천성암·잠화산암",
+   "age_zh": "",
+   "age_ko": "",
+   "age_en": "",
+   "age_top_ma": null,
+   "age_base_ma": null,
+   "lith_zh": "正长斑岩",
+   "lith_ko": "섬장반암",
+   "lith_en": "syenite porphyry",
+   "desc_zh": "ξπ5～ξπ6",
+   "desc_ko": "섬장반암 — 대표 칸, 시대는 첨자로 붙인다",
+   "desc_en": "syenite porphyry — representative swatch; age given by sub/superscript",
+   "swatch": [
+    2875,
+    7628,
+    2986,
+    7680
+   ],
+   "rgb": [
+    255,
+    128,
+    25
+   ],
+   "bar": false,
+   "uncertain": false,
+   "note": ""
+  },
+  {
+   "id": "λ",
+   "code": "λ",
+   "kind": "volcanic",
+   "group_zh": "火山岩（喷出岩）",
+   "group_ko": "화산암(분출암)",
+   "age_zh": "",
+   "age_ko": "",
+   "age_en": "",
+   "age_top_ma": null,
+   "age_base_ma": null,
+   "lith_zh": "流纹岩",
+   "lith_ko": "유문암",
+   "lith_en": "rhyolite",
+   "desc_zh": "流纹岩 λ¹～λ⁶",
+   "desc_ko": "유문암 — 대표 칸, 시대는 첨자로 붙인다",
+   "desc_en": "rhyolite — representative swatch; age given by sub/superscript",
+   "swatch": [
+    2874,
+    8080,
+    2986,
+    8132
+   ],
+   "rgb": [
+    255,
+    127,
+    126
+   ],
+   "bar": false,
+   "uncertain": false,
+   "note": "위첨자 1~6 은 제4기 화산 활동 6 기(규칙 참조)"
+  },
+  {
+   "id": "α",
+   "code": "α",
+   "kind": "volcanic",
+   "group_zh": "火山岩（喷出岩）",
+   "group_ko": "화산암(분출암)",
+   "age_zh": "",
+   "age_ko": "",
+   "age_en": "",
+   "age_top_ma": null,
+   "age_base_ma": null,
+   "lith_zh": "安山岩",
+   "lith_ko": "안산암",
+   "lith_en": "andesite",
+   "desc_zh": "安山岩 α¹～α⁶",
+   "desc_ko": "안산암 — 대표 칸, 시대는 첨자로 붙인다",
+   "desc_en": "andesite — representative swatch; age given by sub/superscript",
+   "swatch": [
+    2874,
+    8187,
+    2986,
+    8239
+   ],
+   "rgb": [
+    102,
+    217,
+    178
+   ],
+   "bar": false,
+   "uncertain": false,
+   "note": ""
+  },
+  {
+   "id": "β",
+   "code": "β",
+   "kind": "volcanic",
+   "group_zh": "火山岩（喷出岩）",
+   "group_ko": "화산암(분출암)",
+   "age_zh": "",
+   "age_ko": "",
+   "age_en": "",
+   "age_top_ma": null,
+   "age_base_ma": null,
+   "lith_zh": "玄武岩",
+   "lith_ko": "현무암",
+   "lith_en": "basalt",
+   "desc_zh": "玄武岩 β¹～β⁶",
+   "desc_ko": "현무암 — 대표 칸, 시대는 첨자로 붙인다",
+   "desc_en": "basalt — representative swatch; age given by sub/superscript",
+   "swatch": [
+    2874,
+    8293,
+    2986,
+    8345
+   ],
+   "rgb": [
+    0,
+    255,
+    1
+   ],
+   "bar": false,
+   "uncertain": false,
+   "note": "같은 색: ν — 색만으로 가를 수 없다",
+   "same_color_as": [
+    "ν"
+   ]
+  },
+  {
+   "id": "τ",
+   "code": "τ",
+   "kind": "volcanic",
+   "group_zh": "火山岩（喷出岩）",
+   "group_ko": "화산암(분출암)",
+   "age_zh": "",
+   "age_ko": "",
+   "age_en": "",
+   "age_top_ma": null,
+   "age_base_ma": null,
+   "lith_zh": "碱性岩（粗面岩等）",
+   "lith_ko": "알칼리암(조면암 등)",
+   "lith_en": "alkaline rock (trachyte etc.)",
+   "desc_zh": "碱性岩（粗面岩等）τ¹～τ⁶",
+   "desc_ko": "알칼리암(조면암 등) — 대표 칸, 시대는 첨자로 붙인다",
+   "desc_en": "alkaline rock (trachyte etc.) — representative swatch; age given by sub/superscript",
+   "swatch": [
+    2874,
+    8399,
+    2986,
+    8451
+   ],
+   "rgb": [
+    255,
+    127,
+    0
+   ],
+   "bar": false,
+   "uncertain": false,
+   "note": ""
+  },
+  {
+   "id": "sea_0",
+   "code": "sea_0",
+   "kind": "ocean",
+   "group_zh": "海洋深度表",
+   "group_ko": "해양 수심표",
+   "age_zh": "",
+   "age_ko": "",
+   "age_en": "",
+   "age_top_ma": null,
+   "age_base_ma": null,
+   "lith_zh": "",
+   "lith_ko": "",
+   "lith_en": "",
+   "desc_zh": "水深 0～50 m",
+   "desc_ko": "수심 0–50 m",
+   "desc_en": "Water depth 0–50 m",
+   "depth_m": [
+    0,
+    50
+   ],
+   "swatch": [
+    4324,
+    8453,
+    4459,
+    8540
+   ],
+   "rgb": [
+    229,
+    255,
+    254
+   ],
+   "bar": false,
+   "uncertain": false,
+   "note": "바다 — 땅으로 오인하지 않게. 지도의 바다에는 등심선 음영이 겹쳐 있다"
+  },
+  {
+   "id": "sea_50",
+   "code": "sea_50",
+   "kind": "ocean",
+   "group_zh": "海洋深度表",
+   "group_ko": "해양 수심표",
+   "age_zh": "",
+   "age_ko": "",
+   "age_en": "",
+   "age_top_ma": null,
+   "age_base_ma": null,
+   "lith_zh": "",
+   "lith_ko": "",
+   "lith_en": "",
+   "desc_zh": "水深 50～200 m",
+   "desc_ko": "수심 50–200 m",
+   "desc_en": "Water depth 50–200 m",
+   "depth_m": [
+    50,
+    200
+   ],
+   "swatch": [
+    4324,
+    8547,
+    4459,
+    8635
+   ],
+   "rgb": [
+    204,
+    255,
+    255
+   ],
+   "bar": false,
+   "uncertain": false,
+   "note": "바다 — 땅으로 오인하지 않게. 지도의 바다에는 등심선 음영이 겹쳐 있다"
+  },
+  {
+   "id": "sea_200",
+   "code": "sea_200",
+   "kind": "ocean",
+   "group_zh": "海洋深度表",
+   "group_ko": "해양 수심표",
+   "age_zh": "",
+   "age_ko": "",
+   "age_en": "",
+   "age_top_ma": null,
+   "age_base_ma": null,
+   "lith_zh": "",
+   "lith_ko": "",
+   "lith_en": "",
+   "desc_zh": "水深 200～1000 m",
+   "desc_ko": "수심 200–1000 m",
+   "desc_en": "Water depth 200–1000 m",
+   "depth_m": [
+    200,
+    1000
+   ],
+   "swatch": [
+    4324,
+    8642,
+    4458,
+    8729
+   ],
+   "rgb": [
+    177,
+    255,
+    255
+   ],
+   "bar": false,
+   "uncertain": false,
+   "note": "바다 — 땅으로 오인하지 않게. 지도의 바다에는 등심선 음영이 겹쳐 있다 · 같은 색: J3 — 색만으로 가를 수 없다",
+   "same_color_as": [
+    "J3"
+   ]
+  },
+  {
+   "id": "sea_1000",
+   "code": "sea_1000",
+   "kind": "ocean",
+   "group_zh": "海洋深度表",
+   "group_ko": "해양 수심표",
+   "age_zh": "",
+   "age_ko": "",
+   "age_en": "",
+   "age_top_ma": null,
+   "age_base_ma": null,
+   "lith_zh": "",
+   "lith_ko": "",
+   "lith_en": "",
+   "desc_zh": "水深 1000～3000 m",
+   "desc_ko": "수심 1000–3000 m",
+   "desc_en": "Water depth 1000–3000 m",
+   "depth_m": [
+    1000,
+    3000
+   ],
+   "swatch": [
+    4325,
+    8736,
+    4458,
+    8824
+   ],
+   "rgb": [
+    153,
+    255,
+    255
+   ],
+   "bar": false,
+   "uncertain": false,
+   "note": "바다 — 땅으로 오인하지 않게. 지도의 바다에는 등심선 음영이 겹쳐 있다 · 같은 색: J2-3 — 색만으로 가를 수 없다",
+   "same_color_as": [
+    "J2-3"
+   ]
+  },
+  {
+   "id": "sea_3000",
+   "code": "sea_3000",
+   "kind": "ocean",
+   "group_zh": "海洋深度表",
+   "group_ko": "해양 수심표",
+   "age_zh": "",
+   "age_ko": "",
+   "age_en": "",
+   "age_top_ma": null,
+   "age_base_ma": null,
+   "lith_zh": "",
+   "lith_ko": "",
+   "lith_en": "",
+   "desc_zh": "水深 3000～5000 m",
+   "desc_ko": "수심 3000–5000 m",
+   "desc_en": "Water depth 3000–5000 m",
+   "depth_m": [
+    3000,
+    5000
+   ],
+   "swatch": [
+    4325,
+    8831,
+    4458,
+    8918
+   ],
+   "rgb": [
+    127,
+    255,
+    255
+   ],
+   "bar": false,
+   "uncertain": false,
+   "note": "바다 — 땅으로 오인하지 않게. 지도의 바다에는 등심선 음영이 겹쳐 있다 · 같은 색: J2 — 색만으로 가를 수 없다",
+   "same_color_as": [
+    "J2"
+   ]
+  },
+  {
+   "id": "sea_5000",
+   "code": "sea_5000",
+   "kind": "ocean",
+   "group_zh": "海洋深度表",
+   "group_ko": "해양 수심표",
+   "age_zh": "",
+   "age_ko": "",
+   "age_en": "",
+   "age_top_ma": null,
+   "age_base_ma": null,
+   "lith_zh": "",
+   "lith_ko": "",
+   "lith_en": "",
+   "desc_zh": "水深 5000～6000 m",
+   "desc_ko": "수심 5000–6000 m",
+   "desc_en": "Water depth 5000–6000 m",
+   "depth_m": [
+    5000,
+    6000
+   ],
+   "swatch": [
+    4325,
+    8925,
+    4458,
+    9013
+   ],
+   "rgb": [
+    101,
+    255,
+    255
+   ],
+   "bar": false,
+   "uncertain": false,
+   "note": "바다 — 땅으로 오인하지 않게. 지도의 바다에는 등심선 음영이 겹쳐 있다 · 같은 색: J1-2 — 색만으로 가를 수 없다",
+   "same_color_as": [
+    "J1-2"
+   ]
+  },
+  {
+   "id": "sea_6000",
+   "code": "sea_6000",
+   "kind": "ocean",
+   "group_zh": "海洋深度表",
+   "group_ko": "해양 수심표",
+   "age_zh": "",
+   "age_ko": "",
+   "age_en": "",
+   "age_top_ma": null,
+   "age_base_ma": null,
+   "lith_zh": "",
+   "lith_ko": "",
+   "lith_en": "",
+   "desc_zh": "水深 6000 m 以下",
+   "desc_ko": "수심 >6000 m",
+   "desc_en": "Water depth >6000 m",
+   "depth_m": [
+    6000,
+    null
+   ],
+   "swatch": [
+    4325,
+    9020,
+    4458,
+    9107
+   ],
+   "rgb": [
+    51,
+    255,
+    254
+   ],
+   "bar": false,
+   "uncertain": false,
+   "note": "바다 — 땅으로 오인하지 않게. 지도의 바다에는 등심선 음영이 겹쳐 있다 · 같은 색: J — 색만으로 가를 수 없다",
+   "same_color_as": [
+    "J"
+   ]
+  }
+ ],
+ "patterns": [
+  {
+   "name_zh": "酸性",
+   "name_ko": "산성",
+   "name_en": "felsic",
+   "meaning": "前第四纪陆相火山岩花纹 — 무작위 짧은 획",
+   "swatch": [
+    2873,
+    8735,
+    3007,
+    8822
+   ],
+   "rgb": [
+    255,
+    255,
+    255
+   ],
+   "rgb_spread": 0.0,
+   "ink_rgb": null
+  },
+  {
+   "name_zh": "中酸性",
+   "name_ko": "중산성",
+   "name_en": "intermediate-felsic",
+   "meaning": "前第四纪陆相火山岩花纹 — ×",
+   "swatch": [
+    2873,
+    8861,
+    3007,
+    8949
+   ],
+   "rgb": [
+    255,
+    255,
+    255
+   ],
+   "rgb_spread": 0.0,
+   "ink_rgb": null
+  },
+  {
+   "name_zh": "中性",
+   "name_ko": "중성",
+   "name_en": "intermediate",
+   "meaning": "前第四纪陆相火山岩花纹 — V",
+   "swatch": [
+    2873,
+    8979,
+    3007,
+    9067
+   ],
+   "rgb": [
+    255,
+    255,
+    255
+   ],
+   "rgb_spread": 0.0,
+   "ink_rgb": null
+  },
+  {
+   "name_zh": "中基性",
+   "name_ko": "중염기성",
+   "name_en": "intermediate-mafic",
+   "meaning": "前第四纪陆相火山岩花纹 — ⊥",
+   "swatch": [
+    2873,
+    9103,
+    3007,
+    9190
+   ],
+   "rgb": [
+    255,
+    255,
+    255
+   ],
+   "rgb_spread": 0.0,
+   "ink_rgb": null
+  },
+  {
+   "name_zh": "基性",
+   "name_ko": "염기성",
+   "name_en": "mafic",
+   "meaning": "前第四纪陆相火山岩花纹 — Γ(꺾쇠)",
+   "swatch": [
+    2873,
+    9231,
+    3007,
+    9318
+   ],
+   "rgb": [
+    255,
+    255,
+    255
+   ],
+   "rgb_spread": 0.0,
+   "ink_rgb": null
+  },
+  {
+   "name_zh": "超基性",
+   "name_ko": "초염기성",
+   "name_en": "ultramafic",
+   "meaning": "前第四纪陆相火山岩花纹 — Λ",
+   "swatch": [
+    2873,
+    9357,
+    3007,
+    9444
+   ],
+   "rgb": [
+    255,
+    255,
+    255
+   ],
+   "rgb_spread": 0.0,
+   "ink_rgb": null
+  },
+  {
+   "name_zh": "碱性",
+   "name_ko": "알칼리성",
+   "name_en": "alkaline",
+   "meaning": "前第四纪陆相火山岩花纹 — T",
+   "swatch": [
+    2873,
+    9482,
+    3007,
+    9569
+   ],
+   "rgb": [
+    255,
+    255,
+    255
+   ],
+   "rgb_spread": 0.0,
+   "ink_rgb": null
+  },
+  {
+   "name_zh": "海积与冲积—海积",
+   "name_ko": "해성 퇴적과 충적~해성 퇴적",
+   "name_en": "marine and alluvial–marine deposits",
+   "meaning": "第四纪主要成因类型花纹 — 하늘색 짧은 가로획",
+   "swatch": [
+    2869,
+    9715,
+    3003,
+    9803
+   ],
+   "rgb": [
+    255,
+    255,
+    255
+   ],
+   "rgb_spread": 0.7,
+   "ink_rgb": [
+    139,
+    217,
+    215
+   ],
+   "ink_frac": 0.017
+  },
+  {
+   "name_zh": "湖积与湖沼沉积",
+   "name_ko": "호성 퇴적과 호소 퇴적",
+   "name_en": "lacustrine and paludal deposits",
+   "meaning": "第四纪主要成因类型花纹 — 하늘색 점·가로획",
+   "swatch": [
+    3559,
+    7462,
+    3693,
+    7550
+   ],
+   "rgb": [
+    255,
+    255,
+    255
+   ],
+   "rgb_spread": 1.7,
+   "ink_rgb": [
+    134,
+    221,
+    218
+   ],
+   "ink_frac": 0.031
+  },
+  {
+   "name_zh": "冰碛与冰水沉积",
+   "name_ko": "빙퇴석과 빙하 융빙수 퇴적",
+   "name_en": "glacial till and glaciofluvial deposits",
+   "meaning": "第四纪主要成因类型花纹 — 하늘색 점·작은 고리",
+   "swatch": [
+    3559,
+    7580,
+    3693,
+    7668
+   ],
+   "rgb": [
+    255,
+    255,
+    255
+   ],
+   "rgb_spread": 2.7,
+   "ink_rgb": [
+    114,
+    230,
+    226
+   ],
+   "ink_frac": 0.049
+  },
+  {
+   "name_zh": "风积与风成沙",
+   "name_ko": "풍성 퇴적과 풍성 모래",
+   "name_en": "aeolian deposits and wind-blown sand",
+   "meaning": "第四纪主要成因类型花纹 — 자홍 점",
+   "swatch": [
+    3559,
+    7704,
+    3693,
+    7792
+   ],
+   "rgb": [
+    255,
+    254,
+    255
+   ],
+   "rgb_spread": 4.3,
+   "ink_rgb": [
+    216,
+    78,
+    214
+   ],
+   "ink_frac": 0.078
+  },
+  {
+   "name_zh": "黄土",
+   "name_ko": "황토(뢰스)",
+   "name_en": "loess",
+   "meaning": "第四纪主要成因类型花纹 — 자홍 짧은 세로획",
+   "swatch": [
+    3559,
+    7828,
+    3693,
+    7916
+   ],
+   "rgb": [
+    255,
+    255,
+    255
+   ],
+   "rgb_spread": 0.3,
+   "ink_rgb": [
+    179,
+    103,
+    178
+   ],
+   "ink_frac": 0.018
+  },
+  {
+   "name_zh": "化学沉积",
+   "name_ko": "화학 퇴적",
+   "name_en": "chemical deposits",
+   "meaning": "第四纪主要成因类型花纹 — 자홍 위 화살표",
+   "swatch": [
+    3559,
+    7946,
+    3693,
+    8034
+   ],
+   "rgb": [
+    255,
+    254,
+    255
+   ],
+   "rgb_spread": 3.3,
+   "ink_rgb": [
+    183,
+    101,
+    184
+   ],
+   "ink_frac": 0.049
+  },
+  {
+   "name_zh": "混杂堆积及其形成时代",
+   "name_ko": "혼잡 퇴적(멜랑주)과 그 형성 시대",
+   "name_en": "mélange and its age of formation",
+   "meaning": "其他花纹符号 — 세모·가로획 무늬, 원 안 P 와 시대 부호(T₃ 따위)",
+   "swatch": [
+    3558,
+    8185,
+    3692,
+    8272
+   ],
+   "rgb": [
+    255,
+    255,
+    255
+   ],
+   "rgb_spread": 0.0,
+   "ink_rgb": [
+    216,
+    28,
+    213
+   ],
+   "ink_frac": 0.037
+  },
+  {
+   "name_zh": "冰川及雪被",
+   "name_ko": "빙하와 설피",
+   "name_en": "glaciers and snow cover",
+   "meaning": "其他花纹符号 — 하늘색 점선 테두리 안의 점",
+   "swatch": [
+    3558,
+    9203,
+    3692,
+    9290
+   ],
+   "rgb": [
+    255,
+    255,
+    255
+   ],
+   "rgb_spread": 1.0,
+   "ink_rgb": [
+    76,
+    223,
+    222
+   ],
+   "ink_frac": 0.035
+  },
+  {
+   "name_zh": "花岗岩花纹",
+   "name_ko": "화강암 무늬",
+   "name_en": "granite pattern",
+   "meaning": "其他花纹符号 — 자홍 바탕에 흰 +",
+   "swatch": [
+    4239,
+    7984,
+    4374,
+    8071
+   ],
+   "rgb": [
+    255,
+    102,
+    255
+   ],
+   "rgb_spread": 3.7,
+   "note": "바탕색이 있는 무늬 — 색 맞추기 때 γ 칸과 견줄 것 · 바탕색이 γ4²·γπ 칸과 같다(255,102,255)",
+   "ink_rgb": [
+    255,
+    224,
+    255
+   ],
+   "ink_frac": 0.114
+  },
+  {
+   "name_zh": "花岗闪长岩花纹",
+   "name_ko": "화강섬록암 무늬",
+   "name_en": "granodiorite pattern",
+   "meaning": "其他花纹符号 — 자홍 바탕에 흰 ×",
+   "swatch": [
+    4239,
+    8111,
+    4374,
+    8199
+   ],
+   "rgb": [
+    255,
+    102,
+    255
+   ],
+   "rgb_spread": 5.0,
+   "note": "바탕색이 있는 무늬 — 색 맞추기 때 γ 칸과 견줄 것 · 바탕색이 γ4²·γπ 칸과 같다(255,102,255)",
+   "ink_rgb": [
+    255,
+    230,
+    255
+   ],
+   "ink_frac": 0.123
+  }
+ ],
+ "symbols": [
+  {
+   "name_zh": "金伯利岩与钾镁煌斑岩产地",
+   "name_ko": "킴벌라이트·램프로아이트 산지",
+   "name_en": "kimberlite and lamproite locality",
+   "look": "자홍 원 + κσ",
+   "swatch": [
+    3558,
+    8310,
+    3692,
+    8397
+   ]
+  },
+  {
+   "name_zh": "钻孔位置、第四系厚度（m）和钻孔深度（783）与终孔地层时代（K₂）",
+   "name_ko": "시추공 위치, 제4계 두께(m)·시추 깊이(783)·바닥 지층 시대(K₂)",
+   "name_en": "borehole: Quaternary thickness (m), depth (783) and age of bottom stratum (K₂)",
+   "look": "하늘색 원, 120(Q)/783(K₂) 꼴",
+   "swatch": [
+    3558,
+    8438,
+    3692,
+    8525
+   ]
+  },
+  {
+   "name_zh": "新发现冷水动物群化石产地",
+   "name_ko": "새로 찾은 냉수 동물군 화석 산지",
+   "name_en": "newly found cold-water fauna fossil locality",
+   "look": "빨간 나선",
+   "swatch": [
+    3558,
+    8565,
+    3692,
+    8653
+   ]
+  },
+  {
+   "name_zh": "新发现最古老鸟类与哺乳类产地",
+   "name_ko": "새로 찾은 가장 오랜 조류·포유류 산지",
+   "name_en": "newly found oldest bird and mammal locality",
+   "look": "빨간 새",
+   "swatch": [
+    3558,
+    8693,
+    3692,
+    8780
+   ]
+  },
+  {
+   "name_zh": "新发现最古老脊椎动物产地",
+   "name_ko": "새로 찾은 가장 오랜 척추동물 산지",
+   "name_en": "newly found oldest vertebrate locality",
+   "look": "빨간 물고기",
+   "swatch": [
+    3558,
+    8820,
+    3692,
+    8908
+   ]
+  },
+  {
+   "name_zh": "新发现晚三叠世海相化石库",
+   "name_ko": "새로 찾은 트라이아스기 후기 해성 화석 산지(화석고)",
+   "name_en": "newly found Late Triassic marine fossil Lagerstätte",
+   "look": "빨간 바다나리꼴",
+   "swatch": [
+    3558,
+    8948,
+    3692,
+    9035
+   ]
+  },
+  {
+   "name_zh": "火山口",
+   "name_ko": "화구",
+   "name_en": "volcanic crater",
+   "look": "빨간 별",
+   "swatch": [
+    3558,
+    9075,
+    3692,
+    9163
+   ]
+  },
+  {
+   "name_zh": "第四系等厚线",
+   "name_ko": "제4계 등층후선",
+   "name_en": "Quaternary isopach",
+   "look": "초록 파선, 숫자(-100-)",
+   "swatch": [
+    3558,
+    9330,
+    3692,
+    9418
+   ]
+  },
+  {
+   "name_zh": "地质界线（实测及推测）",
+   "name_ko": "지질 경계(실측·추정)",
+   "name_en": "geological boundary (observed / inferred)",
+   "look": "검은 가는 실선·파선",
+   "swatch": [
+    3558,
+    9458,
+    3667,
+    9532
+   ]
+  },
+  {
+   "name_zh": "第四系成因类型岩相界线",
+   "name_ko": "제4계 성인 유형 암상 경계",
+   "name_en": "boundary of Quaternary genetic/facies types",
+   "look": "검은 점선",
+   "swatch": [
+    3558,
+    9586,
+    3692,
+    9673
+   ]
+  },
+  {
+   "name_zh": "断层（实测及推测）",
+   "name_ko": "단층(실측·추정)",
+   "name_en": "fault (observed / inferred)",
+   "look": "검은 굵은 실선·파선",
+   "swatch": [
+    3558,
+    9715,
+    3692,
+    9802
+   ]
+  },
+  {
+   "name_zh": "隐伏断裂",
+   "name_ko": "잠복 단열(묻힌 단층)",
+   "name_en": "concealed fault",
+   "look": "빨간 일점쇄선",
+   "swatch": [
+    4239,
+    7462,
+    4374,
+    7550
+   ]
+  },
+  {
+   "name_zh": "活动断层（断裂带）及编号（箭头示错动方向）",
+   "name_ko": "활단층(단열대)과 번호(화살표는 어긋난 방향)",
+   "name_en": "active fault (fault zone) with number (arrow = sense of slip)",
+   "look": "빨간 굵은 선, 번호, 화살표",
+   "swatch": [
+    4239,
+    7594,
+    4374,
+    7682
+   ]
+  },
+  {
+   "name_zh": "榴辉岩及柯石英产地",
+   "name_ko": "에클로자이트·코어사이트 산지",
+   "name_en": "eclogite and coesite locality",
+   "look": "빨간 세모 + HP",
+   "swatch": [
+    4239,
+    7729,
+    4374,
+    7816
+   ]
+  },
+  {
+   "name_zh": "大陆科学钻探位置",
+   "name_ko": "대륙 과학 시추 위치",
+   "name_en": "continental scientific drilling site",
+   "look": "빨간 시추탑",
+   "swatch": [
+    4239,
+    7856,
+    4374,
+    7944
+   ]
+  }
+ ],
+ "rules": [
+  {
+   "zh": "一、侵入岩 1.酸性岩类(SiO₂>63%)：包括花岗岩γ、二长花岗岩γη、碱长花岗岩γξ、花岗闪长岩γδ、英云闪长岩（斜长花岗岩）γo、紫苏花岗岩γψ、环斑花岗岩γρ、混合花岗岩γm。地质时代及分期（以花岗岩为例）：",
+   "ko": "1. 산성암류(SiO₂>63%): 화강암 γ, 몬조화강암 γη, 알칼리장석화강암 γξ, 화강섬록암 γδ, 토날라이트(사장화강암) γo, 차노카이트 γψ, 라파키비화강암 γρ, 혼성화강암 γm 을 아우른다. 시대와 분기는 화강암을 예로 든다(γ1…γ6, 위첨자로 기를 가른다).",
+   "en": "1. Felsic rocks (SiO₂>63%): granite γ, monzogranite γη, alkali-feldspar granite γξ, granodiorite γδ, tonalite (plagiogranite) γo, charnockite γψ, rapakivi granite γρ, migmatitic granite γm. Ages and stages shown with granite as the example (γ1…γ6, superscript = sub-stage).",
+   "note": "γm 의 아래 글자, γψ 의 ψ 는 흐려 짐작이 섞였다"
+  },
+  {
+   "zh": "2.中性岩类(SiO₂ 52～63%)：包括闪长岩δ、石英闪长岩δo、二长闪长岩δη、辉长闪长岩δν、石英二长岩ηo。地质时代及分期同花岗岩类。以闪长岩为例：δ1～δ6（以下各类岩石同）",
+   "ko": "2. 중성암류(SiO₂ 52~63%): 섬록암 δ, 석영섬록암 δo, 몬조섬록암 δη, 반려섬록암 δν, 석영몬조나이트 ηo. 시대·분기는 화강암류와 같다. 섬록암을 예로: δ1~δ6(아래 암류도 같다).",
+   "en": "2. Intermediate rocks (SiO₂ 52–63%): diorite δ, quartz diorite δo, monzodiorite δη, gabbro-diorite δν, quartz monzonite ηo. Ages/stages as for granites. Example diorite: δ1–δ6 (same for the classes below)."
+  },
+  {
+   "zh": "3.基性岩类（铁镁质岩类）(SiO₂ 45～52%)：包括辉长岩ν、苏长岩νo、斜长岩νσ、二长辉长岩νη，基性岩类未分N。以辉长岩为例：ν1～ν6",
+   "ko": "3. 염기성암류(고철질암류)(SiO₂ 45~52%): 반려암 ν, 노라이트 νo, 회장암 νσ, 몬조반려암 νη, 미분 염기성암 N. 반려암을 예로: ν1~ν6.",
+   "en": "3. Mafic rocks (SiO₂ 45–52%): gabbro ν, norite νo, anorthosite νσ, monzogabbro νη; undivided mafic N. Example gabbro: ν1–ν6."
+  },
+  {
+   "zh": "4.超基性岩类（超铁镁质岩类）(SiO₂<45%)：包括橄榄岩σ、纯橄岩φ、辉石岩ψι、角闪石岩ψo、辉橄岩及橄辉岩ψσ、蛇纹岩Σω、苦橄岩ω、橄榄玄武岩σβ、斜马提岩Σβ、超基性岩类未分Σ。以未分的超基性岩为例：Σ1～Σ6",
+   "ko": "4. 초염기성암류(초고철질암류)(SiO₂<45%): 감람암 σ, 두나이트 φ, 휘석암 ψι, 각섬석암 ψo, 휘석감람암·감람휘석암 ψσ, 사문암 Σω, 피크라이트 ω, 감람석현무암 σβ, 코마티아이트 Σβ, 미분 초염기성암 Σ. 미분 초염기성암을 예로: Σ1~Σ6.",
+   "en": "4. Ultramafic rocks (SiO₂<45%): peridotite σ, dunite φ, pyroxenite ψι, hornblendite ψo, wehrlite/olivine pyroxenite ψσ, serpentinite Σω, picrite ω, olivine basalt σβ, komatiite Σβ; undivided ultramafic Σ. Example: Σ1–Σ6.",
+   "note": "ψ 와 φ 가 이탤릭이라 헷갈린다 — \"斜马提岩\" 은 코마티아이트(科马提岩)의 오기로 보인다"
+  },
+  {
+   "zh": "5.杂岩类：包括未分的基性—超基性杂岩Φ、蛇绿混杂岩（含蛇绿岩、类蛇绿岩）Oφ。以蛇绿混杂岩为例（右下角为时代）：OφPt3～OφK、OφMz",
+   "ko": "5. 잡암류: 미분 염기성~초염기성 복합암 Φ, 오피올라이트 혼잡암(오피올라이트·유사 오피올라이트 포함) Oφ. 오피올라이트 혼잡암을 예로(오른쪽 아래가 시대): OφPt3~OφK, OφMz.",
+   "en": "5. Complexes: undivided mafic–ultramafic complex Φ; ophiolitic mélange (incl. ophiolite, ophiolite-like) Oφ. Example (age at lower right): OφPt3–OφK, OφMz."
+  },
+  {
+   "zh": "6.偏碱性—碱性岩类：包括碱性花岗岩κγ、二长岩η、石英正长岩ξo、正长岩ξ、碱长正长岩κξ、碱性基性岩κN、碱性超基性岩κΣ、碱性苦橄岩κω、霓霞岩ε、碳酸岩κε。以正长岩为例：ξ1～ξ6",
+   "ko": "6. 준알칼리~알칼리암류: 알칼리화강암 κγ, 몬조나이트 η, 석영섬장암 ξo, 섬장암 ξ, 알칼리장석섬장암 κξ, 알칼리 염기성암 κN, 알칼리 초염기성암 κΣ, 알칼리 피크라이트 κω, 이졸라이트 ε, 카보나타이트 κε. 섬장암을 예로: ξ1~ξ6.",
+   "en": "6. Subalkaline–alkaline rocks: alkali granite κγ, monzonite η, quartz syenite ξo, syenite ξ, alkali-feldspar syenite κξ, alkaline mafic κN, alkaline ultramafic κΣ, alkaline picrite κω, ijolite ε, carbonatite κε. Example syenite: ξ1–ξ6."
+  },
+  {
+   "zh": "7.煌斑岩类：包括金伯利岩与钾镁煌斑岩κσ：κσ3",
+   "ko": "7. 램프로파이어류: 킴벌라이트·램프로아이트 κσ. 예: κσ3.",
+   "en": "7. Lamprophyres: kimberlite and lamproite κσ. Example: κσ3."
+  },
+  {
+   "zh": "二、浅成岩及潜火山岩 1.酸性岩类：包括花岗斑岩γπ、花岗闪长斑岩γδπ、石英斑岩oπ、英安斑岩ζπ。以花岗斑岩为例：γπ1～γπ6。2.中性岩类：包括闪长玢岩δμ、安山玢岩αμ。以闪长玢岩为例：δμ3～δμ6。3.基性岩类：包括辉长辉绿岩νμ、辉绿玢岩及粗玄岩βμ。以粗玄岩为例：βμ3～βμ4。4.碱性岩类：包括正长斑岩ξπ、石英正长斑岩ξoπ、碱性玄武岩κβ、白榴石斑岩ξεπ。以正长斑岩为例：ξπ5～ξπ6",
+   "ko": "二, 천성암·잠화산암: 1 산성 — 화강반암 γπ, 화강섬록반암 γδπ, 석영반암 oπ, 데이사이트반암 ζπ (예 γπ1~γπ6). 2 중성 — 섬록반암 δμ, 안산반암 αμ (예 δμ3~δμ6). 3 염기성 — 반려휘록암 νμ, 휘록반암·조립현무암 βμ (예 βμ3~βμ4). 4 알칼리 — 섬장반암 ξπ, 석영섬장반암 ξoπ, 알칼리현무암 κβ, 백류석반암 ξεπ (예 ξπ5~ξπ6).",
+   "en": "II. Hypabyssal and subvolcanic rocks: 1 felsic — granite porphyry γπ, granodiorite porphyry γδπ, quartz porphyry oπ, dacite porphyry ζπ (ex. γπ1–γπ6); 2 intermediate — diorite porphyrite δμ, andesite porphyrite αμ (ex. δμ3–δμ6); 3 mafic — gabbro-diabase νμ, diabase porphyrite and dolerite βμ (ex. βμ3–βμ4); 4 alkaline — syenite porphyry ξπ, quartz syenite porphyry ξoπ, alkali basalt κβ, leucite porphyry ξεπ (ex. ξπ5–ξπ6)."
+  },
+  {
+   "zh": "三、火山岩（喷出岩）：上新世（N₂）及其以前的按地层处理、合并到各时代地层中。上新世以后的第四纪火山岩按时代分为6期。以玄武岩为例：上新世—早更新世未分β¹，早更新世β²，中更新世β³，晚更新世β⁴，全新世β⁵，近期1000年以来β⁶",
+   "ko": "三, 화산암(분출암): 플라이오세(N₂)와 그 이전 것은 지층으로 다뤄 각 시대 지층에 합쳤다. 플라이오세 이후 제4기 화산암은 6 기로 가른다 — 현무암을 예로 β¹ 플라이오세~플라이스토세 전기 미분, β² 플라이스토세 전기, β³ 플라이스토세 중기, β⁴ 플라이스토세 후기, β⁵ 홀로세, β⁶ 최근 1000 년 이내.",
+   "en": "III. Volcanic (extrusive) rocks: Pliocene (N₂) and older volcanics are treated as strata and merged into the strata of each age. Post-Pliocene Quaternary volcanics are split into 6 stages — e.g. basalt: β¹ Pliocene–Early Pleistocene undivided, β² Early Pleistocene, β³ Middle Pleistocene, β⁴ Late Pleistocene, β⁵ Holocene, β⁶ last 1000 years.",
+   "note": "그래서 지도의 λ·α·β·τ 칸 색은 모두 제4기 화산암이다"
+  },
+  {
+   "zh": "地层：Pt₃³ 等带上标的元古宇代号为中—浅变质地层，Z、Nh、Qb、Jx、Ch、Ht 为未变质盖层（\"以下同\"）",
+   "ko": "지층: 원생누대 칸 가운데 Pt 부호(왼쪽 칸)는 중~저변성 지층, Z·Nh·Qb·Jx·Ch·Ht(오른쪽 칸)는 변성되지 않은 덮개층이다.",
+   "en": "Strata: Proterozoic Pt-coded (left) swatches are medium/low-grade metamorphic strata; Z, Nh, Qb, Jx, Ch, Ht (right) swatches are unmetamorphosed cover."
+  },
+  {
+   "zh": "（整理者注）age_top_ma/age_base_ma：显生宙地层用 ICS 2023/09 数值；前寒武纪地层与全部火成岩用本图\"地质时代名称和地质年龄简表\"及图例所注数值。",
+   "ko": "(정리자 주) 현생누대 지층의 연대는 ICS 2023/09 값, 선캄브리아 지층과 화성암 전부는 이 지도의 연대표·범례에 적힌 값이다. 중국 옛 3분법(Є·P)과 S 4분법은 ICS 통에 대어 매겼다.",
+   "en": "(Compiler note) Phanerozoic strata use ICS 2023/09 boundaries; Precambrian strata and all igneous units use the ages printed on this map (time table and legend). Chinese tripartite Є/P and four-fold S were mapped to ICS series."
+  }
+ ],
+ "timetable": [
+  {
+   "eon": "显生宙 PH",
+   "era": "新生代 Cz",
+   "period": "第四纪",
+   "code": "Q",
+   "igneous_code": "第四纪（火山活动）",
+   "top_ma": 0,
+   "base_ma": 2.6,
+   "note": "표에 \"0.026（260万年）\" 으로 적혀 있다 — 단위가 억 년이므로 0.026 억 년 = 260 만 년"
+  },
+  {
+   "eon": "显生宙 PH",
+   "era": "新生代 Cz",
+   "period": "新近纪",
+   "code": "N",
+   "igneous_code": "γ6²",
+   "top_ma": 2.6,
+   "base_ma": 23.3
+  },
+  {
+   "eon": "显生宙 PH",
+   "era": "新生代 Cz",
+   "period": "古近纪",
+   "code": "E",
+   "igneous_code": "γ6¹",
+   "top_ma": 23.3,
+   "base_ma": 65
+  },
+  {
+   "eon": "显生宙 PH",
+   "era": "中生代 Mz",
+   "period": "白垩纪",
+   "code": "K",
+   "igneous_code": "γ5³",
+   "top_ma": 65,
+   "base_ma": 137
+  },
+  {
+   "eon": "显生宙 PH",
+   "era": "中生代 Mz",
+   "period": "侏罗纪",
+   "code": "J",
+   "igneous_code": "γ5²",
+   "top_ma": 137,
+   "base_ma": 205
+  },
+  {
+   "eon": "显生宙 PH",
+   "era": "中生代 Mz",
+   "period": "三叠纪",
+   "code": "T",
+   "igneous_code": "γ5¹",
+   "top_ma": 205,
+   "base_ma": 250
+  },
+  {
+   "eon": "显生宙 PH",
+   "era": "古生代 PZ",
+   "period": "二叠纪",
+   "code": "P",
+   "igneous_code": "γ4³",
+   "top_ma": 250,
+   "base_ma": 295
+  },
+  {
+   "eon": "显生宙 PH",
+   "era": "古生代 PZ",
+   "period": "石炭纪",
+   "code": "C",
+   "igneous_code": "γ4²",
+   "top_ma": 295,
+   "base_ma": 354
+  },
+  {
+   "eon": "显生宙 PH",
+   "era": "古生代 PZ",
+   "period": "泥盆纪",
+   "code": "D",
+   "igneous_code": "γ4¹",
+   "top_ma": 354,
+   "base_ma": 410
+  },
+  {
+   "eon": "显生宙 PH",
+   "era": "古生代 PZ",
+   "period": "志留纪",
+   "code": "S",
+   "igneous_code": "γ3³",
+   "top_ma": 410,
+   "base_ma": 438
+  },
+  {
+   "eon": "显生宙 PH",
+   "era": "古生代 PZ",
+   "period": "奥陶纪",
+   "code": "O",
+   "igneous_code": "γ3²",
+   "top_ma": 438,
+   "base_ma": 490
+  },
+  {
+   "eon": "显生宙 PH",
+   "era": "古生代 PZ",
+   "period": "寒武纪",
+   "code": "Є",
+   "igneous_code": "γ3¹",
+   "top_ma": 490,
+   "base_ma": 543,
+   "note": "표의 경계 값은 5.43 억 년(범례 γ3¹ 은 5.4)"
+  },
+  {
+   "eon": "元古宙 PT",
+   "era": "新元古代 Pt3",
+   "period": "震旦纪",
+   "code": "Z (Pt3³)",
+   "igneous_code": "γ2⁷",
+   "top_ma": 543,
+   "base_ma": 680
+  },
+  {
+   "eon": "元古宙 PT",
+   "era": "新元古代 Pt3",
+   "period": "南华纪",
+   "code": "Nh (Pt3²)",
+   "igneous_code": "γ2⁶",
+   "top_ma": 680,
+   "base_ma": 800
+  },
+  {
+   "eon": "元古宙 PT",
+   "era": "新元古代 Pt3",
+   "period": "青白口纪",
+   "code": "Qb (Pt3¹)",
+   "igneous_code": "γ2⁵",
+   "top_ma": 800,
+   "base_ma": 1000
+  },
+  {
+   "eon": "元古宙 PT",
+   "era": "中元古代 Pt2",
+   "period": "蓟县纪",
+   "code": "Jx (Pt2²)",
+   "igneous_code": "γ2⁴",
+   "top_ma": 1000,
+   "base_ma": 1400
+  },
+  {
+   "eon": "元古宙 PT",
+   "era": "中元古代 Pt2",
+   "period": "长城纪",
+   "code": "Ch (Pt2¹)",
+   "igneous_code": "γ2³",
+   "top_ma": 1400,
+   "base_ma": 1800
+  },
+  {
+   "eon": "元古宙 PT",
+   "era": "古元古代 Pt1",
+   "period": "滹沱纪",
+   "code": "Ht (Pt1²)",
+   "igneous_code": "γ2²",
+   "top_ma": 1800,
+   "base_ma": 2300
+  },
+  {
+   "eon": "元古宙 PT",
+   "era": "古元古代 Pt1",
+   "period": "早古元古代",
+   "code": "Pt1¹",
+   "igneous_code": "γ2¹",
+   "top_ma": 2300,
+   "base_ma": 2500
+  },
+  {
+   "eon": "太古宙 AR",
+   "era": "新太古代",
+   "period": "",
+   "code": "Ar3",
+   "igneous_code": "γ1⁴",
+   "top_ma": 2500,
+   "base_ma": 2800
+  },
+  {
+   "eon": "太古宙 AR",
+   "era": "中太古代",
+   "period": "",
+   "code": "Ar2",
+   "igneous_code": "γ1³",
+   "top_ma": 2800,
+   "base_ma": 3200
+  },
+  {
+   "eon": "太古宙 AR",
+   "era": "古太古代",
+   "period": "",
+   "code": "Ar1",
+   "igneous_code": "γ1²",
+   "top_ma": 3200,
+   "base_ma": 3600
+  },
+  {
+   "eon": "太古宙 AR",
+   "era": "始太古代",
+   "period": "",
+   "code": "Ar0",
+   "igneous_code": "γ1¹",
+   "top_ma": 3600,
+   "base_ma": null
+  }
+ ]
+}
