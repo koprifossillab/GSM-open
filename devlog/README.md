@@ -452,6 +452,7 @@
 | wetherilli 389 | 2026-10-16 | [중국 지질도 1:400만 — 지명을 한자로도 찾고, 한국어·한자 이름표를 얹는다](20261016_wetherilli_389_china_4m_place_names.md) |
 | wetherilli 390 | 2026-10-16 | [활성단층·판 경계·지질구·응력·광상을 지역 탭에 — 온 지구에 구워 둔 것을 벡터로](20261016_wetherilli_390_regional_earth_layers.md) |
 | wetherilli 392 | 2026-10-16 | [넘겨받은 임시 레이어 `#ext=` — 같은 사이트의 형제 앱(Cropobite)이 제 점을 얹는다](20261016_wetherilli_392_ext_temporary_layer.md) |
+| wetherilli 393 | 2026-10-16 | [지도 화면만 같은 출처의 iframe 에 연다 — Cropobite 가 감싼다](20261016_wetherilli_393_map_frame_sameorigin.md) |
 | wetherilli 391 | 2026-10-16 | [자력 이상(EMAG2v3)을 지역 탭에 — 부게 중력은 판독기까지](20261016_wetherilli_391_magnetic_gravity_grids.md) |
 | wetherilli 374 | 2026-10-07 | [온 세계 지명 찾기 — GeoNames 도시를 받아 두고, 지역 탭이 온 지구 찾기를 빌린다](20261007_wetherilli_374_world_place_search.md) |
 | wetherilli 375 | 2026-10-07 | [그때의 지구 — 판 조각 대신 PaleoDEM 고도·음영을 깐다](20261007_wetherilli_375_paleodem_relief.md) |

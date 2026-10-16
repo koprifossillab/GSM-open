@@ -309,3 +309,13 @@ class Borrow3d(SimpleTestCase):
         block = re.search(r"var BORROW = (\{.*?\n  \});", js3, re.S).group(1)
         three = json.loads(re.sub(r"^(\s+)([a-z_]+):", r'\1"\2":', block, flags=re.M))
         self.assertEqual(three, two)
+
+
+class FrameOptionsTests(TestCase):
+    """지도 화면만 같은 출처의 iframe 에 열린다 — 형제 앱(Cropobite)이 감싼다. 다른 화면은 DENY 그대로 (wetherilli 393)."""
+
+    def test_지도는_같은_출처에만_열린다(self):
+        self.assertEqual(self.client.get(reverse("viewer:map"))["X-Frame-Options"], "SAMEORIGIN")
+
+    def test_소개는_감싸지_못한다(self):
+        self.assertEqual(self.client.get(reverse("viewer:intro"))["X-Frame-Options"], "DENY")

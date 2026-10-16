@@ -29,6 +29,7 @@ from django.contrib.auth import login as auth_login, logout as auth_logout
 from django.contrib.auth.forms import AuthenticationForm
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import NoReverseMatch, reverse
+from django.views.decorators.clickjacking import xframe_options_sameorigin
 from django.views.decorators.gzip import gzip_page
 from django.views.decorators.http import require_GET, require_POST
 
@@ -587,6 +588,9 @@ def linked_fetch(request):
     return response
 
 
+# 같은 서버(paleolab)의 형제 앱(Cropobite)이 장소 화면에 지도를 iframe 으로 띄운다 — 지도 화면 하나만 같은 출처에 열고
+# 관리 화면·admin 은 기본값(DENY) 그대로 둔다 (사람, 2026-10-16, wetherilli 393)
+@xframe_options_sameorigin
 @require_GET
 def map_view(request):
     lang = i18n.lang_of(request)

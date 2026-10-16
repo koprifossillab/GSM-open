@@ -5,6 +5,10 @@
 - **왜 그렇게 했는지**는 `devlog/` — 괄호 안의 번호가 그 문서다
 - 날짜는 그 판을 붙인 날이다
 
+## v0.81.1 — 2026-10-16 · 지도 화면만 같은 출처의 iframe 에 (wetherilli 393)
+
+- **지도 화면만 같은 출처의 iframe 에** — `/GSM/map/` 만 `X-Frame-Options: SAMEORIGIN`. 같은 서버의 형제 앱(Cropobite)이 장소 화면에 감싼다. 소개·관리 화면·admin 은 DENY 그대로. 넘겨받은 점의 "…에서 열기" 는 iframe 안이면 감싼 창을 바꾼다 (wetherilli 393)
+
 ## v0.81.0 — 2026-10-16 · 지역 탭의 자력 이상 EMAG2v3 (wetherilli 391)
 
 - **자력 이상(EMAG2v3)을 지역 탭에** — 중국 탭 "지구물리 격자" 등에 EMAG2v3 자력 이상. 운영 자료(`<EARTH_DIR>/gravmag_magnetic.*`)는 이미 구워 두었다. 부게 중력은 판독기까지 (wetherilli 391)

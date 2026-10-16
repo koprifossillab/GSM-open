@@ -5872,7 +5872,7 @@
         var a = document.createElement("a");
         a.className = "proplink";
         a.href = link.url;
-        a.target = "_blank";
+        a.target = link.target || "_blank";
         a.rel = "noopener noreferrer";
         a.textContent = link.label;
         td.appendChild(a);
@@ -6556,7 +6556,9 @@
     var props = {};
     if (feature.get("note")) props[T("메모")] = String(feature.get("note"));
     var url = sameSite(feature.get("url"));
-    if (url) props[T("열기")] = { text: "", links: [{ url: url, label: T("{name}에서 열기", { name: EXT.name }) }] };
+    if (url) props[T("열기")] = { text: "", links: [{ url: url, label: T("{name}에서 열기", { name: EXT.name }),
+                                                            // 형제 앱의 iframe 안이면 그 창을 바꾼다 — 감싼 화면 안에 또 열리지 않게 (wetherilli 393)
+                                                            target: window.top !== window ? "_top" : "_blank" }] };
     return { title: String(feature.get("name") || EXT.name), props: props };
   }
   /** 넘겨받았다는 띠 — 공유 링크의 띠(`share-notice`) 꼴. 감추기·보이기와 닫기 */
