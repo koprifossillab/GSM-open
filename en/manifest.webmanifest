@@ -1,0 +1,28 @@
+{
+ "name": "Great Stone Map · GSM",
+ "short_name": "GSM",
+ "lang": "en",
+ "start_url": "/GSM-open/en/map/",
+ "scope": "/GSM-open/en/",
+ "display": "standalone",
+ "background_color": "#2b1d10",
+ "theme_color": "#2b1d10",
+ "icons": [
+  {
+   "src": "/GSM-open/static/viewer/app/icon-192.png",
+   "sizes": "192x192",
+   "type": "image/png"
+  },
+  {
+   "src": "/GSM-open/static/viewer/app/icon-512.png",
+   "sizes": "512x512",
+   "type": "image/png"
+  },
+  {
+   "src": "/GSM-open/static/viewer/app/icon-maskable-512.png",
+   "sizes": "512x512",
+   "type": "image/png",
+   "purpose": "maskable"
+  }
+ ]
+}
