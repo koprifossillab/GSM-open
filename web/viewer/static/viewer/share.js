@@ -16,7 +16,8 @@
  */
 (function () {
   "use strict";
-  var KEYS = ["r", "c", "z", "p", "l", "b", "m", "h", "hd", "pt", "res", "a"];
+  // ext·extname — 같은 사이트의 다른 앱이 넘기는 임시 레이어(map.js 의 `extFrom`, wetherilli 392)
+  var KEYS = ["r", "c", "z", "p", "l", "b", "m", "h", "hd", "pt", "res", "a", "ext", "extname"];
 
   function read() {
     var raw = (location.hash || "").replace(/^#/, "");

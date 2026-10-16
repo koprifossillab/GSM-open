@@ -280,6 +280,35 @@ class PhoneScreenTests(PhoneBase):
         self.assertIsNone(page.evaluate("localStorage.getItem('gsm.layers.antarctica')"))
         self.assertTrue(page.locator("#tool-share").is_visible())
 
+    def test_넘겨받은_점(self):
+        """같은 사이트의 앱이 `#ext=` 로 넘긴 점이 임시 레이어로 뜨고, 아무것도 저장되지 않는다 (wetherilli 392)"""
+        from viewer.models import Point, PointSet
+        ps = PointSet.objects.create(name="넘길 점", color="#2e86ab")
+        Point.objects.bulk_create([Point(pointset=ps, lat=37.1, lon=129.0, label="태백"),
+                                   Point(pointset=ps, lat=37.2, lon=129.1, label="면산")])
+        page, errors = self.open(f"map/#r=korea&c=129.05,37.15&z=10&ext=/GSM/pointsets/{ps.id}/geojson/&extname=Cropobite",
+                                 settle=2500)
+        self.assertEqual(errors, [])
+        notice = page.locator(".ext-notice")
+        self.assertTrue(notice.is_visible(), "넘겨받았다는 띠가 없다")
+        self.assertIn("2", notice.inner_text())
+        self.assertEqual(page.locator(".share-notice").count(), 1, "띠 둘이 겹친다")
+        self.assertFits(self.measure(page), "map/ (넘겨받은 점)")
+        self.assertIsNone(page.evaluate("localStorage.getItem('gsm.region')"), "그 사람의 기억을 덮는다")
+        self.assertEqual(PointSet.objects.count(), 1, "넘겨받은 점이 점묶음으로 저장됐다")
+        page.locator(".ext-notice button").first.tap()          # 감추기
+        self.assertIn(page.locator(".ext-notice button").first.inner_text(), ("보이기", "Show"))
+
+    def test_넘겨받은_점_남의_주소는_거절(self):
+        """`ext` 는 같은 사이트의 경로만 받는다 — 남의 주소면 띠도 레이어도 없다 (wetherilli 392)"""
+        # `/\` 와 `/<탭>/` 은 앞 글자만 보면 같은 사이트 같지만 브라우저는 `//` 로 읽는다 (gsm-63 검토)
+        for bad in ("//example.com/x.geojson", "/%5Cexample.com/x.geojson", "/%09/example.com/x.geojson",
+                    "https://example.com/x.geojson"):
+            with self.subTest(ext=bad):
+                page, errors = self.open(f"map/#r=korea&c=127.5,36.5&z=7&ext={bad}&extname=Evil", settle=800)
+                self.assertEqual(errors, [])
+                self.assertEqual(page.locator(".ext-notice").count(), 0)
+
     def test_설정_창(self):
         """설정 창(판 이력·언어·기억 지우기)이 휴대폰 화면 안에 선다 (wetherilli 203)"""
         page, errors = self.open("map/")

@@ -1,5 +1,6 @@
 """지역 탭의 지구 자료 점 — 화석 산지(PBDB)·홀로세 화산(GVP)·지진(USGS)·제4기 고생태 산지(Neotoma) (wetherilli 185),
-지열류(IHFC, wetherilli 275).
+지열류(IHFC, wetherilli 275). 그리고 온 지구 화면에 구워 둔 선·면·막대 — 활성단층(GEM)·판 경계와 지질구(Hasterok)·지각 응력(WSM)·
+세계 광상(USGS) (wetherilli 390). 이름은 "점" 이지만 선·면도 같은 덩이로 낸다 — 화면의 `classStyle` 이 범례 줄의 모양대로 그린다.
 
 온 지구 화면이 경위도 타일로 그리는 것을, 지역 탭은 **점 레이어**(`kind: points`)로 받는다 — 지역의 네모 안만 잘라
 극지연구소 파일 레이어(`kopri.file_body`)와 같은 꼴의 GeoJSON 으로 낸다. 화면이 제 투영(3857·3413·3031)으로 옮겨 그리고,
@@ -8,9 +9,13 @@
 """
 import functools
 import json
+import os
 import re
 
-from . import fossils, gvp, heatflow, i18n, neotoma, paleoeco, pbdb, quakes, recentquakes, usgs, volcanoes
+from django.conf import settings
+
+from . import (faults, fossils, gvp, heatflow, i18n, minerals, neotoma, paleoeco, pbdb, quakes, recentquakes, stress, tectonics,
+               usgs, volcanoes)
 from .i18n import msg
 
 #: 지역 → 자르는 네모 (서, 남, 동, 북). 북극은 북극해에 두고 그린란드·스발바르·얀마옌·노르웨이·핀란드가 빌린다(`borrow`) —
@@ -38,7 +43,7 @@ HOSTS = {"eastasia": ("japan", "동아시아"), "southeast_asia": ("indonesia", 
 CAP = 20000
 #: 모으는 칸(°) — 가는 것부터 써서 `CAP` 밑으로 떨어지는 첫 칸
 MERGE_CELLS = (0.01, 0.05, 0.1, 0.2, 0.5)
-SOURCES = ("pbdb", "gvp", "quakes", "neotoma", "heatflow", "recentquakes")
+SOURCES = ("pbdb", "gvp", "quakes", "neotoma", "heatflow", "recentquakes", "faults", "plates", "provinces", "stress", "minerals")
 #: 레이어 이름 `earth:<자료>_<네모>` → (자료, 네모)
 LAYERS = {f"earth:{src}_{box}": (src, box) for src in SOURCES for box in BOXES}
 
@@ -63,10 +68,19 @@ LABELS = {
     # 지열류(wetherilli 275) — IHFC 는 측정마다 쪽이 없어 링크가 없다
     "heatflow": {"q": "지열류 (mW/m²)", "unc": "오차 (mW/m²)", "name": "자리", "env": "환경", "method": "잰 법", "year": "해",
                  "quality": "품질", "ref": "문헌"},
+    # 온 지구 화면의 팝업과 같은 열이다 (`faults.near`·`tectonics.province_at`·`views.earth_stress_at`·`earth_minerals_at`, wetherilli 390)
+    "faults": {"name": "단층", "kind": "갈래", "slip": "미끄럼 (원문)", "dip": "경사 (°)", "dipdir": "경사 방향", "rake": "레이크 (°)",
+               "rate": "미끄럼 속도 (mm/yr)", "depth": "지진 발생 깊이 (km)", "catalog": "원 목록"},
+    "plates": {"kind": "갈래", "plates": "판", "comment": "설명"},
+    "provinces": {"name": "지질구", "kind": "갈래", "group": "묶음", "orogen": "마지막 조산 운동", "continent": "대륙", "crust": "지각"},
+    "stress": {"azi": "최대 수평 응력 방향", "regime": "응력 체제", "quality": "품질", "type": "측정법", "depth": "깊이 (km)",
+               "place": "곳", "mag": "규모", "date": "일시", "ref": "참고 문헌"},
+    "minerals": {"name": "광상", "commodity": "광종", "status": "상태", "kind": "광상 유형", "country": "나라", "link": "USGS 쪽"},
 }
 LINKS = ("link",)
 CREDITS = {"pbdb": pbdb.CREDIT, "gvp": gvp.CREDIT, "quakes": usgs.CREDIT, "neotoma": neotoma.CREDIT,
-           "heatflow": heatflow.CREDIT, "recentquakes": usgs.CREDIT}
+           "heatflow": heatflow.CREDIT, "recentquakes": usgs.CREDIT, "faults": faults.CITE, "plates": tectonics.CITE,
+           "provinces": tectonics.CITE, "stress": stress.CREDIT, "minerals": minerals.CREDIT}
 #: 범례 칸의 원본 자료 글 (화면이 `T()` 로 옮긴다). GVP 는 비상업·인용 조건을 적는다 (wetherilli 134)
 SOURCE_LABELS = {
     "pbdb": msg("원본 자료 — Paleobiology Database, CC BY 4.0"),
@@ -75,10 +89,18 @@ SOURCE_LABELS = {
     "neotoma": msg("원본 자료 — Neotoma, CC BY 4.0"),
     "heatflow": msg("원본 자료 — IHFC 세계 지열류 자료 2024, CC BY 4.0"),
     "recentquakes": msg("원본 자료 — USGS 실시간 피드(지난 7 일 M2.5 이상, 매시 받음), 공공 영역"),
+    "faults": msg("원본 자료 — GEM Global Active Faults, CC BY-SA 4.0"),
+    "plates": msg("원본 자료 — Hasterok 외 2022, CC BY 4.0"),
+    "provinces": msg("원본 자료 — Hasterok 외 2022, CC BY 4.0"),
+    "stress": msg("원본 자료 — World Stress Map 2025, CC BY 4.0"),
+    "minerals": msg("원본 자료 — USGS MRDS·세계 광물 자원 평가, 공공 영역"),
 }
 SOURCE_URLS = {"pbdb": "https://paleobiodb.org/", "gvp": "https://volcano.si.edu/",
                "quakes": "https://earthquake.usgs.gov/earthquakes/search/", "neotoma": "https://www.neotomadb.org/",
-               "heatflow": heatflow.DOI, "recentquakes": "https://earthquake.usgs.gov/earthquakes/map/"}
+               "heatflow": heatflow.DOI, "recentquakes": "https://earthquake.usgs.gov/earthquakes/map/",
+               "faults": "https://github.com/GEMScienceTools/gem-global-active-faults",
+               "plates": "https://doi.org/10.5281/zenodo.5093930", "provinces": "https://doi.org/10.5281/zenodo.5093930",
+               "stress": stress.DOI, "minerals": minerals.LINK}
 #: 자료가 없을 때 패널에 띄우는 글 — 어느 명령이 모으는지 적는다
 MISSING = {
     "pbdb": msg("화석 산지 자료를 아직 모으지 않았다 (fetch_pbdb)"),
@@ -87,9 +109,16 @@ MISSING = {
     "neotoma": msg("고생태 산지 자료를 아직 모으지 않았다 (fetch_neotoma)"),
     "heatflow": msg("지열류 자료를 아직 굽지 않았다 (build_heatflow)"),
     "recentquakes": msg("최근 지진 피드를 아직 받지 않았다 (fetch_recent_quakes)"),
+    "faults": msg("활성단층 자료를 아직 굽지 않았다 (build_faults)"),
+    "plates": msg("판 경계 자료를 아직 굽지 않았다 (build_tectonics)"),
+    "provinces": msg("지질구 자료를 아직 굽지 않았다 (build_tectonics)"),
+    "stress": msg("응력 자료를 아직 굽지 않았다 (build_stress)"),
+    "minerals": msg("광상 자료를 아직 굽지 않았다 (build_minerals)"),
 }
 _AVAILABLE = {"pbdb": fossils.available, "gvp": volcanoes.available, "quakes": quakes.available, "neotoma": paleoeco.available,
-              "heatflow": heatflow.available, "recentquakes": recentquakes.available}
+              "heatflow": heatflow.available, "recentquakes": recentquakes.available, "faults": faults.available,
+              "plates": tectonics.available, "provinces": tectonics.available, "stress": stress.available,
+              "minerals": minerals.available}
 
 
 def knows(name: str) -> bool:
@@ -121,13 +150,28 @@ def stamp(name: str) -> str:
         return heatflow.built()
     if src == "recentquakes":
         return recentquakes.generated()
+    if src == "faults":
+        return _file_stamp(settings.FAULTS_FILE)
+    if src in ("plates", "provinces"):
+        return _file_stamp(settings.TECTONICS_FILE)
+    if src == "stress":
+        return stress.built()
+    if src == "minerals":
+        return minerals.built()
     conn = fossils.db()
     row = conn.execute("SELECT v FROM meta WHERE k = 'built'").fetchone() if conn else None
     return row[0] if row else ""
 
 
 #: 덩이를 짓는 법 — 열·색·네모를 고치면 올린다. 판(`version`)에 들어 주소가 바뀐다
-RENDERER = "2"                      # 2 — 넓은 네모의 점을 칸으로 모은다 (wetherilli 331)
+RENDERER = "3"                      # 2 — 넓은 네모의 점을 칸으로 모은다 (wetherilli 331). 3 — 범례 줄마다 모양 (390)
+
+
+def _file_stamp(path) -> str:
+    try:
+        return str(int(os.stat(path).st_mtime))
+    except OSError:
+        return ""
 
 
 def version(name: str) -> str:
@@ -277,6 +321,8 @@ _KEEP = {
     "quakes": lambda p: float(str(p.get("mag") or "0").split()[0]),
     "gvp": lambda p: 0.0,
     "recentquakes": lambda p: float(str(p.get("mag") or "0").split()[0]),
+    "stress": lambda p: -"ABCD".index(p.get("q") or "D"),
+    "minerals": lambda p: 1.0 if p.get("shape") == "diamond" else 0.0,
 }
 
 
@@ -302,8 +348,100 @@ def _merge(src: str, features: list) -> list:
     return out
 
 
+# ── 온 지구 화면에 구워 둔 선·면·막대 (wetherilli 390) ───────────────────
+
+def _hits(bbox, box) -> bool:
+    """겉네모가 지역의 네모에 걸치는가"""
+    return bbox[0] <= box[2] and bbox[2] >= box[0] and bbox[1] <= box[3] and bbox[3] >= box[1]
+
+
+def _pairs(flat) -> list:
+    return [[flat[i], flat[i + 1]] for i in range(0, len(flat) - 1, 2)]
+
+
+def _shape(geometry: dict, props: dict, fid) -> dict:
+    return {"type": "Feature", "id": fid, "geometry": geometry, "properties": {k: v for k, v in props.items() if v not in (None, "")}}
+
+
+def _fault_features(box, lang):
+    """GEM 활성단층 — 갈래의 색·굵기·끊김으로 긋는다(`faults.KINDS`). 해령은 옅게, 활동성 단층이 위에 오게 차례를 둔다"""
+    order = list(faults.KINDS)[::-1]
+    items = sorted((f for f in faults.data()["faults"] if _hits(f["bbox"], box)), key=lambda f: -order.index(f["kind"]))
+    out = [_shape({"type": "MultiLineString", "coordinates": [_pairs(p) for p in f["parts"]]}, {
+        "code": f["kind"], "name": f["name"] or i18n.t(msg("이름 없는 단층"), lang), "kind": i18n.t(faults.KINDS[f["kind"]][1], lang),
+        "slip": f["slip"].replace("_", " "), "dip": f["dip"], "dipdir": f["dipdir"], "rake": f["rake"], "rate": f["rate"],
+        "depth": f["depth"], "catalog": f["catalog"]}, i) for i, f in enumerate(items)]
+    legend = [(k, label, color, {"shape": "stroke", "width": round(1.6 * w, 2), **({"dash": list(dash)} if dash else {})})
+              for k, (color, label, w, dash) in faults.KINDS.items()]
+    return out, legend
+
+
+def _slug(text: str) -> str:
+    return re.sub(r"[^a-z]+", "_", text.lower()).strip("_")
+
+
+def _plate_features(box, lang):
+    """판 경계 — 갈래의 색. 큰 판의 경계(`level` 1)도 같은 굵기다 — 굵기는 범례 줄마다라서"""
+    out = []
+    for i, b in enumerate(tectonics.data()["boundaries"]):
+        if not _hits(b["bbox"], box) or b["type"] not in tectonics.BOUNDARY_TYPES:
+            continue
+        out.append(_shape({"type": "MultiLineString", "coordinates": [_pairs(p) for p in b["parts"]]}, {
+            "code": _slug(b["type"]), "kind": i18n.t(tectonics.BOUNDARY_TYPES[b["type"]][1], lang), "plates": b["plates"],
+            "comment": b["comment"]}, i))
+    legend = [(_slug(k), label, color, {"shape": "stroke", "width": 2.4, **({"dash": list(dash)} if dash else {})})
+              for k, (color, label, dash) in tectonics.BOUNDARY_TYPES.items()]
+    return out, legend
+
+
+def _province_features(box, lang):
+    """세계 지질구 — 면을 갈래의 색으로 옅게 칠한다(`classStyle` 의 면). 누르면 이름·갈래·마지막 조산 운동"""
+    out = []
+    for i, p in enumerate(tectonics.data()["provinces"]):
+        if not _hits(p["bbox"], box):
+            continue
+        crust = tectonics.CRUST.get(p["crust"])
+        out.append(_shape({"type": "MultiPolygon", "coordinates": [[_pairs(r) for r in poly] for poly in p["polys"]]}, {
+            "code": _slug(p["type"]) or "other", "name": p["name"], "group": p["group"], "orogen": p["orogen"],
+            "continent": p["continent"], "crust": i18n.t(crust, lang) if crust else p["crust"],
+            "kind": i18n.t(tectonics.PROVINCE_TYPES[p["type"]][1], lang) if p["type"] in tectonics.PROVINCE_TYPES else p["type"]}, i))
+    legend = [(_slug(k), label, color, {"shape": "area"}) for k, (color, label) in tectonics.PROVINCE_TYPES.items()]
+    return out, legend
+
+
+def _stress_features(box, lang):
+    """지각 응력 — S_Hmax 방향의 막대(`azimuth`), 길이는 품질(`q`), 색은 응력 체제. 품질 좋은 것이 위에 오게 D 부터"""
+    rows = sorted(stress.points(*box), key=lambda r: -"ABCD".index(r["quality"]))
+    out = []
+    for r in rows:
+        kind = stress.TYPES.get(r["type"])
+        regime = r["regime"] if r["regime"] in stress.REGIMES else "U"
+        out.append(_point(r["lon"], r["lat"], {
+            "code": regime, "azimuth": round(r["azi"] % 180, 1), "q": r["quality"], "azi": f"N{r['azi']:.0f}°E",
+            "regime": i18n.t(stress.REGIMES[regime][1], lang), "quality": r["quality"],
+            "type": i18n.t(kind, lang) if kind else r["type"], "depth": f"{r['depth']:g}" if r["depth"] is not None else "",
+            "place": " · ".join(x for x in (r["locality"], r["country"]) if x), "mag": r["mag"], "date": r["date"],
+            "ref": r["ref"]}, r["id"]))
+    legend = [(k, label, color, {"shape": "bar"}) for k, (color, label) in stress.REGIMES.items()]
+    return out, legend
+
+
+def _mineral_features(box, lang):
+    """세계 광상 — 광종 칸의 색. 세계 광상 표·대규모(무게 2)는 마름모(점의 `shape` 가 범례 줄의 모양을 덮는다), 나머지는 점.
+    무거운 것이 위에 오게"""
+    rows = sorted(minerals.points(list(minerals.BANDS), *box), key=lambda r: r["weight"])
+    out = [_point(r["lon"], r["lat"], {
+        "code": r["band"], "shape": "diamond" if r["weight"] == 2 else "", "name": r["name"] or i18n.t(msg("이름 없는 곳"), lang),
+        "commodity": r["commodity"], "status": r["status"], "kind": r["kind"], "country": r["country"], "link": r["url"]},
+        f"{r['src']}:{r['rid']}") for r in rows]
+    legend = [(band, label, color) for band, (color, label) in minerals.BANDS.items()]
+    return out, legend
+
+
 _FEATURES = {"pbdb": _fossil_features, "gvp": _volcano_features, "quakes": _quake_features,
-             "neotoma": _neotoma_features, "heatflow": _heatflow_features, "recentquakes": _recent_quake_features}
+             "neotoma": _neotoma_features, "heatflow": _heatflow_features, "recentquakes": _recent_quake_features,
+             "faults": _fault_features, "plates": _plate_features, "provinces": _province_features, "stress": _stress_features,
+             "minerals": _mineral_features}
 
 
 def body(name: str, lang: str = "ko") -> bytes:
@@ -324,8 +462,9 @@ def _body(name: str, lang: str, _stamp: str) -> bytes:
         code = f["properties"]["code"]
         counts[code] = counts.get(code, 0) + 1
     shape = "triangle" if src == "gvp" else "ring" if src == "recentquakes" else "dot"
-    legend = [{"code": code, "label": str(label), "color": color, "shape": shape, "count": counts[code]}
-              for code, label, color in table if counts.get(code)]
+    # 범례 줄의 넷째 칸(있으면)이 그 줄의 모양·굵기·끊김이다 — 선·면·막대 (wetherilli 390)
+    legend = [{"code": code, "label": str(label), "color": color, "shape": shape, "count": counts[code], **(extra[0] if extra else {})}
+              for code, label, color, *extra in table if counts.get(code)]
     labels = dict(LABELS[src], merged="같은 칸에 모인 수")
     return json.dumps({"type": "FeatureCollection", "style": "class", "labels": labels, "links": list(LINKS),
                        "legend": legend, "features": features},

@@ -184,3 +184,39 @@ class Regions(TestCase):
         self.assertEqual(len(got), 1)                                               # 0.01° 칸 하나에 다 든다
         self.assertEqual((got[0]["properties"]["occs"], got[0]["properties"]["merged"]), (8, 9))
         self.assertEqual(earthpoints._merge("pbdb", feats[:3]), feats[:3])          # 적으면 그대로
+
+
+class EarthLayers(TestCase):
+    """온 지구 화면에 구워 둔 선·면·막대를 지역 탭에 (wetherilli 390) — 범례 줄마다 모양, 점마다 모양"""
+
+    def body(self, src, **patches):
+        from unittest import mock
+        with mock.patch.multiple(f"viewer.{patches.pop('module')}", **patches):
+            earthpoints._body.cache_clear()
+            return json.loads(earthpoints._body(f"earth:{src}_eastasia", "ko", "t"))
+
+    def test_활성단층은_선(self):
+        fault = {"name": "", "slip": "Dextral", "kind": "strike", "dip": "", "dipdir": "", "rake": "", "rate": "1.0 (0.5, 2.0)",
+                 "depth": "", "catalog": "HimaTibetMap", "parts": [[100.0, 30.0, 101.0, 31.0]], "bbox": (100.0, 30.0, 101.0, 31.0)}
+        far = dict(fault, bbox=(10.0, 10.0, 11.0, 11.0))
+        d = self.body("faults", module="faults", data=lambda: {"faults": [fault, far]})
+        self.assertEqual(len(d["features"]), 1)
+        f = d["features"][0]
+        self.assertEqual(f["geometry"]["type"], "MultiLineString")
+        self.assertEqual((f["properties"]["kind"], f["properties"]["name"]), ("주향이동·변환", "이름 없는 단층"))
+        self.assertEqual(d["legend"][0]["shape"], "stroke")
+
+    def test_응력은_방향_막대(self):
+        row = {"id": "CHN1", "lon": 103.0, "lat": 30.0, "azi": 290.0, "type": "FMS", "depth": 12.0, "quality": "B", "regime": "TF",
+               "locality": "Wenchuan", "country": "China", "date": "", "mag": "", "ref": ""}
+        d = self.body("stress", module="stress", points=lambda *box: [row])
+        p = d["features"][0]["properties"]
+        self.assertEqual((p["azimuth"], p["q"], p["azi"]), (110.0, "B", "N290°E"))   # 축이라 180° 를 접는다
+        self.assertEqual(d["legend"][0]["shape"], "bar")
+
+    def test_큰_광상은_마름모(self):
+        rows = [{"lon": 100.0, "lat": 30.0, "band": "min_cu", "weight": w, "name": f"n{w}", "commodity": "Copper", "status": "",
+                 "kind": "", "country": "China", "url": "", "src": "mrds", "rid": str(w)} for w in (0, 2)]
+        d = self.body("minerals", module="minerals", points=lambda bands, *box: rows)
+        shapes = {f["properties"]["name"]: f["properties"].get("shape") for f in d["features"]}
+        self.assertEqual(shapes, {"n0": None, "n2": "diamond"})

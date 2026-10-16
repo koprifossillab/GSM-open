@@ -1144,6 +1144,15 @@ EN = {
     "링크": "Link",
     "이 링크를 복사한다": "Copy this link",
     "링크로 연 화면이다 — 여기서 바꾼 것은 이 브라우저에 기억하지 않는다": "Opened from a link — changes here are not remembered in this browser",
+    # 넘겨받은 임시 레이어 (wetherilli 392)
+    "넘겨받은 점": "Handed-over points",
+    "{name} 의 점 {n}개를 임시로 띄웠다 — 저장하지 않는다": "Showing {n} points from {name} as a temporary layer — nothing is saved",
+    "{name} 에서 넘겨받은 점이 없다": "No points came from {name}",
+    "{name} 의 점 {total}개 가운데 {n}개만 임시로 띄웠다 — 저장하지 않는다": "Showing {n} of {total} points from {name} as a temporary layer — nothing is saved",
+    "{name} 의 점을 받지 못했다": "Could not load the points from {name}",
+    "{name}에서 열기": "Open in {name}",
+    "감추기": "Hide",
+    "보이기": "Show",
     "내 화면으로": "Back to my view",
     # 높이 그래프 밑의 지질 띠 (wetherilli 180)
     "거리 {d} · 높이 {h} · {unit}": "distance {d} · elevation {h} · {unit}",
@@ -3575,6 +3584,7 @@ GROUP_EN = {
     "필리핀 지질도 (MGB)": "Geology of the Philippines (MGB)", "태국 지질도 (DMR)": "Geology of Thailand (DMR)",
     "지질 구조 (5만)": "Geological structures (1:50k)",
     "화석·화산·지진": "Fossils, volcanoes, earthquakes",
+    "지각 구조": "Crustal structure", "광상": "Mineral deposits",
     "국토지리원 주제도": "GSI thematic maps",
     "쇄빙연구선 아라온호": "Icebreaker RV Araon",
     "동·동남아시아 지질도 (CCOP)": "East & Southeast Asia geology (CCOP)",
@@ -4768,4 +4778,8 @@ LAYER_EN.update({f"earth:{kind}_{box}": f"{title} — {area}"
                  for box, area in {'eastasia': 'East Asia', 'southeast_asia': 'Southeast Asia', 'southasia': 'South and West Asia', 'europe': 'Europe', 'north_america': 'North America', 'central_america': 'Central America and Caribbean', 'south_america': 'South America', 'oceania': 'Oceania', 'africa': 'Africa'}.items()
                  for kind, title in (("pbdb", "Fossil collections (PBDB)"), ("gvp", "Holocene volcanoes (GVP)"),
                                      ("quakes", "Earthquakes M5+ (USGS)"), ("neotoma", "Quaternary palaeoecology sites (Neotoma)"),
-                                     ("heatflow", "Heat flow (IHFC)"), ("recentquakes", "Recent earthquakes (7 days, M2.5+)"))})
+                                     ("heatflow", "Heat flow (IHFC)"), ("recentquakes", "Recent earthquakes (7 days, M2.5+)"),
+                                     # 온 지구 화면에 구워 둔 선·면·막대 (wetherilli 390)
+                                     ("faults", "Active faults (GEM)"), ("plates", "Plate boundaries (Hasterok 2022)"),
+                                     ("provinces", "Geologic provinces (Hasterok 2022)"), ("stress", "Crustal stress (WSM 2025)"),
+                                     ("minerals", "Mineral deposits (USGS)"))})

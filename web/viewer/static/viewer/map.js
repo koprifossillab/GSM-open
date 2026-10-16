@@ -687,8 +687,31 @@
   // `STATE` 를 거친다 — 링크로 연 동안에는 덧층에만 쓰고 그 사람의 localStorage 는 건드리지 않는다. 실리지 않은 지역(정적 판)은
   // 링크를 버리고 늘 하던 대로 연다. 레이어·배경은 되살릴 때 카탈로그에 없으면 조용히 건너뛴다(`restoreState`·`savedBasemap`)
   var SHARED = window.GSMShare ? GSMShare.read() : null;
+  // 넘겨받은 임시 레이어(`#ext=`, wetherilli 392)는 링크의 지역이 없어도(나라 밖의 점) 받는다 — SHARED 를 버리기 전에 떼어 둔다
+  var EXT = extFrom(SHARED);
   if (SHARED && !(SHARED.r && REGIONS[SHARED.r])) SHARED = null;
   var STATE = window.GSMShare ? GSMShare.store(SHARED && sharedSeed(SHARED)) : null;
+  /** 넘겨받은 임시 레이어의 주소와 이름 (wetherilli 392). 같은 nginx 아래의 형제 앱(Cropobite 따위)이 `#ext=/앱/….geojson&extname=앱`
+   *  으로 제 점을 넘긴다. **같은 사이트의 경로만** 받는다 — 남의 주소(`//`·`http:`)를 받으면 아무 자료나 이 지도에 얹힌다.
+   *  정적 판(Pages)에는 같은 사이트의 앱이 없어 받지 않는다 */
+  function extFrom(q) {
+    if (!q || !q.ext || STATIC) return null;
+    var path = sameSite(q.ext);
+    if (!path) return null;
+    return { path: path, name: String(q.extname || "").slice(0, 60) || T("넘겨받은 점") };
+  }
+  /** 같은 사이트의 주소면 그 경로(+질의·해시)를, 아니면 null. **브라우저가 읽는 대로 읽어 본다** — 앞 글자만 보면
+   *  `/\evil.com` 이나 `/<탭>/evil.com` 이 `//evil.com` 으로 읽혀 바깥으로 가는 링크가 된다(열린 넘김, gsm-63 검토).
+   *  그래서 URL 로 풀어 오리진을 대고, 푼 결과의 경로만 쓴다 */
+  function sameSite(url) {
+    var s = String(url || "");
+    if (s.charAt(0) !== "/") return null;
+    try {
+      var u = new URL(s, location.origin);
+      return u.origin === location.origin ? u.pathname + u.search + u.hash : null;
+    } catch (e) { return null; }
+  }
+
   function sharedSeed(q) {
     var r = q.r, key = function (name) { return r === "korea" ? name : name + "." + r; };
     var seed = { "gsm.region": r };
@@ -2414,6 +2437,7 @@
     pointLayers = {};
     renderPointSets();
     drawPersonal();
+    drawExt();
     // 나란히 보기의 오른쪽 지도는 같은 보기를 나눠 쓴다
     if (map2) map2.setView(map.getView());
     showProjection(true);
@@ -4834,10 +4858,14 @@
       if (!fade) return null;
     }
     var azimuth = feature.get("azimuth");
-    var key = code + "|" + type + (far ? "f" : "n") + fade + (azimuth != null ? "|" + Math.round(azimuth / 5) * 5 : "");
+    // 점마다 모양을 덮을 수 있다 — 세계 광상의 대규모는 마름모(wetherilli 390). 응력 막대의 길이는 품질(`q`)
+    var own = feature.get("shape"), quality = feature.get("q");
+    var key = code + "|" + type + (far ? "f" : "n") + fade + (azimuth != null ? "|" + Math.round(azimuth / 5) * 5 : "") +
+      (own ? "|" + own : "") + (quality ? "|" + quality : "");
     if (cache[key]) return cache[key];
     var spec = {};
     (getLayer().get("gsmLegend") || []).forEach(function (r) { if (r.code === code) spec = r; });
+    if (own) spec = Object.assign({}, spec, { shape: own });
     var color = spec.color || "#888888";
     if (fade < 1) { var faded = ol.color.asArray(color).slice(); faded[3] = fade; color = faded; }
     var style;
@@ -4854,9 +4882,22 @@
       style = new ol.style.Style({ image: new ol.style.Icon({
         src: "data:image/svg+xml;charset=utf-8," + encodeURIComponent(attitudeSvg(spec.shape, color, 22)),
         rotation: (Math.round(azimuth / 5) * 5) * Math.PI / 180, rotateWithView: true, scale: far ? 0.6 : 1 }) });
+    } else if (spec.shape === "bar" && azimuth != null) {
+      // 지각 응력(wetherilli 390) — 최대 수평 응력 방향의 막대. 길이는 품질(A 가장 길게), WSM 지도의 관례다. 흰 테 위에 체제의 색
+      var half = (far ? 6 : 10) * ({ A: 1, B: 0.8, C: 0.6, D: 0.4 }[quality] || 0.6);
+      var turn = (Math.round(azimuth / 5) * 5) * Math.PI / 180;
+      style = [new ol.style.Style({ image: new ol.style.RegularShape({ points: 2, radius: half + 1, angle: 0, rotation: turn,
+                 rotateWithView: true, stroke: new ol.style.Stroke({ color: "rgba(255,255,255,0.9)", width: 4 }) }) }),
+               new ol.style.Style({ image: new ol.style.RegularShape({ points: 2, radius: half, angle: 0, rotation: turn,
+                 rotateWithView: true, stroke: new ol.style.Stroke({ color: color, width: 2 }) }) })];
     } else if (spec.shape === "dash") {
       // 날짜만 아는 지난 항적(koprifossillab 009) — 지금 쌓는 것과 갈라 보이게 가늘게 끊어
       style = new ol.style.Style({ stroke: new ol.style.Stroke({ color: color, width: 1.6, lineDash: [6, 4] }) });
+    } else if (spec.shape === "area") {
+      // 세계 지질구(wetherilli 390) — 지질도 위에 겹쳐 읽게 옅게 칠하고 테두리를 또렷이
+      var tone = ol.color.asArray(color);
+      style = new ol.style.Style({ fill: new ol.style.Fill({ color: [tone[0], tone[1], tone[2], 0.22] }),
+                                   stroke: new ol.style.Stroke({ color: [tone[0], tone[1], tone[2], 0.9], width: 1.2 }) });
     } else if (type === "Polygon" || type === "MultiPolygon" || type === "LineString" || type === "MultiLineString") {
       var rgb = ol.color.asArray(color);
       style = new ol.style.Style({
@@ -4917,6 +4958,18 @@
         sw.className = "sw-line";
         sw.innerHTML = '<svg width="30" height="10" aria-hidden="true"><line x1="1" y1="5" x2="29" y2="5" stroke="' +
           esc(r.color || "#888") + '" stroke-width="' + (r.shape === "dash" ? '1.6" stroke-dasharray="6 4' : "2.5") + '"/></svg>';
+      } else if (row.style === "class" && r.shape === "bar") {
+        // 지각 응력 막대(wetherilli 390)
+        sw = document.createElement("span");
+        sw.className = "sw-line";
+        sw.innerHTML = '<svg width="30" height="10" aria-hidden="true"><line x1="6" y1="5" x2="24" y2="5" stroke="' +
+          esc(r.color || "#888") + '" stroke-width="2.5"/></svg>';
+      } else if (row.style === "class" && r.shape === "area") {
+        // 세계 지질구(wetherilli 390) — 옅게 칠한 면
+        sw = document.createElement("span");
+        sw.className = "sw box";
+        sw.style.background = r.color || "#888";
+        sw.style.opacity = "0.55";
       } else if (row.style === "class" && (r.shape === "arrow" || r.shape === "strike")) {
         sw = document.createElement("span");
         sw.className = "sw-line";
@@ -5500,6 +5553,10 @@
       }
       if (feature.get("_개인")) {
         personalParts(feature, personalSeen).forEach(function (own) { parts.push(own); });
+        return;
+      }
+      if (feature.get("_ext")) {
+        parts.push(extPart(feature));
         return;
       }
       parts.push({ title: feature.get("_점묶음") || T("내 자료"), props: plain(feature.getProperties()) });
@@ -6443,6 +6500,90 @@
     if (go()) return;
     var key = source.on("change", function () { if (go()) ol.Observable.unByKey(key); });
     setTimeout(function () { ol.Observable.unByKey(key); }, 10000);
+  }
+
+  // ── 넘겨받은 임시 레이어 (wetherilli 392) ──
+  // 같은 사이트의 형제 앱이 `#ext=` 로 넘긴 GeoJSON 점을 띄운다. **저장하지 않는다** — 서버의 점묶음(PointSet)도, 이 브라우저의
+  // 개인 레이어(IndexedDB)도, 기억(localStorage)도 타지 않는다. 새로 고치면 사라진다. 그래서 점묶음 목록에도 서지 않는다 —
+  // 거기 서면 "점묶음으로 저장" 흐름을 탄다. 모양은 점묶음의 것(`pointStyle`)을 빌리고 색은 점마다(`color`) 받는다
+  var extData = null, extLayer = null, extShown = true;
+  //: 넘겨받는 점의 상한 — 같은 사이트라 위험은 작지만 수만 점이면 화면이 멈춘다 (gsm-63 검토)
+  var EXT_MAX = 5000;
+  function drawExt() {
+    if (!extData) return null;
+    if (extLayer) pointLayerGroup.getLayers().remove(extLayer);
+    var features = new ol.format.GeoJSON({ featureProjection: viewProj() }).readFeatures(extData);
+    features.forEach(function (f) {
+      f.set("_ext", true);
+      if (f.get("name") && !f.get("이름표")) f.set("이름표", f.get("name"));
+    });
+    var styles = {};
+    extLayer = new ol.layer.Vector({
+      source: new ol.source.Vector({ features: features }),
+      style: function (f, res) {
+        var c = /^#[0-9a-f]{6}$/i.test(f.get("color") || "") ? f.get("color") : "#e4572e";
+        return (styles[c] = styles[c] || pointStyle(c))(f, res);
+      },
+      declutter: true,
+      visible: extShown,
+    });
+    pointLayerGroup.getLayers().push(extLayer);
+    return extLayer;
+  }
+  /** 팝업 한 덩이 — 이름, 메모, 그리고 넘겨 준 앱의 그 화면으로 가는 링크(같은 사이트의 경로만) */
+  function extPart(feature) {
+    var props = {};
+    if (feature.get("note")) props[T("메모")] = String(feature.get("note"));
+    var url = sameSite(feature.get("url"));
+    if (url) props[T("열기")] = { text: "", links: [{ url: url, label: T("{name}에서 열기", { name: EXT.name }) }] };
+    return { title: String(feature.get("name") || EXT.name), props: props };
+  }
+  /** 넘겨받았다는 띠 — 공유 링크의 띠(`share-notice`) 꼴. 감추기·보이기와 닫기 */
+  function extNotice(n, total) {
+    var text = n < 0 ? T("{name} 의 점을 받지 못했다", { name: EXT.name })
+      : n === 0 ? T("{name} 에서 넘겨받은 점이 없다", { name: EXT.name })
+      : total > n ? T("{name} 의 점 {total}개 가운데 {n}개만 임시로 띄웠다 — 저장하지 않는다", { name: EXT.name, n: n, total: total })
+      : T("{name} 의 점 {n}개를 임시로 띄웠다 — 저장하지 않는다", { name: EXT.name, n: n });
+    var bar = document.createElement("div");
+    bar.className = "share-notice ext-notice";
+    bar.setAttribute("role", "status");
+    var span = document.createElement("span");
+    span.textContent = text;
+    bar.appendChild(span);
+    if (n > 0) {
+      var toggle = document.createElement("button");
+      toggle.type = "button";
+      toggle.textContent = T("감추기");
+      toggle.addEventListener("click", function () {
+        extShown = !extShown;
+        if (extLayer) extLayer.setVisible(extShown);
+        toggle.textContent = extShown ? T("감추기") : T("보이기");
+      });
+      bar.appendChild(toggle);
+    }
+    var x = document.createElement("button");
+    x.type = "button";
+    x.className = "share-notice-x";
+    x.textContent = "×";
+    x.setAttribute("aria-label", "×");
+    x.addEventListener("click", function () { bar.remove(); });
+    bar.appendChild(x);
+    (document.getElementById("map-wrap") || document.body).appendChild(bar);
+  }
+  function loadExt() {
+    if (!EXT) return;
+    fetch(EXT.path, { credentials: "same-origin" })
+      .then(function (r) { if (!r.ok) throw new Error(r.status); return r.json(); })
+      .then(function (data) {
+        if (!data || data.type !== "FeatureCollection" || !Array.isArray(data.features)) throw new Error("GeoJSON");
+        var total = data.features.length;
+        extData = { type: "FeatureCollection", features: data.features.slice(0, EXT_MAX) };
+        var layer = drawExt();
+        extNotice(extData.features.length, total);
+        // 링크가 자리를 주지 않았으면(나라 밖의 점) 점들로 맞춘다
+        if (!SHARED && data.features.length) fitToSource(layer.getSource());
+      })
+      .catch(function () { extNotice(-1); });
   }
 
   function loadPointSet(ps) {
@@ -8239,8 +8380,10 @@
   if (window.GSMShare) {
     GSMShare.wire(document.getElementById("tool-share"), shareLink,
                   { done: T("복사했다"), ask: T("이 링크를 복사한다") });
-    if (SHARED) GSMShare.notice(T("링크로 연 화면이다 — 여기서 바꾼 것은 이 브라우저에 기억하지 않는다"), T("내 화면으로"));
+    // 넘겨받은 점이 있으면 그 띠 하나만 — 두 띠가 같은 자리에 겹친다 (wetherilli 392)
+    if (SHARED && !EXT) GSMShare.notice(T("링크로 연 화면이다 — 여기서 바꾼 것은 이 브라우저에 기억하지 않는다"), T("내 화면으로"));
   }
+  loadExt();
 
   // ── 대기 화면 ────────────────────────────────────────────────────
   //

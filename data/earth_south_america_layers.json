@@ -1,10 +1,12 @@
 {
- "_주석": "지구 자료 점의 씨앗이다 — 남미 네모(earthpoints.BOXES['south_america']). brazil 탭에 두고 묶음의 다른 나라 탭이 빌린다(map.js 의 borrow). 모아 둔 sqlite·JSON 에서 네모만 잘라 낸다 — 상류를 타지 않는다. 점이 2 만을 넘으면 가까운 것을 칸으로 모은다. 정적 판에는 싣지 않는다 (wetherilli 331).",
+ "_주석": "지구 자료 점의 씨앗이다 — 남미 네모(earthpoints.BOXES['south_america']). brazil 탭에 두고 묶음의 다른 나라 탭이 빌린다(map.js 의 borrow). 모아 둔 sqlite·JSON 에서 네모만 잘라 낸다 — 상류를 타지 않는다. 점이 2 만을 넘으면 가까운 것을 칸으로 모은다. 정적 판에는 싣지 않는다 (wetherilli 331). 온 지구 화면에 구워 둔 활성단층·판 경계·지질구·응력·광상도 같은 네모로 잘라 싣는다 — 선·면·막대도 같은 덩이로 (wetherilli 390).",
  "_뽑은날": "2026-10-05",
  "_지역": "brazil",
  "_상류": "earth",
  "_레이어군차례": 40,
  "레이어군순서": [
+  "지각 구조",
+  "광상",
   "화석·화산·지진",
   "지구물리",
   "움직이는 지구"
@@ -69,6 +71,61 @@
    "name": "earth:recentquakes_south_america",
    "title": "최근 지진 (7 일, M2.5 이상) — 남미",
    "group": "움직이는 지구",
+   "bbox": [
+    -82.0,
+    -56.0,
+    -34.0,
+    13.0
+   ]
+  },
+  {
+   "name": "earth:faults_south_america",
+   "title": "활성단층 (GEM) — 남미",
+   "group": "지각 구조",
+   "bbox": [
+    -82.0,
+    -56.0,
+    -34.0,
+    13.0
+   ]
+  },
+  {
+   "name": "earth:plates_south_america",
+   "title": "판 경계 (Hasterok 2022) — 남미",
+   "group": "지각 구조",
+   "bbox": [
+    -82.0,
+    -56.0,
+    -34.0,
+    13.0
+   ]
+  },
+  {
+   "name": "earth:provinces_south_america",
+   "title": "세계 지질구 (Hasterok 2022) — 남미",
+   "group": "지각 구조",
+   "bbox": [
+    -82.0,
+    -56.0,
+    -34.0,
+    13.0
+   ]
+  },
+  {
+   "name": "earth:stress_south_america",
+   "title": "지각 응력 (WSM 2025) — 남미",
+   "group": "지각 구조",
+   "bbox": [
+    -82.0,
+    -56.0,
+    -34.0,
+    13.0
+   ]
+  },
+  {
+   "name": "earth:minerals_south_america",
+   "title": "광상 (USGS) — 남미",
+   "group": "광상",
    "bbox": [
     -82.0,
     -56.0,
