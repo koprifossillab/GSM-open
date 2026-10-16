@@ -2337,12 +2337,15 @@
   /** "자세" 묶음의 내 위치 (wetherilli 380) — 이 기기의 GPS(`navigator.geolocation`)로 파란 점과 정확도 원을 띄우고 따라간다.
    *  처음 잡힌 자리로 한 번 가고, 그 뒤로는 점만 옮긴다 — 지도를 끌어 보는 사람을 붙잡지 않게. 다시 누르면 끈다.
    *  브라우저는 보안 연결(https·localhost)에서만 위치를 준다 — 연구소 판(평문 http)에서는 단추를 숨긴다.
-   *  자리는 위경도로 들고 그릴 때마다 지금 투영으로 옮긴다 — 지역을 바꿔도 따라온다. 어디에도 보내거나 적지 않는다 */
+   *  자리는 위경도로 들고 그릴 때마다 지금 투영으로 옮긴다 — 지역을 바꿔도 따라온다. 어디에도 보내거나 적지 않는다 —
+   *  "기록" 단추를 누를 때만 그 자리를 이 브라우저의 개인 레이어에 적는다(`recordHere`, wetherilli 394) */
   var here = null, hereNote = "";
   function initLocate() {
     var button = document.getElementById("tool-locate");
     if (!button || !navigator.geolocation || !window.isSecureContext) return;
     button.hidden = false;
+    var record = document.getElementById("tool-record");
+    if (record) record.addEventListener("click", function () { recordHere(record); });
     var source = new ol.source.Vector();
     var layer = new ol.layer.Vector({
       source: source,
@@ -2379,6 +2382,7 @@
       watch = null; here = null; moved = false;
       button.classList.remove("on");
       button.setAttribute("aria-pressed", "false");
+      if (record) record.hidden = true;
       source.clear();
       note("");
     }
@@ -2386,9 +2390,12 @@
       if (watch !== null) { stop(); return; }
       button.classList.add("on");
       button.setAttribute("aria-pressed", "true");
+      // 기록은 개인 레이어(IndexedDB)에 적는다 — 저장소를 못 쓰는 브라우저면 단추를 띄우지 않는다
+      if (record) record.hidden = !Personal;
       note(T("위치를 찾는 중"));
       watch = navigator.geolocation.watchPosition(function (pos) {
-        here = { lat: pos.coords.latitude, lon: pos.coords.longitude, acc: pos.coords.accuracy || 0 };
+        here = { lat: pos.coords.latitude, lon: pos.coords.longitude, acc: pos.coords.accuracy || 0,
+                 alt: pos.coords.altitude, altAcc: pos.coords.altitudeAccuracy };
         draw();
       }, function (err) {
         var why = err.code === 1 ? T("위치 권한이 막혀 있다 — 브라우저 설정에서 허용한다")
@@ -2399,6 +2406,100 @@
     });
     // 지역을 바꿔 투영이 달라지면 새 보기에 다시 그린다. 자리를 옮기지는 않는다 — 그 지역의 기억한 자리로 연다
     map.on("change:view", function () { if (here) draw(); });
+  }
+
+  /** 현장 기록 (wetherilli 394) — 지금 GPS 자리를 시각·오차·고도·메모·그 자리의 지질 단위와 함께
+   *  개인 레이어 "현장 기록" 하나에 쌓는다. **서버로 보내지 않는다** — GPS 는 https 인 정적 판에서만 잡히고
+   *  거기에는 서버가 없다. 꺼내는 길은 개인 레이어 목록의 내려받기(CSV)다.
+   *  자리는 누른 때의 것으로 못박는다 — 메모를 적는 동안 GPS 가 움직여도 기록은 그대로다.
+   *  지질 단위는 켠 레이어에 묻는다(`readLayers`). 망이 없거나 늦으면 오프라인 묶음, 그것도 없으면 비운다 */
+  var FIELD_READ_MS = 10000;      // 지질 단위를 이만큼만 기다린다 — 현장의 느린 망에 기록이 붙잡히지 않게
+
+  function recordHere(button) {
+    if (!here) { hereNote = T("아직 위치를 받지 못했다"); updateToolOut(); return; }
+    var at = { lat: here.lat, lon: here.lon, acc: here.acc, alt: here.alt };
+    var when = new Date();
+    var memo = window.prompt(T("메모 — 노두 번호·암상 따위. 비워 두어도 된다"), "");
+    if (memo === null) return;
+    button.disabled = true;
+    hereNote = T("그 자리의 지질 단위를 읽는 중"); updateToolOut();
+    var timeout = new Promise(function (done) { setTimeout(function () { done(null); }, FIELD_READ_MS); });
+    Promise.race([readLayers(fromLL([at.lon, at.lat])), timeout]).then(function (read) {
+      var feature = {
+        type: "Feature",
+        geometry: { type: "Point", coordinates: [+at.lon.toFixed(7), +at.lat.toFixed(7)] },
+        properties: {
+          time: localTime(when),
+          memo: memo.trim(),
+          accuracy_m: Math.round(at.acc),
+          altitude_m: typeof at.alt === "number" ? Math.round(at.alt * 10) / 10 : null,
+          geology: geologyText(read || []),
+        },
+      };
+      return Personal.list().then(function (rows) {
+        var rec = rows.filter(function (r) { return r.meta && r.meta.field; })[0] || fieldLayer(when);
+        rec.features.push(feature);
+        rec.count = rec.features.length;
+        rec.drawn = rec.features.length;
+        return Personal.put(rec).then(function () {
+          loadPersonal(false);
+          hereNote = read === null
+            ? T("현장 기록 {n} — 적었다 (지질 단위는 늦어 비웠다)", { n: rec.count })
+            : T("현장 기록 {n} — 적었다", { n: rec.count });
+        });
+      });
+    }).catch(function () {
+      hereNote = T("기록하지 못했다 — 이 브라우저의 저장소를 쓰지 못한다");
+    }).then(function () {
+      button.disabled = false;
+      updateToolOut();
+    });
+  }
+
+  function fieldLayer(when) {
+    var name = T("현장 기록");
+    return {
+      id: "pl-field-" + when.getTime().toString(36),
+      name: name,
+      kind: "point",
+      color: "#e15759",
+      label: "memo",
+      visible: true,
+      meta: { name: name, field: true },
+      columns: [
+        { key: "time", label: T("시각"), type: "string" },
+        { key: "memo", label: T("메모"), type: "string" },
+        { key: "accuracy_m", label: T("GPS 오차(m)"), type: "integer" },
+        { key: "altitude_m", label: T("GPS 고도(m)"), type: "number" },
+        { key: "geology", label: T("지질 단위"), type: "string" },
+      ],
+      features: [],
+      count: 0,
+      drawn: 0,
+      file: null,
+      imported: when.toISOString(),
+    };
+  }
+
+  /** 2026-10-16 14:03:22+09:00 — 현장의 시계로 읽히게 지역 시각에 시간대를 붙인다 */
+  function localTime(d) {
+    var pad = function (n) { return (n < 10 ? "0" : "") + n; };
+    var off = -d.getTimezoneOffset();
+    return d.getFullYear() + "-" + pad(d.getMonth() + 1) + "-" + pad(d.getDate()) + " " +
+      pad(d.getHours()) + ":" + pad(d.getMinutes()) + ":" + pad(d.getSeconds()) +
+      (off < 0 ? "-" : "+") + pad(Math.floor(Math.abs(off) / 60)) + ":" + pad(Math.abs(off) % 60);
+  }
+
+  /** 읽은 속성을 한 칸의 글로 — "레이어 — 키: 값; 키: 값 / 다른 레이어 — …". 레이어마다 여섯 칸까지 */
+  function geologyText(read) {
+    return read.map(function (part) {
+      var props = part.props || {};
+      var bits = Object.keys(props).filter(function (k) {
+        var v = props[k];
+        return v !== null && v !== undefined && String(v).trim() !== "" && typeof v !== "object";
+      }).slice(0, 6).map(function (k) { return k + ": " + String(props[k]).trim(); });
+      return part.title + (bits.length ? " — " + bits.join("; ") : "");
+    }).join(" / ").slice(0, 1000);
   }
 
   /** 투영 하나의 보기. **OpenLayers 는 보기의 투영을 바꾸지 못한다** — 지역을
@@ -4879,7 +4980,7 @@
       if (!fade) return null;
     }
     var azimuth = feature.get("azimuth");
-    // 점마다 모양을 덮을 수 있다 — 세계 광상의 대규모는 마름모(wetherilli 390). 응력 막대의 길이는 품질(`q`)
+    // 점마다 모양을 덮을 수 있다 — 세계 광상의 대규모는 마름모(wetherilli 394). 응력 막대의 길이는 품질(`q`)
     var own = feature.get("shape"), quality = feature.get("q");
     var key = code + "|" + type + (far ? "f" : "n") + fade + (azimuth != null ? "|" + Math.round(azimuth / 5) * 5 : "") +
       (own ? "|" + own : "") + (quality ? "|" + quality : "");
@@ -4904,7 +5005,7 @@
         src: "data:image/svg+xml;charset=utf-8," + encodeURIComponent(attitudeSvg(spec.shape, color, 22)),
         rotation: (Math.round(azimuth / 5) * 5) * Math.PI / 180, rotateWithView: true, scale: far ? 0.6 : 1 }) });
     } else if (spec.shape === "bar" && azimuth != null) {
-      // 지각 응력(wetherilli 390) — 최대 수평 응력 방향의 막대. 길이는 품질(A 가장 길게), WSM 지도의 관례다. 흰 테 위에 체제의 색
+      // 지각 응력(wetherilli 394) — 최대 수평 응력 방향의 막대. 길이는 품질(A 가장 길게), WSM 지도의 관례다. 흰 테 위에 체제의 색
       var half = (far ? 6 : 10) * ({ A: 1, B: 0.8, C: 0.6, D: 0.4 }[quality] || 0.6);
       var turn = (Math.round(azimuth / 5) * 5) * Math.PI / 180;
       style = [new ol.style.Style({ image: new ol.style.RegularShape({ points: 2, radius: half + 1, angle: 0, rotation: turn,
@@ -4915,7 +5016,7 @@
       // 날짜만 아는 지난 항적(koprifossillab 009) — 지금 쌓는 것과 갈라 보이게 가늘게 끊어
       style = new ol.style.Style({ stroke: new ol.style.Stroke({ color: color, width: 1.6, lineDash: [6, 4] }) });
     } else if (spec.shape === "area") {
-      // 세계 지질구(wetherilli 390) — 지질도 위에 겹쳐 읽게 옅게 칠하고 테두리를 또렷이
+      // 세계 지질구(wetherilli 394) — 지질도 위에 겹쳐 읽게 옅게 칠하고 테두리를 또렷이
       var tone = ol.color.asArray(color);
       style = new ol.style.Style({ fill: new ol.style.Fill({ color: [tone[0], tone[1], tone[2], 0.22] }),
                                    stroke: new ol.style.Stroke({ color: [tone[0], tone[1], tone[2], 0.9], width: 1.2 }) });
@@ -4980,13 +5081,13 @@
         sw.innerHTML = '<svg width="30" height="10" aria-hidden="true"><line x1="1" y1="5" x2="29" y2="5" stroke="' +
           esc(r.color || "#888") + '" stroke-width="' + (r.shape === "dash" ? '1.6" stroke-dasharray="6 4' : "2.5") + '"/></svg>';
       } else if (row.style === "class" && r.shape === "bar") {
-        // 지각 응력 막대(wetherilli 390)
+        // 지각 응력 막대(wetherilli 394)
         sw = document.createElement("span");
         sw.className = "sw-line";
         sw.innerHTML = '<svg width="30" height="10" aria-hidden="true"><line x1="6" y1="5" x2="24" y2="5" stroke="' +
           esc(r.color || "#888") + '" stroke-width="2.5"/></svg>';
       } else if (row.style === "class" && r.shape === "area") {
-        // 세계 지질구(wetherilli 390) — 옅게 칠한 면
+        // 세계 지질구(wetherilli 394) — 옅게 칠한 면
         sw = document.createElement("span");
         sw.className = "sw box";
         sw.style.background = r.color || "#888";
@@ -5596,13 +5697,7 @@
       }
     });
 
-    // 벡터 레이어는 위에서 이미 읽었다 — 서버에 속성을 다시 묻지 않는다
-    var queryable = active.filter(function (e) {
-      var row = byName[e.name];
-      return row && row.queryable && row.kind !== "vector" && row.kind !== "points";
-    });
-
-    if (!queryable.length) {
+    if (!queryableLayers().length) {
       // 벡터 레이어만 켜 두고 선을 비껴 누른 것이면 "켠 것이 없다" 가 아니다
       showPopup(evt.coordinate, parts, parts.length ? ""
         : active.length ? T("이 자리에는 아무것도 없다") : T("켠 레이어가 없다"));
@@ -5610,43 +5705,49 @@
     }
 
     showPopup(evt.coordinate, parts, T("읽는 중…"));
+    readLayers(evt.coordinate).then(function (read) {
+      var all = parts.concat(read);
+      showPopup(evt.coordinate, all, all.length ? "" : T("이 자리에는 아무것도 없다"));
+    });
+  }
 
+  /** 켠 레이어 가운데 속성을 물을 수 있는 것. 벡터 레이어는 그린 것에서 이미 읽으므로 서버에 다시 묻지 않는다 */
+  function queryableLayers() {
+    return active.filter(function (e) {
+      var row = byName[e.name];
+      return row && row.queryable && row.kind !== "vector" && row.kind !== "points";
+    });
+  }
+
+  /** 한 자리에서 켠 레이어의 속성을 읽는다 → Promise<[{title, props}]>. 지도를 눌렀을 때와
+   *  현장 기록(`initLocate`)이 함께 쓴다. 못 읽은 레이어는 빈 것 — 다른 레이어를 막지 않는다 */
+  function readLayers(coordinate) {
+    var queryable = queryableLayers();
     var view = map.getView();
-    var pending = queryable.length;
-    var results = new Array(queryable.length);
-
-    queryable.forEach(function (entry, index) {
+    return Promise.all(queryable.map(function (entry) {
       // 속성 주소는 레이어의 상류가 안다 (`LAYER_KINDS`)
       var info = layerKind(entry.name).info;
-      var url = info && info(entry.layer.getSource(), evt.coordinate, view);
+      var url = info && info(entry.layer.getSource(), coordinate, view);
       // 오프라인 묶음의 지층 면(wetherilli 384) — 망으로 못 읽을 때(현장·정적 판)만 쓴다
       var packed = Offline && Offline.hasUnits(entry.name);
-      if (!url && !packed) { pending -= 1; return; }
+      if (!url && !packed) return [];
       var fromPack = function () {
-        var ll = toLL(evt.coordinate);
+        var ll = toLL(coordinate);
         return Offline.unitsAt(entry.name, ll[0], ll[1], LANG).then(function (rows) {
           return { packed: true, features: rows.map(function (props) { return { props: props }; }) };
         });
       };
 
       // 정적 판의 상류(`GSM_STATIC_KINDS`)는 주소가 아니라 받은 것을 준다 — 그쪽 꼴로 이미 손질해서
-      (!url ? fromPack()
+      return (!url ? fromPack()
         : (url.then ? url : fetch(url).then(function (r) { if (!r.ok && packed) throw new Error(r.status); return r.json(); }))
           .catch(function () { return packed ? fromPack() : { features: [] }; }))
         .then(function (data) {
           var title = data.packed ? T("{title} · 오프라인 묶음", { title: entry.title }) : entry.title;
-          results[index] = (data.features || []).map(function (f) {
-            return { title: title, props: f.props };
-          });
-          pending -= 1;
-          if (pending === 0) {
-            var all = parts.concat.apply(parts, results.filter(Boolean));
-            showPopup(evt.coordinate, all, all.length ? "" : T("이 자리에는 아무것도 없다"));
-          }
-        });
-    });
-
-    if (pending === 0) showPopup(evt.coordinate, parts, parts.length ? "" : T("이 자리에는 아무것도 없다"));
+          return (data.features || []).map(function (f) { return { title: title, props: f.props }; });
+        })
+        .catch(function () { return []; });
+    })).then(function (lists) { return [].concat.apply([], lists); });
   }
 
   /** IBCSO 수심·표고 (070). 실패하면 빈 것 — 팝업의 다른 줄을 막지 않는다. */
@@ -6400,10 +6501,15 @@
       var zoom = iconButton("⊙", T("이 자료로 범위를 맞춘다"), false, function () {
         fitToSource(personalLayers[rec.id] && personalLayers[rec.id].getSource());
       });
+      // 내려받기 — 정적 판에는 관리 화면이 없어 현장 기록을 꺼낼 길이 여기뿐이다 (wetherilli 394)
+      var save = iconButton("⤓", T("CSV 로 내려받는다"), false, function () {
+        downloadText(String(rec.name || "layer").replace(/[\\/:*?"<>|]+/g, "_").slice(0, 80) + ".csv",
+                     Personal.toCSV(rec), "text/csv;charset=utf-8");
+      });
       var label = document.createElement("span");
       label.className = "ps-text";
       label.append(name, count);
-      li.append(box, swatch, label, zoom);
+      li.append(box, swatch, label, zoom, save);
       host.appendChild(li);
     });
     // 용량이 넘었으면 블록 밑에 한 줄 (wetherilli 131). 자세한 것은 관리 화면의 저장 자료
@@ -6428,6 +6534,15 @@
   }
 
   if (Personal) Personal.onChange(function () { loadPersonal(false); });
+
+  function downloadText(name, text, type) {
+    var a = document.createElement("a");
+    a.href = URL.createObjectURL(new Blob([text], { type: type }));
+    a.download = name;
+    document.body.appendChild(a);
+    a.click();
+    setTimeout(function () { URL.revokeObjectURL(a.href); a.remove(); }, 0);
+  }
 
   // ── 점묶음 ──────────────────────────────────────────────────────
 

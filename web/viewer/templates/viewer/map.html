@@ -387,6 +387,11 @@
         <svg viewBox="0 0 24 24" aria-hidden="true"><circle class="stroke" cx="12" cy="12" r="6.5"/><circle class="fill" cx="12" cy="12" r="2.6"/><path class="stroke" d="M12 2.5v3M12 18.5v3M2.5 12h3M18.5 12h3"/></svg>
         <span>{% t "내 위치" %}</span>
       </button>
+      {% comment %}현장 기록 — 내 위치를 켠 동안만 뜬다. 지금 자리를 메모·지질 단위와 함께 개인 레이어 "현장 기록" 에 적는다 (wetherilli 394){% endcomment %}
+      <button type="button" class="tool" id="tool-record" hidden title="{% t "기록 — 지금 GPS 자리를 시각·오차·고도·메모·그 자리의 지질 단위와 함께 개인 레이어 '현장 기록' 에 적는다. 이 브라우저에만 남는다" %}">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path class="stroke" d="M12 21s-6.5-6.2-6.5-11a6.5 6.5 0 0 1 13 0c0 4.8-6.5 11-6.5 11Z"/><path class="stroke" d="M12 7v6M9 10h6"/></svg>
+        <span>{% t "기록" %}</span>
+      </button>
       <button type="button" class="tool antarctica-only" data-goto="jangbogo" title="{% t "장보고과학기지로 간다 — 74°37′26″S 164°13′44″E" %}">
         <svg viewBox="0 0 24 24" aria-hidden="true"><path class="stroke" d="M6 21V4"/><path class="stroke tint" d="M6 4h11l-2.5 3.5L17 11H6"/><path class="stroke" d="M3 21h8"/></svg>
         <span>{% t "장보고" %}</span>

@@ -340,6 +340,37 @@ class Browser(SimpleTestCase):
         self.assertEqual(page.get_attribute("#tool-locate", "aria-pressed"), "true")
         self.assertIn("±12 m", page.inner_text("#tool-out"))
 
+    def test_내_위치를_기록한다(self):
+        """기록 단추가 지금 자리를 메모와 함께 개인 레이어 "현장 기록" 에 적는다 — 세종기지 (wetherilli 394)."""
+        ctx = self.browser.new_context(viewport={"width": 390, "height": 844}, is_mobile=True, has_touch=True,
+                                       geolocation={"latitude": -62.2228, "longitude": -58.7883, "accuracy": 12},
+                                       permissions=["geolocation"])
+        self.addCleanup(ctx.close)
+        page = ctx.new_page()
+        errors = []
+        page.on("pageerror", lambda e: errors.append(str(e)))
+        page.on("dialog", lambda d: d.accept("노두 1"))
+        page.route("**/*", lambda r: r.continue_() if r.request.url.startswith(self.base) else r.abort())
+        page.goto(self.base + "map/?region=antarctica", wait_until="load")
+        page.wait_for_timeout(2000)
+        self.assertTrue(page.get_attribute("#tool-record", "hidden") is not None)
+        page.evaluate("document.getElementById('tool-locate').click()")
+        page.wait_for_timeout(1500)
+        page.evaluate("document.getElementById('tool-record').click()")
+        page.wait_for_function("document.getElementById('tool-out').textContent.indexOf('현장 기록 1') >= 0", timeout=15000)
+        page.evaluate("document.getElementById('tool-record').click()")
+        page.wait_for_function("document.getElementById('tool-out').textContent.indexOf('현장 기록 2') >= 0", timeout=15000)
+        self.assertEqual(errors, [])
+        rows = page.evaluate("GSMPersonal.list()")
+        field = [r for r in rows if r.get("meta", {}).get("field")]
+        self.assertEqual(len(field), 1)
+        self.assertEqual(len(field[0]["features"]), 2)
+        props = field[0]["features"][0]["properties"]
+        self.assertEqual(props["memo"], "노두 1")
+        self.assertEqual(props["accuracy_m"], 12)
+        self.assertEqual(field[0]["features"][0]["geometry"]["coordinates"], [-58.7883, -62.2228])
+        self.assertIn("현장 기록", page.inner_text("#personal-list"))
+
     def test_스발바르는_NPI_를_곧장_부른다(self):
         # wetherilli 161 — 첫 레이어(NPI 지질 단위)의 그림을 서버가 아니라 NPI 지도 서버의 `export` 에 묻는다
         asked = []

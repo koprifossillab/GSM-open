@@ -862,6 +862,21 @@ EN = {
     "위치 권한이 막혀 있다 — 브라우저 설정에서 허용한다": "Location permission is blocked — allow it in the browser settings",
     "위치를 제때 받지 못했다": "Location timed out",
     "위치를 받지 못했다": "Could not get your location",
+    # 현장 기록 (wetherilli 394)
+    "기록": "Record",
+    "기록 — 지금 GPS 자리를 시각·오차·고도·메모·그 자리의 지질 단위와 함께 개인 레이어 '현장 기록' 에 적는다. 이 브라우저에만 남는다":
+        "Record — saves your current GPS position with time, accuracy, altitude, a note and the geologic unit there to the personal layer 'Field records'. It stays in this browser only",
+    "현장 기록": "Field records",
+    "아직 위치를 받지 못했다": "No location yet",
+    "메모 — 노두 번호·암상 따위. 비워 두어도 된다": "Note — outcrop number, lithology and so on. May be left empty",
+    "그 자리의 지질 단위를 읽는 중": "Reading the geologic unit here",
+    "현장 기록 {n} — 적었다": "Field record {n} — saved",
+    "현장 기록 {n} — 적었다 (지질 단위는 늦어 비웠다)": "Field record {n} — saved (geologic unit left empty — it took too long)",
+    "기록하지 못했다 — 이 브라우저의 저장소를 쓰지 못한다": "Could not record — this browser's storage is unavailable",
+    "GPS 오차(m)": "GPS accuracy (m)",
+    "GPS 고도(m)": "GPS altitude (m)",
+    "시각": "Time",
+    "CSV 로 내려받는다": "Download as CSV",
     "평면에서 그렇게 끌면 구로 넘어가며 기울어진다.": "Doing so on the flat map switches to the globe and tilts.",
     "화면 한가운데 점에서 본 기울기(곧장 내려다봄 0°)와 방위(달의 북쪽 0°)":
         "Tilt (0° looking straight down) and heading (0° lunar north) at the point in the middle of the screen",
@@ -4786,7 +4801,7 @@ LAYER_EN.update({f"earth:{kind}_{box}": f"{title} — {area}"
                  for kind, title in (("pbdb", "Fossil collections (PBDB)"), ("gvp", "Holocene volcanoes (GVP)"),
                                      ("quakes", "Earthquakes M5+ (USGS)"), ("neotoma", "Quaternary palaeoecology sites (Neotoma)"),
                                      ("heatflow", "Heat flow (IHFC)"), ("recentquakes", "Recent earthquakes (7 days, M2.5+)"),
-                                     # 온 지구 화면에 구워 둔 선·면·막대 (wetherilli 390)
+                                     # 온 지구 화면에 구워 둔 선·면·막대 (wetherilli 394)
                                      ("faults", "Active faults (GEM)"), ("plates", "Plate boundaries (Hasterok 2022)"),
                                      ("provinces", "Geologic provinces (Hasterok 2022)"), ("stress", "Crustal stress (WSM 2025)"),
                                      ("minerals", "Mineral deposits (USGS)"))})
