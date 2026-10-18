@@ -455,6 +455,7 @@
 | wetherilli 393 | 2026-10-16 | [지도 화면만 같은 출처의 iframe 에 연다 — Cropobite 가 감싼다](20261016_wetherilli_393_map_frame_sameorigin.md) |
 | wetherilli 391 | 2026-10-16 | [자력 이상(EMAG2v3)을 지역 탭에 — 부게 중력은 판독기까지](20261016_wetherilli_391_magnetic_gravity_grids.md) |
 | wetherilli 394 | 2026-10-16 | [현장 기록 — 내 위치를 개인 레이어에 적는다](20261016_wetherilli_394_field_record.md) |
+| wetherilli 395 | 2026-10-18 | [담긴 화면의 API — 형제 앱이 점·부채꼴을 얹고 누른 자리를 받는다](20261018_wetherilli_395_embed_api.md) |
 | wetherilli 374 | 2026-10-07 | [온 세계 지명 찾기 — GeoNames 도시를 받아 두고, 지역 탭이 온 지구 찾기를 빌린다](20261007_wetherilli_374_world_place_search.md) |
 | wetherilli 375 | 2026-10-07 | [그때의 지구 — 판 조각 대신 PaleoDEM 고도·음영을 깐다](20261007_wetherilli_375_paleodem_relief.md) |
 | wetherilli 376 | 2026-10-07 | [온 지구 시간 막대 — 처음엔 접고, 띠는 대·기·세 세 줄로](20261007_wetherilli_376_timebar_folded_fewer_rows.md) |

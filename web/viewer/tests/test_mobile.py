@@ -882,3 +882,83 @@ class OfflinePack(PhoneBase):
         self.assertIn("bad", status.get_attribute("class"))
         self.assertIn("들인 묶음이 없다", page.locator("#offline-list").inner_text())
         self.assertEqual(errors, [])
+
+
+class EmbedApi(PhoneBase):
+    """담긴 화면 (wetherilli 395) — 같은 사이트의 형제 앱이 iframe 으로 담아 `GSMEmbed` 로 점·부채꼴을 얹고 누른 자리를 받는다"""
+
+    def framed(self):
+        """소개 화면(같은 사이트)을 바깥으로 열고 그 안에 지도 화면을 담는다"""
+        page, errors = self.open("", settle=300)
+        page.evaluate("""() => new Promise(ok => {
+          const f = document.createElement("iframe");
+          f.id = "gsm"; f.style.cssText = "position:fixed;left:0;top:0;width:360px;height:420px;border:0;z-index:99999";
+          f.addEventListener("load", () => ok());
+          f.src = "map/#r=korea&c=129.04,37.09&z=12";
+          document.body.appendChild(f);
+        })""")
+        page.wait_for_timeout(1200)
+        return page, errors, page.frame_locator("#gsm"), page.frames[-1]
+
+    def test_혼자_열면_없다(self):
+        page, errors = self.open("map/", settle=800)
+        self.assertEqual(errors, [])
+        self.assertIsNone(page.evaluate("window.GSMEmbed === undefined ? null : 1"))
+
+    def test_점을_얹고_누른_점을_넘긴다(self):
+        page, errors, _, frame = self.framed()
+        self.assertEqual(frame.evaluate("GSMEmbed.version"), 1)
+        n = frame.evaluate("""() => {
+          window.got = []; window.hov = [];
+          GSMEmbed.compact();
+          GSMEmbed.on("click", id => { got.push(id); return true; });
+          GSMEmbed.on("hover", id => hov.push(id));
+          const k = GSMEmbed.layer("photos", [
+            {id: 7, lon: 129.04, lat: 37.09, heading: 250, color: "#d1495b", big: true, name: "a"},
+            {id: 8, lon: 129.05, lat: 37.10, color: "#2e86ab", name: "b"},
+            {id: 9, lon: null, lat: 37.1}], {source: "Cropobite"});
+          GSMEmbed.view(129.04, 37.09, 15);
+          GSMEmbed.highlight(7);
+          return k;
+        }""")
+        self.assertEqual(n, 2, "위경도가 없는 점은 건너뛴다")
+        self.assertTrue(frame.evaluate("document.body.classList.contains('panel-folded')"))
+        # 좁은 칸에서는 지도가 칸을 다 차지한다 — 휴대폰 폭의 접힌 패널 머리띠·좌표 막대가 남으면 가운데를 덮는다
+        self.assertLess(frame.evaluate("document.getElementById('map').getBoundingClientRect().top"), 1)
+        self.assertFalse(frame.evaluate("!!document.querySelector('.share-notice')") and
+                         frame.evaluate("getComputedStyle(document.querySelector('.share-notice')).display !== 'none'"))
+        page.wait_for_timeout(600)
+        box = page.locator("#gsm").bounding_box()
+        mbox = frame.evaluate("(() => { const r = document.getElementById('map').getBoundingClientRect();"
+                              " return {x: r.left + r.width / 2, y: r.top + r.height / 2}; })()")
+        page.mouse.move(box["x"] + mbox["x"], box["y"] + mbox["y"])
+        page.mouse.click(box["x"] + mbox["x"], box["y"] + mbox["y"])
+        page.wait_for_timeout(600)
+        self.assertEqual(frame.evaluate("got"), [7])
+        self.assertIn(7, frame.evaluate("hov"))
+        self.assertFalse(frame.evaluate("document.getElementById('popup').classList.contains('on')"),
+                         "감싼 쪽이 받은 누르기에 팝업이 뜬다")
+        self.assertTrue(frame.evaluate("GSMEmbed.fit(null, {maxZoom: 15})"))
+        self.assertEqual(frame.evaluate("GSMEmbed.layer('photos', null)"), 0)
+        self.assertFalse(frame.evaluate("GSMEmbed.fit()"), "걷은 점으로 맞춘다")
+        self.assertEqual(errors, [])
+
+    def test_위경도_고르기(self):
+        page, errors, _, frame = self.framed()
+        frame.evaluate("""() => { window.picked = null; GSMEmbed.compact();
+          GSMEmbed.view(129.0, 37.0, 14); GSMEmbed.pick({lon: 128.99, lat: 37.0}, ll => { picked = ll; }); }""")
+        page.wait_for_timeout(600)
+        box = page.locator("#gsm").bounding_box()
+        mbox = frame.evaluate("(() => { const r = document.getElementById('map').getBoundingClientRect();"
+                              " return {x: r.left + r.width / 2, y: r.top + r.height / 2}; })()")
+        page.mouse.click(box["x"] + mbox["x"], box["y"] + mbox["y"])
+        page.wait_for_timeout(600)
+        got = frame.evaluate("picked")
+        self.assertIsNotNone(got, "누른 자리를 넘기지 않는다")
+        self.assertAlmostEqual(got["lon"], 129.0, places=2)
+        self.assertAlmostEqual(got["lat"], 37.0, places=2)
+        frame.evaluate("GSMEmbed.pick(null)")
+        page.mouse.click(box["x"] + mbox["x"] + 30, box["y"] + mbox["y"])
+        page.wait_for_timeout(400)
+        self.assertEqual(frame.evaluate("picked"), got, "그만둔 뒤에도 고른다")
+        self.assertEqual(errors, [])

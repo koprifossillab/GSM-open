@@ -2589,6 +2589,7 @@ a.tool { text-decoration: none; }                /* 3D 단추는 링크다 */
   --gold-wash: #f6e6cb; --gold-edge: #e6c48d;
   --hi: #3f2508; --hi-deep: #281604; --on-hi: #fdf8f0; --hi-ink: #9c5e12;
   --glass: rgba(254, 251, 246, .95); --glass-line: #e7d7bd;
+}
 
 /* ── 이탈리아 (wetherilli 211) — 카라라 대리석의 흰빛에 테라코타 ── */
 :root[data-region="italy"] {
@@ -3165,3 +3166,9 @@ a.tool { text-decoration: none; }                /* 3D 단추는 링크다 */
   --hi: #1f1c36; --hi-deep: #121120; --on-hi: #fdfcfb; --hi-ink: #564e96;
   --glass: rgba(253, 252, 251, .95); --glass-line: #e5e2f7;
 }
+
+/* 담긴 좁은 칸 (`GSMEmbed.compact()`, wetherilli 395) — 지도와 줌 단추만 남긴다. 패널·좌표 막대·손잡이·띠는 감싼 쪽 화면의 몫이다.
+   휴대폰 폭(760 px 아래)이면 접힌 패널이 머리띠로 남는데, 담긴 칸은 늘 그 폭이라 그것까지 걷는다 */
+body.embed-compact #panel, body.embed-compact #panel-handle, body.embed-compact #coordbar, body.embed-compact .toolbar,
+body.embed-compact .share-notice, body.embed-compact #legend-dock, body.embed-compact #timebar { display: none !important; }
+body.embed-compact #map-wrap { flex: 1 1 auto; height: 100vh; height: 100dvh; }

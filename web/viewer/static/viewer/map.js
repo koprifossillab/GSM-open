@@ -690,7 +690,8 @@
   // 넘겨받은 임시 레이어(`#ext=`, wetherilli 392)는 링크의 지역이 없어도(나라 밖의 점) 받는다 — SHARED 를 버리기 전에 떼어 둔다
   var EXT = extFrom(SHARED);
   if (SHARED && !(SHARED.r && REGIONS[SHARED.r])) SHARED = null;
-  var STATE = window.GSMShare ? GSMShare.store(SHARED && sharedSeed(SHARED)) : null;
+  // 다른 화면에 담긴 지도(wetherilli 395)는 링크가 없어도 덧층에만 쓴다 — 감싼 쪽이 지도를 옮길 때마다 그 사람의 자리·레이어 기억을 덮는다
+  var STATE = window.GSMShare ? GSMShare.store((SHARED && sharedSeed(SHARED)) || (window.parent !== window ? {} : null)) : null;
   /** 넘겨받은 임시 레이어의 주소와 이름 (wetherilli 392). 같은 nginx 아래의 형제 앱(Cropobite 따위)이 `#ext=/앱/….geojson&extname=앱`
    *  으로 제 점을 넘긴다. **같은 사이트의 경로만** 받는다 — 남의 주소(`//`·`http:`)를 받으면 아무 자료나 이 지도에 얹힌다.
    *  정적 판(Pages)에는 같은 사이트의 앱이 없어 받지 않는다 */
@@ -2560,6 +2561,7 @@
     renderPointSets();
     drawPersonal();
     drawExt();
+    drawEmbed();
     // 나란히 보기의 오른쪽 지도는 같은 보기를 나눠 쓴다
     if (map2) map2.setView(map.getView());
     showProjection(true);
@@ -5626,6 +5628,7 @@
   }
 
   function onClick(evt) {
+    if (embedClick(evt)) return;      // 담긴 화면 — 위경도 고르기·감싼 쪽이 받는 점 (wetherilli 395)
     if (mode === "point") {
       addTempPoint(evt.coordinate);
       return;
@@ -5679,6 +5682,10 @@
       }
       if (feature.get("_ext")) {
         parts.push(extPart(feature));
+        return;
+      }
+      if (feature.get("_embed")) {
+        parts.push(embedPart(feature));
         return;
       }
       parts.push({ title: feature.get("_점묶음") || T("내 자료"), props: plain(feature.getProperties()) });
@@ -6722,6 +6729,206 @@
         if (!SHARED && data.features.length) fitToSource(layer.getSource());
       })
       .catch(function () { extNotice(-1); });
+  }
+
+  // ── 담긴 화면 (wetherilli 395) ──
+  // 같은 사이트의 형제 앱(Cropobite)이 이 지도를 iframe 으로 담아 **제 점·부채꼴을 얹고, 누른 자리를 받아 간다.** 지도 화면만
+  // 같은 출처의 iframe 에 열리므로(wetherilli 393) 감싼 쪽은 같은 사이트다 — 그쪽이 `frame.contentWindow.GSMEmbed` 를 곧장 부른다.
+  // iframe 안일 때만 생긴다. `#ext` 처럼 **저장하지 않는다** — 점묶음·개인 레이어·기억 어디에도 타지 않는다.
+  // 좌표는 언제나 위경도(EPSG:4326)로 주고받는다. 화면 투영이 바뀌면 받아 둔 위경도에서 다시 그린다
+  var EMBED_Z = 700;
+  var embedSets = {}, embedLayers = {}, embedOrder = 0, embedHot = null, embedOn = {}, embedPickState = null, embedIcons = {};
+
+  /** 점 하나의 모양 — 방위(`heading`)가 있으면 그쪽으로 벌어진 부채꼴, 없으면 동그라미. 지도를 돌리면 함께 돈다 */
+  function embedIcon(color, heading, big, faded, hot) {
+    var key = [color, heading === null ? "" : "h", big ? 1 : 0, faded ? 1 : 0, hot ? 1 : 0].join("|");
+    if (embedIcons[key]) return embedIcons[key];
+    var len = big ? 46 : 26, r = (big ? 9 : 6) / 2 + 1 + (hot ? 2 : 0), pad = 4, w = 2 * (len + pad);
+    var c = len + pad, a = 30 * Math.PI / 180;        // 부채꼴 반각 — 휴대폰 화각(약 65°)의 절반쯤
+    var fill = faded ? 0.45 : 0.95;
+    var body = "";
+    if (heading !== null) {
+      var x1 = c + len * Math.sin(-a), y1 = c - len * Math.cos(-a), x2 = c + len * Math.sin(a), y2 = c - len * Math.cos(a);
+      body += '<path d="M' + c + " " + c + " L" + x1 + " " + y1 + " A" + len + " " + len + " 0 0 1 " + x2 + " " + y2 +
+              ' Z" fill="' + color + '" fill-opacity="' + (hot ? 0.55 : 0.35) + '" stroke="' + color + '" stroke-width="1"/>';
+    }
+    body += '<circle cx="' + c + '" cy="' + c + '" r="' + r + '" fill="' + color + '" fill-opacity="' + fill +
+            '" stroke="#fff" stroke-width="' + (hot ? 2.5 : 1.5) + '"/>';
+    var svg = '<svg xmlns="http://www.w3.org/2000/svg" width="' + w + '" height="' + w + '">' + body + "</svg>";
+    embedIcons[key] = { src: "data:image/svg+xml;charset=utf-8," + encodeURIComponent(svg), size: w };
+    return embedIcons[key];
+  }
+
+  function embedStyle(feature, resolution) {
+    var color = /^#[0-9a-f]{6}$/i.test(feature.get("color") || "") ? feature.get("color") : "#e4572e";
+    var heading = typeof feature.get("heading") === "number" ? feature.get("heading") : null;
+    var hot = embedHot !== null && feature.get("eid") === embedHot;
+    var icon = embedIcon(color, heading, !!feature.get("big"), !!feature.get("faded"), hot);
+    var label = feature.get("이름표");
+    return new ol.style.Style({
+      image: new ol.style.Icon({ src: icon.src, width: icon.size, height: icon.size,
+                                 rotation: heading === null ? 0 : heading * Math.PI / 180, rotateWithView: true }),
+      text: label && mercZoom(resolution) >= LABEL_MIN_ZOOM ? new ol.style.Text({
+        text: String(label), font: "12px sans-serif", offsetX: 9, textAlign: "left",
+        fill: new ol.style.Fill({ color: "#1f1409" }),
+        stroke: new ol.style.Stroke({ color: "rgba(255,255,255,0.9)", width: 3 }),
+      }) : undefined,
+      zIndex: hot ? 2 : feature.get("big") ? 1 : 0,
+    });
+  }
+
+  /** 받아 둔 점묶음 하나를 지금 투영으로 그린다 */
+  function drawEmbedSet(id) {
+    if (embedLayers[id]) { map.removeLayer(embedLayers[id]); delete embedLayers[id]; }
+    var set = embedSets[id];
+    if (!set) return null;
+    var proj = viewProj();
+    var features = set.items.map(function (p) {
+      var f = new ol.Feature({ geometry: new ol.geom.Point(ol.proj.fromLonLat([p.lon, p.lat], proj)) });
+      f.setProperties({ _embed: id, eid: p.id, color: p.color, heading: p.heading, big: p.big, faded: p.faded,
+                        name: p.name, note: p.note, url: p.url, "이름표": set.labels ? p.name : undefined });
+      return f;
+    });
+    var layer = new ol.layer.Vector({ source: new ol.source.Vector({ features: features }), style: embedStyle,
+                                      zIndex: EMBED_Z + set.order, updateWhileInteracting: true });
+    layer.set("gsmEmbed", id);
+    map.addLayer(layer);
+    embedLayers[id] = layer;
+    return layer;
+  }
+  function drawEmbed() { Object.keys(embedSets).forEach(drawEmbedSet); if (embedPickState) embedPickState.redraw(); }
+
+  /** 팝업 한 덩이 — 넘긴 앱의 그 화면으로 가는 링크(같은 사이트의 경로만). `#ext` 의 팝업(`extPart`)과 같은 꼴 */
+  function embedPart(feature) {
+    var set = embedSets[feature.get("_embed")] || {};
+    var props = {};
+    if (feature.get("note")) props[T("메모")] = String(feature.get("note"));
+    var url = sameSite(feature.get("url"));
+    if (url) props[T("열기")] = { text: "", links: [{ url: url, label: T("{name}에서 열기", { name: set.source || "?" }), target: "_top" }] };
+    return { title: String(feature.get("name") || set.source || ""), props: props };
+  }
+
+  function embedHit(pixel) {
+    return map.forEachFeatureAtPixel(pixel, function (f) { return f; },
+      { hitTolerance: 4, layerFilter: function (l) { return !!l.get("gsmEmbed"); } }) || null;
+  }
+
+  /** 지도를 눌렀을 때 먼저 묻는다 — 위경도 고르기 중이면 그 자리를 넘기고, 감싼 쪽이 점 누르기를 받으면 그쪽에 넘긴다.
+   *  다 아니면 false — 늘 하던 대로 팝업 */
+  function embedClick(evt) {
+    if (mode !== "info") return false;
+    if (embedPickState) {
+      embedPickState.put(evt.coordinate, true);
+      return true;
+    }
+    if (!embedOn.click) return false;
+    var hit = embedHit(evt.pixel);
+    return !!(hit && embedOn.click(hit.get("eid")) === true);
+  }
+
+  function embedToLonLat(coordinate) {
+    var ll = ol.proj.toLonLat(coordinate, viewProj());
+    return { lon: Math.round(ll[0] * 1e6) / 1e6, lat: Math.round(ll[1] * 1e6) / 1e6 };
+  }
+
+  /** 위경도 고르기 — 지도를 누르거나 표시를 끌면 `fn({lon, lat})`. 다시 부르면 바꾸고, `GSMEmbed.pick(null)` 이면 그만둔다 */
+  function embedPick(at, fn) {
+    if (embedPickState) embedPickState.stop();
+    embedPickState = null;
+    if (!fn) return;
+    var source = new ol.source.Vector();
+    var layer = new ol.layer.Vector({ source: source, zIndex: EMBED_Z + 100, style: new ol.style.Style({
+      image: new ol.style.Circle({ radius: 8, fill: new ol.style.Fill({ color: "#d1495b" }),
+                                   stroke: new ol.style.Stroke({ color: "#fff", width: 3 }) }) }) });
+    map.addLayer(layer);
+    var drag = new ol.interaction.Translate({ layers: [layer], hitTolerance: 6 });
+    map.addInteraction(drag);
+    var here = null;     // 위경도 — 투영이 바뀌면 여기서 다시 놓는다
+    var state = {
+      put: function (coordinate, tell) {
+        here = embedToLonLat(coordinate);
+        state.redraw();
+        if (tell) fn(here);
+      },
+      redraw: function () {
+        source.clear();
+        if (here) source.addFeature(new ol.Feature({ geometry: new ol.geom.Point(ol.proj.fromLonLat([here.lon, here.lat], viewProj())) }));
+      },
+      stop: function () { map.removeInteraction(drag); map.removeLayer(layer); },
+    };
+    drag.on("translateend", function (e) { state.put(e.features.item(0).getGeometry().getCoordinates(), true); });
+    if (at && isFinite(at.lon) && isFinite(at.lat)) { here = { lon: +at.lon, lat: +at.lat }; state.redraw(); }
+    embedPickState = state;
+  }
+
+  function initEmbed() {
+    if (window.parent === window) return;
+    var lastHover = null;
+    map.on("pointermove", function (e) {
+      if (e.dragging || !Object.keys(embedLayers).length) return;
+      var hit = embedHit(e.pixel), id = hit ? hit.get("eid") : null;
+      if (hit) map.getTargetElement().style.cursor = "pointer";
+      if (id !== lastHover) {
+        lastHover = id;
+        if (!hit) map.getTargetElement().style.cursor = "";
+        if (embedOn.hover) embedOn.hover(id);
+      }
+    });
+    window.GSMEmbed = {
+      version: 1,
+      /** 점들을 얹는다(같은 이름이면 바꾼다, null 이면 걷는다). 점 = {id, lon, lat, color, heading, big, faded, name, note, url}.
+       *  opts = {source: 팝업 링크에 적을 앱 이름, labels: 이름표를 붙이나}. 얹은 점의 수를 돌려준다 */
+      layer: function (id, items, opts) {
+        id = String(id);
+        opts = opts || {};
+        if (!items) { delete embedSets[id]; drawEmbedSet(id); return 0; }
+        var kept = [];
+        for (var i = 0; i < items.length && kept.length < EXT_MAX; i++) {
+          var p = items[i] || {};
+          if (p.lon === null || p.lat === null || !isFinite(p.lon) || !isFinite(p.lat)) continue;
+          kept.push({ id: p.id === undefined ? i : p.id, lon: +p.lon, lat: +p.lat, color: p.color,
+                      heading: p.heading === null || p.heading === undefined || !isFinite(p.heading) ? null : +p.heading,
+                      big: !!p.big, faded: !!p.faded, name: p.name, note: p.note, url: p.url });
+        }
+        var old = embedSets[id];
+        embedSets[id] = { items: kept, order: old ? old.order : embedOrder++, labels: !!opts.labels,
+                          source: String(opts.source || "").slice(0, 60) };
+        drawEmbedSet(id);
+        return kept.length;
+      },
+      /** 얹은 점들(ids 를 주면 그것만)이 다 보이게 맞춘다 */
+      fit: function (ids, opts) {
+        opts = opts || {};
+        var extent = ol.extent.createEmpty();
+        (ids || Object.keys(embedLayers)).forEach(function (id) {
+          var l = embedLayers[String(id)];
+          if (l && l.getSource().getFeatures().length) ol.extent.extend(extent, l.getSource().getExtent());
+        });
+        if (ol.extent.isEmpty(extent)) return false;
+        var pad = opts.padding === undefined ? 40 : opts.padding;
+        map.getView().fit(extent, { padding: [pad, pad, pad, pad], maxZoom: opts.maxZoom || 16, duration: 0 });
+        return true;
+      },
+      view: function (lon, lat, zoom) {
+        map.getView().setCenter(ol.proj.fromLonLat([+lon, +lat], viewProj()));
+        if (zoom !== undefined) map.getView().setZoom(+zoom);
+      },
+      /** 점 하나를 밝힌다(null 이면 끈다) — 감싼 쪽의 목록에 마우스를 올렸을 때 */
+      highlight: function (id) {
+        embedHot = id === undefined ? null : id;
+        Object.keys(embedLayers).forEach(function (k) { embedLayers[k].changed(); });
+      },
+      /** "hover"(id 또는 null) · "click"(id — true 를 돌려주면 팝업을 띄우지 않는다) */
+      on: function (type, fn) { if (type === "hover" || type === "click") embedOn[type] = fn || null; },
+      pick: embedPick,
+      /** 좁은 칸에 담을 때 — 패널을 접고(기억하지 않는다) 대기 화면을 바로 걷는다 */
+      compact: function () {
+        document.body.classList.add("panel-folded", "embed-compact");
+        var splash = document.getElementById("splash");
+        if (splash) splash.remove();
+        setTimeout(function () { map.updateSize(); }, 0);
+      },
+    };
   }
 
   function loadPointSet(ps) {
@@ -8519,9 +8726,11 @@
     GSMShare.wire(document.getElementById("tool-share"), shareLink,
                   { done: T("복사했다"), ask: T("이 링크를 복사한다") });
     // 넘겨받은 점이 있으면 그 띠 하나만 — 두 띠가 같은 자리에 겹친다 (wetherilli 392)
-    if (SHARED && !EXT) GSMShare.notice(T("링크로 연 화면이다 — 여기서 바꾼 것은 이 브라우저에 기억하지 않는다"), T("내 화면으로"));
+    // 다른 화면에 담겼으면 띄우지 않는다 — 감싼 쪽이 주소를 지었고, 띠가 좁은 칸의 가운데를 덮는다 (wetherilli 395)
+    if (SHARED && !EXT && window.parent === window) GSMShare.notice(T("링크로 연 화면이다 — 여기서 바꾼 것은 이 브라우저에 기억하지 않는다"), T("내 화면으로"));
   }
   loadExt();
+  initEmbed();
 
   // ── 대기 화면 ────────────────────────────────────────────────────
   //
