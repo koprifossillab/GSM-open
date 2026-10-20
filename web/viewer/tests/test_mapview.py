@@ -290,7 +290,8 @@ class ShareLinkTests(TestCase):
                              ("mercury", "mercury.js")):
             with self.subTest(name=name):
                 html = self.client.get(f"/GSM/{name}/").content.decode()
-                self.assertIn('id="tool-share"', html)
+                # 지역 지도는 서버 판에서 그 자리가 "반입" 이다 — 링크 단추는 정적 판에만 (wetherilli 399)
+                self.assertIn('id="tool-import"' if name == "map" else 'id="tool-share"', html)
                 self.assertLess(html.index("viewer/share.js"), html.index(f"viewer/{script}"))
 
 

@@ -1202,9 +1202,14 @@
     if (STATIC) {
       if (up === "kigam") return STATIC_KIGAM;
       if (up === "vworld") return STATIC_VWORLD;
-      // 구운 타일(GeoMAP·IBCSO 자료 출처)은 그림만 — 속성은 서버가 gpkg·격자에서 읽던 것이라 묻지 않는다 (wetherilli 165)
-      if (up === "geomap" || up === "ibcso") return { source: geomapSource, info: null };
       var kinds = window.GSM_STATIC_KINDS || {};
+      // 구운 타일(GeoMAP·IBCSO 자료 출처)은 그림만 — 속성은 서버가 gpkg·격자에서 읽던 것이라 묻지 않는다 (wetherilli 165).
+      // GeoMAP 지질시대·암상만은 누른 픽셀의 색을 범례에서 찾는다(`static-kinds.js` 의 `geomap`)
+      if (up === "ibcso") return { source: geomapSource, info: null };
+      if (up === "geomap") {
+        return { source: function (name) { var s = geomapSource(name); s.set("gsmName", name); return s; },
+                 info: (kinds.geomap && kinds.geomap.info) || null };
+      }
       if (kinds[up]) return kinds[up];
     }
     if (LAYER_KINDS[up]) return LAYER_KINDS[up];

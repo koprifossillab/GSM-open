@@ -1,0 +1,18 @@
+#format: gsm-personal-layer
+#version: 1
+#name: 태백 야외 조사 시료
+#description: 2026 년 가을 태백 일대 노두에서 채취한 시료 — 예시 자료
+#source: 예시 — 실제 조사 자료가 아니다
+#created: 2026-10-20
+#label: sample_id
+#color: #c0392b
+#column: sample_id | 시료 번호 | string
+#column: rock | 암석 | string
+#column: formation | 지층 | string
+#column: strike | 주향 | integer | 도, 진북 기준
+#column: dip | 경사 | integer | 도
+#column: age_ma | 연대 (Ma) | number | 모르면 비운다
+id,lon,lat,sample_id,rock,formation,strike,dip,age_ma
+TB-01,128.9862,37.1641,TB-01,석회암,막골층,45,30,
+TB-02,128.9915,37.1702,TB-02,셰일,직운산층,50,25,455.0
+TB-03,,,TB-03,사암,장성층,,,

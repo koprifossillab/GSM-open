@@ -360,10 +360,19 @@
         <svg viewBox="0 0 24 24" aria-hidden="true"><rect class="stroke" x="4" y="4" width="16" height="13" rx="1.5"/><path class="stroke" d="m6.5 14 3.5-4 3 3 2-2 2.5 3"/><path class="stroke" d="M12 17v4M9.5 19l2.5 2 2.5-2"/></svg>
         <span>{% t "그림" %}</span>
       </button>
+      {% comment %}서버 판은 이 자리가 "반입" 이다 — 관리 화면(개인 레이어 반입)으로 곧장 간다. 패널 밑의 "관리" 단추가 찾기 어렵다는 접근성의
+      문제였다(사람, 2026-10-20, wetherilli 399). 정적 판에는 관리 화면이 없어 공유 링크(wetherilli 189)를 그대로 둔다{% endcomment %}
+      {% if static_site %}
       <button type="button" class="tool" id="tool-share" title="{% t "링크 복사 — 보던 자리·켠 레이어·배경을 주소에 담는다" %}">
         <svg viewBox="0 0 24 24" aria-hidden="true"><path class="stroke" d="M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7l-1.2 1.2"/><path class="stroke" d="M14 10a4 4 0 0 0-5.7 0l-3 3a4 4 0 0 0 5.7 5.7l1.2-1.2"/></svg>
         <span>{% t "링크" %}</span>
       </button>
+      {% else %}
+      <a class="tool" id="tool-import" href="{{ base }}manage/" title="{% t "반입 — 관리 화면에서 내 자료를 개인 레이어로 들인다" %}">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path class="stroke" d="M12 4v11M7.5 10.5 12 15l4.5-4.5"/><path class="stroke" d="M5 15v4h14v-4"/></svg>
+        <span>{% t "반입" %}</span>
+      </a>
+      {% endif %}
       <a class="tool server-only" id="tool-3d" href="{{ base }}3d/" title="{% t "3D 로 본다 — 지금 보던 자리를 연다" %}">
         <svg viewBox="0 0 24 24" aria-hidden="true"><path class="stroke" d="M3 18 9 8l4 6 3-4 5 8H3Z"/><path class="stroke" d="M12 4v2M17 5.5l-1 1.6"/></svg>
         <span>3D</span>

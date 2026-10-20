@@ -345,6 +345,27 @@ class UpstreamDay(models.Model):
         return f"{self.day} {self.upstream} {self.ok}/{self.fail}/{self.blocked}"
 
 
+class VisitDay(models.Model):
+    """화면을 하루 몇 번 열었나 — 날짜·화면·접속 주소마다 한 줄 (wetherilli 399).
+
+    **화면만 센다** — 지도·온 지구·달·화성·수성·3D·소개·관리·오프라인 화면을 연 것이다. 타일·범례·속성 요청은 세지 않는다.
+    접속 주소는 관리 화면에서 staff 만 본다. 1 년이 지난 줄은 `visits` 가 하루에 한 번 지운다(사람, 2026-10-20)."""
+
+    day = models.DateField("날짜")
+    screen = models.CharField("화면", max_length=20)          # map · earth · moon …
+    client = models.CharField("접속 주소", max_length=64)
+    count = models.PositiveIntegerField("횟수", default=0)
+    last_at = models.DateTimeField("마지막으로 연 때")
+
+    class Meta:
+        ordering = ["-day", "screen", "client"]
+        constraints = [models.UniqueConstraint(fields=["day", "screen", "client"],
+                                               name="visit_day_once")]
+
+    def __str__(self):
+        return f"{self.day} {self.screen} {self.client} {self.count}"
+
+
 # ── 데이터소스 (jikhanjung P03) ─────────────────────────────────────────
 #
 # 받아 두는 바깥 자료의 명세와 받은 차례의 기록. 둘 다 처음엔 파일이었다(P02 — `<DB 옆>/sources.json`·`store.sqlite` 의 `fetch_log`).

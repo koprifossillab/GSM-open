@@ -1,0 +1,62 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/koprifossillab/GSM-open/blob/main/docs/personal_layer/schema.json",
+  "title": "GSM personal layer v1 (gsm-personal-layer)",
+  "description": "GeoJSON FeatureCollection with a `gsm` header that GSM (대돌여지도) can import as a personal layer. Coordinates are WGS84 decimal degrees [lon, lat]. Point/line/polygon is decided by geometry type; one layer holds one kind. Human-readable spec (Korean): docs/개인레이어_양식.md. The CSV form carries the same header as `#key: value` lines — see examples/*.csv.",
+  "type": "object",
+  "required": ["type", "features"],
+  "properties": {
+    "type": {"const": "FeatureCollection"},
+    "gsm": {"$ref": "#/$defs/header"},
+    "features": {"type": "array", "items": {"$ref": "#/$defs/feature"}}
+  },
+  "$defs": {
+    "header": {
+      "type": "object",
+      "properties": {
+        "format": {"const": "gsm-personal-layer"},
+        "version": {"const": 1},
+        "name": {"type": "string", "description": "Layer name (recommended). Defaults to the file name."},
+        "description": {"type": "string"},
+        "source": {"type": "string", "description": "Where the data came from, for people (recommended)."},
+        "source_url": {"type": "string"},
+        "license": {"type": "string"},
+        "created": {"type": "string", "pattern": "^\\d{4}-\\d{2}-\\d{2}$"},
+        "label": {"type": "string", "description": "`key` of the column shown as the map label."},
+        "color": {"type": "string", "pattern": "^#[0-9a-fA-F]{6}$"},
+        "columns": {"type": "array", "items": {"$ref": "#/$defs/column"}, "description": "Column descriptions (recommended)."}
+      },
+      "additionalProperties": true
+    },
+    "column": {
+      "type": "object",
+      "required": ["key"],
+      "properties": {
+        "key": {"type": "string", "not": {"enum": ["id", "lon", "lat", "geometry"]}},
+        "label": {"type": "string"},
+        "type": {"enum": ["string", "integer", "number"], "default": "string"},
+        "note": {"type": "string"}
+      }
+    },
+    "feature": {
+      "type": "object",
+      "required": ["type", "geometry", "properties"],
+      "properties": {
+        "type": {"const": "Feature"},
+        "id": {"type": ["string", "integer"], "description": "The source's own id, kept on export."},
+        "geometry": {
+          "description": "null keeps a row whose position is unknown (not drawn).",
+          "oneOf": [
+            {"type": "null"},
+            {"type": "object", "required": ["type", "coordinates"],
+             "properties": {"type": {"enum": ["Point", "MultiPoint", "LineString", "MultiLineString", "Polygon", "MultiPolygon"]}}}
+          ]
+        },
+        "properties": {
+          "type": ["object", "null"],
+          "propertyNames": {"not": {"enum": ["id", "lon", "lat", "geometry"]}}
+        }
+      }
+    }
+  }
+}

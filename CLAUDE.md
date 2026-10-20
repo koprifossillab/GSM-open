@@ -49,6 +49,7 @@ Docker Hub 이미지(`koprifossillab/gsm`), 브라우저 `localStorage` 키.
 
 **개인 레이어**는 관리 화면(`/GSM/manage/`)에서 반입해 **그 브라우저(IndexedDB)에만 두는 것**이다 — 서버의
 점묶음과 다르다. 상류가 주는 레이어와 헷갈리지 않게 늘 "개인" 을 붙인다. 양식은 `docs/개인레이어_양식.md` 하나이고
+(기계가 읽는 짝 — `docs/personal_layer/` 의 스키마·예시와 맨 위 `llms.txt`. 양식을 고치면 셋을 같은 커밋에서 맞춘다, wetherilli 399)
 점이냐 면이냐는 좌표 값의 꼴이 정한다 (wetherilli P08·118). 남의 API 에 이은 것은 **연결 레이어**다 — 주소·키는
 그 브라우저에만 두고 지도를 열 때마다 새로 받는다 (P09·122).
 
@@ -630,7 +631,8 @@ web/viewer/       뷰어 앱 하나뿐이다. 앱을 더 가르지 않는다
   crs.py          평면 좌표계(TM·UTM-K·옛 Bessel·람베르트·북극 람베르트 등적) <-> 위경도. pyproj 없이
   i18n.py         한국어 원문 -> 영어 번역표. 지질시대 옮기기
   tilecache.py    받아온 타일을 디스크에 둔다. 같은 것을 두 번 받지 않는다
-  models.py       Layer·LayerGroup·PointSet·Point·Shape·PointSetDeletion·UpstreamDay·DataSource·DataSourceChange·FetchRun·FetchRunMark
+  visits.py       화면을 연 것을 센다 — 날짜·화면·접속 주소마다 한 줄(`VisitDay`), 관리 화면 "접속 기록" 탭. 접속 주소는 staff 만, 1 년 두고 지운다(wetherilli 399). 문이 아니다
+  models.py       Layer·LayerGroup·PointSet·Point·Shape·PointSetDeletion·UpstreamDay·VisitDay·DataSource·DataSourceChange·FetchRun·FetchRunMark
   views.py        화면 하나 + 프록시 둘 + 업로드
 deploy/           Docker·nginx·배포 스크립트. cron 이 부르는 것은 deploy/scripts/ — 컨테이너가 뜰 때 /srv/GSM/scripts/ 에 깔고
                   호스트 cron 은 그 사본을 전용 venv 로 돌린다(run.sh). 저장소를 부르지 않는다 (koprifossillab 005)
@@ -669,9 +671,19 @@ WegenersDream 의 규약을 따른다(2026-09-30 부터).
 
 **코드 작업은 기능마다 `feature/<기능 이름>` 브랜치에서 한다** — 기능 이름은 영어 kebab-case
 (`feature/tile-cache`). 고침은 `fix/<이름>`. **코드에 손대기 직전에** `main` 에서 만들고
-(`git switch -c feature/<이름> main`), **커밋·push·확인을 전부 그 브랜치에서** 한다. **작업이 끝나면 PR 을
-만든다**(`gh pr create --base main`) — CI(`시험`)를 통과해야 하고, **`main` 병합은 사람이 정한다.**
-판을 올리는 것은 그 PR 안에서 한다(`CHANGELOG.md`·`web/gsmweb/version.py`·HANDOFF). 병합하고 판이 올랐으면
+(`git switch -c feature/<이름> main`), **커밋·push·확인을 전부 그 브랜치에서** 한다.
+
+**PR 은 판 세션이 묶어 낸다**(2026-10-20, 사람이 정했다). 개발 저장소가 비공개라 Actions 가 월 할당량에 걸리고,
+PR 하나·push 한 번마다 CI 가 돈다(10 월 1–20 일에 1 048 번, wetherilli 397). 그래서
+- **기능 세션은 브랜치를 push 하고 PR 을 만들지 않는다** — 초안(draft) PR 도 CI 가 돈다. 끝나면 판 세션에
+  SendMessage 로 브랜치 이름·devlog 번호·확인한 것(로컬 시험)을 알린다. 로컬에서 `manage.py test viewer --parallel 8` 을
+  돌려 보고 넘긴다 — CI 가 처음 보는 자리가 판 PR 이다
+- **판 세션이 넘겨받은 브랜치들을 `release/v<판>` 하나에 합쳐 PR 하나로 낸다**(`gh pr create --base main`) — CI(`시험`)를
+  통과해야 하고, **`main` 병합은 사람이 정한다.** 부딪히면 판 세션이 풀고, 못 풀면 그 브랜치의 세션에 묻는다.
+  합친 브랜치는 병합 뒤 지운다
+- 급한 고침 하나만 낼 때도 같은 길이다 — 판 PR 이 하나뿐일 뿐이다
+
+판을 올리는 것은 그 판 PR 안에서 한다(`CHANGELOG.md`·`web/gsmweb/version.py`·HANDOFF). 병합하고 판이 올랐으면
 CHANGELOG 의 그 절로 GitHub 릴리스(`v<판>`)를 만든다 — 태그마다 CI 가 Docker Hub(`koprifossillab/gsm:<태그>`)에
 이미지를 올린다. 그리고 `sh deploy/publish_open.sh v<판>` 으로 그 판의 소스를 GSM-open 에 민다(위 "라이선스"). 2026-09-30 전에는 `main` 에 곧장 커밋하고 한 세션이 판을 모아 붙였다.
 

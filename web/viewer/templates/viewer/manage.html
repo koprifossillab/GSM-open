@@ -26,6 +26,7 @@
     <button type="button" class="mg-tab" data-tab="stored">{% t "저장 자료 관리" %}</button>
     <button type="button" class="mg-tab" data-tab="upstream">{% t "상류 응답 시간" %}</button>
     <button type="button" class="mg-tab" data-tab="sources">{% t "데이터소스" %}</button>
+    {% if visits %}<button type="button" class="mg-tab" data-tab="visits">{% t "접속 기록" %}</button>{% endif %}
   </nav>
   <a class="btn quiet mg-back" href="{{ base }}map/">
     <svg viewBox="0 0 24 24" aria-hidden="true"><path class="stroke" d="M15 5l-7 7 7 7"/></svg>
@@ -39,6 +40,8 @@
     <div class="box">
       <h2 class="box-head">{% t "개인 레이어 반입" %} <span class="hint">{% t "이 브라우저에만 남는다 — 서버로 보내지 않는다" %}</span></h2>
       <div class="box-body">
+        {% comment %}AI 로 가공하기 (wetherilli 399) — GSM-open 의 llms.txt·스키마·예시를 AI 가 읽고 양식대로 만든다. 명령은 사람이 정한 글 그대로{% endcomment %}
+        <p class="mg-ai" id="mg-ai">{% t "사용자가 사용할 AI 에게 <b>“https://github.com/koprifossillab/GSM-open 를 참고하여 데이터를 가공해줘”</b> 라고 명령하고, 결과물을 첨부하십시오." %}</p>
         <label class="mg-drop" id="mg-drop">
           <input type="file" id="mg-file" accept=".json,.geojson,.csv,application/json,text/csv">
           <svg viewBox="0 0 24 24" aria-hidden="true"><path class="stroke" d="M12 16V4m0 0L8 8m4-4 4 4"/><path class="stroke" d="M4 16v3a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-3"/></svg>
@@ -72,6 +75,11 @@
         </div>
         <pre class="mg-example" id="mg-ex-text"></pre>
         <ul class="mg-example-notes" id="mg-ex-notes"></ul>
+        {% comment %}AI 에게 맡기는 말의 예 (wetherilli 399) — 손으로 적는 대신 AI 가 GSM-open 을 읽고 만든다{% endcomment %}
+        <div class="mg-prompt">
+          <div class="mg-prompt-head"><span>{% t "AI 에게 맡길 때 — 말의 예" %}</span><button type="button" class="btn quiet" data-copy="mg-prompt-file">{% t "복사" %}</button></div>
+          <p class="mg-prompt-text" id="mg-prompt-file">{% t "https://github.com/koprifossillab/GSM-open 의 llms.txt 를 참고하여, 첨부한 시료 목록(엑셀)을 GSM 개인 레이어 CSV 로 바꿔줘. 좌표는 경위도 십진도로 옮기고, 열마다 이름과 형식을 #column 줄로 적고, 좌표가 없는 행도 버리지 마." %}</p>
+        </div>
       </div>
     </div>
 
@@ -100,6 +108,10 @@
           <span class="hint" id="mg-link-editing"></span>
         </div>
         <p id="mg-link-msg" class="msg"></p>
+        <div class="mg-prompt">
+          <div class="mg-prompt-head"><span>{% t "상대 사이트의 AI 에게 맡길 때 — 말의 예" %}</span><button type="button" class="btn quiet" data-copy="mg-prompt-api">{% t "복사" %}</button></div>
+          <p class="mg-prompt-text" id="mg-prompt-api">{% t "https://github.com/koprifossillab/GSM-open 의 docs/개인레이어_양식.md 의 「연결 — 남의 API 로 받기」 를 참고하여, 우리 서비스의 조사 지점 목록을 GSM 개인 레이어 양식 v1 JSON 으로 내주는 GET 주소를 만들어줘. 인증은 X-API-Key 머리로 받고, CORS 는 http://paleolab 에 연다." %}</p>
+        </div>
       </div>
     </div>
 
@@ -204,6 +216,54 @@
       </div>
     </div>
   </section>
+
+  {% comment %}접속 기록 (wetherilli 399) — 화면을 연 것만 센다. 접속 주소는 staff 로 로그인했을 때만 그린다 — 안 그린 것은 페이지에도 없다{% endcomment %}
+  {% if visits %}
+  <section class="mg-body" id="tab-visits">
+    <div class="box">
+      <h2 class="box-head">{% t "접속 기록" %} <span class="count">{{ visits.total }}</span>
+        <span class="hint">{% t "지난 {n} 일 동안 화면을 연 횟수 — 타일·범례는 세지 않는다. 접속 주소 {c} 곳" n=visits.days c=visits.clients_total %}</span></h2>
+      <div class="box-body">
+        {% if visits.rows %}
+        <div class="mg-scroll"><table class="mg-table mg-visits" id="mg-visits">
+          <thead><tr><th>{% t "날짜" %}</th><th>{% t "합" %}</th><th>{% t "접속 주소 수" %}</th>
+            {% for s in visits.screens %}<th>{{ s }}</th>{% endfor %}</tr></thead>
+          <tbody>
+            {% for r in visits.rows %}
+            <tr><td class="mono">{{ r.day }}</td><td class="num">{{ r.total }}</td><td class="num">{{ r.clients }}</td>
+              {% for n in r.cells %}<td class="num">{% if n %}{{ n }}{% endif %}</td>{% endfor %}</tr>
+            {% endfor %}
+          </tbody>
+        </table></div>
+        {% else %}
+        <p class="hint">{% t "아직 센 것이 없다" %}</p>
+        {% endif %}
+      </div>
+    </div>
+    <div class="box">
+      <h2 class="box-head">{% t "접속 주소" %}
+        <span class="hint">{% t "staff 로 로그인했을 때만 보인다 — 1 년이 지난 기록은 지운다" %}</span></h2>
+      <div class="box-body">
+        {% if not visits_staff %}
+        <p class="hint">{% t "데이터소스 탭에서 staff 계정으로 로그인하면 접속 주소별 기록이 보인다" %}</p>
+        {% elif visits.clients %}
+        <div class="mg-scroll"><table class="mg-table mg-visit-clients" id="mg-visit-clients">
+          <thead><tr><th>{% t "접속 주소" %}</th><th>{% t "횟수" %}</th><th>{% t "연 화면" %}</th><th>{% t "마지막으로 연 때" %}</th></tr></thead>
+          <tbody>
+            {% for c in visits.clients %}
+            <tr><td class="mono">{{ c.client }}</td><td class="num">{{ c.count }}</td>
+              <td>{% for name, n in c.screens %}{{ name }} {{ n }}{% if not forloop.last %} · {% endif %}{% endfor %}</td>
+              <td class="mono">{{ c.last }}</td></tr>
+            {% endfor %}
+          </tbody>
+        </table></div>
+        {% else %}
+        <p class="hint">{% t "아직 센 것이 없다" %}</p>
+        {% endif %}
+      </div>
+    </div>
+  </section>
+  {% endif %}
 
   {% comment %}데이터소스 (jikhanjung P02 3 단계) — 명세·기록 표·구운 파일을 한 줄로. "구운 자료" 탭(wetherilli 312)을 녹였다. 읽기만 하고 경로는 서버의 자료 폴더 아래 이름뿐이다{% endcomment %}
   <section class="mg-body" id="tab-sources">

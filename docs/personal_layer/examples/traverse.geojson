@@ -1,0 +1,19 @@
+{
+  "type": "FeatureCollection",
+  "gsm": {
+    "format": "gsm-personal-layer",
+    "version": 1,
+    "name": "태백 조사 노선",
+    "source": "예시 — 실제 조사 자료가 아니다",
+    "label": "name",
+    "columns": [
+      {"key": "name", "label": "노선", "type": "string"},
+      {"key": "date", "label": "걸은 날", "type": "string"}
+    ]
+  },
+  "features": [
+    {"type": "Feature", "id": "R1",
+     "geometry": {"type": "LineString", "coordinates": [[128.9862, 37.1641], [128.9890, 37.1668], [128.9915, 37.1702]]},
+     "properties": {"name": "구문소–동점 노선", "date": "2026-10-14"}}
+  ]
+}

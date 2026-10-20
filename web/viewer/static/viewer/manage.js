@@ -489,6 +489,20 @@
       var sel = window.getSelection(); sel.removeAllRanges(); sel.addRange(range);
     });
   });
+  // AI 에게 맡기는 말의 예 — 글 하나를 그대로 복사한다 (wetherilli 399)
+  document.querySelectorAll("[data-copy]").forEach(function (btn) {
+    btn.addEventListener("click", function () {
+      var el = $(btn.dataset.copy);
+      (navigator.clipboard ? navigator.clipboard.writeText(el.textContent.trim()) : Promise.reject()).then(function () {
+        btn.textContent = T("복사했다");
+        setTimeout(function () { btn.textContent = T("복사"); }, 900);
+      }, function () {
+        var range = document.createRange();
+        range.selectNodeContents(el);
+        var sel = window.getSelection(); sel.removeAllRanges(); sel.addRange(range);
+      });
+    });
+  });
   $("mg-ex-download").addEventListener("click", function () {
     var layer = sampleLayer(exKind);
     if (exFormat === "csv") download("gsm-sample-" + exKind + ".csv", P.toCSV(layer), "text/csv;charset=utf-8");

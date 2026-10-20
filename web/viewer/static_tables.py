@@ -9,9 +9,12 @@
 콜롬비아 SGC 는 조건이 열린 1:50만 판만 싣는다(wetherilli 201). 극지연구소(KPDC)의 **지도 서버 레이어는 싣는다** — 사용자가 "공개 자료는 싣는다" 고 정했다(2026-10-02). 모아 둔 파일에서 그리는
 KOPRI 점(시료·운석·KPDC 목록)은 여기 없다 — 굽는 쪽(`bake_static`)의 몫이다.
 """
+import json
+from pathlib import Path
+
 from django.conf import settings
 
-from . import arcpoints, dov, elevation, emodnet, ga, geosphere, geus, grportal, i18n, kopri, mrdata, npolar, pig, sgc, sgu, spw, tno
+from . import arcpoints, dov, elevation, emodnet, ga, geomap, geosphere, geus, grportal, i18n, kopri, mrdata, npolar, pig, sgc, sgu, spw, tno
 
 
 #: `arcwms.Door` 를 쓰는 상류 가운데 정적 판에 고를 수 있게 둔 것 (wetherilli 257) — 상류 → (출처, 문들, 범례에 쓸 WMS 레이어를 고르는 손).
@@ -75,6 +78,18 @@ def _max_features() -> int:
     return views.MAX_FEATURES
 
 
+#: 정적 판에서 범례 색으로 읽는 GeoMAP 레이어 → 스타일 (`geomap.LAYERS` 의 일부). 무늬로 칠한 암층은 색이 겹쳐 뺐다
+GEOMAP_LEGEND_LAYERS = ("geomap_chronostratigraphic", "geomap_simple_lithology")
+
+
+def _geomap_legend() -> dict:
+    """레이어 → `[[r, g, b], 이름, 갈래]` 줄들. 색은 규칙의 면 색 그대로(`geomap_styles.json`)"""
+    data = json.loads(Path(settings.GEOMAP_STYLES).read_text(encoding="utf-8"))["styles"]
+    return {layer: [[list(rule["fill"][:3]), rule["label"], rule["group"]]
+                    for rule in data[geomap.LAYERS[layer]]["rules"] if rule.get("fill")]
+            for layer in GEOMAP_LEGEND_LAYERS}
+
+
 def tables() -> dict:
     npolar_points = {}
     for name, spec in npolar.POINTS.items():
@@ -100,6 +115,8 @@ def tables() -> dict:
             "points": npolar_points,
         },
         "grportal": {"points": portal_points},
+        # GeoMAP 지질시대·암상 — 구운 타일의 누른 픽셀 색을 범례에서 찾는다. gpkg 를 싣지 않고 속성을 대신한다
+        "geomap": {"attribution": geomap.ATTRIBUTION, "legend": _geomap_legend()},
         "pgc": {
             "export": elevation.PGC_EXPORT_URL, "identify": elevation.PGC_IDENTIFY_URL,
             "attribution": elevation.PGC_ATTRIBUTION,

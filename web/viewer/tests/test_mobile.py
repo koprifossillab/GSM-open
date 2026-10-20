@@ -33,7 +33,7 @@ PHONE = {"viewport": {"width": 390, "height": 844}, "is_mobile": True, "has_touc
 
 # 화면 안에 있어야 하는 것 — 보이는 것만 잰다
 PARTS = ["#panel", "#panel-handle", "#toolbar", "#coordbar", "#scalebar", ".ol-zoom", "#legend-dock",
-         "#timebar", "#panel3d", "#tool-share", ".share-notice"]
+         "#timebar", "#panel3d", "#tool-share", "#tool-import", ".share-notice"]
 
 MEASURE = """(sels) => {
   function box(sel) {
@@ -278,7 +278,8 @@ class PhoneScreenTests(PhoneBase):
         self.assertEqual(page.evaluate("location.hash"), "", "해시는 읽고 지운다")
         self.assertIsNone(page.evaluate("localStorage.getItem('gsm.region')"), "그 사람의 기억을 덮는다")
         self.assertIsNone(page.evaluate("localStorage.getItem('gsm.layers.antarctica')"))
-        self.assertTrue(page.locator("#tool-share").is_visible())
+        # 지역 지도의 링크 자리는 반입이다 — 링크로 연 화면은 그대로 읽는다 (wetherilli 399)
+        self.assertTrue(page.locator("#tool-import").is_visible())
 
     def test_넘겨받은_점(self):
         """같은 사이트의 앱이 `#ext=` 로 넘긴 점이 임시 레이어로 뜨고, 아무것도 저장되지 않는다 (wetherilli 392)"""
@@ -947,10 +948,20 @@ class EmbedApi(PhoneBase):
         page, errors, _, frame = self.framed()
         frame.evaluate("""() => { window.picked = null; GSMEmbed.compact();
           GSMEmbed.view(129.0, 37.0, 14); GSMEmbed.pick({lon: 128.99, lat: 37.0}, ll => { picked = ll; }); }""")
-        page.wait_for_timeout(600)
+        # 패널을 접으면 지도 칸이 바뀐다 — 느린 러너에서는 600ms 뒤에도 덜 바뀌어 가운데가 어긋났다(129.04).
+        # 칸이 멈출 때까지 기다리고 그 크기로 다시 맞춘 뒤 누른다
+        rect = "(() => { const r = document.getElementById('map').getBoundingClientRect();" \
+               " return {x: r.left + r.width / 2, y: r.top + r.height / 2}; })()"
+        mbox = None
+        for _ in range(20):
+            page.wait_for_timeout(300)
+            now = frame.evaluate(rect)
+            if now == mbox:
+                break
+            mbox = now
+        frame.evaluate("GSMEmbed.view(129.0, 37.0, 14)")
+        page.wait_for_timeout(300)
         box = page.locator("#gsm").bounding_box()
-        mbox = frame.evaluate("(() => { const r = document.getElementById('map').getBoundingClientRect();"
-                              " return {x: r.left + r.width / 2, y: r.top + r.height / 2}; })()")
         page.mouse.click(box["x"] + mbox["x"], box["y"] + mbox["y"])
         page.wait_for_timeout(600)
         got = frame.evaluate("picked")

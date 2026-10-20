@@ -40,7 +40,7 @@ from . import (china4m, coords, gravmag, crs, datastatus, geo3al, geomap, geus, 
                fetchlog, marscraters, marsmap, mercurymap, sources, zhurong)
 from . import admap, arcpoints, kmag, caribmap, geonames, crust, glaciers, impacts, faults, minerals, stress, tectonics, seafloor, glim, heatflow, fossils, gvp, icemargins, kigam50k, macrostrat, mantle, metatile, naturalearth, neotoma, paleo, paleoeco, paleocoast, pbdb, quakes, recentquakes, verifylog, spamap, ocean, paleodem, usgs, volcanoes, wind
 from . import ags, austates, bas, basemaps, bcgs, bgr, bgs, brgm, calgs, cgs, dinamige, dmr, dov, egdi, emodnet, esdm, ga, georep, geosphere, gns, gsi, gsiindia, gtk, igme, iige, ineter, ingemmet, ispra, jmg, linked, lneg, mgb, mrdata, mris, natt, ngu, nrcan, nsgs, ogs, pig, segemar, sgb, sgc, sgm, sgs, sgu, sigeom, skgs, spw, stri, swisstopo, tno, twopen, usage, usgscarib, usstates, vmme, ygs
-from . import doors, earthpoints, offlinepack, pointvalues, profileband, static_tables, tilegrid, timescale
+from . import doors, earthpoints, offlinepack, pointvalues, profileband, static_tables, tilegrid, timescale, visits
 from .i18n import msg
 from .models import Layer, LayerGroup, Point, PointSet, PointSetDeletion, Shape
 
@@ -325,7 +325,7 @@ def _intro_other_regions() -> int:
 @require_GET
 def manage_view(request):
     """관리 화면 (wetherilli P08·118). 개인 레이어 반입, 이 브라우저의 저장 자료 관리, 상류 응답 시간(읽기만, wetherilli 295),
-    구운 자료의 나이(읽기만, wetherilli 312).
+    구운 자료의 나이(읽기만, wetherilli 312), 접속 기록(읽기만, 접속 주소는 staff 만, wetherilli 399).
 
     **서버는 화면만 내준다.** 개인 레이어는 브라우저가 읽어 브라우저(IndexedDB)에 둔다 — 서버로 오지 않는다.
     관리라는 이름이지만 지우고 고치는 것은 그 브라우저의 것뿐이라 계정을 묻지 않는다."""
@@ -344,6 +344,9 @@ def manage_view(request):
         # 데이터소스 (jikhanjung P02 3 단계) — 명세·기록 표·구운 파일을 한 줄로. "구운 자료" 탭(wetherilli 312)을 녹였다.
         # 읽기만 하고 경로는 `<DB 옆>` 아래 이름뿐이다
         "src": _sources_view(lang, request),
+        # 접속 기록 (wetherilli 399) — 날마다 화면별 횟수는 누구나, 접속 주소는 staff 로 로그인했을 때만. 밖에 연 판은 탭째 없다
+        "visits": None if settings.PUBLIC else visits.summary(lang, with_clients=_is_editor(request)),
+        "visits_staff": _is_editor(request),
     })
 
 

@@ -1,0 +1,37 @@
+# GSM — 대돌여지도 (Great Stone Map)
+
+> A geological map viewer by the KOPRI paleontology lab. It overlays national geological survey maps (Korea's KIGAM and ~80 others), Earth-wide datasets, and the Moon, Mars and Mercury. Users can import their own coordinate data as a **personal layer** (개인 레이어). This file tells an AI assistant how to turn a user's data into a file GSM can import.
+
+## Turning data into a GSM personal layer
+
+When a user asks you to prepare data "for GSM" or "to import into GSM (대돌여지도)", produce **gsm-personal-layer v1**, either as GeoJSON or as CSV:
+
+- **GeoJSON**: a normal `FeatureCollection` plus a top-level `gsm` header object: `{"format": "gsm-personal-layer", "version": 1, "name": …, "source": …, "label": …, "columns": [{"key", "label", "type", "note"}]}`.
+- **CSV**: the same header as leading `#key: value` lines (`#format: gsm-personal-layer`, `#version: 1`, `#name: …`), one `#column: key | label | type | note` line per column, then a normal header row. Points use `lon`,`lat` columns; lines and polygons use a `geometry` column with WKT (`LINESTRING (…)`, `POLYGON ((…))`).
+- Coordinates are **WGS84 decimal degrees, longitude first**. Convert projected coordinates (TM, UTM-K, etc.) before writing. Convert degrees-minutes-seconds to decimals.
+- Point, line, or polygon is decided by the geometry itself — there is no "kind" field. **One file holds one kind**; split mixed data into separate files.
+- Column `type` is `string`, `integer` or `number`. Do not use `id`, `lon`, `lat`, `geometry` as attribute names — those are reserved. `id` is the source's own row id.
+- Keep rows whose position is unknown: `"geometry": null` in GeoJSON, empty `lon`/`lat` in CSV. They are carried, not drawn.
+- Fill `source` (where the data came from) and `columns` (a label and type for each attribute) — they show up in GSM's popups and exports.
+- UTF-8. Korean Excel's CP949 also works for CSV.
+
+The user imports the file at **/GSM/manage/** → "개인 레이어 반입" (the **반입** button in the map's tool group). The layer stays only in that browser (IndexedDB); nothing is uploaded.
+
+- [Format spec (Korean, authoritative)](docs/개인레이어_양식.md): every header key, CSV rules, what the importer checks, linking a remote API
+- [JSON Schema](docs/personal_layer/schema.json): the GeoJSON form, machine-checkable
+- [Example — samples as GeoJSON](docs/personal_layer/examples/field_samples.geojson): points with typed columns and a row without coordinates
+- [Example — the same samples as CSV](docs/personal_layer/examples/field_samples.csv): imports to exactly the same layer
+- [Example — a traverse line](docs/personal_layer/examples/traverse.geojson)
+- [Example — survey areas as CSV with WKT](docs/personal_layer/examples/survey_areas.csv)
+
+The examples are checked in CI against GSM's own importer (`web/viewer/static/viewer/personal.js`), so they always import without warnings.
+
+## Serving data from an API
+
+A site can also serve this format at a URL; GSM's "API 로 잇기" (link an API) fetches it each time the map opens. Rules (auth header kinds, CORS, size and time limits) are in the format spec, section "연결 — 남의 API 로 받기".
+
+## About the project
+
+- [README](README.md): where it runs, what data it shows, data sources and their licenses
+- Code is AGPL-3.0. Map data follows each upstream's own terms (README, "라이선스와 자료의 출처").
+- This repository (GSM-open) is a per-release copy of the source; development happens elsewhere.

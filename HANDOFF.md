@@ -3,12 +3,15 @@
 이 문서는 **지금 어디까지 왔고 다음이 무엇인지** 한 곳에서 답한다.
 왜 그렇게 했는지는 `devlog/`, 무엇이 언제 붙었는지는 `CHANGELOG.md`.
 
-마지막으로 손본 날: **2026-10-07**
+마지막으로 손본 날: **2026-10-20**
 
 ## 작업 방식 (2026-09-30 부터)
 
-**브랜치** `main` = `0.83.0`(2026-10-18 배포). 코드 작업은 각자 자기 계정에서 `feature/<기능 이름>` 브랜치를 `main` 에서 만들고, 끝나면 PR 을 만든다.
-**PR 병합과 판 올리기·배포는 판 세션(gsm-31)이 한다** — 다른 세션은 PR 을 열고 알린다. 판은 몇 PR 이 모이면 따로 올린다. 문서만 고치는 것은 `main` 에 바로. devlog 는 글쓴이마다 번호를 센다 — CLAUDE.md "커밋과 PR"·"devlog",
+**브랜치** `main` = `1.0.0`(2026-10-20 배포). 코드 작업은 각자 자기 계정에서 `feature/<기능 이름>` 브랜치를 `main` 에서 만들고, 끝나면 **브랜치만 push 한다 — PR 은 만들지 않는다**(초안도 CI 가 돈다).
+**판 세션(`pan`)이 넘겨받은 브랜치를 `release/v<판>` 하나에 합쳐 PR 하나로 내고, 판 올리기·배포를 한다** — 다른 세션은 브랜치 이름·devlog 번호·로컬 시험 결과를 판 세션에 SendMessage 로 알린다. `main` 병합은 사람이 정한다 (CLAUDE.md "커밋과 PR", 2026-10-20, wetherilli 397).
+**개발 저장소 `koprifossillab/GSM` 은 비공개다**(2026-10-20) — Actions 가 월 할당량에 걸린다. 밖에서 볼 소스는 판마다 미는 `koprifossillab/GSM-open`.
+**CI 는 자체 러너에서 돈다** — 저장소 변수 `GSM_RUNNER` 가 있으면 뷰어 시험·휴대폰 화면이 paleo-server 에서, 이미지 굽기는 GitHub 러너. 서버가 내려가면 변수를 지운다 — `deploy/host/runner.md` (wetherilli P15·398).
+문서만 고치는 것은 `main` 에 바로. devlog 는 글쓴이마다 번호를 센다 — CLAUDE.md "커밋과 PR"·"devlog",
 [devlog/README.md](devlog/README.md). WegenersDream 과 같은 규약이다.
 
 ## 한 줄

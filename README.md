@@ -66,6 +66,19 @@ KIGAM 레이어 카탈로그는 상류 `GetCapabilities` 에서 뽑아 `data/kig
 두었다. **공식 안내 문서의 레이어 목록에는 틀린 것이 있다** — 자세한 것은
 [CLAUDE.md](CLAUDE.md) 의 "상류의 함정" 과 [devlog 001](devlog/20260923_001_kigam-openapi-survey.md).
 
+## 내 자료 반입 — 개인 레이어
+
+**[개인 레이어 양식](docs/개인레이어_양식.md)에 맞춰 가공한 자료는 지도에 반입할 수 있다.** 야외 조사 지점·시료 목록·
+노선·조사 범위처럼 내가 만든 좌표 자료를 GeoJSON(머리 `gsm` 을 더한 것)이나 CSV 로 적으면 된다. 좌표는 WGS84 십진도
+(경도·위도)이고, 점·선·면은 좌표 값의 꼴이 정한다. 기계가 읽는 [JSON Schema](docs/personal_layer/schema.json)와
+[예시](docs/personal_layer/examples/)가 있고, **AI 에게 자료를 바꿔 달라고 할 때는 [`llms.txt`](llms.txt) 를 읽히면 된다** — 양식의 요점과
+예시가 한 장에 있다.
+
+- **들이는 곳** — 지역 지도의 도구 묶음에 있는 **반입** 단추(관리 화면 `/GSM/manage/` 의 "개인 레이어 반입" 으로 간다)
+- **남는 곳** — 반입한 것은 **그 브라우저(IndexedDB)에만** 남는다. 서버로 가지 않고 다른 사람에게 보이지 않는다
+- **남의 API** — 같은 양식을 내주는 주소는 "API 로 잇기" 로 연결 레이어가 된다. 지도를 열 때마다 새로 받는다
+- 연구소 안 판(http://paleolab/GSM/)에서 된다. 연구소 밖 정적 판에는 관리 화면이 없다
+
 ## 문서
 
 - [docs/설치.md](docs/설치.md) — paleo-server 에 세우는 절차 (**root 가 필요하다**)
@@ -74,7 +87,7 @@ KIGAM 레이어 카탈로그는 상류 `GetCapabilities` 에서 뽑아 `data/kig
 - [CHANGELOG.md](CHANGELOG.md) — 판 이력
 - [devlog/](devlog/) — 왜 그렇게 했는지 (색인 [devlog/README.md](devlog/README.md))
 
-각자 자기 계정에서 `feature/<기능 이름>` 브랜치로 작업하고 끝나면 PR 을 만든다. 병합은 사람이 정한다.
+각자 자기 계정에서 `feature/<기능 이름>` 브랜치로 작업해 push 하고, 판 세션이 그 브랜치들을 판 PR 하나로 묶어 낸다. 병합은 사람이 정한다.
 판을 올린 PR 이 병합되면 CHANGELOG 로 GitHub 릴리스를 만들고, 릴리스 태그마다 CI 가 Docker Hub
 (`koprifossillab/gsm:<태그>`)에 이미지를 올린다. 자세한 규약은 CLAUDE.md "커밋과 PR".
 

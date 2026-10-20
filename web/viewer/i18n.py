@@ -580,6 +580,31 @@ EN = {
     "레이어 대조 기록이 아직 없다 (manage.py verify_layers --redo)": "No layer check recorded yet (manage.py verify_layers --redo)",
     # 관리 화면의 상류 응답 시간 (wetherilli 295)
     "상류 응답 시간": "Upstream response times",
+    # 접속 기록 (wetherilli 399)
+    "접속 기록": "Visits",
+    "지난 {n} 일 동안 화면을 연 횟수 — 타일·범례는 세지 않는다. 접속 주소 {c} 곳": "Screens opened over the last {n} days — tiles and legends are not counted. {c} client addresses",
+    "합": "Total",
+    "접속 주소 수": "Addresses",
+    "접속 주소": "Client addresses",
+    "staff 로 로그인했을 때만 보인다 — 1 년이 지난 기록은 지운다": "Shown only to staff — records older than a year are deleted",
+    "데이터소스 탭에서 staff 계정으로 로그인하면 접속 주소별 기록이 보인다": "Log in with a staff account on the Sources tab to see visits by client address",
+    "횟수": "Count",
+    "연 화면": "Screens",
+    "마지막으로 연 때": "Last opened",
+    "지역 지도": "Regional map",
+    "3D": "3D",
+    "소개": "Intro",
+    # 도구 묶음의 반입 (wetherilli 399)
+    "AI 에게 맡길 때 — 말의 예": "Asking an AI — an example",
+    "상대 사이트의 AI 에게 맡길 때 — 말의 예": "Asking the other site's AI — an example",
+    "https://github.com/koprifossillab/GSM-open 의 llms.txt 를 참고하여, 첨부한 시료 목록(엑셀)을 GSM 개인 레이어 CSV 로 바꿔줘. 좌표는 경위도 십진도로 옮기고, 열마다 이름과 형식을 #column 줄로 적고, 좌표가 없는 행도 버리지 마.":
+        "Using llms.txt in https://github.com/koprifossillab/GSM-open, convert the attached sample list (Excel) into a GSM personal layer CSV. Convert coordinates to decimal degrees, describe each column with a #column line, and keep rows without coordinates.",
+    "https://github.com/koprifossillab/GSM-open 의 docs/개인레이어_양식.md 의 「연결 — 남의 API 로 받기」 를 참고하여, 우리 서비스의 조사 지점 목록을 GSM 개인 레이어 양식 v1 JSON 으로 내주는 GET 주소를 만들어줘. 인증은 X-API-Key 머리로 받고, CORS 는 http://paleolab 에 연다.":
+        "Using the 'Serving data from an API' section of llms.txt in https://github.com/koprifossillab/GSM-open, build a GET endpoint that serves our survey sites as GSM personal layer v1 JSON. Take the key in an X-API-Key header and allow CORS for http://paleolab.",
+    "사용자가 사용할 AI 에게 <b>“https://github.com/koprifossillab/GSM-open 를 참고하여 데이터를 가공해줘”</b> 라고 명령하고, 결과물을 첨부하십시오.":
+        "Tell the AI you use: <b>“Refer to https://github.com/koprifossillab/GSM-open and process my data for GSM”</b>, then attach the result here.",
+    "반입": "Import",
+    "반입 — 관리 화면에서 내 자료를 개인 레이어로 들인다": "Import — bring your own data in as a personal layer on the manage screen",
     "지난 7 일의 평균이 느린 차례 — 시간은 상류가 응답의 머리를 보내기까지": "Slowest first by the 7-day mean — time until the upstream sends the response headers",
     "상류": "Upstream", "지난 7 일": "Past 7 days", "건수": "Calls", "실패": "Failed", "평균 (초)": "Mean (s)",
     "아직 센 것이 없다": "Nothing counted yet",

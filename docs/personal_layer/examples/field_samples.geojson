@@ -1,0 +1,32 @@
+{
+  "type": "FeatureCollection",
+  "gsm": {
+    "format": "gsm-personal-layer",
+    "version": 1,
+    "name": "태백 야외 조사 시료",
+    "description": "2026 년 가을 태백 일대 노두에서 채취한 시료 — 예시 자료",
+    "source": "예시 — 실제 조사 자료가 아니다",
+    "created": "2026-10-20",
+    "label": "sample_id",
+    "color": "#c0392b",
+    "columns": [
+      {"key": "sample_id", "label": "시료 번호", "type": "string"},
+      {"key": "rock", "label": "암석", "type": "string"},
+      {"key": "formation", "label": "지층", "type": "string"},
+      {"key": "strike", "label": "주향", "type": "integer", "note": "도, 진북 기준"},
+      {"key": "dip", "label": "경사", "type": "integer", "note": "도"},
+      {"key": "age_ma", "label": "연대 (Ma)", "type": "number", "note": "모르면 비운다"}
+    ]
+  },
+  "features": [
+    {"type": "Feature", "id": "TB-01",
+     "geometry": {"type": "Point", "coordinates": [128.9862, 37.1641]},
+     "properties": {"sample_id": "TB-01", "rock": "석회암", "formation": "막골층", "strike": 45, "dip": 30, "age_ma": null}},
+    {"type": "Feature", "id": "TB-02",
+     "geometry": {"type": "Point", "coordinates": [128.9915, 37.1702]},
+     "properties": {"sample_id": "TB-02", "rock": "셰일", "formation": "직운산층", "strike": 50, "dip": 25, "age_ma": 455.0}},
+    {"type": "Feature", "id": "TB-03",
+     "geometry": null,
+     "properties": {"sample_id": "TB-03", "rock": "사암", "formation": "장성층", "strike": null, "dip": null, "age_ma": null}}
+  ]
+}

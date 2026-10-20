@@ -518,6 +518,74 @@
     },
   };
 
+  // ── GeoMAP (구운 타일) — 지질시대·암상만, 누른 픽셀의 색을 범례에서 찾는다 ──
+  // 서버 판은 gpkg(490 MB)에서 누른 자리의 단위를 읽는다. 정적 판에는 그 파일이 없어, 화면에 그려진 타일의 색을
+  // 범례(`geomap_styles.json`)와 맞댄다. 단위 이름·출처는 모르고 범례 한 줄만 안다. 색이 같은 범례 줄은 함께 보인다
+
+  var gm = T.geomap || {};
+
+  /** 소스에서 그 자리의 타일 그림을 받는다 — 이미 그려 둔 것이면 곧장, 아니면 다 받을 때까지 */
+  function tileImage(source, coordinate, view) {
+    var grid = source.getTileGrid(), proj = source.getProjection();
+    var xy = view.getProjection().getCode() === proj.getCode() ? coordinate
+      : ol.proj.transform(coordinate, view.getProjection(), proj);
+    var z = grid.getZForResolution(view.getResolution());
+    var tc = grid.getTileCoordForCoordAndZ(xy, z);
+    var tile = source.getTile(tc[0], tc[1], tc[2], 1, proj);
+    var img = tile.getImage && tile.getImage();
+    if (!img) return Promise.resolve(null);
+    var at = { img: img, extent: grid.getTileCoordExtent(tc), xy: xy };
+    if (img.complete && img.naturalWidth) return Promise.resolve(at);
+    return new Promise(function (ok) {
+      img.addEventListener("load", function () { ok(at); });
+      img.addEventListener("error", function () { ok(null); });
+      if (tile.getState() === 0) tile.load();                    // 0 = IDLE
+    });
+  }
+
+  function pixelAt(at) {
+    var w = at.img.naturalWidth, h = at.img.naturalHeight, e = at.extent;
+    var px = Math.min(w - 1, Math.floor((at.xy[0] - e[0]) / (e[2] - e[0]) * w));
+    var py = Math.min(h - 1, Math.floor((e[3] - at.xy[1]) / (e[3] - e[1]) * h));
+    var canvas = document.createElement("canvas");
+    canvas.width = canvas.height = 1;
+    var ctx = canvas.getContext("2d");
+    ctx.drawImage(at.img, px, py, 1, 1, 0, 0, 1, 1);
+    return ctx.getImageData(0, 0, 1, 1).data;                   // 같은 곳(github.io)의 타일이라 읽힌다
+  }
+
+  /** 가장 가까운 범례 색의 줄들. 가장자리(섞인 색)나 빈 곳이면 빈 목록 */
+  function legendRows(rows, rgba) {
+    if (rgba[3] < 128) return [];                                // 구운 타일은 알파 192 로 반투명이다 — 그 밑은 가장자리·빈 곳
+    var best = Infinity, found = [];
+    rows.forEach(function (row) {
+      var c = row[0], d = Math.abs(c[0] - rgba[0]) + Math.abs(c[1] - rgba[1]) + Math.abs(c[2] - rgba[2]);
+      if (d < best - 0.5) { best = d; found = [row]; } else if (Math.abs(d - best) <= 0.5) found.push(row);
+    });
+    return best <= 24 ? found : [];
+  }
+
+  KINDS.geomap = {
+    info: function (source, coordinate, view) {
+      var rows = (gm.legend || {})[source.get("gsmName")];
+      if (!rows) return null;
+      return tileImage(source, coordinate, view).then(function (at) {
+        var hits = at ? legendRows(rows, pixelAt(at)) : [];
+        if (!hits.length) return { features: [] };
+        // 색이 같은 줄은 거의 같은 시대의 다른 암상이다 — 한 덩이로 묶어 암상을 나란히 적는다
+        var uniq = function (i) {
+          return hits.map(function (r) { return r[i]; })
+            .filter(function (v, k, all) { return v && v !== "other features" && all.indexOf(v) === k; });
+        };
+        var props = {}, ages = uniq(2);
+        if (ages.length) props["지질시대"] = ages.map(function (a) { return lang() === "ko" ? ageKo(a) : a; }).join(" / ");
+        props["암상"] = uniq(1).join(" / ");
+        props["자료"] = gm.attribution;
+        return { features: [{ id: "geomap", props: forLang(props) }] };
+      });
+    },
+  };
+
   var pgc = T.pgc || {};
   KINDS.pgc = {
     source: function (name) {

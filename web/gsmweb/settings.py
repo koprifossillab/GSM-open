@@ -769,6 +769,8 @@ MIDDLEWARE = [
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
+    # 화면을 연 것을 센다 — 관리 화면의 "접속 기록" (wetherilli 399). 화면의 GET 200 만, 타일은 세지 않는다
+    "viewer.visits.VisitMiddleware",
 ]
 
 ROOT_URLCONF = "gsmweb.urls"

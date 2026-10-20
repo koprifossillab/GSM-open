@@ -37,6 +37,14 @@ body.manage { display: block; height: auto; min-height: 100vh; overflow: visible
 .mg-body { display: none; }
 .mg-body.on { display: block; }
 
+/* AI 로 가공하기 — 반입 맨 위의 안내 (wetherilli 399). 명령 글은 그대로 골라 복사할 수 있게 고르기를 막지 않는다 */
+.mg-ai { margin: 0 0 12px; padding: 10px 12px; line-height: 1.7; background: var(--panel-tint);
+  border: 1px solid var(--line); border-radius: 8px; overflow-wrap: anywhere; }
+.mg-ai b { user-select: all; }
+.mg-prompt { margin: 12px 0 0; border: 1px solid var(--line-soft); border-radius: 8px; padding: 8px 12px; }
+.mg-prompt-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; font-size: 12px; opacity: .85; }
+.mg-prompt-text { margin: 6px 0 0; line-height: 1.7; overflow-wrap: anywhere; }
+
 .mg-drop {
   display: flex;
   flex-direction: column;
