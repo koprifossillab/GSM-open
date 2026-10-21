@@ -11,6 +11,11 @@ import sys
 BASE_DIR = Path(__file__).resolve().parent.parent   # web/
 REPO_DIR = BASE_DIR.parent                          # 저장소 뿌리
 
+# 오프라인 묶음 패키지 `gsmpack`(wetherilli P16) — 저장소 안에 두고 GSM 은 깔지 않고 이 자리에서 읽는다. 노트북에서 혼자 쓸 때만
+# `pip install ./tools/gsmpack` 한다. 깔게 하면 개발 venv·CI·이미지·호스트 venv 를 다 챙겨야 하고, 하나를 빠뜨리면 import 에서 깨진다
+if str(REPO_DIR / "tools" / "gsmpack") not in sys.path:
+    sys.path.insert(0, str(REPO_DIR / "tools" / "gsmpack"))
+
 
 def _load_env(path: Path) -> None:
     """`.env` 를 환경변수로 올린다. 이미 있는 값은 덮지 않는다 —
@@ -334,7 +339,7 @@ MERCURY_DIR = env("GSM_MERCURY_DIR") or str(_data_dir() / "mercury")
 #: 온 지구의 큰 자료 — 옛 해안선(`paleocoastlines_v7.json`, wetherilli 097, `manage.py build_paleocoastlines <zip>`) 따위.
 #: 우리 디스크의 파일이다. 없으면 그 레이어가 비고 나머지는 돈다. 운영은 /srv/GSM/db/earth (P07 §5)
 EARTH_DIR = env("GSM_EARTH_DIR") or str(_data_dir() / "earth")
-#: 오프라인 묶음(`.gsmpack`, `viewer/offlinepack.py`, wetherilli P13·381) — `manage.py build_offline_pack <박스>` 가 굽고 `/GSM/offline/` 이
+#: 오프라인 묶음(`.gsmpack`, 패키지 `gsmpack`, wetherilli P13·381·P16) — `manage.py build_offline_pack <박스>` 가 굽고 `/GSM/offline/` 이
 #: 목록·내려받기로 낸다. 연구실 현장용이라 밖에 연 판(`PUBLIC`)에서는 닫는다. 운영은 /srv/GSM/db/offline
 OFFLINE_DIR = env("GSM_OFFLINE_DIR") or str(_data_dir() / "offline")
 #: 박스 표 — 저장소에 둔다
@@ -820,6 +825,8 @@ USE_TZ = True
 
 STATIC_URL = f"/{URL_PREFIX}static/" if URL_PREFIX else "/static/"
 STATIC_ROOT = BASE_DIR / "staticfiles"
+#: 오프라인 묶음 읽기(`gsmpack-reader.js`)는 패키지에 있다 — `static/gsmpack/` 으로 낸다 (wetherilli P16)
+STATICFILES_DIRS = [("gsmpack", REPO_DIR / "tools" / "gsmpack" / "js")]
 
 # 눌러서 보낸다. 해시 이름(Manifest)은 쓰지 않는다 — 파일 하나가 빠지면
 # 화면 전체가 멈춘다. 캐시 무효화는 템플릿이 주소 끝에 붙이는 내용 표

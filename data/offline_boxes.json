@@ -188,5 +188,197 @@
    ]
   },
   "budget_mb": 200
+ },
+ "jingyo": {
+  "title": "진교 도폭 (하동)",
+  "region": "korea",
+  "sheet": "KIGAM 5만 도폭 틀 '진교'(GE30, 1965) — 127.75–128.00°E, 35.00–35.17°N. 둘레 0.02° 를 더했다. 진교·사천·남해·삼천포 넷이 2×2 로 붙는다 — 도폭마다 묶음 하나씩",
+  "bbox": [
+   127.728,
+   34.983,
+   128.018,
+   35.19
+  ],
+  "layers": {
+   "L_50K_Geology_Map": [
+    10,
+    16
+   ],
+   "L_250K_Geology_Map": [
+    10,
+    13
+   ],
+   "L_1M_Geology_Map": [
+    10,
+    11
+   ],
+   "l_50k_geology_frame_latest": [
+    10,
+    13
+   ],
+   "vworld:Base": [
+    10,
+    15
+   ],
+   "vworld:Satellite": [
+    10,
+    15
+   ],
+   "vworld:Hybrid": [
+    10,
+    15
+   ]
+  },
+  "units": [
+   "L_50K_Geology_Map",
+   "L_250K_Geology_Map",
+   "L_1M_Geology_Map"
+  ],
+  "budget_mb": 200,
+  "zoom_note": "줌 10 부터 — 네 도폭이 폰 한 화면에 드는 줌이다. VWorld 는 15 까지만 받고 더 가까이는 화면이 15 를 늘려 그린다(사람, 2026-10-21)"
+ },
+ "sacheon": {
+  "title": "사천 도폭 (사천)",
+  "region": "korea",
+  "sheet": "KIGAM 5만 도폭 틀 '사천'(HE00, 1969) — 128.00–128.25°E, 35.00–35.17°N. 둘레 0.02° 를 더했다. 진교·사천·남해·삼천포 넷이 2×2 로 붙는다 — 도폭마다 묶음 하나씩",
+  "bbox": [
+   127.978,
+   34.983,
+   128.268,
+   35.19
+  ],
+  "layers": {
+   "L_50K_Geology_Map": [
+    10,
+    16
+   ],
+   "L_250K_Geology_Map": [
+    10,
+    13
+   ],
+   "L_1M_Geology_Map": [
+    10,
+    11
+   ],
+   "l_50k_geology_frame_latest": [
+    10,
+    13
+   ],
+   "vworld:Base": [
+    10,
+    15
+   ],
+   "vworld:Satellite": [
+    10,
+    15
+   ],
+   "vworld:Hybrid": [
+    10,
+    15
+   ]
+  },
+  "units": [
+   "L_50K_Geology_Map",
+   "L_250K_Geology_Map",
+   "L_1M_Geology_Map"
+  ],
+  "budget_mb": 200,
+  "zoom_note": "줌 10 부터 — 네 도폭이 폰 한 화면에 드는 줌이다. VWorld 는 15 까지만 받고 더 가까이는 화면이 15 를 늘려 그린다(사람, 2026-10-21)"
+ },
+ "namhae": {
+  "title": "남해 도폭 (남해)",
+  "region": "korea",
+  "sheet": "KIGAM 5만 도폭 틀 '남해'(GD35, 1989) — 127.75–128.00°E, 34.84–35.00°N. 둘레 0.02° 를 더했다. 진교·사천·남해·삼천포 넷이 2×2 로 붙는다 — 도폭마다 묶음 하나씩",
+  "bbox": [
+   127.728,
+   34.816,
+   128.018,
+   35.023
+  ],
+  "layers": {
+   "L_50K_Geology_Map": [
+    10,
+    16
+   ],
+   "L_250K_Geology_Map": [
+    10,
+    13
+   ],
+   "L_1M_Geology_Map": [
+    10,
+    11
+   ],
+   "l_50k_geology_frame_latest": [
+    10,
+    13
+   ],
+   "vworld:Base": [
+    10,
+    15
+   ],
+   "vworld:Satellite": [
+    10,
+    15
+   ],
+   "vworld:Hybrid": [
+    10,
+    15
+   ]
+  },
+  "units": [
+   "L_50K_Geology_Map",
+   "L_250K_Geology_Map",
+   "L_1M_Geology_Map"
+  ],
+  "budget_mb": 200,
+  "zoom_note": "줌 10 부터 — 네 도폭이 폰 한 화면에 드는 줌이다. VWorld 는 15 까지만 받고 더 가까이는 화면이 15 를 늘려 그린다(사람, 2026-10-21)"
+ },
+ "samcheonpo": {
+  "title": "삼천포 도폭 (사천)",
+  "region": "korea",
+  "sheet": "KIGAM 5만 도폭 틀 '삼천포'(HD05, 1983) — 128.00–128.25°E, 34.84–35.00°N. 둘레 0.02° 를 더했다. 진교·사천·남해·삼천포 넷이 2×2 로 붙는다 — 도폭마다 묶음 하나씩",
+  "bbox": [
+   127.978,
+   34.816,
+   128.268,
+   35.023
+  ],
+  "layers": {
+   "L_50K_Geology_Map": [
+    10,
+    16
+   ],
+   "L_250K_Geology_Map": [
+    10,
+    13
+   ],
+   "L_1M_Geology_Map": [
+    10,
+    11
+   ],
+   "l_50k_geology_frame_latest": [
+    10,
+    13
+   ],
+   "vworld:Base": [
+    10,
+    15
+   ],
+   "vworld:Satellite": [
+    10,
+    15
+   ],
+   "vworld:Hybrid": [
+    10,
+    15
+   ]
+  },
+  "units": [
+   "L_50K_Geology_Map",
+   "L_250K_Geology_Map",
+   "L_1M_Geology_Map"
+  ],
+  "budget_mb": 200,
+  "zoom_note": "줌 10 부터 — 네 도폭이 폰 한 화면에 드는 줌이다. VWorld 는 15 까지만 받고 더 가까이는 화면이 15 를 늘려 그린다(사람, 2026-10-21)"
  }
 }

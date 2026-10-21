@@ -1489,11 +1489,8 @@ button.proplink { font-family: inherit; line-height: inherit; cursor: pointer; }
   .popup > #popup-body > :first-child { padding-right: 28px; }
 }
 
-/* 범위잡기 — 끄는 동안의 네모. 다 그리면 지도 위의 금색 네모(rangeStyle)로 바뀐다 */
-.range-box {
-  border: 2px solid #c9a24b;
-  background: rgba(201, 162, 75, .16);
-}
+/* 범위잡기 — 끄는 동안의 DragBox 네모(`range-ghost`)는 모양을 주지 않는다. 끄는 동안에도
+   경위도 네모를 지도 위에 그린다 — 극지 화면의 화면 네모는 경위도 네모가 아니다 */
 .temp-no.range { border-radius: 3px; outline: 1.5px dashed currentColor; outline-offset: 1px; }
 
 /* 점묶음 목록 — 이름 밑에 수 */
@@ -2072,7 +2069,6 @@ a.tool { text-decoration: none; }                /* 3D 단추는 링크다 */
 :root[data-region="mercury"] #map { background: #000; }
 :root[data-region="mercury"] .popup { z-index: 8; }
 :root[data-region="mercury"] .temp-no { color: var(--on-hi); background: var(--hi); }
-:root[data-region="mercury"] .range-box { border-color: #e3c38a; background: rgba(227, 195, 138, .14); }
 /* ══ 온 지구 (wetherilli P06) — 화성의 틀 그대로, 색만 깊은 바다의 남색과 산호초의 청록이다 ══ */
 :root[data-region="earth"] {
   --bg: #07111c; --panel: #0c1826; --panel-tint: #09141f; --raise: #132336;
@@ -2106,7 +2102,6 @@ a.tool { text-decoration: none; }                /* 3D 단추는 링크다 */
 .wind-row .wind-play { flex: 0 0 auto; min-width: 2.2em; }
 .wind-when { margin: 0; font-size: 11px; opacity: 0.8; }
 :root[data-region="earth"] .temp-no { color: var(--on-hi); background: var(--hi); }
-:root[data-region="earth"] .range-box { border-color: #7fe0e0; background: rgba(127, 224, 224, .14); }
 /* 그때의 자리 (wetherilli 087) — 팝업의 위경도 밑에 연대를 넣어 옮겨 보는 칸 */
 .paleo-form { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin: 6px 0 2px; font-size: 12px;
               color: var(--ink-soft); }
@@ -2230,9 +2225,7 @@ a.tool { text-decoration: none; }                /* 3D 단추는 링크다 */
 .tool-cap { padding: 2px 0 4px; margin-bottom: 1px; font-size: 10px; font-weight: 700; letter-spacing: .1em;
             text-align: center; color: var(--ink-faint); border-bottom: 1px solid var(--line-soft); }
 /* 평면에서 범위를 끄는 동안의 네모 — 2D 의 금색 대신 흰색 */
-:root[data-region="moon"] .range-box { border-color: #fff; background: rgba(255, 255, 255, .12); }
 :root[data-region="moon"] .temp-no, :root[data-region="mars"] .temp-no { color: var(--on-hi); background: var(--hi); }
-:root[data-region="mars"] .range-box { border-color: #f6a36a; background: rgba(246, 163, 106, .14); }
 /* 영상 보정 (042) — 배경 줄 밑에 접어 둔다 */
 .tune { margin: -2px 0 10px; }
 .tune > summary { cursor: pointer; font-size: 12px; color: var(--ink-soft); }

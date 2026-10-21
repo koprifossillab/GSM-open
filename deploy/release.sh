@@ -51,8 +51,10 @@ prune_old_images() {   # $1 = 저장소, $2… = 지킬 태그
     return 0
 }
 
-checks() {   # PR 의 검사 상태를 한 줄로 — 모두 SUCCESS 면 ok
-  gh pr checks "$1" --json state --jq '[.[].state] | if length > 0 and all(. == "SUCCESS") then "ok" else join(",") end'
+checks() {   # PR 의 검사 상태를 한 줄로 — 하나라도 SUCCESS 이고 나머지가 SUCCESS·SKIPPED 면 ok
+  # PR 에서는 휴대폰 화면·이미지 굽기가 그쪽 파일이 바뀔 때만 돈다 — 안 돈 것은 SKIPPED 로 온다 (wetherilli 397·400).
+  # 태그의 CI 는 다 돈다(아래 `ship` 이 그 결론을 따로 본다)
+  gh pr checks "$1" --json state --jq '[.[].state] | if any(. == "SUCCESS") and all(. == "SUCCESS" or . == "SKIPPED") then "ok" else join(",") end'
 }
 
 prep() {

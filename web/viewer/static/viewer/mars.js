@@ -2059,7 +2059,8 @@
     var mid = (r.s + r.n) / 2;
     return {
       nw: [r.w, r.n], ne: [r.e, r.n], se: [r.e, r.s], sw: [r.w, r.s],
-      center: [(r.w + r.e) / 2, mid],
+      // 극 모자의 가운데는 극이다
+      center: r.e - r.w >= 360 ? [0, r.n >= 90 ? 90 : -90] : [(r.w + r.e) / 2, mid],
       area: R * R * rad(r.e - r.w) * (Math.sin(rad(r.n)) - Math.sin(rad(r.s))),
       // 가로는 가운데 위도에서 잰다 — 위아래 변은 위도가 달라 길이가 다르다
       width: R * rad(r.e - r.w) * Math.cos(rad(mid)),
@@ -2082,6 +2083,19 @@
   function rangeOf(a, b) {
     b = unwrap(a, b);
     return { w: Math.min(a[0], b[0]), e: Math.max(a[0], b[0]), s: Math.min(a[1], b[1]), n: Math.max(a[1], b[1]) };
+  }
+  // 평면에서 끈 두 귀(평면 좌표) -> 경위도 네모. 끈 자리의 경위도로 네모를 잡는다 — 극 평면의 화면 네모를
+  // 그대로 두면 극에 가까울수록 경위도와 어긋난다. 끈 네모가 극을 품으면 그 네 귀를 다 덮는 극 모자다
+  function dragRange(a, b) {
+    if (proj !== EQC) {
+      var north = proj.pole === "n", x = ol.extent.boundingExtent([a, b]);
+      if (ol.extent.containsCoordinate(x, fromLL([0, north ? 90 : -90]))) {
+        var lats = [[x[0], x[1]], [x[0], x[3]], [x[2], x[1]], [x[2], x[3]]].map(function (c) { return toLL(c)[1]; });
+        return north ? { w: -180, e: 180, s: Math.min.apply(null, lats), n: 90 }
+                     : { w: -180, e: 180, s: -90, n: Math.max.apply(null, lats) };
+      }
+    }
+    return rangeOf(toLL(a), toLL(b));
   }
 
   // ── 그리기 — 평면 ──
@@ -2130,11 +2144,20 @@
     flatSketching = false;
     sketchSource.clear();
     if (tool === "box") {
-      flatInteraction = new ol.interaction.DragBox({ condition: ol.events.condition.always, className: "range-box" });
-      flatInteraction.on("boxend", function () {
+      // 끄는 동안에도 경위도 네모를 그린다 — 극 평면에서는 화면의 네모가 경위도 네모가 아니다.
+      // DragBox 의 네모는 감춘다(`range-ghost` 에는 모양이 없다)
+      var flatFrom = null, preview = new ol.Feature({ kind: "range" });
+      flatInteraction = new ol.interaction.DragBox({ condition: ol.events.condition.always, className: "range-ghost" });
+      flatInteraction.on("boxstart", function (evt) { flatFrom = evt.coordinate; });
+      flatInteraction.on("boxdrag", function (evt) {
+        preview.setGeometry(new ol.geom.Polygon([eqc(rangeRing(dragRange(flatFrom, evt.coordinate)))]));
+        if (!drawSource.hasFeature(preview)) drawSource.addFeature(preview);
+      });
+      flatInteraction.on("boxend", function (evt) {
+        if (drawSource.hasFeature(preview)) drawSource.removeFeature(preview);
         var x = flatInteraction.getGeometry().getExtent();
         if (ol.extent.getWidth(x) === 0 || ol.extent.getHeight(x) === 0) return;
-        addRange(rangeOf(toLL([x[0], x[1]]), toLL([x[2], x[3]])));
+        addRange(dragRange(flatFrom, evt.coordinate));
       });
     } else if (tool === "line" || tool === "area") {
       flatInteraction = new ol.interaction.Draw({
@@ -2174,9 +2197,17 @@
              heightReference: Cesium.HeightReference.CLAMP_TO_GROUND, disableDepthTestDistance: NO_DEPTH };
   }
   function positions(coords) { return ringPositions(coords); }
-  function rangeRing(r) {
+  function rangeRing(r, geo) {
     // 위아래 변은 위선을 따라야 한다 — 대권으로 이으면 극 쪽으로 휜다. 촘촘히 찍어 위선을 따른다
     var out = [], steps = Math.max(2, Math.ceil((r.e - r.w) / 2));
+    if (r.e - r.w >= 360) {
+      // 극 모자는 경계 위선 하나다 — 극으로 가는 변을 두면 구에서 면이 갈라진다.
+      // 올리는 GeoJSON(`geo`)만은 경위도 평면에서 극을 품도록 극의 변으로 닫는다
+      var edge = r.n >= 90 ? r.s : r.n, pole = r.n >= 90 ? 90 : -90;
+      for (var k = 0; k <= steps; k++) out.push([r.w + 360 * k / steps, edge]);
+      if (geo) out.push([r.e, pole], [r.w, pole], [r.w, edge]);
+      return out;
+    }
     for (var i = 0; i <= steps; i++) out.push([r.w + (r.e - r.w) * i / steps, r.n]);
     for (i = steps; i >= 0; i--) out.push([r.w + (r.e - r.w) * i / steps, r.s]);
     out.push([r.w, r.n]);
@@ -2604,7 +2635,7 @@
     var name = prompt(T("목록 이름"), T("찍은 점 {date}", { date: new Date().toLocaleDateString(LANG === "en" ? "en-GB" : "ko-KR") }));
     if (name === null) return;
     var shapes = ranges.map(function (r) {
-      return { geometry: { type: "Polygon", coordinates: [lonlat(rangeRing(r))] },
+      return { geometry: { type: "Polygon", coordinates: [r.e - r.w >= 360 ? rangeRing(r, true) : lonlat(rangeRing(r))] },
                label: T("범위 {n}", { n: r.no }), props: rangeRows(rangeFacts(r)) };
     });
     if (measured) {

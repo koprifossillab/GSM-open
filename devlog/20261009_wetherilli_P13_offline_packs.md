@@ -35,6 +35,8 @@
 
 ### 묶음 파일 `<박스>-<날짜>.gsmpack`
 
+> 2026-10-21 — 지금의 꼴(`tile_size`·`units` 가 더해진 것)은 패키지의 README(`tools/gsmpack/README.md`)가 정한다(wetherilli P16). 아래는 처음 못 박은 판이다.
+
 라이브러리 없이 브라우저가 `Blob.slice` 로 읽게 단순하게 둔다.
 
 ```

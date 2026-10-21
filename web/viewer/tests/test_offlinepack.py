@@ -1,7 +1,8 @@
-"""오프라인 묶음(.gsmpack) — 꼴 쓰고 읽기, 박스 굽기, 목록·내려받기 (wetherilli 381). 상류를 부르지 않는다."""
+"""오프라인 묶음(.gsmpack) — GSM 안의 소스로 박스 굽기, 목록·내려받기 (wetherilli 381). 상류를 부르지 않는다.
+
+꼴·자르기·예산·굽는 고리 자체의 시험은 패키지에 있다(`tools/gsmpack/tests`, wetherilli P16)."""
 import io
 import json
-import struct
 import tempfile
 from pathlib import Path
 from unittest import mock
@@ -12,37 +13,10 @@ from django.conf import settings
 from django.core.management import call_command
 from django.test import SimpleTestCase, TestCase, override_settings
 
-from viewer import kigam, offlinepack, vworld
+from gsmpack import bake, format as offlinepack, grid
+from viewer import kigam, tilegrid, vworld
 from viewer.management.commands import build_offline_pack
 from viewer.models import Layer, LayerGroup
-
-
-class Pack(SimpleTestCase):
-    def setUp(self):
-        self.tmp = tempfile.TemporaryDirectory()
-        self.path = Path(self.tmp.name) / "box-2026-10-09.gsmpack"
-
-    def tearDown(self):
-        self.tmp.cleanup()
-
-    def test_쓰고_읽기(self):
-        tiles = [("L/12/3510/1580", b"\x89PNG-a"), ("L/12/3511/1580", b""), ("vworld:Base/8/218/98", b"jpeg"),
-                 ("L/12/3510/1580", b"dup")]
-        head = offlinepack.write(self.path, {"box": "box", "title": "장성"}, tiles)
-        self.assertEqual(head["tiles"], {"L/12/3510/1580": [0, 6], "vworld:Base/8/218/98": [6, 4]})
-        raw = self.path.read_bytes()
-        self.assertEqual(raw[:8], b"GSMPACK1")
-        (n,) = struct.unpack("<I", raw[8:12])
-        self.assertEqual(raw[12 + n:], b"\x89PNG-ajpeg")
-        opened = offlinepack.read_header(self.path)
-        self.assertEqual(opened[0]["title"], "장성")
-        self.assertEqual(offlinepack.read_tile(self.path, "vworld:Base/8/218/98", opened), b"jpeg")
-        self.assertIsNone(offlinepack.read_tile(self.path, "L/12/3511/1580"))        # 빈 타일은 넣지 않는다
-
-    def test_꼴이_아니면(self):
-        self.path.write_bytes(b"PK\x03\x04 nope")
-        with self.assertRaises(ValueError):
-            offlinepack.read_header(self.path)
 
 
 def png(alpha=255, size=512):
@@ -91,6 +65,7 @@ class Build(TestCase):
                                                                       "geoOpen:l_50k_geology_fault_latest"]),
             mock.patch.object(kigam, "wfs_in_bbox", lambda t, bbox: self.info_calls.append((t, bbox)) or UNITS),
             mock.patch.object(build_offline_pack.time, "sleep", lambda s: None),
+            mock.patch.object(bake.time, "sleep", lambda s: None),
         ]
         for p in patches:
             p.start()
@@ -168,54 +143,14 @@ class Build(TestCase):
         self.assertLessEqual(path.stat().st_size - base, 0.05 * 1024 * 1024)   # 지층 면까지 쳐서 예산 안이다
 
 
-class Clip(SimpleTestCase):
-    """타일·지층 면을 박스로 잘라 낸다 — 도폭 하나를 구우면 묶음도 그 도폭만이다 (wetherilli 385)"""
-
-    def test_타일(self):
-        from viewer import tilegrid
-        bbox = (129.0, 37.0, 129.25, 37.17)
-        tile = png()
-        # 도폭 안쪽의 깊은 타일은 그대로
-        _, x, y = next(tilegrid.tiles_for((129.1, 37.1, 129.1, 37.1), 14))
-        self.assertEqual(build_offline_pack.clip_tile(tile, 14, x, y, bbox), tile)
-        # 박스 밖의 타일은 버린다
-        _, x, y = next(tilegrid.tiles_for((127.0, 36.0, 127.0, 36.0), 14))
-        self.assertEqual(build_offline_pack.clip_tile(tile, 14, x, y, bbox), b"")
-        # 얕은 줌의 넓은 타일은 박스 밖이 투명하다
-        _, x, y = next(tilegrid.tiles_for((129.1, 37.1, 129.1, 37.1), 7))
-        image = Image.open(io.BytesIO(build_offline_pack.clip_tile(tile, 7, x, y, bbox))).convert("RGBA")
-        alpha = image.getchannel("A")
-        self.assertEqual(alpha.getpixel((0, 0)), 0)
-        self.assertLess(sum(1 for v in alpha.getdata() if v) / (512 * 512), 0.01)     # 2.8° 타일에 0.25° 도폭
-
-    def test_지층_면(self):
-        box = (129.0, 37.0, 129.1, 37.1)
-        inside = {"type": "Polygon", "coordinates": [[[129.02, 37.02], [129.05, 37.02], [129.05, 37.05], [129.02, 37.02]]]}
-        self.assertEqual(build_offline_pack.clip_polygons(inside, box)["coordinates"][0][0], [129.02, 37.02])
-        across = {"type": "MultiPolygon", "coordinates": [
-            [[[128.9, 37.05], [129.05, 37.05], [129.05, 37.2], [128.9, 37.2], [128.9, 37.05]]],
-            [[[130.0, 38.0], [130.1, 38.0], [130.1, 38.1], [130.0, 38.0]]]]}             # 둘째 면은 다 밖
-        got = build_offline_pack.clip_polygons(across, box)
-        self.assertEqual(got["type"], "Polygon")
-        xs = [p[0] for p in got["coordinates"][0]]
-        ys = [p[1] for p in got["coordinates"][0]]
-        self.assertEqual((min(xs), max(xs), min(ys), max(ys)), (129.0, 129.05, 37.05, 37.1))
-        outside = {"type": "Polygon", "coordinates": [[[130.0, 38.0], [130.1, 38.0], [130.1, 38.1], [130.0, 38.0]]]}
-        self.assertIsNone(build_offline_pack.clip_polygons(outside, box))
-
-
-class FitBudget(SimpleTestCase):
-    def test_차례(self):
-        zooms, dropped, total = build_offline_pack.fit_budget(
-            ["a", "b"], {"a": [5, 8], "b": [5, 8]}, lambda n, z: 4 ** (z - 5), 30)
-        self.assertEqual(zooms, {"a": [5, 7], "b": [5, 5]})             # b 를 처음 줌까지 내린 뒤에야 a 를 던다
-        self.assertEqual(dropped, {"b": 6, "a": 8})
-        self.assertLessEqual(total, 30)
-
-    def test_빈_타일(self):
-        self.assertTrue(build_offline_pack.is_blank(png(alpha=0)))
-        self.assertFalse(build_offline_pack.is_blank(png()))
-        self.assertFalse(build_offline_pack.is_blank(b"\xff\xd8 jpeg"))
+class Grid(SimpleTestCase):
+    def test_패키지의_격자가_tilegrid_와_같다(self):
+        """패키지는 viewer 를 타지 않으려고 3857 격자 셈을 옮겨 두었다 — 둘이 어긋나면 캐시 열쇠가 어긋난다 (wetherilli P16)"""
+        for bbox in [(129.0, 37.0, 129.25, 37.17), (124.5, 33.0, 131.0, 38.7), (-180, -85, 180, 85)]:
+            for z in (0, 5, 9, 14):
+                if z > 9 and bbox[2] - bbox[0] > 1:
+                    continue
+                self.assertEqual(grid.tiles_for(bbox, z), [(x, y) for _, x, y in tilegrid.tiles_for(bbox, z)])
 
 
 class Page(TestCase):

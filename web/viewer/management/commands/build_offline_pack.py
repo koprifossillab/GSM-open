@@ -1,5 +1,8 @@
 """박스 하나의 타일을 오프라인 묶음(`.gsmpack`) 하나로 굽는다 (wetherilli P13·381).
 
+굽는 고리(어림·예산·받기·자르기·쓰기)는 패키지 `gsmpack`(`tools/gsmpack/`, wetherilli P16)에 있다. 여기는 GSM 안의 소스 —
+KIGAM·VWorld 문과 서버 캐시 — 와 지층 면 모으기를 꽂는다.
+
     manage.py build_offline_pack jangseong --dry-run      # 장수·크기 어림, 예산에 맞춰 덜 줌
     manage.py build_offline_pack jangseong                # <DB 옆>/offline/jangseong-20261010.gsmpack
 
@@ -11,7 +14,7 @@
   받지 않게 받은 것을 `<출력>/.<박스>.parts.sqlite` 에 두었다가 다 구우면 지운다
 - **빠르기는 미리 데우기와 같다**(devlog 010) — 상류에 1 초에 한 번, 차단 조짐이면 곧장 멈춘다. 연달아 3 번 실패해도 멈춘다
 - **예산(`budget_mb`, 기본 200 MB)을 넘으면 뒤의 레이어부터 마지막 줌을 한 단계씩 내린다** — 받기 전에는 어림(캐시에 있는 타일의
-  평균, 없으면 `GUESS_BYTES`)으로, 받은 뒤에는 실제 크기로. 덜어 낸 것은 머리의 `dropped` 에 레이어마다 빠진 첫 줌으로 적는다
+  줌마다의 평균, 모자라면 `gsmpack.bake.GUESS_BYTES` 의 줌마다 잰 값 — wetherilli 404)으로, 받은 뒤에는 실제 크기로. 덜어 낸 것은 머리의 `dropped` 에 레이어마다 빠진 첫 줌으로 적는다
 - 묶음의 타일 열쇠는 **화면의 tileCoord** — KIGAM 은 512 px 격자라 화면 줌보다 하나 작고, VWorld 는 256 px 라 화면 줌 그대로다.
   머리의 `layers.<이름>.zooms` 는 그 격자의 줌이고 `tile_size` 가 격자를 밝힌다
 - 빈 타일(투명 한 장, VWorld 의 자료 밖)은 넣지 않는다. **키는 머리에도 주소에도 없다**
@@ -23,53 +26,36 @@
   처럼 추리고 좌표는 소수 다섯 자리(1 m 남짓)로 줄여 묶음 안에 `@units/<레이어>` 한 덩이(GeoJSON)로 넣는다. 화면은 망이 없을 때
   누른 자리를 품은 면의 속성을 낸다. 범례 색으로 찾지 않는 까닭 — 한 도폭 안에서도 단위 둘이 한 색이다(장성의 풍촌석회암층·화절층)
 """
-import datetime
-import io
-import json
 import math
-import sqlite3
 import time
 from pathlib import Path
-
-from PIL import Image
 
 from django.conf import settings
 from django.core.management.base import BaseCommand, CommandError
 
+from gsmpack import bake, boxes, clip, format, grid
 from gsmweb.version import VERSION
-from viewer import i18n, kigam, offlinepack, tilecache, tilegrid, usage, views, vworld
+from viewer import i18n, kigam, tilecache, usage, views, vworld
 from viewer.management.commands.prewarm import PREWARM_ERRORS, WmsPlan, plan_for
 from viewer.models import Layer
 
-#: 캐시에 견줄 것이 없을 때의 타일 한 장 어림(바이트). 2026-10-09 운영 캐시의 장성 둘레에서 잰 값에 가깝게 둔다
-GUESS_BYTES = {"kigam": 60_000, "vworld:Base": 18_000, "vworld:Satellite": 22_000, "vworld": 18_000}
 META = 4                       # KIGAM 큰 그림 한 변의 타일 수 — `prewarm --meta 4`
 VWORLD_ATTRIBUTION = "VWorld (국토교통부 공간정보 오픈플랫폼)"
 KIGAM_ATTRIBUTION = "한국지질자원연구원 지오빅데이터 오픈플랫폼"
-UNITS_DIGITS = 5               # 지층 면 좌표의 소수 자리 — 1 m 남짓. 5만 지질도(1 mm = 50 m)에 넉넉하다
 
 
 def load_boxes(path=None) -> dict:
-    data = json.loads(Path(path or settings.OFFLINE_BOXES_FILE).read_text(encoding="utf-8"))
-    return {k: v for k, v in data.items() if not k.startswith("_")}
+    return boxes.load(path or settings.OFFLINE_BOXES_FILE)
 
 
-def is_blank(data: bytes) -> bool:
-    """투명 한 장인가. 읽지 못하면 빈 것이 아니다 — 넣어 둔다."""
-    try:
-        image = Image.open(io.BytesIO(data))
-        if image.mode in ("RGBA", "LA") or (image.mode == "P" and "transparency" in image.info):
-            alpha = image.convert("RGBA").getchannel("A")
-            return alpha.getextrema()[1] == 0
-    except (OSError, ValueError):
-        pass
-    return False
+def _fetch_error(exc):
+    """문의 오류 → 굽는 고리의 오류. 차단 조짐은 문이 안다(`usage.paused`)."""
+    return bake.FetchError(str(exc), blocked=bool(usage.paused()) or "차단" in str(exc))
 
 
 class KigamSource:
     """KIGAM WMS — 화면의 `wmsSource`(3857, `createXYZ({tileSize: 512})`). 화면 줌 s 는 격자 줌 s − 1 이다."""
     tile_size = 512
-    remote = True
 
     def __init__(self, name, title):
         self.name, self.title = name, title
@@ -84,21 +70,26 @@ class KigamSource:
         return max(0, screen - 1)
 
     def tiles(self, bbox, z):
-        return [(x, y) for _, x, y in tilegrid.tiles_for(bbox, z)]
+        return grid.tiles_for(bbox, z)
 
     def cached(self, z, x, y):
         return tilecache.get(self.plan.key(z, x, y))
 
+    def calls_for(self, missing):
+        return math.ceil(missing / (META * META) * 1.5)
+
     def fetch(self, z, x, y):
         """그 타일을 품은 큰 그림 한 장을 받아 잘라 캐시에 담고, 이 타일을 돌려준다. 상류에 한 번."""
-        self.plan.fetch_block(z, x // META, y // META, META)
+        try:
+            self.plan.fetch_block(z, x // META, y // META, META)
+        except PREWARM_ERRORS as exc:
+            raise _fetch_error(exc) from exc
         return self.cached(z, x, y)
 
 
 class VWorldSource:
-    """VWorld 배경 — 화면의 `vworldSource`(256 px XYZ). 격자 줌이 화면 줌이다. 서버 캐시에 담지 않는다(033)."""
+    """VWorld 배경 — 화면의 `vworldSource`(256 px XYZ). 격자 줌이 화면 줌이다. 서버 캐시에 담지 않는다(033) — 받은 것은 parts 에."""
     tile_size = 256
-    remote = True
 
     def __init__(self, name, layer, parts):
         if layer not in vworld.WMTS_LAYERS:
@@ -113,107 +104,19 @@ class VWorldSource:
         return screen
 
     def tiles(self, bbox, z):
-        return [(x, y) for _, x, y in tilegrid.tiles_for(bbox, z)]     # 칸 수(2^z)로 세므로 256 px 에도 맞는다
+        return grid.tiles_for(bbox, z)
 
     def cached(self, z, x, y):
-        return self.parts.get(offlinepack.tile_key(self.name, z, x, y))
+        return self.parts.get(format.tile_key(self.name, z, x, y))
 
     def fetch(self, z, x, y):
-        got = vworld.get_wmts_tile(self.layer, z, y, x)
+        try:
+            got = vworld.get_wmts_tile(self.layer, z, y, x)
+        except (*PREWARM_ERRORS, vworld.VWorldError) as exc:
+            raise _fetch_error(exc) from exc
         data = got[0] if got else b""
-        self.parts.put(offlinepack.tile_key(self.name, z, x, y), data)
+        self.parts.put(format.tile_key(self.name, z, x, y), data)
         return data
-
-
-class Parts:
-    """굽는 동안 받은 VWorld 타일 — 멈췄다 다시 부르면 이어진다. 빈 것도 적어 둔다(다시 묻지 않게)."""
-
-    def __init__(self, path):
-        self.path = Path(path)
-        self.path.parent.mkdir(parents=True, exist_ok=True)
-        self.db = sqlite3.connect(self.path)
-        self.db.execute("CREATE TABLE IF NOT EXISTS tile (k TEXT PRIMARY KEY, v BLOB)")
-
-    def get(self, key):
-        row = self.db.execute("SELECT v FROM tile WHERE k = ?", (key,)).fetchone()
-        return None if row is None else bytes(row[0])
-
-    def put(self, key, data):
-        self.db.execute("INSERT OR REPLACE INTO tile VALUES (?, ?)", (key, data))
-        self.db.commit()
-
-    def remove(self):
-        self.db.close()
-        self.path.unlink(missing_ok=True)
-
-
-def _round(coords, digits=UNITS_DIGITS):
-    if coords and isinstance(coords[0], (int, float)):
-        return [round(coords[0], digits), round(coords[1], digits)]
-    return [_round(c, digits) for c in coords]
-
-
-def clip_tile(data: bytes, z: int, x: int, y: int, bbox) -> bytes:
-    """3857 타일(격자 줌 z, 칸 수 2^z)에서 박스(경위도) 밖을 투명하게 비운다. 다 안이면 그대로, 다 밖이면 b""."""
-    span = 2 * tilegrid.HALF / 2 ** z
-    left, top = -tilegrid.HALF + x * span, tilegrid.HALF - y * span
-    west, south = tilegrid.lonlat_to_3857(bbox[0], bbox[1])
-    east, north = tilegrid.lonlat_to_3857(bbox[2], bbox[3])
-    if east <= left or west >= left + span or north <= top - span or south >= top:
-        return b""
-    if west <= left and east >= left + span and south <= top - span and north >= top:
-        return data
-    try:
-        image = Image.open(io.BytesIO(data)).convert("RGBA")
-    except (OSError, ValueError):
-        return data
-    size = image.size[0]
-    box = (max(0, math.floor((west - left) / span * size)), max(0, math.floor((top - north) / span * size)),
-           min(size, math.ceil((east - left) / span * size)), min(size, math.ceil((top - south) / span * size)))
-    out = Image.new("RGBA", image.size, (0, 0, 0, 0))
-    out.paste(image.crop(box), box[:2])
-    buf = io.BytesIO()
-    out.save(buf, format="PNG", optimize=True)
-    return buf.getvalue()
-
-
-def _clip_ring(ring, bbox):
-    """닫힌 고리 하나를 네모로 자른다(서덜랜드–호지먼). 남는 것이 없으면 빈 목록."""
-    west, south, east, north = bbox
-    edges = [(lambda p: p[0] >= west, lambda a, b: (west, a[1] + (b[1] - a[1]) * (west - a[0]) / (b[0] - a[0]))),
-             (lambda p: p[0] <= east, lambda a, b: (east, a[1] + (b[1] - a[1]) * (east - a[0]) / (b[0] - a[0]))),
-             (lambda p: p[1] >= south, lambda a, b: (a[0] + (b[0] - a[0]) * (south - a[1]) / (b[1] - a[1]), south)),
-             (lambda p: p[1] <= north, lambda a, b: (a[0] + (b[0] - a[0]) * (north - a[1]) / (b[1] - a[1]), north))]
-    points = [tuple(p[:2]) for p in ring[:-1]] if ring and ring[0] == ring[-1] else [tuple(p[:2]) for p in ring]
-    for inside, cross in edges:
-        if not points:
-            break
-        kept = []
-        for k, cur in enumerate(points):
-            prev = points[k - 1]
-            if inside(cur):
-                if not inside(prev):
-                    kept.append(cross(prev, cur))
-                kept.append(cur)
-            elif inside(prev):
-                kept.append(cross(prev, cur))
-        points = kept
-    if len(points) < 3:
-        return []
-    return [list(p) for p in points] + [list(points[0])]
-
-
-def clip_polygons(geometry: dict, bbox):
-    """면(Polygon·MultiPolygon)을 네모로 자른다 — 바깥 고리가 사라지면 그 면을 버린다. 남는 것이 없으면 None."""
-    polys = geometry["coordinates"] if geometry["type"] == "MultiPolygon" else [geometry["coordinates"]]
-    out = []
-    for poly in polys:
-        rings = [_clip_ring(r, bbox) for r in poly]
-        if rings and rings[0]:
-            out.append([rings[0]] + [r for r in rings[1:] if r])
-    if not out:
-        return None
-    return {"type": "MultiPolygon", "coordinates": out} if len(out) > 1 else {"type": "Polygon", "coordinates": out[0]}
 
 
 def unit_features(data: dict, bbox=None) -> list:
@@ -225,32 +128,16 @@ def unit_features(data: dict, bbox=None) -> list:
         if "Polygon" not in geometry.get("type", ""):
             continue
         if bbox:
-            geometry = clip_polygons(geometry, bbox)
+            geometry = clip.clip_polygons(geometry, bbox)
             if geometry is None:
                 continue
         props = {k: views._split_links(v) for k, v in (feature.get("properties") or {}).items()
                  if v not in (None, "", "null")}
         if not props:
             continue
-        out.append({"type": "Feature", "geometry": {"type": geometry["type"], "coordinates": _round(geometry["coordinates"])},
+        out.append({"type": "Feature", "geometry": {"type": geometry["type"], "coordinates": clip.round_coords(geometry["coordinates"])},
                     "properties": {"props": props, "props_en": i18n.props_en(props)}})
     return out
-
-
-def fit_budget(order, zooms, sizes, budget):
-    """`zooms` {레이어: [처음, 마지막]}(격자 줌)를 예산 안으로 줄인다 — 뒤의 레이어부터 마지막 줌을 한 단계씩.
-    `sizes(레이어, 줌)` 은 그 줌의 바이트. 돌려주는 것은 (줄인 zooms, dropped {레이어: 빠진 첫 줌}, 어림 바이트)."""
-    zooms = {n: list(z) for n, z in zooms.items()}
-    dropped = {}
-
-    def total():
-        return sum(sizes(n, z) for n in order for z in range(zooms[n][0], zooms[n][1] + 1))
-
-    for name in reversed(order):
-        while total() > budget and zooms[name][1] > zooms[name][0]:
-            dropped[name] = zooms[name][1]
-            zooms[name][1] -= 1
-    return zooms, dropped, total()
 
 
 class Command(BaseCommand):
@@ -263,137 +150,41 @@ class Command(BaseCommand):
         parser.add_argument("--rate", type=float, default=1.0, help="1 초에 몇 번 묻나 (최대 1)")
 
     def handle(self, *args, **o):
-        boxes = load_boxes()
-        if o["box"] not in boxes:
-            raise CommandError(f"박스가 없다: {o['box']} — {', '.join(boxes)}")
-        box = boxes[o["box"]]
-        bbox = tuple(box["bbox"])
+        table = load_boxes()
+        if o["box"] not in table:
+            raise CommandError(f"박스가 없다: {o['box']} — {', '.join(table)}")
+        box = table[o["box"]]
         out_dir = Path(o["out"] or settings.OFFLINE_DIR)
-        budget = int(box.get("budget_mb", 200) * 1024 * 1024)
-        gap = 1.0 / min(max(o["rate"], 0.1), 1.0)
-        parts = Parts(out_dir / f".{o['box']}.parts.sqlite") if not o["dry_run"] else _NoParts()
+        parts = bake.Parts(bake.parts_path(out_dir, o["box"])) if not o["dry_run"] else bake.NoParts()
 
         titles = dict(Layer.objects.filter(upstream="kigam").values_list("name", "title"))
         enabled = set(Layer.objects.filter(upstream="kigam", enabled=True).values_list("name", flat=True))
-        sources, zooms, skipped = {}, {}, []
-        for name, (first, last) in box["layers"].items():
+        sources, skipped = {}, []
+        for name in box["layers"]:
             if name.startswith("vworld:"):
-                src = VWorldSource(name, name.split(":", 1)[1], parts)
+                sources[name] = VWorldSource(name, name.split(":", 1)[1], parts)
             elif name in enabled and isinstance(plan_for(name, "kigam"), WmsPlan):
-                src = KigamSource(name, titles.get(name) or name)
+                sources[name] = KigamSource(name, titles.get(name) or name)
             else:
                 skipped.append(name)
-                continue
-            sources[name] = src
-            zooms[name] = [src.grid_zoom(first), src.grid_zoom(last)]
         if skipped:
             self.stderr.write(f"건너뛴다(카탈로그에 없거나 꺼졌거나 타일이 아니다): {', '.join(skipped)}")
-        order = list(sources)
 
-        # 장수와 캐시에 있는 것 — 어림의 바탕
-        counts, have, avg = {}, {}, {}
-        for name, src in sources.items():
-            seen = []
-            for z in range(zooms[name][0], zooms[name][1] + 1):
-                tiles = src.tiles(bbox, z)
-                counts[(name, z)] = len(tiles)
-                for x, y in tiles:
-                    data = src.cached(z, x, y)
-                    if data is not None:
-                        have[name] = have.get(name, 0) + 1
-                        if data:
-                            seen.append(len(data))
-            avg[name] = (sum(seen) / len(seen)) if len(seen) >= 20 else GUESS_BYTES.get(name, GUESS_BYTES.get(src.kind, 40_000))
-
-        fitted, dropped, guess = fit_budget(order, zooms, lambda n, z: counts[(n, z)] * avg[n], budget)
-        calls = 0
-        for name in order:
-            src = sources[name]
-            n = sum(counts[(name, z)] for z in range(fitted[name][0], fitted[name][1] + 1))
-            missing = n - have.get(name, 0)
-            calls += math.ceil(missing / (META * META) * 1.5) if isinstance(src, KigamSource) else missing
-            cut = f", 덜어 냄 줌 {dropped[name]}–{zooms[name][1]}" if name in dropped else ""
-            self.stdout.write(f"  {name:32s} 격자 줌 {fitted[name][0]}–{fitted[name][1]} ({src.tile_size} px) "
-                              f"타일 {n:,} · 캐시 {have.get(name, 0):,} · 한 장 {avg[name] / 1024:.0f} KB{cut}")
-        self.stdout.write(f"어림 {guess / 1024 / 1024:.0f} MB / 예산 {budget / 1024 / 1024:.0f} MB, "
-                          f"상류에 묻기 약 {calls:,} 번 ≈ {math.ceil(calls * gap / 60)} 분")
+        plan = bake.Plan(o["box"], box, sources, rate=o["rate"])
+        for line in plan.lines:
+            self.stdout.write(line)
         if o["dry_run"]:
             return
         if any(isinstance(s, KigamSource) for s in sources.values()) and not kigam.has_key():
             raise CommandError("KIGAM 인증키가 없다")
-
-        # 받기 — 앞설 차례부터, 줌이 얕은 것부터
-        got = {}
-        in_a_row = fails = asked = 0
-        stop = None
-        for name in order:
-            src = sources[name]
-            for z in range(fitted[name][0], fitted[name][1] + 1):
-                for x, y in src.tiles(bbox, z):
-                    data = src.cached(z, x, y)
-                    if data is None:
-                        started = time.monotonic()
-                        asked += 1
-                        try:
-                            data = src.fetch(z, x, y) or b""
-                            in_a_row = 0
-                        except (*PREWARM_ERRORS, vworld.VWorldError) as exc:
-                            fails += 1
-                            in_a_row += 1
-                            if usage.paused() or "차단" in str(exc):
-                                stop = f"차단 조짐 — 멈춘다: {exc}"
-                            elif in_a_row >= 3:
-                                stop = f"연달아 3 번 실패 — 멈춘다: {exc}"
-                            data = b""
-                        time.sleep(max(0.0, gap - (time.monotonic() - started)))
-                        if asked % 100 == 0:
-                            self.stdout.write(f"  상류에 {asked:,} 번 — {name} 줌 {z}, 실패 {fails}")
-                    if stop:
-                        break
-                    data = clip_tile(data, z, x, y, bbox) if data else data
-                    if data and not is_blank(data):
-                        got[offlinepack.tile_key(name, z, x, y)] = (name, z, data)
-                if stop:
-                    break
-            if stop:
-                break
-        if stop:
-            raise CommandError(f"{stop} — 다시 부르면 이어서 받는다")
-
-        # 지층 면(속성)은 예산에서 먼저 뗀다 — 묶음 하나가 예산을 넘지 않게 타일 쪽을 던다 (wetherilli 384)
-        units = self.gather_units(box, sources, bbox, gap)
-        reserved = sum(len(body) for body, _ in units.values())
-
-        # 받은 뒤의 실제 크기로 다시 맞춘다
-        actual = {}
-        for name, z, data in got.values():
-            actual[(name, z)] = actual.get((name, z), 0) + len(data)
-        fitted, more, size = fit_budget(order, fitted, lambda n, z: actual.get((n, z), 0), budget - reserved)
-        for name, z in more.items():
-            dropped[name] = min(dropped.get(name, z), z)
-        keep = {k: v for k, v in got.items() if fitted[v[0]][0] <= v[1] <= fitted[v[0]][1]}
-
-        built = datetime.date.today()
-        header = {
-            "box": o["box"], "title": box["title"], "built": built.isoformat(), "gsm": VERSION,
-            "bbox": list(bbox), "region": box.get("region", ""),
-            "note": "연구실 현장용 — 밖으로 나누지 않는다",
-            "dropped": dropped,
-            "layers": {name: {"title": sources[name].title, "grid": "EPSG:3857", "tile_size": sources[name].tile_size,
-                              "type": sources[name].type, "zooms": fitted[name],
-                              "attribution": sources[name].attribution}
-                       for name in order if any(v[0] == name for v in keep.values())},
-        }
-        if units:
-            header["units"] = {name: {"key": f"@units/{name}", "types": types, "type": "application/geo+json"}
-                               for name, (_, types) in units.items()}
-        path = out_dir / f"{o['box']}-{built:%Y%m%d}{offlinepack.SUFFIX}"
-        offlinepack.write(path, header, [*((k, v[2]) for k, v in keep.items()),
-                                         *((f"@units/{name}", body) for name, (body, _) in units.items())])
-        parts.remove()
+        try:
+            done = bake.bake(plan, out_dir, parts, units=lambda bbox, gap: self.gather_units(box, sources, bbox, gap),
+                             extra={"gsm": VERSION}, log=self.stdout.write)
+        except bake.BakeError as exc:
+            raise CommandError(str(exc)) from exc
+        path = done["path"]
         self.stdout.write(self.style.SUCCESS(
-            f"{path} — 타일 {len(keep):,} 장, {path.stat().st_size / 1024 / 1024:.1f} MB, 상류에 {asked:,} 번, 실패 {fails}"))
-
+            f"{path} — 타일 {done['tiles']:,} 장, {path.stat().st_size / 1024 / 1024:.1f} MB, 상류에 {done['asked']:,} 번, 실패 {done['fails']}"))
 
     def gather_units(self, box, sources, bbox, gap):
         """박스의 `units` 레이어마다 지층 면 — `{레이어: (GeoJSON 바이트, 피처 타입)}`. 상류에 레이어마다 두 번(DescribeLayer·WFS),
@@ -414,18 +205,7 @@ class Command(BaseCommand):
                 continue
             if not features:
                 continue
-            body = json.dumps({"type": "FeatureCollection", "features": features},
-                              ensure_ascii=False, separators=(",", ":")).encode("utf-8")
+            body = bake.units_body(features)
             out[name] = (body, types)
             self.stdout.write(f"  {name} 지층 면 {len(features)} — {', '.join(types)}, {len(body) / 1024:.0f} KB")
         return out
-
-
-class _NoParts:
-    """어림만 할 때 — 받은 VWorld 가 있으면 읽되 새로 만들지 않는다."""
-
-    def get(self, key):
-        return None
-
-    def remove(self):
-        pass

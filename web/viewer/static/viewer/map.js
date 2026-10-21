@@ -3691,76 +3691,114 @@
   // 시료 채취 권역이나 도폭 밖 조사 범위를 적어 두는 자리다. **여럿을 잡아
   // 두고 "찍고 잰 것" 에 남긴다** — 재는 선은 하나만 두는 것과 다르다.
   // 저장하지 않는다. 남길 것은 "점묶음으로 저장" 으로 꼭짓점과 중앙을 올린다.
+  //
+  // **범위는 경위도 네모다**(`box` — w·s·e·n). 끈 두 귀의 경위도로 잡는다.
+  // 3857 에서는 화면의 네모가 곧 경위도 네모지만, 극지(3413·3031)·람베르트(3978)
+  // 화면의 네모는 극에 가까울수록 경위도와 크게 어긋난다 — 위아래 변은 위선을
+  // 따라 휘게 그린다. 끈 네모가 극을 품으면 네 귀를 다 덮는 극 모자다(구 화면과 같다).
 
   function rangeStyle(feature) {
+    var no = feature.get("no");
     return new ol.style.Style({
       fill: new ol.style.Fill({ color: "rgba(201, 162, 75, .14)" }),
       stroke: new ol.style.Stroke({ color: "#c9a24b", width: 2 }),
-      text: new ol.style.Text({
-        text: T("범위 {n}", { n: feature.get("no") }),
+      // 끄는 중인 것(`no` 가 없다)은 이름표가 없다
+      text: no ? new ol.style.Text({
+        text: T("범위 {n}", { n: no }),
         font: "600 12px ui-monospace, Menlo, monospace",
         fill: new ol.style.Fill({ color: "#3f2712" }),
         stroke: new ol.style.Stroke({ color: "#fff", width: 4 }),
         overflow: true,
-      }),
+      }) : undefined,
     });
   }
 
+  var rangeDraft = null;     // 끄는 중인 범위 — 목록(`rangeSource`)에 들지 않는다
+
   function rangeInteraction() {
-    // 누르고 끄는 동안은 지도가 끌리지 않는다 (DragBox 가 먼저 받는다)
-    var box = new ol.interaction.DragBox({ condition: ol.events.condition.always, className: "range-box" });
-    box.on("boxend", function () {
+    // 누르고 끄는 동안은 지도가 끌리지 않는다 (DragBox 가 먼저 받는다).
+    // DragBox 의 네모는 감추고(`range-ghost` 에는 모양이 없다) 경위도 네모를 그린다
+    if (!rangeDraft) rangeDraft = new ol.layer.Vector({ source: new ol.source.Vector(), style: rangeStyle, map: map });
+    var from = null, draft = new ol.Feature();
+    var box = new ol.interaction.DragBox({ condition: ol.events.condition.always, className: "range-ghost" });
+    box.on("boxstart", function (evt) { from = evt.coordinate; });
+    box.on("boxdrag", function (evt) {
+      draft.setGeometry(rangeGeometry(dragRange(from, evt.coordinate)).ll.transform("EPSG:4326", viewProj()));
+      if (!rangeDraft.getSource().hasFeature(draft)) rangeDraft.getSource().addFeature(draft);
+    });
+    box.on("boxend", function (evt) {
+      rangeDraft.getSource().clear();
       var extent = box.getGeometry().getExtent();
       if (ol.extent.getWidth(extent) === 0 || ol.extent.getHeight(extent) === 0) return;
-      addRange(extent);
+      addRange(dragRange(from, evt.coordinate));
     });
     return box;
   }
 
-  /** 범위 하나의 수치. 넓이는 구면으로 잰다 — 3857 의 네모 넓이는 위도에
-   *  따라 부풀어서, 우리나라에서는 1.5 배쯤 크게 나온다.
-   *
-   *  **극지 화면의 네모는 위경도 네모가 아니다.** 위가 북쪽이 아니어서
-   *  꼭짓점을 동서남북으로 부를 수 없다 — 화면의 네 귀(왼쪽 위 …)로 부르고,
-   *  꼭짓점과 가운데를 하나씩 옮긴다. */
-  function rangeFacts(extent) {
-    if (!isMercator()) return polarRangeFacts(extent);
-    var sw = toLL([extent[0], extent[1]]);
-    var ne = toLL([extent[2], extent[3]]);
-    var w = sw[0], s = sw[1], e = ne[0], n = ne[1];
-    var polygon = ol.geom.Polygon.fromExtent(extent);
-    var opts = { projection: map.getView().getProjection() };
-    return {
-      nw: [w, n], ne: [e, n], se: [e, s], sw: [w, s],
-      center: [(w + e) / 2, (s + n) / 2],
-      area: ol.sphere.getArea(polygon, opts),
-      // 가로는 가운데 위도에서 잰다. 위아래 변은 위도가 달라 길이가 다르다
-      width: ol.sphere.getDistance([w, (s + n) / 2], [e, (s + n) / 2]),
-      height: ol.sphere.getDistance([w, s], [w, n]),
-    };
+  /** 끈 두 귀(화면 투영의 좌표) -> 경위도 네모. 경도는 짧은 쪽으로 잇는다 —
+   *  날짜변경선을 건너면 e 가 180 을 넘는다. */
+  function dragRange(a, b) {
+    if (!isMercator()) {
+      var x = ol.extent.boundingExtent([a, b]);
+      var pole = [90, -90].filter(function (lat) {
+        var p = fromLL([0, lat]);
+        return isFinite(p[0]) && isFinite(p[1]) && ol.extent.containsCoordinate(x, p);
+      })[0];
+      if (pole) {
+        var lats = [[x[0], x[1]], [x[0], x[3]], [x[2], x[1]], [x[2], x[3]]].map(function (c) { return toLL(c)[1]; });
+        return pole > 0 ? { w: -180, e: 180, s: Math.min.apply(null, lats), n: 90 }
+                        : { w: -180, e: 180, s: -90, n: Math.max.apply(null, lats) };
+      }
+    }
+    var p = toLL(a), q = toLL(b), lon = q[0];
+    while (lon - p[0] > 180) lon -= 360;
+    while (p[0] - lon > 180) lon += 360;
+    return { w: Math.min(p[0], lon), e: Math.max(p[0], lon), s: Math.min(p[1], q[1]), n: Math.max(p[1], q[1]) };
   }
 
-  function polarRangeFacts(extent) {
-    var polygon = ol.geom.Polygon.fromExtent(extent);
-    var midY = (extent[1] + extent[3]) / 2;
-    var nw = toLL([extent[0], extent[3]]), ne = toLL([extent[2], extent[3]]);
-    var se = toLL([extent[2], extent[1]]), sw = toLL([extent[0], extent[1]]);
+  function isCap(r) { return r.e - r.w >= 360; }
+
+  /** 범위의 테두리(위경도). 위아래 변은 1° 마다 찍어 위선을 따른다.
+   *  `ll` 은 화면에 그릴 고리, `geo` 는 올릴 GeoJSON 의 고리다 — 극 모자는 화면에서는
+   *  경계 위선 하나이고, GeoJSON 에서는 경위도 평면에서 극을 품도록 극의 변으로 닫는다. */
+  function rangeGeometry(r) {
+    var ring = [], steps = Math.max(2, Math.ceil(r.e - r.w));
+    if (isCap(r)) {
+      var edge = r.n >= 90 ? r.s : r.n, pole = r.n >= 90 ? 90 : -90;
+      for (var k = 0; k <= steps; k++) ring.push([r.w + 360 * k / steps, edge]);
+      var geo = ring.concat([[r.e, pole], [r.w, pole], [r.w, edge]]);
+      return { ll: new ol.geom.Polygon([ring]), geo: [geo] };
+    }
+    for (var i = 0; i <= steps; i++) ring.push([r.w + (r.e - r.w) * i / steps, r.n]);
+    for (i = steps; i >= 0; i--) ring.push([r.w + (r.e - r.w) * i / steps, r.s]);
+    ring.push([r.w, r.n]);
+    return { ll: new ol.geom.Polygon([ring]), geo: [ring] };
+  }
+
+  function wrapLon(lon) { return ((lon + 180) % 360 + 360) % 360 - 180; }
+
+  /** 범위 하나의 수치. 경위도 네모라 넓이는 구면의 띠 공식으로 곧장 낸다
+   *  (반지름은 `ol.sphere` 의 것) — 3857 의 네모 넓이는 위도에 따라 부풀어서,
+   *  우리나라에서는 1.5 배쯤 크게 나온다. */
+  function rangeFacts(r) {
+    var R = 6371008.8, rad = Math.PI / 180, mid = (r.s + r.n) / 2;
     return {
-      screen: true,
-      nw: nw, ne: ne, se: se, sw: sw,
-      center: toLL(ol.extent.getCenter(extent)),
-      area: ol.sphere.getArea(polygon, { projection: viewProj() }),
-      width: ol.sphere.getDistance(toLL([extent[0], midY]), toLL([extent[2], midY])),
-      height: ol.sphere.getDistance(sw, nw),
+      nw: [wrapLon(r.w), r.n], ne: [wrapLon(r.e), r.n], se: [wrapLon(r.e), r.s], sw: [wrapLon(r.w), r.s],
+      // 극 모자의 가운데는 극이다
+      center: isCap(r) ? [0, r.n >= 90 ? 90 : -90] : [wrapLon((r.w + r.e) / 2), mid],
+      area: R * R * (r.e - r.w) * rad * (Math.sin(r.n * rad) - Math.sin(r.s * rad)),
+      // 가로는 가운데 위선을 따라 잰다 — 위아래 변은 위도가 달라 길이가 다르다
+      width: R * (r.e - r.w) * rad * Math.cos(mid * rad),
+      height: R * (r.n - r.s) * rad,
     };
   }
 
   function rangeRows(f) {
     var rows = {};
-    rows[f.screen ? T("왼쪽 위") : T("북서")] = formatPair(f.nw[0], f.nw[1]);
-    rows[f.screen ? T("오른쪽 위") : T("북동")] = formatPair(f.ne[0], f.ne[1]);
-    rows[f.screen ? T("오른쪽 아래") : T("남동")] = formatPair(f.se[0], f.se[1]);
-    rows[f.screen ? T("왼쪽 아래") : T("남서")] = formatPair(f.sw[0], f.sw[1]);
+    rows[T("북서")] = formatPair(f.nw[0], f.nw[1]);
+    rows[T("북동")] = formatPair(f.ne[0], f.ne[1]);
+    rows[T("남동")] = formatPair(f.se[0], f.se[1]);
+    rows[T("남서")] = formatPair(f.sw[0], f.sw[1]);
     rows[T("중앙")] = formatPair(f.center[0], f.center[1]);
     rows[T("넓이")] = asArea(f.area);
     rows[T("가로 × 세로")] = asLength(f.width) + " × " + asLength(f.height);
@@ -3768,34 +3806,34 @@
   }
 
   function rangeText(feature) {
-    var rows = rangeRows(rangeFacts(feature.getGeometry().getExtent()));
+    var rows = rangeRows(rangeFacts(feature.get("box")));
     return [T("범위 {n}", { n: feature.get("no") })].concat(Object.keys(rows).map(function (k) {
       return k + "\t" + rows[k];
     })).join("\n");
   }
 
-  function addRange(extent) {
+  function addRange(box) {
     rangeSeq += 1;
-    var feature = new ol.Feature({ geometry: ol.geom.Polygon.fromExtent(extent), no: rangeSeq });
+    var ll = rangeGeometry(box).ll;
+    // `_ll` 이 있으면 투영을 바꿀 때 거기서 옮긴다 (`setProjection`)
+    var feature = new ol.Feature({ geometry: ll.clone().transform("EPSG:4326", viewProj()), no: rangeSeq, box: box, _ll: ll });
     rangeSource.addFeature(feature);
     renderTemp();
     showRange(feature);
   }
 
   function showRange(feature) {
-    var extent = feature.getGeometry().getExtent();
-    var facts = rangeFacts(extent);
+    var r = feature.get("box");
+    var facts = rangeFacts(r);
     lastMeasure = T("범위 {n}", { n: feature.get("no") }) + " " + asArea(facts.area);
     var out = document.getElementById("measure-out");
     out.textContent = lastMeasure;
     out.classList.add("done");
     updateToolOut();
-    // 팝업은 위경도의 한가운데에 띄운다 — 표의 "중앙" 과 첫 줄 위경도가 같아야 한다.
-    // 지도 좌표(3857)의 한가운데는 위도가 몇 백만 분의 1 도 어긋난다
-    var ll = ol.proj.transformExtent(extent, viewProj(), "EPSG:4326");
+    // 팝업은 위경도의 한가운데에 띄운다 — 표의 "중앙" 과 첫 줄 위경도가 같아야 한다
     showPopup(fromLL(facts.center),
               [{ title: T("범위 {n}", { n: feature.get("no") }), props: rangeRows(facts) }], "",
-              { rose: attitudeLayersOn() ? "bbox=" + ll.map(function (v) { return v.toFixed(5); }).join(",") : "" });
+              { rose: attitudeLayersOn() ? "bbox=" + [r.w, r.s, r.e, r.n].map(function (v) { return v.toFixed(5); }).join(",") : "" });
   }
 
   function showMeasure(got, done) {
@@ -3893,7 +3931,7 @@
     var no = document.createElement("span");
     no.className = "temp-no range";
     no.textContent = feature.get("no");
-    var facts = rangeFacts(feature.getGeometry().getExtent());
+    var facts = rangeFacts(feature.get("box"));
     var text = document.createElement("button");
     text.type = "button";
     text.className = "temp-coord";
@@ -3934,9 +3972,9 @@
    *  붙여, 점묶음에서 네모를 누르면 범위잡기 때와 같은 표가 뜬다. */
   function rangeShapes(ranges) {
     return ranges.map(function (feature) {
-      var rows = rangeRows(rangeFacts(feature.getGeometry().getExtent()));
-      return { geometry: toGeoJson(feature.getGeometry()),
-               label: T("범위 {n}", { n: feature.get("no") }), props: rows };
+      var box = feature.get("box");
+      return { geometry: { type: "Polygon", coordinates: rangeGeometry(box).geo },
+               label: T("범위 {n}", { n: feature.get("no") }), props: rangeRows(rangeFacts(box)) };
     });
   }
 

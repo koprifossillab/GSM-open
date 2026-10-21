@@ -640,6 +640,47 @@ class PointsetsAcrossProjections(PhoneBase):
         self.assertEqual(errors, [], region)
 
 
+class PolarRange(PhoneBase):
+    """극지 탭의 범위잡기는 경위도 네모다 — 화면 네모를 그대로 두면 극에 가까울수록 경위도와 어긋났다.
+    끈 네모가 극을 품으면 극 모자이고 가운데가 극이다"""
+
+    def setUp(self):
+        call_command("seed_catalog", stdout=open(os.devnull, "w"))
+
+    def drag(self, page, a, b):
+        # 대기 화면이 걷히기 전에 끌면 그 위를 끈다 — 남극은 첫 그림이 늦어 settle 을 넘길 때가 있다
+        page.wait_for_function("() => !document.getElementById('splash')", timeout=15000)
+        page.evaluate("""() => { const tool = document.querySelector('.tool[data-mode=box]');
+                                 if (!tool.classList.contains('on')) tool.click();      // 다시 누르면 꺼진다
+                                 const body = document.querySelector('#popup-body'); if (body) body.innerHTML = ''; }""")
+        page.mouse.move(*a)
+        page.mouse.down()
+        page.mouse.move((a[0] + b[0]) / 2, (a[1] + b[1]) / 2, steps=4)
+        page.mouse.move(*b, steps=4)
+        page.mouse.up()
+        # 바쁜 갈래에서는 팝업이 늦게 선다 — 앞의 표를 비우고 새 표가 오기를 기다린다
+        page.wait_for_function("() => document.querySelector('#popup-body tr')", timeout=6000)
+        return page.evaluate("""() => Object.fromEntries([...document.querySelectorAll('#popup-body tr')]
+            .map(tr => [...tr.children].map(td => td.textContent.trim())))""")
+
+    def test_남극_범위는_경위도_네모다(self):
+        page, errors = self.open("map/?region=antarctica")
+        box = page.locator("#map").bounding_box()
+        cx, cy = box["x"] + box["width"] / 2, box["y"] + box["height"] / 2
+        rows = self.drag(page, (cx - 60, cy - 60), (cx + 60, cy + 60))      # 남극점을 품는다
+        self.assertIn("북서", rows, rows)
+        self.assertTrue(rows["중앙"].startswith("-90.000000"), rows)
+        rows = self.drag(page, (cx + 40, cy + 120), (cx + 140, cy + 220))   # 극 밖 — 위아래가 위선
+        lat = lambda k: float(rows[k].split(",")[0])
+        lon = lambda k: float(rows[k].split(",")[1])
+        self.assertEqual(lat("북서"), lat("북동"))
+        self.assertEqual(lat("남서"), lat("남동"))
+        self.assertEqual(lon("북서"), lon("남서"))
+        self.assertNotEqual(lat("북서"), lat("남서"))
+        self.assertLess(abs(lon("북동") - lon("북서")), 180)                # 극 모자가 아니다
+        self.assertEqual(errors, [])
+
+
 class RegionCompare(PhoneBase):
     """주제도 비교 — 나란히 보기를 켰다 끄면 왼쪽 지도까지 깨졌다(축척 1:150 억, 줌이 비고 누른 자리가 다른 반구로).
     숨은 오른쪽 지도가 보기를 나눠 쥔 채 크기 0 으로 재어졌다. 이름표는 휴대폰에서 서로·손잡이·툴바와 겹쳤다 (wetherilli 356)"""
@@ -866,6 +907,20 @@ class OfflinePack(PhoneBase):
         page.wait_for_timeout(1500)
         self.assertEqual(page.locator("#basemap option[value=vworld]").count(), 1, "묶음이 덮는 배경이 고르개에 없다")
         self.assertEqual(page.locator("#basemap option[value=vworld_white]").count(), 0, "덮지 않는 배경이 올랐다")
+        self.assertEqual(errors, [])
+
+    def test_마지막_줌보다_깊으면_늘려_그린다(self):
+        """묶음이 담은 마지막 줌보다 가까이 가면 그 줌 타일의 한 칸을 늘려 그린다 — 망을 찾다 비지 않는다 (wetherilli 405)"""
+        call_command("seed_catalog", stdout=open(os.devnull, "w"))
+        bbox = [128.85, 37.10, 128.86, 37.11]
+        pack = tiny_pack(bbox, {"L_50K_Geology_Map": (11, 13)})          # 격자 줌 13 = 화면 줌 14 까지
+        page, errors = self.open("map/")
+        page.evaluate("""bytes => GSMOffline.add(new File([new Uint8Array(bytes)], "test-20261010.gsmpack"))""", list(pack))
+        page.context.add_init_script("""(() => { window.__enlarged = 0; const to = HTMLCanvasElement.prototype.toBlob;
+            HTMLCanvasElement.prototype.toBlob = function (cb, type) { window.__enlarged++; return to.call(this, cb, type); }; })()""")
+        page.goto(self.live_server_url + "/GSM/map/?n=1#r=korea&c=128.855,37.105&z=16&l=L_50K_Geology_Map*80", wait_until="load")
+        page.wait_for_timeout(2500)
+        self.assertGreater(page.evaluate("window.__enlarged"), 0, "화면 줌 16 에서 묶음의 줌 14 를 늘려 그리지 않았다")
         self.assertEqual(errors, [])
 
     def test_꼴이_아니면_거절한다(self):

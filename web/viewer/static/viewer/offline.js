@@ -1,22 +1,19 @@
 /* 오프라인 묶음 — 박스 하나의 타일을 파일 하나로 들여 망·키 없이 본다 (wetherilli P13·382).
  *
- * 묶음(`.gsmpack`)은 굽는 쪽(`viewer/offlinepack.py`, wetherilli 381)이 짓는다. 꼴은 P13 그대로다.
- *
- *     0      8 B   "GSMPACK1"
- *     8      4 B   머리 길이 N (uint32, little-endian)
- *     12     N B   머리 JSON (UTF-8)
- *     12+N   …     타일 바이트를 잇달아 — 머리의 `tiles` 가 `{"<레이어>/<z>/<x>/<y>": [시작, 길이]}`
+ * 묶음(`.gsmpack`)은 굽는 쪽(패키지 `gsmpack`, wetherilli 381·P16)이 짓는다. 꼴은 패키지의 README(`tools/gsmpack/`)가 정한다.
+ * **묶음 하나를 읽는 것(머리·타일·지층 면)은 `gsmpack-reader.js`(`GSMPack`)의 일이다**(wetherilli P16) — 여기는 그 위에 저장소·
+ * 여러 묶음·지도 소스 감싸기·화면의 말을 얹는다.
  *
  * 고른 파일(Blob)을 **IndexedDB 에 통째로** 둔다 — 개인 레이어처럼 그 브라우저에만 있다. 타일은 `Blob.slice` 로 그때그때 잘라
  * `URL.createObjectURL` 로 그린다. 200 MB 를 메모리로 읽지 않는다. 서비스 워커(wetherilli 380)는 손대지 않는다.
  *
- * 화면(map.js)은 소스를 지을 때 `wrap(source, 이름)` 만 부른다 — 묶음에 그 타일이 있으면 묶음에서, 없으면 원래 손(망)으로.
+ * 화면(map.js)은 소스를 지을 때 `wrap(source, 이름)` 만 부른다 — 묶음에 그 타일이 있으면 묶음에서, 묶음의 마지막 줌보다 깊으면 그 줌을 늘려(wetherilli 405), 없으면 원래 손(망)으로.
  * 배경지도 고르개는 IndexedDB 가 열리기 전에 서므로, 덮는 레이어 이름을 localStorage 에도 적어 두고(`coversSync`) 거기서 본다.
  */
 (function (root) {
   "use strict";
 
-  var MAGIC = "GSMPACK1";
+  var reader = root.GSMPack;
   var DB_NAME = "gsm-offline";
   var STORE = "packs";
   var SYNC_SLOT = "gsm.offline.layers";
@@ -29,32 +26,17 @@
 
   // ── 머리 ───────────────────────────────────────────────────────
 
-  function readSlice(blob, start, end) {
-    var part = blob.slice(start, end);
-    if (part.arrayBuffer) return part.arrayBuffer();
-    return new Promise(function (resolve, reject) {       // 옛 사파리
-      var r = new FileReader();
-      r.onload = function () { resolve(r.result); };
-      r.onerror = function () { reject(r.error); };
-      r.readAsArrayBuffer(part);
-    });
-  }
+  //: 읽는 쪽의 오류 → 화면의 말
+  var READ_ERRORS = {
+    "not-pack": function () { return T("오프라인 묶음(.gsmpack)이 아니다"); },
+    "truncated": function () { return T("묶음의 머리가 잘렸다"); },
+    "bad-header": function () { return T("묶음의 머리를 읽지 못했다"); },
+  };
 
-  /** 묶음의 머리 → `{head, base}`. `base` 는 타일 바이트가 시작하는 자리(12+N). 꼴이 아니면 거절한다 */
+  /** 묶음의 머리 → `{head, base}`. 꼴이 아니면 화면의 말로 거절한다 */
   function readHeader(blob) {
-    return readSlice(blob, 0, 12).then(function (buf) {
-      var bytes = new Uint8Array(buf);
-      var magic = String.fromCharCode.apply(null, Array.prototype.slice.call(bytes, 0, 8));
-      if (bytes.length < 12 || magic !== MAGIC) throw new Error(T("오프라인 묶음(.gsmpack)이 아니다"));
-      var n = new DataView(buf).getUint32(8, true);
-      if (12 + n > blob.size) throw new Error(T("묶음의 머리가 잘렸다"));
-      return readSlice(blob, 12, 12 + n).then(function (raw) {
-        var head = JSON.parse(new TextDecoder("utf-8").decode(raw));
-        if (!head || typeof head.tiles !== "object" || typeof head.layers !== "object") {
-          throw new Error(T("묶음의 머리를 읽지 못했다"));
-        }
-        return { head: head, base: 12 + n };
-      });
+    return reader.readHeader(blob).catch(function (e) {
+      throw READ_ERRORS[e && e.code] ? new Error(READ_ERRORS[e.code]()) : e;
     });
   }
 
@@ -190,99 +172,39 @@
    *  하나 낮고 VWorld 는 256 px 그대로다(wetherilli 381). `tileSize` 를 주면 머리의 `tile_size` 가 다른 묶음은 건너뛴다 — 격자가
    *  어긋난 묶음이 엉뚱한 자리에 그리지 않게 */
   function tileBlob(name, z, x, y, tileSize) {
-    var key = name + "/" + z + "/" + x + "/" + y;
     for (var i = 0; i < packs.length; i++) {
-      var p = packs[i];
-      var at = p.head.tiles[key];
-      if (!at) continue;
-      var meta = p.head.layers[name] || {};
-      if (tileSize && meta.tile_size && meta.tile_size !== tileSize) continue;
-      var type = meta.type || "image/png";
-      return p.blob.slice(p.base + at[0], p.base + at[0] + at[1], type);
+      var blob = reader.tile(packs[i], name, z, x, y, tileSize);
+      if (blob) return blob;
     }
     return null;
   }
 
   // ── 누른 자리의 속성 — 지층 면 (wetherilli 384) ──
   //
-  // 묶음 머리의 `units.<레이어>` 는 `{key: "@units/<레이어>", …}` — 굽는 쪽이 박스 범위의 지층 면을 WFS 로 받아 GeoJSON 한 덩이로
-  // 넣었다. 처음 누를 때 읽어 면마다 네모를 셈해 두고, 누른 자리를 품은 면의 속성을 낸다. 범례 색으로 찾지 않는다 — 한 도폭
-  // 안에서도 단위 둘이 한 색이다
+  // 묶음 머리의 `units.<레이어>` — 굽는 쪽이 박스 범위의 지층 면을 넣었다. 처음 누를 때 읽어 두고(`GSMPack.readUnits`) 누른 자리를
+  // 품은 면의 속성을 낸다. 새로 구운 묶음이 앞이다
 
-  var shapes = {};                     // 레이어 → Promise<[{box, rings, props, props_en}]>
+  var shapes = {};                     // 묶음/레이어 → Promise<[{box, polys, props, props_en}]>
 
   function unitsFor(name) {
-    for (var i = 0; i < packs.length; i++) {
-      var u = (packs[i].head.units || {})[name];
-      if (u && u.key && packs[i].head.tiles[u.key]) return { pack: packs[i], units: u };
-    }
+    for (var i = 0; i < packs.length; i++) if (reader.hasUnits(packs[i], name)) return packs[i];
     return null;
   }
 
   function hasUnits(name) { return !!unitsFor(name); }
 
-  function loadShapes(name, found) {
-    var key = found.pack.id + "/" + name;
-    if (shapes[key]) return shapes[key];
-    var at = found.pack.head.tiles[found.units.key];
-    var part = found.pack.blob.slice(found.pack.base + at[0], found.pack.base + at[0] + at[1]);
-    shapes[key] = (part.text ? part.text() : new Response(part).text()).then(function (text) {
-      return (JSON.parse(text).features || []).map(function (f) {
-        var g = f.geometry || {};
-        var polys = g.type === "MultiPolygon" ? g.coordinates : [g.coordinates];
-        var box = [Infinity, Infinity, -Infinity, -Infinity];
-        polys.forEach(function (poly) {
-          (poly[0] || []).forEach(function (c) {
-            box[0] = Math.min(box[0], c[0]); box[1] = Math.min(box[1], c[1]);
-            box[2] = Math.max(box[2], c[0]); box[3] = Math.max(box[3], c[1]);
-          });
-        });
-        return { box: box, polys: polys, props: f.properties.props, props_en: f.properties.props_en };
-      });
-    });
-    return shapes[key];
-  }
-
-  /** 고리 하나 안인가 — 반직선이 변을 몇 번 건너나 */
-  function inRing(ring, x, y) {
-    var inside = false;
-    for (var i = 0, j = ring.length - 1; i < ring.length; j = i++) {
-      var a = ring[i], b = ring[j];
-      if ((a[1] > y) !== (b[1] > y) && x < (b[0] - a[0]) * (y - a[1]) / (b[1] - a[1]) + a[0]) inside = !inside;
-    }
-    return inside;
-  }
-
-  /** 면 하나(바깥 고리와 구멍들) 안인가 */
-  function inPolygon(poly, x, y) {
-    if (!poly.length || !inRing(poly[0], x, y)) return false;
-    for (var k = 1; k < poly.length; k++) if (inRing(poly[k], x, y)) return false;
-    return true;
-  }
-
   /** 레이어의 누른 자리 속성 — `[props…]`(없으면 빈 목록). 묶음에 그 레이어의 지층 면이 없으면 null */
   function unitsAt(name, lon, lat, lang) {
-    var found = unitsFor(name);
-    if (!found) return null;
-    return loadShapes(name, found).then(function (rows) {
-      var seen = {}, out = [];
-      rows.forEach(function (r) {
-        if (lon < r.box[0] || lon > r.box[2] || lat < r.box[1] || lat > r.box[3]) return;
-        if (!r.polys.some(function (poly) { return inPolygon(poly, lon, lat); })) return;
-        var props = lang === "en" && r.props_en ? r.props_en : r.props;
-        var mark = JSON.stringify(props);
-        if (!seen[mark]) { seen[mark] = true; out.push(props); }
-      });
-      return out;
-    }, function () { return []; });
+    var pack = unitsFor(name);
+    if (!pack) return null;
+    var key = pack.id + "/" + name;
+    if (!shapes[key]) shapes[key] = reader.readUnits(pack, name);
+    return shapes[key].then(function (rows) { return reader.unitsAt(rows, lon, lat, lang); }, function () { return []; });
   }
 
   /** 경위도 한 자리를 덮는 묶음들 — 화면의 "오프라인: 장성 · 10-10" 표 */
   function at(lon, lat) {
-    return packs.filter(function (p) {
-      var b = p.head.bbox;
-      return b && lon >= b[0] && lon <= b[2] && lat >= b[1] && lat <= b[3];
-    }).map(summary);
+    return packs.filter(function (p) { return reader.contains(p, lon, lat); }).map(summary);
   }
 
   /** 소스의 타일 손을 감싼다 — 묶음에 그 타일이 있으면 묶음에서, 없으면 원래 손으로(망·키). 묶음이 덮지 않는 레이어도 감싸
@@ -295,16 +217,58 @@
     size = Array.isArray(size) ? size[0] : size;
     source.setTileLoadFunction(function (tile, src) {
       var c = tile.getTileCoord();
-      var now = packs.length ? tileBlob(name, c[0], c[1], c[2], size) : null;
+      var now = packs.length ? found(name, c[0], c[1], c[2], size) : null;
       if (now || !coversSync(name)) { draw(tile, src, now, original); return; }
-      ready.then(function () { draw(tile, src, tileBlob(name, c[0], c[1], c[2], size), original); });
+      ready.then(function () { draw(tile, src, found(name, c[0], c[1], c[2], size), original); });
     });
     wrapped.push(source);
     return source;
   }
 
-  function draw(tile, src, blob, original) {
-    if (!blob) { original(tile, src); return; }
+  /** 그 자리에 그릴 것 — 묶음에 그 타일이 있으면 그것(`{blob}`), 없으면 묶음의 마지막 줌 타일에서 이 자리의 칸을 늘려
+   *  (`{blob, dz, col, row}`, wetherilli 405). 줌을 다 담은 묶음이 늘린 것보다 앞선다. 없으면 null */
+  function found(name, z, x, y, tileSize) {
+    var blob = tileBlob(name, z, x, y, tileSize);
+    if (blob) return { blob: blob };
+    for (var i = 0; i < packs.length; i++) {
+      var over = reader.deeper(packs[i], name, z, x, y, tileSize);
+      if (over) return over;
+    }
+    return null;
+  }
+
+  /** 마지막 줌 타일의 한 칸을 타일 한 장 크기로 늘린다 → PNG Blob */
+  function enlarge(over) {
+    var open = root.createImageBitmap ? root.createImageBitmap(over.blob) : new Promise(function (resolve, reject) {
+      var im = new Image(), url = URL.createObjectURL(over.blob);
+      im.onload = function () { URL.revokeObjectURL(url); resolve(im); };
+      im.onerror = function () { URL.revokeObjectURL(url); reject(new Error("tile")); };
+      im.src = url;
+    });
+    return open.then(function (image) {
+      var w = image.width, part = w / Math.pow(2, over.dz);
+      var canvas = document.createElement("canvas");
+      canvas.width = canvas.height = w;
+      var ctx = canvas.getContext("2d");
+      ctx.imageSmoothingEnabled = true;
+      ctx.drawImage(image, over.col * part, over.row * part, part, part, 0, 0, w, w);
+      if (image.close) image.close();
+      return new Promise(function (resolve, reject) {
+        canvas.toBlob(function (b) { if (b) resolve(b); else reject(new Error("canvas")); }, "image/png");
+      });
+    });
+  }
+
+  function draw(tile, src, got, original) {
+    if (!got) { original(tile, src); return; }
+    if (got.dz) {
+      enlarge(got).then(function (blob) { show(tile, blob); }, function () { original(tile, src); });
+      return;
+    }
+    show(tile, got.blob);
+  }
+
+  function show(tile, blob) {
     var img = tile.getImage();
     var url = URL.createObjectURL(blob);
     var free = function () { URL.revokeObjectURL(url); img.removeEventListener("load", free); img.removeEventListener("error", free); };
@@ -320,7 +284,7 @@
   }
 
   var api = {
-    MAGIC: MAGIC,
+    MAGIC: reader.MAGIC,
     ready: ready,
     readHeader: readHeader,
     add: add,

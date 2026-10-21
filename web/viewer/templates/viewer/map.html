@@ -455,6 +455,7 @@
 <script src="{% static 'viewer/vendor/ol.js' %}?v={{ stamp|default:version }}"></script>
 <script src="{% static 'viewer/vendor/proj4.js' %}?v={{ stamp|default:version }}"></script>
 <script src="{% static 'viewer/personal.js' %}?v={{ stamp|default:version }}"></script>
+<script src="{% static 'gsmpack/gsmpack-reader.js' %}?v={{ stamp|default:version }}"></script>
 <script src="{% static 'viewer/offline.js' %}?v={{ stamp|default:version }}"></script>
 {% if static_site %}{% comment %}정적 판의 상류를 브라우저가 곧장 부르는 소스(wetherilli P11·161) — map.js 보다 먼저{% endcomment %}
 <script src="{% static 'viewer/static-kinds.js' %}?v={{ stamp|default:version }}"></script>{% endif %}

@@ -447,6 +447,7 @@
 | wetherilli 385 | 2026-10-12 | [오프라인 묶음을 박스로 잘라 낸다 — 도폭 하나면 묶음도 그 도폭만](20261012_wetherilli_385_offline_pack_clip.md) |
 | wetherilli P14 | 2026-10-16 | [중국 지질도 1:400만 스캔 — 좌표를 붙이고, 범례로 속성을 짓고, 지명을 얹는다 (계획)](20261016_wetherilli_P14_china_4m_scan.md) |
 | wetherilli P15 | 2026-10-20 | [CI 를 서버의 자체 러너로 — 시험·휴대폰 화면은 우리 서버, 이미지는 GitHub (계획)](20261020_wetherilli_P15_self_hosted_runner.md) |
+| wetherilli P16 | 2026-10-21 | [오프라인 묶음 굽기를 저장소 안의 독립 패키지로 — GSM 없이도 굽고, GSM 에서는 요청한다 (계획)](20261021_wetherilli_P16_gsmpack_package.md) |
 | wetherilli 386 | 2026-10-16 | [중국 지질도 1:400만 — 경위선으로 좌표를 붙이고 중국 땅 마스크를 굽는다](20261016_wetherilli_386_china_4m_georeference.md) |
 | wetherilli 387 | 2026-10-16 | [중국 지질도 1:400만 — 3857 타일로 잘라 중국 탭에 올린다](20261016_wetherilli_387_china_4m_tiles.md) |
 | wetherilli 388 | 2026-10-16 | [중국 지질도 1:400만 — 범례 173 칸을 옮기고, 색으로 누른 자리의 시기·암상을 읽는다](20261016_wetherilli_388_china_4m_legend_attributes.md) |
@@ -461,6 +462,12 @@
 | wetherilli 397 | 2026-10-20 | [CI 를 두 번 돌리지 않는다 — 개발 저장소를 비공개로 돌리기 전에](20261020_wetherilli_397_ci_minutes.md) |
 | wetherilli 398 | 2026-10-20 | [자체 러너로 가는 손잡이 — 변수 하나로 고르고, 이미지는 GitHub 에 남긴다](20261020_wetherilli_398_runner_switch.md) |
 | wetherilli 399 | 2026-10-20 | [접속 기록 탭, 도구 묶음의 반입, AI 가 읽는 반입 양식](20261020_wetherilli_399_visits_import_ai.md) |
+| wetherilli 400 | 2026-10-20 | [판 PR 의 검사 — 건너뛴 job 은 막지 않는다](20261020_wetherilli_400_release_checks_skipped.md) |
+| wetherilli 401 | 2026-10-21 | [극지 화면의 범위잡기를 경위도 네모로 — 끈 두 귀의 경위도, 극을 품으면 극 모자](20261021_wetherilli_401_polar_range_box.md) |
+| wetherilli 402 | 2026-10-21 | [오프라인 묶음의 굽는 고리를 패키지 `gsmpack` 으로 — 동작은 그대로 (P16 1 단계)](20261021_wetherilli_402_gsmpack_core.md) |
+| wetherilli 403 | 2026-10-21 | [오프라인 묶음 읽기를 패키지로 — `gsmpack-reader.js` 와 꼴의 명세 (P16 2 단계)](20261021_wetherilli_403_gsmpack_reader.md) |
+| wetherilli 404 | 2026-10-21 | [오프라인 묶음의 어림을 레이어·줌마다 — 받기도 전에 덜리던 것](20261021_wetherilli_404_offline_estimate.md) |
+| wetherilli 405 | 2026-10-21 | [오프라인 묶음의 마지막 줌보다 가까이 — 그 줌을 늘려 그린다](20261021_wetherilli_405_offline_overzoom.md) |
 | wetherilli 374 | 2026-10-07 | [온 세계 지명 찾기 — GeoNames 도시를 받아 두고, 지역 탭이 온 지구 찾기를 빌린다](20261007_wetherilli_374_world_place_search.md) |
 | wetherilli 375 | 2026-10-07 | [그때의 지구 — 판 조각 대신 PaleoDEM 고도·음영을 깐다](20261007_wetherilli_375_paleodem_relief.md) |
 | wetherilli 376 | 2026-10-07 | [온 지구 시간 막대 — 처음엔 접고, 띠는 대·기·세 세 줄로](20261007_wetherilli_376_timebar_folded_fewer_rows.md) |

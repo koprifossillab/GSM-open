@@ -33,6 +33,7 @@ from django.views.decorators.clickjacking import xframe_options_sameorigin
 from django.views.decorators.gzip import gzip_page
 from django.views.decorators.http import require_GET, require_POST
 
+from gsmpack import format as gsmpack_format
 from gsmweb.version import VERSION
 
 from . import (china4m, coords, gravmag, crs, datastatus, geo3al, geomap, geus, grportal, gsj, gsmma, i18n, ibcso, janmayen, kigam, kopri, npolar, ntgeo,
@@ -40,7 +41,7 @@ from . import (china4m, coords, gravmag, crs, datastatus, geo3al, geomap, geus, 
                fetchlog, marscraters, marsmap, mercurymap, sources, zhurong)
 from . import admap, arcpoints, kmag, caribmap, geonames, crust, glaciers, impacts, faults, minerals, stress, tectonics, seafloor, glim, heatflow, fossils, gvp, icemargins, kigam50k, macrostrat, mantle, metatile, naturalearth, neotoma, paleo, paleoeco, paleocoast, pbdb, quakes, recentquakes, verifylog, spamap, ocean, paleodem, usgs, volcanoes, wind
 from . import ags, austates, bas, basemaps, bcgs, bgr, bgs, brgm, calgs, cgs, dinamige, dmr, dov, egdi, emodnet, esdm, ga, georep, geosphere, gns, gsi, gsiindia, gtk, igme, iige, ineter, ingemmet, ispra, jmg, linked, lneg, mgb, mrdata, mris, natt, ngu, nrcan, nsgs, ogs, pig, segemar, sgb, sgc, sgm, sgs, sgu, sigeom, skgs, spw, stri, swisstopo, tno, twopen, usage, usgscarib, usstates, vmme, ygs
-from . import doors, earthpoints, offlinepack, pointvalues, profileband, static_tables, tilegrid, timescale, visits
+from . import doors, earthpoints, pointvalues, profileband, static_tables, tilegrid, timescale, visits
 from .i18n import msg
 from .models import Layer, LayerGroup, Point, PointSet, PointSetDeletion, Shape
 
@@ -6776,7 +6777,7 @@ def offline_view(request):
     if settings.PUBLIC:
         raise Http404
     lang = i18n.lang_of(request)
-    packs = offlinepack.listing(settings.OFFLINE_DIR) if Path(settings.OFFLINE_DIR).is_dir() else []
+    packs = gsmpack_format.listing(settings.OFFLINE_DIR) if Path(settings.OFFLINE_DIR).is_dir() else []
     if request.GET.get("format") == "json":
         return JsonResponse({"packs": packs})
     for p in packs:
