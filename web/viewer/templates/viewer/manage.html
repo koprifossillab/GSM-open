@@ -27,6 +27,7 @@
     <button type="button" class="mg-tab" data-tab="upstream">{% t "상류 응답 시간" %}</button>
     <button type="button" class="mg-tab" data-tab="sources">{% t "데이터소스" %}</button>
     {% if visits %}<button type="button" class="mg-tab" data-tab="visits">{% t "접속 기록" %}</button>{% endif %}
+    {% if offline_rows is not None %}<button type="button" class="mg-tab" data-tab="offline">{% t "오프라인 묶음" %}</button>{% endif %}
   </nav>
   <a class="btn quiet mg-back" href="{{ base }}map/">
     <svg viewBox="0 0 24 24" aria-hidden="true"><path class="stroke" d="M15 5l-7 7 7 7"/></svg>
@@ -260,6 +261,45 @@
         {% else %}
         <p class="hint">{% t "아직 센 것이 없다" %}</p>
         {% endif %}
+      </div>
+    </div>
+  </section>
+  {% endif %}
+
+  {% comment %}오프라인 묶음 요청 (wetherilli P16·408) — 누구나 보고, staff 로 로그인했을 때만 승인·거절한다. 밖에 연 판은 탭째 없다{% endcomment %}
+  {% if offline_rows is not None %}
+  <section class="mg-body" id="tab-offline">
+    <div class="box">
+      <h2 class="box-head">{% t "오프라인 묶음 요청" %} <span class="count">{{ offline_rows|length }}</span>
+        <span class="hint">{% t "승인하면 서버가 한 번에 하나씩 굽는다 — VWorld 를 수천 장 부르는 일이라 한 번 거른다" %}</span></h2>
+      <div class="box-body">
+        {% if not visits_staff %}
+        <p class="hint">{% t "데이터소스 탭에서 staff 계정으로 로그인하면 승인·거절할 수 있다" %}</p>
+        {% endif %}
+        {% if offline_rows %}
+        <div class="mg-scroll"><table class="mg-table mg-offline" id="mg-offline">
+          <thead><tr><th>{% t "상태" %}</th><th>{% t "묶음 이름" %}</th><th>{% t "요청한 이" %}</th><th>{% t "요청한 때" %}</th>
+            <th>{% t "범위" %}</th><th>{% t "레이어" %}</th><th></th></tr></thead>
+          <tbody>
+            {% for r in offline_rows %}
+            <tr data-req="{{ r.id }}"><td>{{ r.status_label }}</td>
+              <td>{{ r.title }} <span class="hint mono">{{ r.name }}</span>{% if r.note %}<br><span class="hint">{{ r.note }}</span>{% endif %}
+                {% if r.pack %}<br><a href="{{ base }}offline/{{ r.pack }}" download>{{ r.pack }}</a>{% endif %}
+                {% if r.last_line and r.status == "failed" %}<br><span class="bad">{{ r.last_line }}</span>{% endif %}</td>
+              <td>{{ r.requester }}{% if r.approved_by %}<br><span class="hint">{% t "승인·거절 {name}" name=r.approved_by %}</span>{% endif %}</td>
+              <td class="mono">{{ r.created }}</td><td class="mono">{{ r.bbox }}</td><td class="num">{{ r.layers }}</td>
+              <td>{% if visits_staff %}
+                {% if r.can_approve %}<form method="post" action="{% url 'viewer:offline-decide' r.id %}">{% csrf_token %}<input type="hidden" name="action" value="approve"><button type="submit" class="btn">{% t "승인" %}</button></form>{% endif %}
+                {% if r.can_reject %}<form method="post" action="{% url 'viewer:offline-decide' r.id %}">{% csrf_token %}<input type="hidden" name="action" value="reject"><button type="submit" class="btn quiet">{% t "거절" %}</button></form>{% endif %}
+              {% endif %}</td></tr>
+            {% endfor %}
+          </tbody>
+        </table></div>
+        {% else %}
+        <p class="hint">{% t "요청이 아직 없다" %}</p>
+        {% endif %}
+        <p class="hint"><a href="{{ base }}offline/request/">{% t "새로 요청한다" %}</a> · <a href="{{ base }}offline/">{% t "묶음 목록" %}</a> ·
+          {% t "박스·레이어를 고치려면 admin 에서" %}</p>
       </div>
     </div>
   </section>

@@ -39,6 +39,13 @@ python manage.py seed_catalog || echo "씨앗을 넣지 못했다 — 화면은 
 python manage.py sources_import || echo "데이터소스 명세·기록을 옮기지 못했다 — 화면은 뜬다"
 python manage.py sources_seed || echo "데이터소스 명세를 놓지 못했다 — 화면은 뜬다"
 
+# ── 오프라인 묶음 일꾼 ─────────────────────────────────────────────────
+# 배포로 컨테이너가 다시 뜨면 굽던 묶음 요청이 끊긴다 — 뜰 때 한 번 일꾼을 띄워 "굽는 중"·"승인" 을 이어 굽는다. 받은 것은 parts.sqlite 가 안다.
+# 굽을 것이 없으면 곧장 끝난다. 한 번에 하나는 잠금(`offlinereq.queue_lock`)이 지킨다 (wetherilli 408)
+OFFLINE_LOG="${GSM_OFFLINE_DIR:-$(dirname "${GSM_DB_PATH:-/srv/GSM/db/GSM.db}")/offline}/.queue.log"
+mkdir -p "$(dirname "$OFFLINE_LOG")" 2>/dev/null && \
+    (nohup python manage.py build_offline_pack --queue >> "$OFFLINE_LOG" 2>&1 < /dev/null &) || echo "묶음 일꾼을 띄우지 못했다 — 화면은 뜬다"
+
 # ── 기록 ──────────────────────────────────────────────────────────────
 # 판을 다시 띄우면 docker logs 가 사라진다 — 붙은 자리(DB 옆)에 하루 한 장씩 남긴다. 30 일, 하루 한 장 50 MB 까지 (wetherilli 351)
 export GSM_LOG_DIR="${GSM_LOG_DIR:-$(dirname "${GSM_DB_PATH:-/srv/GSM/db/GSM.db}")/logs}"

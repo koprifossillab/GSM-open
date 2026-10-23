@@ -166,6 +166,7 @@ devlog 까지 적는다). "(사람) 읽을 것" 은 조건을 아직 읽지 않�
 | `geomap` | SCAR GeoMAP (파일) | CC BY 4.0 |  |
 | `ibcso` | IBCSO v2 (파일) | CC BY 4.0 |  |
 | `admap` | ADMAP-2 (파일) | CC BY 3.0 |  |
+| `scar` | SCAR 남극 통합 지명사전 — AADC WFS 를 받아 둔 파일(`fetch_scar_gazetteer`), 남극 탭의 찾기·이름표 | CC BY (인용 — Secretariat SCAR, Composite Gazetteer of Antarctica) |  |
 | `bas` | 영국 남극조사소 Bedmap3 | CC BY 4.0 (타일 서비스 항목) |  |
 | `kopri` | 극지연구소 KPDC | **(사람) 읽을 것** — KPDC 공개 정책. 위 "먼저 볼 것" 2 |  |
 

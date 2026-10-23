@@ -114,7 +114,8 @@ class PhoneBase(StaticLiveServerTestCase):
             rest = url[len(base):] if url.startswith(base) else None
             if rest is None:
                 return r.abort()
-            if r.request.resource_type == "document" or rest.startswith(("static/", "pointsets/", "patchnotes/")):
+            # 오프라인 묶음 요청·어림은 상류를 타지 않는다(캐시만 센다, wetherilli 408)
+            if r.request.resource_type == "document" or rest.startswith(("static/", "pointsets/", "patchnotes/", "offline/request/")):
                 return r.continue_()
             return r.abort()       # 타일·표고·범례 — 상류로 이어진다
 
@@ -923,6 +924,51 @@ class OfflinePack(PhoneBase):
         self.assertGreater(page.evaluate("window.__enlarged"), 0, "화면 줌 16 에서 묶음의 줌 14 를 늘려 그리지 않았다")
         self.assertEqual(errors, [])
 
+    def test_남극_묶음을_망_없이_그리고_누른다(self):
+        """남극 묶음(wetherilli P17·411) — 3031 격자의 GeoMAP 타일을 묶음에서 그리고, 누른 자리의 단위를 묶음의 지층 면에서 내고,
+        열쇠 없이도 묶음이 덮는 기지 위성이 배경 고르개에 오른다. 망은 다 끊겨 있다"""
+        import io
+        import json
+        import tempfile
+        from gsmpack import format as packfmt, grid as packgrid
+        from PIL import Image
+        call_command("seed_catalog", stdout=open(os.devnull, "w"))
+        bbox = [-58.80, -62.23, -58.77, -62.21]                     # 세종기지 둘레
+        buf = io.BytesIO()
+        Image.new("RGBA", (256, 256), (30, 160, 60, 255)).save(buf, "PNG")
+        tiles = [(f"geomap_simple_geology/{z}/{x}/{y}", buf.getvalue())
+                 for z in range(9, 14) for x, y in packgrid.ANTARCTIC.tiles_for(bbox, z)]
+        tiles += [(f"vworld:AntarcticaSejong/{z}/{x}/{y}", buf.getvalue())
+                  for z in (14, 15) for x, y in packgrid.MERCATOR.tiles_for(bbox, z)]
+        ring = [[bbox[0], bbox[1]], [bbox[2], bbox[1]], [bbox[2], bbox[3]], [bbox[0], bbox[3]], [bbox[0], bbox[1]]]
+        units = {"type": "FeatureCollection", "features": [{"type": "Feature", "geometry": {"type": "Polygon", "coordinates": [ring]},
+                                                            "properties": {"props": {"단위": "세종층(시험)"}}}]}
+        tiles.append(("@units/geomap_simple_geology", json.dumps(units, ensure_ascii=False).encode()))
+        head = {"box": "sejong", "title": "세종 시험", "built": "2026-10-21", "bbox": bbox, "region": "antarctica", "note": "시험",
+                "dropped": {}, "units": {"geomap_simple_geology": {"key": "@units/geomap_simple_geology", "types": ["geomap:units"],
+                                                                   "type": "application/geo+json"}},
+                "layers": {"geomap_simple_geology": {"title": "GeoMAP", "grid": "EPSG:3031", "tile_size": 256, "type": "image/png",
+                                                     "zooms": [9, 13], "attribution": "GeoMAP"},
+                           "vworld:AntarcticaSejong": {"title": "VWorld", "grid": "EPSG:3857", "tile_size": 256, "type": "image/png",
+                                                       "zooms": [14, 15], "attribution": "VWorld"}}}
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp) / "sejong-20261021.gsmpack"
+            packfmt.write(path, head, tiles)
+            pack = path.read_bytes()
+        page, errors = self.open("map/?region=antarctica")
+        page.evaluate("""bytes => GSMOffline.add(new File([new Uint8Array(bytes)], "sejong-20261021.gsmpack"))""", list(pack))
+        page.context.add_init_script("""(() => { window.__blobs = 0; const make = URL.createObjectURL;
+            URL.createObjectURL = function (b) { window.__blobs++; return make.call(URL, b); }; })()""")
+        page.goto(self.live_server_url + "/GSM/map/?n=2#r=antarctica&c=-58.785,-62.22&z=13&l=geomap_simple_geology*80", wait_until="load")
+        page.wait_for_timeout(2500)
+        self.assertGreater(page.evaluate("window.__blobs"), 0, "남극 묶음의 GeoMAP 타일을 그리지 않았다(격자 이름이 어긋났나)")
+        self.assertIn("오프라인: 세종 시험", page.locator("#offline-badge").inner_text())
+        box = page.locator("#map").bounding_box()
+        page.touchscreen.tap(box["x"] + box["width"] / 2, box["y"] + box["height"] / 2)
+        page.wait_for_selector("#popup-body :text('세종층(시험)')", timeout=5000)
+        self.assertEqual(page.locator("#basemap option[value=antarctic_stations]").count(), 1, "묶음이 덮는 기지 위성이 고르개에 없다")
+        self.assertEqual(errors, [])
+
     def test_꼴이_아니면_거절한다(self):
         page, errors = self.open("map/")
         page.tap("#panel-handle")
@@ -938,6 +984,31 @@ class OfflinePack(PhoneBase):
         self.assertIn("bad", status.get_attribute("class"))
         self.assertIn("들인 묶음이 없다", page.locator("#offline-list").inner_text())
         self.assertEqual(errors, [])
+
+
+class OfflineRequest(PhoneBase):
+    """오프라인 묶음 요청 화면과 관리 탭 (wetherilli 408) — 레이어 표·줌 칸이 가로로 넘치지 않고, 요청이 목록에 서고, 관리 탭이 카드로 선다"""
+
+    def test_요청하고_관리_탭에서_본다(self):
+        from django.test import override_settings
+        with override_settings(PUBLIC=False):
+            page, errors = self.open("offline/request/?bbox=129,37,129.05,37.05")
+            self.assertFits(self.measure(page), "offline/request/")
+            page.fill("#r-title", "휴대폰 요청")
+            page.fill("#r-who", "시험")
+            page.tap("#b-estimate")
+            page.wait_for_selector("#estimate:not([hidden])", timeout=15000)
+            self.assertFits(self.measure(page), "offline/request/ 어림")
+            page.tap("#b-send")
+            page.wait_for_url(re.compile(r"sent=req\d+"), timeout=15000)
+            self.assertIn("휴대폰 요청", page.text_content("ul.rows"))
+            self.assertEqual(errors, [])
+            page, errors = self.open("manage/?tab=offline")
+            page.wait_for_selector("#mg-offline tr[data-req]", timeout=10000)
+            scroll = page.evaluate("(() => { const e = document.getElementById('mg-offline').closest('.mg-scroll'); return [e.scrollWidth, e.clientWidth]; })()")
+            self.assertLessEqual(scroll[0], scroll[1] + 1, "요청 표가 가로로 구른다")
+            self.assertFits(self.measure(page), "manage offline")
+            self.assertEqual(errors, [])
 
 
 class EmbedApi(PhoneBase):

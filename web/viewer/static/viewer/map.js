@@ -1048,6 +1048,17 @@
     });
   }
 
+  /** 겹쳐 그리는 GIBS 레이어 — MEaSUREs 빙하 속도 (wetherilli 413). 격자는 `gibsLayer` 의 극지 격자(512 px)를 행의 `grid` 로 받고,
+   *  투영은 행이 준다(남극 3031·그린란드 3413). 서버가 받아 담고(`gibs/…png`) 정적 판만 GIBS 를 곧장 부른다(`direct`) */
+  function gibsOverlaySource(name) {
+    var row = byName[name] || {}, g = row.grid || {};
+    return new ol.source.XYZ({
+      url: STATIC ? row.direct : BASE + row.tiles, projection: row.projection, crossOrigin: "anonymous", transition: 0,
+      tileGrid: new ol.tilegrid.TileGrid({ origin: g.origin, extent: g.extent, resolutions: g.resolutions, tileSize: g.tileSize }),
+      attributions: row.attribution || undefined,
+    });
+  }
+
   /** 한반도 지질도 — phyloserver 가 카카오맵 격자로 잘라 둔 타일 (devlog 026).
    *  격자(`phyloserver.py` 의 SCAN_*)를 그대로 받고 OpenLayers 가 옮겨 그린다.
    *  카카오 레벨 L 의 한 픽셀은 2^(L-3) m 이고 13 이 가장 거칠다. 타일 번호는 아래에서
@@ -1163,6 +1174,7 @@
     stri: { source: null, info: null },       // 파나마 — STRI 면·단층 한 덩이씩 (wetherilli 253)
     vmme: { source: null, info: null },       // 파라과이 — VMME 면 한 덩이 (wetherilli 256)
     ntgs: { source: null, info: null },       // 노던테리토리 — 열린자료 셰이프를 한 덩이로 (wetherilli 361)
+    scar: { source: null, info: null },       // 남극 지명 이름표 — 받아 둔 SCAR 지명사전 한 덩이 (wetherilli 412)
     npolar: { source: npolarSource, info: wmsInfoUrl },
     // 극지연구소 KPDC 지도 서버(057) — NPI 처럼 3031 로 곧장 받는다
     kopri: { source: npolarSource, info: wmsInfoUrl },
@@ -1184,6 +1196,8 @@
     ags: { source: gsiTileSource, info: pointInfoUrl },
     // 남극 Bedmap3(wetherilli 261) — BAS 의 Esri 극 격자 타일을 곧장. 누르기는 없다
     bas: { source: esriGridSource, info: null },
+    // 남극·그린란드 빙하 속도(wetherilli 413) — GIBS 극지 격자를 서버가 담는다. 누르기는 없다
+    gibs: { source: gibsOverlaySource, info: null },
     phyloserver: { source: phyloserverSource, info: null },
     peninsula: { source: peninsulaSource, info: null },
     // 중국 지질도 1:400만 스캔(wetherilli 387) — 우리가 3857 로 잘라 둔 z/x/y. 그리는 손은 일본의 것과 같다. 누르면 범례 칸(389)
@@ -1731,6 +1745,14 @@
     regions: ["antarctica"], needs: "EPSG:3031",
     make: esriAntarcticLayer,
   };
+  // **공개 판(정적 판)에는 Esri 를 싣지 않는다**(사람, 2026-10-21, wetherilli P17) — Esri Master License Agreement 는 Esri 소프트웨어(또는 ArcGIS
+  // 구독)와 함께 쓰라고 적는다(§3.2(a), 이용 조건 요약). 우리 뷰어는 Esri 소프트웨어가 아니다. 연구소 판은 연구실 안이라 그대로 둔다.
+  // 정적 판의 남극은 LIMA 위성(공공 도메인, 아래 `BASEMAPS.lima`)으로 시작한다 — 처음엔 REMA 음영이었고 Esri 의 자리를 LIMA 가 채웠다
+  // (사람, 2026-10-22, wetherilli 415). 고른 배경이 Esri 로 남은 사람은 `savedBasemap` 이 지역의 배경으로 돌린다
+  if (STATIC) {
+    delete BASEMAPS.esri_antarctic;
+    if (REGIONS.antarctica) REGIONS.antarctica.basemap = "lima";
+  }
   BASEMAPS.ibcso_bed = {
     title: T("IBCSO 해저·빙저 지형"),
     note: T("IBCSO v2 (500 m). 빙붕·빙상을 걷어 낸 얼음 밑 기반암과 해저. CC BY 4.0"),
@@ -1761,9 +1783,19 @@
     regions: ["antarctica"], needs: "EPSG:3031",
     make: function () { return pgcHillshade("rema_latest", "EPSG:3031", PGC_REMA, "Hillshade Elevation Tinted"); },
   };
+  // LIMA 15 m 위성 — Esri 남극 위성(조건이 막아 공개 판·묶음에서 뺐다, P17)의 자리를 채운다 (wetherilli 415).
+  // 영상은 USGS LIMA(공공 도메인)이고 PGC 가 구워 둔다. **브라우저가 곧장 부른다** — PGC 서버가 중간 인증서를 빼먹어
+  // 서버(requests)는 받지 못하고, 서비스에 이용 조건이 적혀 있지 않아(exportTilesAllowed=false) 담지 않는다
+  BASEMAPS.lima = {
+    title: T("남극 위성 LIMA (PGC)"),
+    note: T("USGS LIMA · Landsat 7 (1999–2003) 15 m, 남위 82.5° 남쪽은 MODIS 250 m. 바다는 Blue Marble. 공공 도메인. 줌 11 까지 영상이 있고 그 위는 늘려 보인다. 연구소 망 안에서는 인증서 검사에 걸려 안 보일 수 있다"),
+    regions: ["antarctica"], needs: "EPSG:3031",
+    make: limaLayer,
+  };
   // 이름을 `vworld` 로 시작하지 않는다 — 그런 배경은 한국·동아시아에서만 고르게 거른다(`fillBasemaps`).
-  // 영상은 VWorld 것이라 열쇠가 없으면 두지 않는다 (wetherilli 093)
-  if (vworldKey) BASEMAPS.antarctic_stations = {
+  // 영상은 VWorld 것이라 열쇠가 없으면 두지 않는다 (wetherilli 093) — 오프라인 묶음이 기지 위성을 덮으면 열쇠 없이도 둔다(현장, wetherilli 411)
+  var STATION_THEMES = ["AntarcticaSejong", "AntarcticaJangbogo"];
+  if (vworldKey || STATION_THEMES.some(function (l) { return offlineCovers("vworld:" + l); })) BASEMAPS.antarctic_stations = {
     title: T("세종·장보고 기지 위성 (VWorld)"),
     note: T("VWorld · 2013 년 위성영상. 두 기지 둘레 10 km 남짓에만 있고 그 밖은 REMA 음영이다"),
     regions: ["antarctica"], needs: "EPSG:3031",
@@ -2056,6 +2088,33 @@
     });
   }
 
+  /** PGC 의 남극 합성 모자이크(LIMA + 남위 82.5° 남쪽 MODIS) — 3031 로 구워 둔 타일 (wetherilli 415). 격자는 서비스의
+   *  `tileInfo` 그대로다 — 원점 (-30636100, 30636100), 256 픽셀, 줌 0 이 32000 m 이고 줌 7(250 m)까지는 반씩, **줌 8 부터는
+   *  120·60·30·15 m** 다(2 의 거듭제곱이 아니다 — 서비스의 축척이 그렇다). 영상은 줌 11(15 m)까지다.
+   *  바다는 투명하게 오므로 밑에 Blue Marble(500 m)을 깐다 — 기지 위성 밑에 REMA 를 까는 것과 같다 */
+  var PGC_LIMA = 'Landsat Image Mosaic of Antarctica (<a href="https://lima.usgs.gov/" target="_blank" rel="noopener">LIMA</a>, USGS · BAS · NASA) · '
+    + 'tiles <a href="https://www.pgc.umn.edu/" target="_blank" rel="noopener">Polar Geospatial Center</a> (NSF)';
+  function limaLayer() {
+    var resolutions = [];
+    for (var z = 0; z <= 7; z++) resolutions.push(32000 / Math.pow(2, z));
+    resolutions.push(120, 60, 30, 15);
+    var lima = new ol.layer.Tile({
+      source: new ol.source.XYZ({
+        url: "https://overlord.pgc.umn.edu/arcgis/rest/services/imagery/ant_pgc_composite_mosaic/MapServer/tile/{z}/{y}/{x}",
+        projection: "EPSG:3031",
+        tileGrid: new ol.tilegrid.TileGrid({
+          origin: [-30636100, 30636100],
+          extent: [-3000000, -3000000, 3000000, 4000005],
+          resolutions: resolutions,
+          tileSize: 256,
+        }),
+        crossOrigin: "anonymous",
+        attributions: PGC_LIMA,
+      }),
+    });
+    return new ol.layer.Group({ layers: [gibsLayer("3031", "BlueMarble_ShadedRelief_Bathymetry", 4), lima] });
+  }
+
   /** 남극 해저·빙저 지형 IBCSO v2 — 우리 서버가 GeoMAP 과 같은 3031 격자로 잘라 둔 것 (047).
    *  원본이 500 m 라 줌 6 까지 자르고, 그 위는 OpenLayers 가 늘려 그린다. 출처는 CC BY 라 늘 적는다 */
   var IBCSO = 'IBCSO v2 (Dorschel et al., 2022, <a href="https://doi.org/10.1594/PANGAEA.937574" target="_blank" rel="noopener">PANGAEA</a>, CC BY 4.0)';
@@ -2081,18 +2140,22 @@
   /** PGC 의 표고 ImageServer 에서 음영을 그려 받는다 (기본 `Hillshade Gray`, `fn` 으로 다른 그리는 법).
    *  미리 구운 타일이 아니라 부를 때마다 PGC 가 그린다 — 한 장에 1~2 초.
    *  그래서 타일을 512 로 키워 부르는 수를 줄인다. */
+  //: 오프라인 묶음이 굽는 REMA 음영 — 그리는 법 → 묶음의 레이어 이름(`build_offline_pack.REMA`, wetherilli P17·411)
+  var REMA_PACK = { "Hillshade Gray": "basemap:rema", "Hillshade Multidirectional": "basemap:rema_multi",
+                    "Hillshade Elevation Tinted": "basemap:rema_tinted" };
+
   function pgcHillshade(service, code, attribution, fn) {
-    return new ol.layer.Tile({
-      opacity: 0.85,
-      source: new ol.source.TileArcGISRest({
-        url: "https://di-pgc.img.arcgis.com/arcgis/rest/services/" + service + "/ImageServer",
-        params: { renderingRule: JSON.stringify({ rasterFunction: fn || "Hillshade Gray" }), FORMAT: "jpgpng" },
-        projection: code,
-        tileGrid: ol.tilegrid.createXYZ({ extent: ol.proj.get(code).getExtent(), tileSize: 512, maxZoom: 16 }),
-        crossOrigin: "anonymous",
-        attributions: attribution,
-      }),
+    var source = new ol.source.TileArcGISRest({
+      url: "https://di-pgc.img.arcgis.com/arcgis/rest/services/" + service + "/ImageServer",
+      params: { renderingRule: JSON.stringify({ rasterFunction: fn || "Hillshade Gray" }), FORMAT: "jpgpng" },
+      projection: code,
+      tileGrid: ol.tilegrid.createXYZ({ extent: ol.proj.get(code).getExtent(), tileSize: 512, maxZoom: 16 }),
+      crossOrigin: "anonymous",
+      attributions: attribution,
     });
+    // 남극의 REMA 는 묶음에서도 읽는다 — 망이 없는 기지에서 음영이 빈다
+    var packName = service === "rema_latest" && REMA_PACK[fn || "Hillshade Gray"];
+    return new ol.layer.Tile({ opacity: 0.85, source: packName ? offlineWrap(source, packName) : source });
   }
 
   var baseLayer = null;
@@ -3167,7 +3230,7 @@
     regionOfLayer[name] = "japan";
   }
 
-  /** 지질도Navi 판의 범례 — GSJ 가 판마다 떠 둔 범례 그림(원도의 범례를 스캔한 것) */
+  /** 범례 그림 한 장 — 지질도Navi 판은 GSJ 가 판마다 떠 둔 범례 그림(원도의 범례를 스캔한 것), GIBS 빙하 속도는 그 SVG(wetherilli 413) */
   function geonaviLegend(entry) {
     var row = byName[entry.name] || {};
     if (!row.legendImg) return note(T("범례가 없는 레이어다"));
@@ -3409,7 +3472,8 @@
         li.appendChild(note(T("범례가 없는 레이어다")));
       } else if (entry.legendOpen && byName[entry.name] && byName[entry.name].classLegend) {
         li.appendChild(classLegend(byName[entry.name].classLegend));
-      } else if (entry.legendOpen && byName[entry.name] && byName[entry.name].upstream === "geonavi") {
+      } else if (entry.legendOpen && byName[entry.name] && (byName[entry.name].upstream === "geonavi" || byName[entry.name].legendImg)) {
+        // 범례 그림 한 장의 주소를 행이 주는 것 — 지질도Navi 판, GIBS 빙하 속도의 SVG(wetherilli 413)
         li.appendChild(geonaviLegend(entry));
       } else if (entry.legendOpen && byName[entry.name] && byName[entry.name].legend &&
                  !(STATIC && layerKind(entry.name).legend)) {
@@ -3834,6 +3898,24 @@
     showPopup(fromLL(facts.center),
               [{ title: T("범위 {n}", { n: feature.get("no") }), props: rangeRows(facts) }], "",
               { rose: attitudeLayersOn() ? "bbox=" + [r.w, r.s, r.e, r.n].map(function (v) { return v.toFixed(5); }).join(",") : "" });
+    offlineRequestLink(r);
+  }
+
+  /** 범위 팝업 끝의 "오프라인 묶음 요청" (wetherilli P16·408) — 연구소 판의 한국·동아시아 탭에서만(소스가 KIGAM·VWorld 뿐이다).
+   *  요청 화면은 도폭 하나 크기(한 변 0.3°)까지 받는다 — 넘으면 단추 대신 그 말을 적는다 */
+  function offlineRequestLink(r) {
+    if (STATIC || document.body.dataset.offlineRequest !== "1" || (region !== "korea" && region !== "eastasia") || isCap(r)) return;
+    var p = document.createElement("p");
+    p.className = "popup-offline";
+    if (r.e - r.w > 0.3 + 1e-9 || r.n - r.s > 0.3 + 1e-9) {
+      p.textContent = T("오프라인 묶음은 도폭 하나 크기(한 변 0.3°)까지 요청한다");
+    } else {
+      var a = document.createElement("a");
+      a.href = BASE + "offline/request/?bbox=" + [r.w, r.s, r.e, r.n].map(function (v) { return v.toFixed(5); }).join(",");
+      a.textContent = T("이 범위로 오프라인 묶음 요청");
+      p.appendChild(a);
+    }
+    document.getElementById("popup-body").appendChild(p);
   }
 
   function showMeasure(got, done) {
@@ -4826,8 +4908,16 @@
     var q = { layer: entry.name };
     if (row.legend === "extent") {
       var view = map.getView();
-      var ext = ol.proj.transformExtent(view.calculateExtent(map.getSize()), viewProj(), "EPSG:4326");
-      q.bbox = [Math.max(ext[0], -180), Math.max(ext[1], -85), Math.min(ext[2], 180), Math.min(ext[3], 85)]
+      var seen = view.calculateExtent(map.getSize());
+      var ext = ol.proj.transformExtent(seen, viewProj(), "EPSG:4326");
+      // 극 평사도법에서 극이 화면 안이면 가장자리만 옮긴 네모는 극 둘레를 빠뜨린다 — 온 경도와 극까지 (북극 지질도, wetherilli 414)
+      var pole = { "EPSG:3413": 90, "EPSG:3575": 90, "EPSG:3031": -90 }[viewProj().getCode()];
+      if (pole && ol.extent.containsCoordinate(seen, [0, 0])) {
+        ext = pole > 0 ? [-180, ext[1], 180, 90] : [-180, -90, 180, ext[3]];
+      }
+      // 85° 로 자르는 것은 3857 의 끝이라서다 — 극 평사도법은 극까지 묻는다(85° 로 자르면 북극 지질도의 단위 둘이 빠졌다)
+      var edge = pole ? 90 : 85;
+      q.bbox = [Math.max(ext[0], -180), Math.max(ext[1], -edge), Math.min(ext[2], 180), Math.min(ext[3], edge)]
         .map(function (v) { return v.toFixed(2); }).join(",");
       q.z = Math.round(view.getZoom());
     }
@@ -7948,7 +8038,7 @@
   var PLACE_SOURCES = {
     svalbard: "지명 검색: 노르웨이 극지연구소 (스발바르)",
     greenland: "지명 검색: 그린란드 정부 (Nunat Aqqi)",
-    antarctica: "지명 검색: 노르웨이 극지연구소 (드로닝모드랜드)",
+    antarctica: "지명 검색: SCAR 남극 통합 지명사전 · 노르웨이 극지연구소 (드로닝모드랜드)",
     arctic: "지명 검색: 노르웨이 극지연구소 · 그린란드 정부",
   };
 
@@ -8487,7 +8577,7 @@
         var later = ["Base", "white", "midnight", "Satellite"].some(function (l) {
           return p.layers.indexOf("vworld:" + l) >= 0 && !BASEMAPS[{ Base: "vworld", white: "vworld_white",
             midnight: "vworld_midnight", Satellite: "vworld_hybrid" }[l]];
-        });
+        }) || (!BASEMAPS.antarctic_stations && STATION_THEMES.some(function (l) { return p.layers.indexOf("vworld:" + l) >= 0; }));
         say(later ? T("{name} 을 들였다. 배경지도는 다시 열면 고르개에 오른다.", { name: p.title })
                   : T("{name} 을 들였다. 이 범위는 망 없이도 보인다.", { name: p.title }));
         if (later) {

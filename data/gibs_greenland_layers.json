@@ -1,0 +1,15 @@
+{
+ "_주석": "NASA GIBS 가 내는 MEaSUREs 빙하 속도 씨앗이다 — 그린란드 탭(북극 묶음에도 선다). 타일은 서버가 받아 캐시에 담는다(web/viewer/basemaps.py). 원자료는 NSIDC-0478 v2(Joughin 외 2015), GIBS 의 기본 시점 2008–09 겨울. NASA 자료라 쓰임에 제한이 없고 인용을 바란다. 한글 제목과 레이어군은 사람이 붙였다 (wetherilli 413).",
+ "_뽑은날": "2026-10-22",
+ "_출처": "https://gibs.earthdata.nasa.gov/wmts/epsg3413/best/1.0.0/WMTSCapabilities.xml",
+ "_지역": "greenland",
+ "_상류": "gibs",
+ "_레이어군차례": 26,
+ "레이어군순서": [
+  "빙하 흐름 (MEaSUREs)"
+ ],
+ "레이어": [
+  {"name": "gibs:ice_velocity_greenland", "title": "빙하 속도", "group": "빙하 흐름 (MEaSUREs)",
+   "abstract": "빙상 윗면의 흐름 빠르기(m/년) — InSAR 2008–09 겨울, 500 m 격자 (NSIDC-0478 v2)", "bbox": [-75, 59, -10, 84]}
+ ]
+}

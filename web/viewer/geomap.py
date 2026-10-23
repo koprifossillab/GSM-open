@@ -920,6 +920,35 @@ def query(role: str, x: float, y: float, tol: float, *, layer: str = "", limit: 
             for _, _, fid, row in hits[:limit]]
 
 
+def polygons_in(layer: str, bbox: tuple) -> list:
+    """3031 범위 `(minx, miny, maxx, maxy)` 에 걸친 그 레이어의 면 — `[(조각들, 속성)]`. 조각은 `parse_geometry` 의 고리들(3031)이다.
+    레이어의 스타일이 그리지 않는 것은 뺀다(누른 자리와 같다, `query`). 오프라인 묶음의 지층 면이 쓴다(wetherilli P17·411)"""
+    style = style_of(layer)
+    if style.kind != "fill":
+        return []
+    conn, meta = _table(style.table)
+    cand = [r[0] for r in conn.execute(
+        f'SELECT id FROM "{meta["rtree"]}" WHERE maxx >= ? AND minx <= ? AND maxy >= ? AND miny <= ?',
+        (bbox[0], bbox[2], bbox[1], bbox[3]))]
+    cols = [c for c, _ in PROPS[style.table] if not c.startswith("_")]
+    extra = ["ABSMIN_MA", "ABSMAX_MA", "RESSCALE", "SOURCE"] if style.table == "units" else []
+    have = {r[1] for r in conn.execute(f'PRAGMA table_info("{meta["table"]}")')}
+    names = [n for n in dict.fromkeys(cols + extra + style.fields) if _NAME_OK.match(n) and n in have]
+    select = ", ".join(['fid', f'"{meta["geom"]}"'] + [f'"{n}"' for n in names])
+    out = []
+    for i in range(0, len(cand), 500):
+        chunk = cand[i:i + 500]
+        for fid, blob, *values in conn.execute(f'SELECT {select} FROM "{meta["table"]}" '
+                                               f'WHERE fid IN ({",".join("?" * len(chunk))})', chunk):
+            row = dict(zip(names, values))
+            if style.pick(tuple(row.get(f) for f in style.fields)) is None:
+                continue
+            kind, parts = parse_geometry(blob)
+            if kind == "polygon" and parts:
+                out.append((parts, friendly(style.table, row, conn)))
+    return out
+
+
 def friendly(role: str, row: dict, conn=None) -> dict:
     out = {}
     for col, label in PROPS[role]:

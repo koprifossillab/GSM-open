@@ -116,6 +116,22 @@ def get(key: str, suffix: str = ".png", *, stale: bool = False, max_age: int = N
     return data
 
 
+def size(key: str, suffix: str = ".png", *, max_age: int = None):
+    """들고 있으면 바이트 수를, 없거나 늙었으면 None — `get` 과 같은 셈이되 파일을 열지 않는다(쓰인 때도 남기지 않는다).
+    오프라인 묶음의 어림이 쓴다 — 캐시가 많은 곳은 한 번에 수천 장이다 (wetherilli 408)"""
+    if not enabled():
+        return None
+    try:
+        stat = _path(key, suffix).stat()
+    except OSError:
+        return None
+    if max_age is None:
+        max_age = settings.TILE_CACHE_MAX_AGE_DAYS * 86400
+    if max_age > 0 and (time.time() - stat.st_mtime) > max_age:
+        return None
+    return stat.st_size or None
+
+
 _warned_full = False
 
 

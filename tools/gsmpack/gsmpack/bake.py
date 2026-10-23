@@ -5,8 +5,13 @@
 - `name`·`title`·`attribution`·`type`(타일의 media type)·`tile_size`(256·512)·`kind`(어림 표의 열쇠)
 - `grid_zoom(화면 줌)` → 격자 줌, `tiles(bbox, z)` → 칸 `(x, y)` 들
 - `cached(z, x, y)` → 이미 가진 바이트(빈 것은 b""), 없으면 None. 상류를 타지 않는다
+- `cached_size(z, x, y)`(고르지 않아도 된다) → 가진 것의 바이트 수, 없으면 None. 어림(`Plan`)이 바이트를 읽지 않게 (wetherilli 408)
 - `fetch(z, x, y)` → 상류에서 받은 바이트. 못 받으면 `FetchError` — 차단 조짐이면 `blocked=True`
 - `calls_for(빠진 장수)` → 상류에 묻는 어림 (고르지 않으면 장수 그대로)
+- `touched`(고르지 않으면 참) → 방금 `fetch` 가 상류를 탔나. 거짓이면 1 초를 쉬지 않는다(GSM 경유의 캐시, wetherilli 407)
+- `sea_share`(고르지 않으면 `SEA_SHARE` 의 값) → 다 바다인 칸이 땅 칸의 몇 할인가 (wetherilli 409)
+
+GSM 안의 소스는 `build_offline_pack` 에, 혼자 굽는 쪽의 소스(GSM 경유·곧장)는 `gsmpack.sources` 에 있다.
 
 **빠르기는 여기 하나다**(devlog 010) — 상류에 1 초에 한 번, 차단 조짐이면 곧장 멈추고 연달아 3 번 실패해도 멈춘다.
 """
@@ -17,7 +22,7 @@ import sqlite3
 import time
 from pathlib import Path
 
-from . import clip, format
+from . import clip, format, grid, landmask
 
 #: 캐시에 견줄 것이 모자랄 때의 타일 한 장 어림(바이트) — 소스의 `kind` 마다 `{격자 줌: 바이트}`, 적지 않은 줌은 가장 가까운 줌의 값.
 #: **한 장 크기는 줌마다 열 배 넘게 다르다**(5만 지질도는 격자 줌 10 이 226 KB, 15 가 17 KB) — 줌을 가리지 않고 한 값을 쓰면 깊은
@@ -27,8 +32,24 @@ GUESS_BYTES = {
     "vworld:Base": {8: 15_000, 10: 15_000, 11: 38_000, 12: 28_000, 13: 21_000, 14: 26_000, 15: 44_000, 16: 26_000},
     "vworld:Satellite": {8: 16_000, 12: 13_000, 14: 12_500, 15: 13_500},
     "vworld:Hybrid": {8: 11_000, 11: 7_000, 12: 5_500, 13: 7_000, 14: 5_000, 15: 4_000},
+    # 남극 GeoMAP(우리가 그린다) — 2026-10-21 세종 박스에서 쟀다. 담긴 한 장은 2 KB 안팎이지만 바다·얼음 칸은 빈 그림이라 묶음에 들지 않는다 —
+    # 센 칸 2 536 가운데 444 만 담겼다. 그래서 **센 칸 하나에** 담기는 몫(평균 × 담긴 비율)으로 적는다. 장보고에서 실제 크기의 서너 배로 잡혀
+    # 기지 위성의 줌을 덜어 냈다 (wetherilli 411)
+    "geomap": {6: 2_100, 9: 1_200, 11: 450, 13: 270},
+    # 남극 REMA 음영(512 px)·세종기지 위성(VWorld 테마) — 2026-10-22 세종 시험 묶음에서 쟀다. 기지 위성은 줌 16 에서 바다 칸이 가볍다 (wetherilli 411)
+    "basemap:rema": {7: 64_000, 9: 66_000, 10: 43_000, 11: 39_000, 12: 29_000, 13: 20_000},
+    "vworld:AntarcticaSejong": {10: 20_000, 12: 39_000, 13: 64_000, 14: 81_000, 15: 77_000, 16: 26_000},
+    "vworld:AntarcticaJangbogo": {10: 20_000, 12: 39_000, 13: 64_000, 14: 81_000, 15: 77_000, 16: 26_000},
 }
 GUESS_OTHER = 40_000           # 표에 없는 소스
+#: **다 바다인 칸이 땅이 든 칸의 몇 할인가** — 레이어 이름, 없으면 소스의 `kind` 로 찾는다. 적지 않은 것은 1(바다도 땅만큼 — 중력·자력처럼
+#: 바다를 칠하는 레이어). 땅이 조금이라도 든 칸은 땅 칸만큼 센다 — 해안 칸은 다 땅인 칸과 크기가 거의 같았다. 2026-10-21 에 구운 묶음 넷
+#: (진교·사천·남해·삼천포)의 줌 13–15 를 칸마다 `landmask` 의 땅 몫에 견준 값이다. 5만 지질도가 0 이 아닌 것은 KIGAM 의 빈 그림 몫과
+#: Natural Earth 가 빠뜨린 작은 섬 몫이다 — 25만·100만은 바다 칸이 없어 5만의 값을 빌렸다 (wetherilli 409)
+SEA_SHARE = {
+    "L_50K_Geology_Map": 0.31, "L_50K_Geology_Map_NoAttitude": 0.31, "L_250K_Geology_Map": 0.31, "L_1M_Geology_Map": 0.31,
+    "vworld:Base": 0.16, "vworld:Satellite": 0.40, "vworld:Hybrid": 0.26,
+}
 MIN_SAMPLES = 20               # 캐시에서 이만큼 있는 줌만 캐시의 평균을 믿는다
 NOTE = "연구실 현장용 — 밖으로 나누지 않는다"
 
@@ -93,6 +114,26 @@ def guess_bytes(kind, z):
     return table[near]
 
 
+def grid_of(src):
+    """소스의 격자(`src.grid`) — 적지 않은 소스는 3857(한국 탭, 402–409 의 소스가 다 그렇다)."""
+    return getattr(src, "grid", None) or grid.MERCATOR
+
+
+def cached_size(src, z, x, y):
+    """가진 것의 바이트 수(없으면 None). 크기만 볼 수 있는 소스는 바이트를 읽지 않는다 — 캐시가 많은 곳은 어림 한 번에 수천 장을 연다(wetherilli 408)"""
+    if hasattr(src, "cached_size"):
+        return src.cached_size(z, x, y)
+    data = src.cached(z, x, y)
+    return None if data is None else len(data)
+
+
+def sea_share(name, src) -> float:
+    share = getattr(src, "sea_share", None)
+    if share is None:
+        share = SEA_SHARE.get(name, SEA_SHARE.get(getattr(src, "kind", None), 1.0))
+    return min(max(float(share), 0.0), 1.0)
+
+
 def fit_budget(order, zooms, sizes, budget):
     """`zooms` {레이어: [처음, 마지막]}(격자 줌)를 예산 안으로 줄인다 — 뒤의 레이어부터 마지막 줌을 한 단계씩.
     `sizes(레이어, 줌)` 은 그 줌의 바이트. 돌려주는 것은 (줄인 zooms, dropped {레이어: 빠진 첫 줌}, 어림 바이트)."""
@@ -110,7 +151,10 @@ def fit_budget(order, zooms, sizes, budget):
 
 
 class Plan:
-    """받기 전의 어림 — 레이어마다 격자 줌·장수·가진 것·한 장 크기, 예산에 맞춘 줌, 상류에 묻는 어림."""
+    """받기 전의 어림 — 레이어마다 격자 줌·장수·가진 것·한 장 크기, 예산에 맞춘 줌, 상류에 묻는 어림.
+
+    줌마다의 바이트(`bytes`)는 가진 타일의 실제 크기에 못 가진 칸의 어림을 더한 것이다. 못 가진 칸은 땅이 든 칸의 한 장 크기(`avg`)로 세되
+    `landmask` 가 다 바다라는 칸은 `sea_share` 만큼만 센다 — 바다가 넓은 박스에서 어림이 30 % 넘쳤다(wetherilli 406·409)."""
 
     def __init__(self, box_name, box, sources, rate=1.0):
         self.box_name, self.box = box_name, box
@@ -124,24 +168,33 @@ class Plan:
             first, last = box["layers"][name]
             self.zooms[name] = [src.grid_zoom(first), src.grid_zoom(last)]
 
-        # 장수와 이미 가진 것 — 어림의 바탕. 한 장 크기는 줌마다 따로 어림한다(wetherilli 404)
-        self.counts, self.have, self.avg = {}, {}, {}
+        # 장수와 이미 가진 것 — 어림의 바탕. 한 장 크기는 줌마다 따로 어림한다(wetherilli 404), 바다 칸은 덜 센다(409)
+        self.counts, self.have, self.avg, self.bytes, self.sea = {}, {}, {}, {}, {}
         for name, src in sources.items():
             kind = src.kind if src.kind in GUESS_BYTES else name
+            share = sea_share(name, src)
+            mercator = grid_of(src) is grid.MERCATOR
             for z in range(self.zooms[name][0], self.zooms[name][1] + 1):
                 tiles = src.tiles(self.bbox, z)
                 self.counts[(name, z)] = len(tiles)
-                seen = []
+                seen, known, weight = [], 0, 0.0
                 for x, y in tiles:
-                    data = src.cached(z, x, y)
-                    if data is not None:
+                    size = cached_size(src, z, x, y)
+                    # 육지 마스크는 한반도 둘레의 3857 칸만 안다 — 다른 격자는 다 땅으로 센다(어림은 넘치는 쪽이 낫다)
+                    land = share >= 1 or not mercator or landmask.tile_fraction(z, x, y, self.bbox) > 0
+                    if size is not None:
                         self.have[name] = self.have.get(name, 0) + 1
-                        if data:
-                            seen.append(len(data))
+                        known += size
+                        if size and land:
+                            seen.append(size)
+                    else:
+                        weight += 1.0 if land else share
+                    if not land:
+                        self.sea[(name, z)] = self.sea.get((name, z), 0) + 1
                 self.avg[(name, z)] = (sum(seen) / len(seen)) if len(seen) >= MIN_SAMPLES else guess_bytes(kind, z)
+                self.bytes[(name, z)] = known + weight * self.avg[(name, z)]
 
-        self.fitted, self.dropped, self.guess = fit_budget(self.order, self.zooms,
-                                                           lambda n, z: self.counts[(n, z)] * self.avg[(n, z)], self.budget)
+        self.fitted, self.dropped, self.guess = fit_budget(self.order, self.zooms, lambda n, z: self.bytes[(n, z)], self.budget)
         self.calls = 0
         self.lines = []
         for name in self.order:
@@ -150,9 +203,11 @@ class Plan:
             missing = n - self.have.get(name, 0)
             self.calls += src.calls_for(missing) if hasattr(src, "calls_for") else missing
             cut = f", 덜어 냄 줌 {self.dropped[name]}–{self.zooms[name][1]}" if name in self.dropped else ""
-            mb = sum(self.counts[(name, z)] * self.avg[(name, z)] for z in range(self.fitted[name][0], self.fitted[name][1] + 1))
+            mb = sum(self.bytes[(name, z)] for z in range(self.fitted[name][0], self.fitted[name][1] + 1))
+            sea = sum(self.sea.get((name, z), 0) for z in range(self.fitted[name][0], self.fitted[name][1] + 1))
+            sea = f" · 바다 {sea:,}" if sea else ""
             self.lines.append(f"  {name:32s} 격자 줌 {self.fitted[name][0]}–{self.fitted[name][1]} ({src.tile_size} px) "
-                              f"타일 {n:,} · 캐시 {self.have.get(name, 0):,} · {mb / 1024 / 1024:.1f} MB{cut}")
+                              f"타일 {n:,} · 캐시 {self.have.get(name, 0):,}{sea} · {mb / 1024 / 1024:.1f} MB{cut}")
         self.lines.append(f"어림 {self.guess / 1024 / 1024:.0f} MB / 예산 {self.budget / 1024 / 1024:.0f} MB, "
                           f"상류에 묻기 약 {self.calls:,} 번 ≈ {math.ceil(self.calls * self.gap / 60)} 분")
 
@@ -162,13 +217,16 @@ def bake(plan, out_dir, parts, *, units=None, extra=None, log=print, built=None)
 
     - `units(bbox, gap)` → `{레이어: (GeoJSON 바이트, 피처 타입들)}` — 누른 자리의 지층 면(wetherilli 384). 예산에서 먼저 뗀다
     - `extra` 는 머리에 더할 것(`{"gsm": 판}` 따위). 키는 넣지 않는다
-    - 돌려주는 것은 {path, tiles, asked, fails}. 멈추면 `BakeError` — 받은 것은 parts 에 남는다"""
+    - 돌려주는 것은 {path, tiles, asked, fails, missing}. 멈추면 `BakeError` — 받은 것은 parts 에 남는다
+    - **받지 못한 타일의 열쇠**(`<레이어>/<z>/<x>/<y>`)는 로그 끝 한 줄과 머리의 `missing` 에 남긴다 — 수만 남으면 현장에서 어디가 비는지
+      모른다. 읽는 쪽은 그 자리를 한 줌 얕은 타일로 늘려 그린다 (wetherilli 409)"""
     bbox, gap, order, sources = plan.bbox, plan.gap, plan.order, plan.sources
     fitted, dropped = plan.fitted, dict(plan.dropped)
 
     # 받기 — 앞설 차례부터, 줌이 얕은 것부터
     got = {}
-    in_a_row = fails = asked = 0
+    missing = []
+    in_a_row = fails = asked = made = 0
     stop = None
     for name in order:
         src = sources[name]
@@ -177,7 +235,6 @@ def bake(plan, out_dir, parts, *, units=None, extra=None, log=print, built=None)
                 data = src.cached(z, x, y)
                 if data is None:
                     started = time.monotonic()
-                    asked += 1
                     try:
                         data = src.fetch(z, x, y) or b""
                         in_a_row = 0
@@ -188,21 +245,35 @@ def bake(plan, out_dir, parts, *, units=None, extra=None, log=print, built=None)
                             stop = f"차단 조짐 — 멈춘다: {exc}"
                         elif in_a_row >= 3:
                             stop = f"연달아 3 번 실패 — 멈춘다: {exc}"
-                        data = b""
-                    time.sleep(max(0.0, gap - (time.monotonic() - started)))
-                    if asked % 100 == 0:
-                        log(f"  상류에 {asked:,} 번 — {name} 줌 {z}, 실패 {fails}")
+                        data = None
+                        missing.append((name, z, x, y))
+                    # 상류를 타지 않은 것(GSM 캐시에서 나온 것·우리가 그린 GeoMAP, `touched` 가 거짓)은 쉬지 않고 상류에 물은 수에 넣지 않는다 —
+                    # 빠르기 규칙은 상류에 거는 것이다 (wetherilli 411)
+                    if getattr(src, "touched", True):
+                        asked += 1
+                        time.sleep(max(0.0, gap - (time.monotonic() - started)))
+                    else:
+                        made += 1
+                    if (asked + made) % 100 == 0:
+                        log(f"  상류에 {asked:,} 번 · 그린 것 {made:,} — {name} 줌 {z}, 실패 {fails}")
                 if stop:
                     break
-                data = clip.clip_tile(data, z, x, y, bbox) if data else data
-                if data and not clip.is_blank(data):
-                    got[format.tile_key(name, z, x, y)] = (name, z, data)
+                keep_tile(got, name, z, x, y, data, bbox, grid_of(src))
             if stop:
                 break
         if stop:
             break
     if stop:
         raise BakeError(f"{stop} — 다시 부르면 이어서 받는다")
+
+    # 못 받은 칸도 뒤의 칸을 받다가 채워졌을 수 있다 — KIGAM 은 큰 그림 한 장으로 이웃 열다섯을 함께 받는다
+    still = []
+    for name, z, x, y in missing:
+        data = sources[name].cached(z, x, y)
+        if data is None:
+            still.append((name, z, x, y))
+        else:
+            keep_tile(got, name, z, x, y, data, bbox, grid_of(src))
 
     # 지층 면(속성)은 예산에서 먼저 뗀다 — 묶음 하나가 예산을 넘지 않게 타일 쪽을 던다 (wetherilli 384)
     gathered = units(bbox, gap) if units else {}
@@ -216,13 +287,16 @@ def bake(plan, out_dir, parts, *, units=None, extra=None, log=print, built=None)
     for name, z in more.items():
         dropped[name] = min(dropped.get(name, z), z)
     keep = {k: v for k, v in got.items() if fitted[v[0]][0] <= v[1] <= fitted[v[0]][1]}
+    holes = [format.tile_key(name, z, x, y) for name, z, x, y in still if fitted[name][0] <= z <= fitted[name][1]]
 
     built = built or datetime.date.today()
     header = {"box": plan.box_name, "title": plan.box["title"], "built": built.isoformat(), **(extra or {}),
               "bbox": list(bbox), "region": plan.box.get("region", ""), "note": NOTE, "dropped": dropped,
-              "layers": {name: {"title": sources[name].title, "grid": "EPSG:3857", "tile_size": sources[name].tile_size,
+              "layers": {name: {"title": sources[name].title, "grid": grid_of(sources[name]).name, "tile_size": sources[name].tile_size,
                                 "type": sources[name].type, "zooms": fitted[name], "attribution": sources[name].attribution}
                          for name in order if any(v[0] == name for v in keep.values())}}
+    if holes:
+        header["missing"] = holes
     if gathered:
         header["units"] = {name: {"key": f"@units/{name}", "types": types, "type": "application/geo+json"}
                            for name, (_, types) in gathered.items()}
@@ -230,7 +304,15 @@ def bake(plan, out_dir, parts, *, units=None, extra=None, log=print, built=None)
     format.write(path, header, [*((k, v[2]) for k, v in keep.items()),
                                 *((f"@units/{name}", body) for name, (body, _) in gathered.items())])
     parts.remove()
-    return {"path": path, "tiles": len(keep), "asked": asked, "fails": fails}
+    log(f"받지 못한 타일 {len(holes)} — {' '.join(holes)}" if holes else "받지 못한 타일 없음")
+    return {"path": path, "tiles": len(keep), "asked": asked, "made": made, "fails": fails, "missing": holes}
+
+
+def keep_tile(got, name, z, x, y, data, bbox, on=None):
+    """받은 타일을 박스로 잘라 담는다 — 빈 것(투명 한 장, 박스 밖)은 담지 않는다. `on` 은 소스의 격자(없으면 3857)."""
+    data = clip.clip_tile(data, z, x, y, bbox, on) if data else data
+    if data and not clip.is_blank(data):
+        got[format.tile_key(name, z, x, y)] = (name, z, data)
 
 
 def units_body(features) -> bytes:

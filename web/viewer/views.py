@@ -13,6 +13,7 @@ import logging
 import math
 import re
 import sqlite3
+import subprocess
 import threading
 import time
 from pathlib import Path
@@ -21,7 +22,8 @@ from django.conf import settings
 from django.contrib.staticfiles import finders
 from django.db import DatabaseError, transaction
 from django.db.models import Prefetch, Q
-from django.http import FileResponse, Http404, HttpResponse, JsonResponse
+from django.http import (FileResponse, Http404, HttpResponse, HttpResponseBadRequest, HttpResponseForbidden,
+                         HttpResponseNotAllowed, JsonResponse)
 from django.utils import timezone
 from django.utils.cache import patch_vary_headers
 from django.contrib import messages
@@ -41,7 +43,7 @@ from . import (china4m, coords, gravmag, crs, datastatus, geo3al, geomap, geus, 
                fetchlog, marscraters, marsmap, mercurymap, sources, zhurong)
 from . import admap, arcpoints, kmag, caribmap, geonames, crust, glaciers, impacts, faults, minerals, stress, tectonics, seafloor, glim, heatflow, fossils, gvp, icemargins, kigam50k, macrostrat, mantle, metatile, naturalearth, neotoma, paleo, paleoeco, paleocoast, pbdb, quakes, recentquakes, verifylog, spamap, ocean, paleodem, usgs, volcanoes, wind
 from . import ags, austates, bas, basemaps, bcgs, bgr, bgs, brgm, calgs, cgs, dinamige, dmr, dov, egdi, emodnet, esdm, ga, georep, geosphere, gns, gsi, gsiindia, gtk, igme, iige, ineter, ingemmet, ispra, jmg, linked, lneg, mgb, mrdata, mris, natt, ngu, nrcan, nsgs, ogs, pig, segemar, sgb, sgc, sgm, sgs, sgu, sigeom, skgs, spw, stri, swisstopo, tno, twopen, usage, usgscarib, usstates, vmme, ygs
-from . import doors, earthpoints, pointvalues, profileband, static_tables, tilegrid, timescale, visits
+from . import doors, earthpoints, offlinereq, pointvalues, profileband, scar, static_tables, tilegrid, timescale, visits
 from .i18n import msg
 from .models import Layer, LayerGroup, Point, PointSet, PointSetDeletion, Shape
 
@@ -348,6 +350,8 @@ def manage_view(request):
         # 접속 기록 (wetherilli 399) — 날마다 화면별 횟수는 누구나, 접속 주소는 staff 로 로그인했을 때만. 밖에 연 판은 탭째 없다
         "visits": None if settings.PUBLIC else visits.summary(lang, with_clients=_is_editor(request)),
         "visits_staff": _is_editor(request),
+        # 오프라인 묶음 요청 (wetherilli 408) — 승인·거절은 staff 만. 밖에 연 판은 탭째 없다
+        "offline_rows": None if settings.PUBLIC else _offline_rows(lang),
     })
 
 
@@ -619,6 +623,7 @@ def map_view(request):
         "vworld_key": settings.VWORLD_KEY,
         "base": request.path.rsplit("map", 1)[0],
         "linked_proxy": not settings.PUBLIC,
+        "offline_request": not settings.PUBLIC,          # 범위 팝업의 "오프라인 묶음 요청" (wetherilli 408)
         "version": VERSION,
         "stamp": "" if settings.DEBUG else asset_stamp(),
     })
@@ -3222,6 +3227,7 @@ SLOW_FLOOR = {
     "gsmma:attitude_50k": 10, "gsmma:discontinuity_50k": 9, "gsmma:landslide_inventory": 8,   # 격자 8·7·6 에서 12–30 초
     "mrdata:sim3340:faults": 5, "mrdata:sim3340:units": 6,                         # 격자 3·4 에서 16–30 초
     "nrcan:lithium": 4, "nrcan:ree": 4,                                            # 격자 2 에서 13–15 초
+    "nrcan:arctic": 3,                                                             # 3413 격자 2 에서 7 초·1 에서 31 초 (wetherilli 414)
     "skgs:smdi": 7,                                                                # 격자 5 에서 10.2 초
 }
 
@@ -3387,6 +3393,13 @@ def _layer_extra_base(layer, lang: str = "ko") -> dict:
         # 남극 Bedmap3(wetherilli 261) — BAS 의 ArcGIS Online 타일을 화면이 곧장. Esri 극 격자라 원점·해상도를 행에 싣는다. 누르기는 없다
         return {"attribution": bas.ATTRIBUTION, "tiles": bas.tile_url(layer.name), "grid": bas.grid(layer.name),
                 "queryable": False, "legend": "list", "legendUrl": "list/legend/"}
+    if layer.upstream == "gibs" and layer.name in basemaps.GIBS_OVERLAYS:
+        # 남극·그린란드 빙하 속도(wetherilli 413) — GIBS 극지 격자(512 px)를 서버가 받아 담는다. 범례는 GIBS 의 SVG, 누르기는 없다
+        epsg = basemaps.GIBS_OVERLAYS[layer.name][1]
+        return {"attribution": basemaps.GIBS_ATTRIBUTION.format(**basemaps.GIBS_CITES[layer.name]),
+                "tiles": basemaps.gibs_overlay_path(layer.name), "direct": basemaps.gibs_overlay_direct(layer.name),
+                "projection": f"EPSG:{epsg}", "grid": basemaps.gibs_overlay_grid(), "queryable": False,
+                "legendImg": basemaps.gibs_overlay_legend(layer.name)}
     if layer.upstream == "ags" and ags.knows(layer.name):
         # 앨버타(wetherilli 235) — 타일은 ArcGIS Online 의 3857 z/x/y 를 화면이 곧장(지리원 주제 타일과 같은 길), 누른 자리만 문이
         url, last = ags.LAYERS[layer.name]
@@ -3469,6 +3482,9 @@ def _layer_extra_base(layer, lang: str = "ko") -> dict:
                 **({"minZoom": first} if first else {})}
     if layer.upstream == "nrcan" and nrcan.knows(layer.name):
         # 캐나다 NRCan 1:500만(wetherilli 204) — 캐나다 탭의 투영(3978, 캐나다 람베르트)으로 곧장 받는다. 범례는 상류의 그림
+        if layer.name == "nrcan:arctic":
+            # 북극 지질도 1:500만(wetherilli 414) — 북극 탭의 투영(3413)으로 곧장. 범례 그림은 기호뿐이라 보는 범위의 범례(`nrcan/legend/`)
+            return {"attribution": nrcan.ARCTIC_ATTRIBUTION, "projection": "EPSG:3413", "legend": "extent", "legendUrl": "nrcan/legend/"}
         if layer.name in nrcan.SERVICES:
             # 같은 서버의 다른 서비스(wetherilli 250) — 편찬 지질도·유망도는 래스터라 누르지 않고 범례 그림만
             return {"attribution": nrcan.OTHER_ATTRIBUTION, "projection": "EPSG:3978",
@@ -3648,6 +3664,10 @@ def _layer_extra_base(layer, lang: str = "ko") -> dict:
         # 중국 지질도 1:400만의 지명 이름표(wetherilli 389) — Natural Earth 의 한국어·영어 이름과 한자. 화면이 글자로 그린다
         return {"kind": "points", "queryable": False, "style": "label", "attribution": naturalearth.CREDIT,
                 "source": "https://www.naturalearthdata.com/", "sourceLabel": str(msg("원본 자료 — Natural Earth 10 m, 퍼블릭 도메인"))}
+    if layer.upstream == "scar" and layer.name == scar.PLACES:
+        # 남극 지명 이름표(wetherilli 412) — 받아 둔 SCAR 지명사전. china4m 의 이름표와 같은 손으로 화면이 글자로 그린다
+        return {"kind": "points", "queryable": False, "style": "label", "attribution": scar.CREDIT,
+                "source": scar.SOURCE_URL, "sourceLabel": str(msg("원본 자료 — SCAR 남극 통합 지명사전, CC BY"))}
     if layer.upstream == "china4m" and layer.name == china4m.NAME:
         # 중국 지질도 1:400만 스캔(wetherilli 387) — 우리가 경위선으로 좌표를 붙여 3857 로 잘라 둔 z/x/y. 그 위 줌은 화면이 늘린다
         # 누른 자리·범례는 범례 색으로 칠해 둔 색 번호 격자에서 읽는다(`china4m/info/`·`china4m/legend/`, wetherilli 388·389)
@@ -3776,7 +3796,7 @@ def wms(request):
         old = tilecache.get(cache_key, stale=True)
         if old is not None:
             return _tile(old, cached=True)
-        return _tile(tiles.notice_tile(width, height, tiles.NO_KEY), store=False)
+        return _notice_tile(tiles.notice_tile(width, height, tiles.NO_KEY), store=False)
 
     # 느린 상류는 큰 장을 받아 잘라 담는다(메타타일, wetherilli 282) — 격자에 맞지 않는 칸이면 하던 대로 한 칸
     first = (params.get("layers") or "").split(",")[0].strip()
@@ -3799,7 +3819,7 @@ def wms(request):
             return _tile(old, cached=True)
         log.warning("타일을 받지 못했다: %s", exc)
         # 늦은 것(문 한계·잠금 기다림)은 "느리다" 로 가른다 — 다시 보면 나올 수 있다 (wetherilli 300)
-        return _tile(tiles.notice_tile(width, height, tiles.SLOW if metatile.slow(exc) else tiles.NO_MAP), store=False)
+        return _notice_tile(tiles.notice_tile(width, height, tiles.SLOW if metatile.slow(exc) else tiles.NO_MAP), store=False)
 
     # 안내 타일은 캐시에 넣지 않는다 — 위에서 store=False 로 갈라 둔 까닭이다.
     # 자료를 파는 상류(`NO_STORE`)도 담지 않는다 — 그때그때 받아 보여 주기만 한다 (wetherilli 209)
@@ -3926,7 +3946,7 @@ def vworld_tile(request, layer, z, y, x):
         got = vworld.get_wmts_tile(layer, int(z), int(y), int(x))
     except vworld.VWorldError as exc:
         log.warning("VWorld 배경지도를 받지 못했다: %s", exc)
-        return _tile(tiles.notice_tile(256, 256, tiles.SLOW if metatile.slow(exc) else tiles.NO_MAP), store=False)
+        return _notice_tile(tiles.notice_tile(256, 256, tiles.SLOW if metatile.slow(exc) else tiles.NO_MAP), store=False)
     if got is None:
         return _tile(tiles.blank_tile(256, 256))
     return _tile(got[0], content_type=got[1])
@@ -3942,7 +3962,8 @@ def gibs_tile_key(epsg, layer, z, x, y):
     return tilecache.key_text("gibs", f"{epsg}/{layer}/{z}/{y}/{x}")
 
 
-def _open_basemap(key, fetch, size, label):
+def _open_basemap(key, fetch, size, label, overlay=False):
+    """`overlay` — 겹쳐 그리는 레이어(GIBS 빙하 속도, wetherilli 413)는 못 받은 칸을 안내 타일 대신 투명으로 낸다. 안내 그림이 아래 지도를 가리지 않게"""
     hit = tilecache.get(key)
     if hit is not None:
         return _tile(hit, cached=True)
@@ -3954,6 +3975,8 @@ def _open_basemap(key, fetch, size, label):
         if old is not None:
             return _tile(old, cached=True)
         log.warning("%s 배경을 받지 못했다: %s", label, exc)
+        if overlay:
+            return _tile(tiles.blank_tile(size, size), store=False)
         return _tile(tiles.notice_tile(size, size, tiles.SLOW if metatile.slow(exc) else tiles.NO_MAP), store=False)
     tilecache.put(key, content)
     response = _tile(content)
@@ -3969,6 +3992,18 @@ def gibs_tile(request, epsg, layer, z, y, x):
         return JsonResponse({"error": i18n.t(msg("그런 타일은 없다"), i18n.lang_of(request))}, status=404)
     return _open_basemap(gibs_tile_key(epsg, layer, z, x, y), lambda: basemaps.gibs_tile(epsg, layer, z, x, y),
                          512, "GIBS")
+
+
+@require_GET
+def gibs_overlay_tile(request, epsg, layer, z, y, x):
+    """겹쳐 그리는 GIBS 레이어 — MEaSUREs 빙하 속도 `gibs/<투영>/<레이어>/<z>/<y>/<x>.png` (wetherilli 413).
+    캐시 열쇠에 시점을 넣는다 — 표의 시점을 바꾸면 옛 그림을 내지 않게"""
+    z, y, x = int(z), int(y), int(x)
+    if not basemaps.knows_gibs_overlay(epsg, layer, z, x, y):
+        return JsonResponse({"error": i18n.t(msg("그런 타일은 없다"), i18n.lang_of(request))}, status=404)
+    key = tilecache.key_text("gibs", f"{epsg}/{layer}/{basemaps.gibs_overlay_time(layer)}/{z}/{y}/{x}")
+    return _open_basemap(key, lambda: basemaps.gibs_overlay_tile(epsg, layer, z, x, y), 512, "GIBS",
+                         overlay=True)
 
 
 @require_GET
@@ -4847,6 +4882,33 @@ def sgs_legend(request):
 
 @require_GET
 @browser_cached
+def nrcan_legend(request):
+    """`?layer=nrcan:arctic&bbox=서,남,동,북` — 북극 지질도의 보는 범위 범례 (wetherilli 414). 칠하기가 `COLOUR` 210 칸이고 이름표가
+    기호뿐이라 범위 안의 단위를 REST 통계로 세고 색은 칠하기 규칙에서 찾는다. 꼴은 사우디(`sgs_legend`)와 같다"""
+    lang = i18n.lang_of(request)
+    name = request.GET.get("layer", "")
+    if name != "nrcan:arctic":
+        return JsonResponse({"error": i18n.t(msg("범례가 없는 레이어다"), lang), "rows": []}, status=400)
+    parts = [_float(v) for v in (request.GET.get("bbox") or "").split(",")]
+    if len(parts) != 4 or None in parts:
+        return JsonResponse({"error": i18n.t(msg("bbox 가 없다"), lang), "rows": []}, status=400)
+    bbox = [round(v, 2) for v in parts]
+    key = tilecache.key_text("nrcan-arctic-legend", f"{name}/{bbox}")
+    held = _cached_json(key)
+    try:
+        if held is None:
+            held = {"rows": nrcan.arctic_legend(tuple(bbox))}
+            tilecache.put(key, json.dumps(held, ensure_ascii=False).encode("utf-8"), ".json")
+        colors = nrcan.arctic_colors()
+    except nrcan.NrcanError as exc:
+        log.info("북극 지질도 범례를 받지 못했다: %s", exc)
+        return JsonResponse({"error": i18n.t(msg("범례를 받지 못했다"), lang), "rows": []}, status=502)
+    shown = [nrcan.legend_row(r, colors, lang) for r in held["rows"][:nrcan.MAX_LEGEND]]
+    return JsonResponse({"rows": shown, "more": max(0, len(held["rows"]) - len(shown))})
+
+
+@require_GET
+@browser_cached
 def ga_legend(request):
     """`?layer=ga:lithostratigraphy&bbox=서,남,동,북` — 호주 지질도의 보는 범위 범례 (wetherilli 212). 범위가 넓으면 1:250만 판,
     좁으면 1:100만 판의 단위를 센다 — 상류가 그 축척에 그리는 판과 같게. 꼴은 페루(`ingemmet_legend`)와 같다"""
@@ -5358,6 +5420,14 @@ def _tile(png: bytes, *, cached: bool = False, store: bool = True, content_type:
     return response
 
 
+def _notice_tile(png: bytes, store: bool = False):
+    """안내 타일(키가 없다·느리다·지도가 없다) — 화면에는 `_tile` 과 같고, 머리 `X-GSM-Notice` 로 진짜 타일과 가른다.
+    오프라인 묶음을 GSM 을 거쳐 굽는 쪽(`gsmpack.sources.via_gsm`)이 이것을 실패로 읽는다 (wetherilli 407)"""
+    response = _tile(png, store=store)
+    response["X-GSM-Notice"] = "1"
+    return response
+
+
 @require_GET
 @browser_cached
 def feature_info(request):
@@ -5781,6 +5851,8 @@ def point_layer(request):
         return _earth_points_layer(request, name, lang)
     if name == china4m.PLACES:
         return _china4m_places(name, lang)
+    if name == scar.PLACES:
+        return _scar_places(lang)
     if kigam50k.knows_file(name):
         return _kigam50k_layer(name, lang)
     _, module = _point_door(name)
@@ -5810,7 +5882,8 @@ PLACE_NAMES = "npolar:place_names"
 PLACE_SOURCES = {
     "svalbard": (PLACE_NAMES,),
     "greenland": ("grportal:place_names",),
-    "antarctica": ("npolar:dml_place_names",),
+    # 남극은 SCAR 지명사전이 대륙 전체를 덮는다(wetherilli 412). 드로닝모드랜드는 NPI 의 것이 더 촘촘해 함께 뒤진다
+    "antarctica": (scar.PLACES, "npolar:dml_place_names"),
 }
 #: 지명 레이어 → (이름 열들, 곁말 열들). 이름 열의 첫 것이 보이는 이름이다
 PLACE_FIELDS = {
@@ -5825,6 +5898,8 @@ _place_index = {}
 
 
 def _place_index_for(name: str) -> list:
+    if name == scar.PLACES:
+        return scar.place_index_cached()      # 받아 둔 파일 — 다시 받으면 새로 짓는다
     hit = _place_index.get(name)
     if hit and time.monotonic() - hit[0] < PLACE_INDEX_SECONDS:
         return hit[1]
@@ -5848,12 +5923,23 @@ def place_names(request):
     for name in sources:
         try:
             index += _place_index_for(name)
-        except (POINT_ERRORS + (ValueError,)) as exc:
+        except (POINT_ERRORS + (ValueError, OSError)) as exc:
             log.warning("지명을 받지 못했다 (%s): %s", name, exc)
             failed += 1
     if failed == len(sources):
         return JsonResponse({"error": i18n.t(msg("상류에서 받지 못했다"), lang)}, status=502)
-    return JsonResponse({"results": arcpoints.match_index(index, query)})
+    return JsonResponse({"results": _distinct_places(arcpoints.match_index(index, query, limit=40))[:20]})
+
+
+def _distinct_places(hits: list) -> list:
+    """지명사전 둘이 같은 곳을 함께 적었으면(SCAR 의 노르웨이 이름과 NPI 의 드로닝모드랜드) 앞의 것만 — 이름이 같고
+    위도 0.05°·경도 0.2° 안(남위 70° 에서 둘 다 5 km 남짓)"""
+    out = []
+    for h in hits:
+        if not any(o["title"] == h["title"] and abs(o["lat"] - h["lat"]) < 0.05
+                   and abs((o["lon"] - h["lon"] + 180) % 360 - 180) < 0.2 for o in out):
+            out.append(h)
+    return out
 
 
 def _ntgeo_layer(name, lang):
@@ -6015,6 +6101,21 @@ def _china4m_places(name, lang):
     if _lab_only(name):
         return JsonResponse({"error": i18n.t(msg("그런 레이어는 없다"), lang)}, status=404)
     response = HttpResponse(china4m.places_body(lang), content_type="application/geo+json")
+    if settings.TILE_CACHE_SECONDS > 0:
+        response["Cache-Control"] = f"public, max-age={settings.TILE_CACHE_SECONDS}"
+    return response
+
+
+def _scar_places(lang):
+    """남극 지명 이름표(wetherilli 412) — `manage.py fetch_scar_gazetteer` 가 받아 둔 파일만 읽는다. 없으면 503 으로 까닭을 말한다"""
+    try:
+        content = scar.label_body()
+    except FileNotFoundError:
+        return JsonResponse({"error": i18n.t(msg("SCAR 지명사전을 아직 받지 않았다 (fetch_scar_gazetteer)"), lang)}, status=503)
+    except (OSError, ValueError, KeyError) as exc:
+        log.warning("SCAR 지명사전을 읽지 못했다: %s", exc)
+        return JsonResponse({"error": i18n.t(msg("SCAR 지명사전을 읽지 못했다"), lang)}, status=500)
+    response = HttpResponse(content, content_type="application/geo+json")
     if settings.TILE_CACHE_SECONDS > 0:
         response["Cache-Control"] = f"public, max-age={settings.TILE_CACHE_SECONDS}"
     return response
@@ -6784,6 +6885,159 @@ def offline_view(request):
         p["mb"] = f"{p['bytes'] / 1024 / 1024:.1f}"
         p["extent"] = " · ".join(f"{v:g}" for v in p["bbox"]) if p.get("bbox") else ""
     return render(request, "viewer/offline.html", {"lang": lang, "packs": packs, "version": VERSION})
+
+
+@require_GET
+def offline_plan(request):
+    """레이어 하나를 GSM 을 거쳐 받을 주소의 꼴 — 노트북의 `gsmpack bake --via` 가 묻는다(wetherilli P16·407). 굽지 못하면 404."""
+    from .management.commands import build_offline_pack
+    if settings.PUBLIC:
+        raise Http404
+    spec = build_offline_pack.plan_spec(request.GET.get("layer", ""))
+    if spec is None:
+        return JsonResponse({"error": "그 레이어는 묶음으로 굽지 못한다"}, status=404)
+    return JsonResponse(spec)
+
+
+#: `offline/units/` 가 받는 범위의 한 변 — 도폭 몇 장. 넓은 범위의 WFS 는 상류에 무겁다
+OFFLINE_UNITS_SPAN = 2.0
+
+
+@require_GET
+def offline_units(request):
+    """박스 범위의 지층 면 — `{type, types, features}`(GeoJSON). 노트북의 `gsmpack bake --via` 가 묻는다(wetherilli 407).
+    굽는 명령과 같은 손질(`build_offline_pack.layer_units`)이고 상류에 1 초 간격이다. 캐시에 담지 않는다 — 굽기마다 한 번이다"""
+    from .management.commands import build_offline_pack
+    if settings.PUBLIC:
+        raise Http404
+    name = request.GET.get("layer", "")
+    try:
+        bbox = [float(v) for v in request.GET.get("bbox", "").split(",")]
+    except ValueError:
+        bbox = []
+    if len(bbox) != 4 or not (bbox[0] < bbox[2] and bbox[1] < bbox[3]):
+        return JsonResponse({"error": "bbox 는 서,남,동,북"}, status=400)
+    if bbox[2] - bbox[0] > OFFLINE_UNITS_SPAN or bbox[3] - bbox[1] > OFFLINE_UNITS_SPAN:
+        return JsonResponse({"error": f"범위가 너무 넓다 — 한 변 {OFFLINE_UNITS_SPAN:g}° 까지"}, status=400)
+    spec = build_offline_pack.plan_spec(name)
+    if spec is None or spec["kind"] != "kigam":
+        return JsonResponse({"error": "그 레이어는 지층 면이 없다"}, status=404)
+    try:
+        features, types = build_offline_pack.layer_units(name, bbox, 1.0)
+    except build_offline_pack.PREWARM_ERRORS as exc:          # 문의 오류에 더해 JSON·소켓의 것까지 — 500 이 아니라 502 로
+        log.warning("지층 면을 받지 못했다: %s", exc)
+        return JsonResponse({"error": "상류가 지층 면을 주지 않았다"}, status=502)
+    return JsonResponse({"type": "FeatureCollection", "types": types, "features": features})
+
+
+def _offline_rows(lang, limit=30):
+    """요청 목록 — 화면과 관리 탭이 같이 그린다. 요청한 이·쓰임은 연구실 안의 사람이 적은 것이다"""
+    from .models import OfflinePackRequest
+    labels = dict(OfflinePackRequest.STATUSES)
+    rows = []
+    try:
+        for r in OfflinePackRequest.objects.all()[:limit]:
+            box = r.box or {}
+            rows.append({"id": r.pk, "name": r.box_name, "title": box.get("title", ""), "requester": r.requester, "note": r.note,
+                         "status": r.status, "status_label": i18n.t(msg(labels.get(r.status, r.status)), lang),
+                         "layers": len(box.get("layers") or {}), "bbox": " · ".join(f"{v:g}" for v in box.get("bbox") or []),
+                         "created": timezone.localtime(r.created_at).strftime("%Y-%m-%d %H:%M"),
+                         "approved_by": r.approved_by, "pack": r.pack, "last_line": r.last_line,
+                         "can_approve": r.status in (r.WAITING, r.FAILED, r.REJECTED), "can_reject": r.status in (r.WAITING, r.APPROVED)})
+    except DatabaseError:
+        return []
+    return rows
+
+
+def _offline_choice(row, lang):
+    """요청 화면의 레이어 한 줄 — 영어판이면 레이어·레이어군 제목을 옮긴다(`LAYER_EN`·`GROUP_EN`, VWorld 는 `EN`)"""
+    en = lang == "en"
+    if row["group"] == "VWorld":
+        return dict(row, title=i18n.t(row["title"], lang))
+    return dict(row, title=i18n.LAYER_EN.get(row["name"], row["title"]) if en else row["title"],
+                group=i18n.GROUP_EN.get(row["group"], row["group"]) if en else row["group"])
+
+
+def offline_request(request):
+    """오프라인 묶음 굽기 요청 (wetherilli P16·408) — GET 은 화면(범위는 `?bbox=서,남,동,북`), POST 는 요청 한 줄(JSON).
+    누구나 요청하고 staff 가 관리 화면에서 승인해야 굽는다. 밖에 연 판에서는 닫힌다"""
+    from .models import OfflinePackRequest
+    if settings.PUBLIC:
+        raise Http404
+    lang = i18n.lang_of(request)
+    if request.method == "POST":
+        try:
+            data = json.loads(request.body or b"{}")
+        except ValueError:
+            data = None
+        box, error = offlinereq.clean(data)
+        requester = str((data or {}).get("requester") or "").strip()[:40]
+        if box is not None and not requester:
+            error = msg("요청한 이의 이름을 적는다")
+        if error:
+            return JsonResponse({"error": i18n.t(error, lang)}, status=400)
+        row = OfflinePackRequest.objects.create(requester=requester, note=str(data.get("note") or "").strip()[:500], box=box)
+        return JsonResponse({"id": row.pk, "name": row.box_name})
+    if request.method != "GET":
+        return HttpResponseNotAllowed(["GET", "POST"])
+    try:
+        bbox = [float(v) for v in request.GET.get("bbox", "").split(",")]
+    except ValueError:
+        bbox = []
+    return render(request, "viewer/offline_request.html", {
+        "lang": lang, "version": VERSION, "bbox": bbox if len(bbox) == 4 else ["", "", "", ""],
+        "i18n_json": json.dumps(i18n.client_table(lang), ensure_ascii=False),
+        "layers": [_offline_choice(r, lang) for r in offlinereq.choices()],
+        "max_side": offlinereq.MAX_SIDE, "zooms": offlinereq.ZOOMS, "budget": offlinereq.BUDGET_MB,
+        "rows": _offline_rows(lang), "sent": request.GET.get("sent", ""),
+    })
+
+
+@require_POST
+def offline_estimate(request):
+    """요청 화면의 어림 — `build_offline_pack --dry-run` 과 같은 셈(캐시에 있는 타일의 줌마다 평균, 없으면 잰 값). 상류를 타지 않는다"""
+    from gsmpack import bake
+    from .management.commands import build_offline_pack
+    if settings.PUBLIC:
+        raise Http404
+    lang = i18n.lang_of(request)
+    try:
+        data = json.loads(request.body or b"{}")
+    except ValueError:
+        data = None
+    box, error = offlinereq.clean(data)
+    if error:
+        return JsonResponse({"error": i18n.t(error, lang)}, status=400)
+    sources, _ = build_offline_pack.make_sources(box, bake.NoParts())
+    plan = bake.Plan("req", box, sources)
+    return JsonResponse({"lines": plan.lines, "mb": round(plan.guess / 1024 / 1024, 1), "budget": offlinereq.BUDGET_MB,
+                         "dropped": plan.dropped, "calls": plan.calls, "minutes": math.ceil(plan.calls * plan.gap / 60)})
+
+
+@require_POST
+def offline_decide(request, pk):
+    """관리 화면 "오프라인 묶음" 탭의 승인·거절 — staff 만. 승인하면 일꾼을 띄운다(이미 돌면 그쪽이 집어 간다, `offlinereq.spawn`)"""
+    from .models import OfflinePackRequest
+    if settings.PUBLIC:
+        raise Http404
+    if not _is_editor(request):
+        return HttpResponseForbidden()
+    row = get_object_or_404(OfflinePackRequest, pk=pk)
+    action = request.POST.get("action")
+    if action == "approve" and row.status in (row.WAITING, row.FAILED, row.REJECTED):
+        row.status, row.last_line = row.APPROVED, ""
+    elif action == "reject" and row.status in (row.WAITING, row.APPROVED):
+        row.status = row.REJECTED
+    else:
+        return HttpResponseBadRequest()
+    row.approved_by, row.decided_at = request.user.get_username(), timezone.now()
+    row.save(update_fields=["status", "last_line", "approved_by", "decided_at"])
+    if row.status == row.APPROVED:
+        try:
+            offlinereq.spawn()
+        except (OSError, subprocess.SubprocessError) as exc:
+            log.warning("묶음 일꾼을 띄우지 못했다: %s", exc)
+    return redirect(reverse("viewer:manage") + "?tab=offline")
 
 
 def offline_file(request, name):

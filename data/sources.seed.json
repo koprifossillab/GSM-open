@@ -124,6 +124,29 @@
    ]
   },
   {
+   "id": "scar_gazetteer",
+   "name": {
+    "ko": "남극 지명 SCAR 통합 지명사전",
+    "en": "Antarctic place names SCAR Composite Gazetteer"
+   },
+   "org": "SCAR (AADC 호스팅)",
+   "kind": "fetch",
+   "commands": [
+    "fetch_scar_gazetteer"
+   ],
+   "runs_on": "container",
+   "schedule": "manual",
+   "license": "CC BY (인용 — Secretariat SCAR, Composite Gazetteer of Antarctica)",
+   "flags": [],
+   "outputs": [
+    "scar/cga_place_names.json"
+   ],
+   "docs": [
+    "wetherilli 412"
+   ],
+   "note": "나라들이 이름을 더할 때마다 자란다 — 판을 붙이기 전이나 몇 달에 한 번"
+  },
+  {
    "id": "kopri",
    "name": {
     "ko": "극지연구소 암석 시료·KPDC·운석",

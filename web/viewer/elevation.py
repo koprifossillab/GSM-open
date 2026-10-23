@@ -190,6 +190,23 @@ def pgc_value(lat: float, lon: float):
 
 # ── 점마다 고른다 ────────────────────────────────────────────────────
 
+#: PGC 의 음영 그림 — 화면의 `pgcHillshade`(OpenLayers `TileArcGISRest`)가 부르는 `exportImage` 와 같은 변수다 (wetherilli 411)
+PGC_EXPORT_URL = "https://di-pgc.img.arcgis.com/arcgis/rest/services/{service}/ImageServer/exportImage"
+
+
+def pgc_image(service: str, bbox: tuple, size: int, epsg: int, rendering: str = "Hillshade Gray") -> bytes:
+    """PGC ImageServer 의 그림 한 장(`bbox` 는 그 투영의 서·남·동·북) — 오프라인 묶음이 남극의 REMA 음영을 굽는 데 쓴다(wetherilli P17·411).
+    화면은 지금처럼 PGC 를 곧장 부른다. 캐시에 담지 않는다 — 묶음 굽기마다 한 번이다. 못 받으면 `ElevationError`"""
+    r = _get(PGC_EXPORT_URL.format(service=service), "pgc", params={
+        "F": "image", "FORMAT": "jpgpng", "TRANSPARENT": "true",
+        "renderingRule": json.dumps({"rasterFunction": rendering}, separators=(",", ":")),
+        "BBOX": ",".join(repr(float(v)) for v in bbox), "BBOXSR": str(epsg), "IMAGESR": str(epsg),
+        "SIZE": f"{size},{size}", "DPI": "90"})
+    if r.status_code != 200 or not r.headers.get("content-type", "").startswith("image/"):
+        raise ElevationError(f"PGC 가 그림을 주지 않았다 (status={r.status_code})")
+    return r.content
+
+
 def in_japan(lat: float, lon: float) -> bool:
     """국토지리원에 물을 만한 자리. 한국의 동해안·부산·울릉도·독도는 뺀다 — 물어도
     404 라 헛걸음이다. 빼지 못한 것은 404 가 걸러 AWS 로 넘어간다."""

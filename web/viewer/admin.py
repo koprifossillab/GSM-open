@@ -2,7 +2,7 @@ from django.contrib import admin
 from django.db import transaction
 
 from . import sources
-from .models import DataSource, DataSourceChange, FetchRun, Layer, LayerGroup, Point, PointSet
+from .models import DataSource, DataSourceChange, FetchRun, Layer, LayerGroup, OfflinePackRequest, Point, PointSet
 
 
 @admin.register(LayerGroup)
@@ -99,3 +99,11 @@ class FetchRunAdmin(admin.ModelAdmin):
 
     def has_delete_permission(self, request, obj=None):
         return False
+
+
+@admin.register(OfflinePackRequest)
+class OfflinePackRequestAdmin(admin.ModelAdmin):
+    """오프라인 묶음 요청 (wetherilli 408) — 승인·거절은 관리 화면의 탭에서 한다. 여기는 박스(레이어·줌)를 고치거나 실패한 것을 다시 줄 세울 때"""
+    list_display = ("id", "requester", "status", "approved_by", "pack", "created_at")
+    list_filter = ("status",)
+    search_fields = ("requester", "note")

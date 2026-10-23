@@ -247,6 +247,24 @@ class Browser(SimpleTestCase):
         page.wait_for_timeout(settle)
         return page, errors
 
+    def test_남극은_Esri_없이_LIMA_로(self):
+        """공개 판에는 Esri 남극 위성을 싣지 않는다 — Esri 조건(MLA)이 Esri 소프트웨어와 함께 쓰라고 적는다(사람, 2026-10-21, wetherilli P17).
+        남극은 LIMA 위성(공공 도메인, 바다는 Blue Marble)으로 열리고(사람, 2026-10-22, wetherilli 415), 고르개에 Esri 가 없고,
+        Esri 를 고른 채 남은 브라우저도 Esri 를 부르지 않는다"""
+        asked = []
+        page, errors = self.open("antarctica", asked=asked,
+                                 preset="try { localStorage.setItem('gsm.basemap.antarctica', 'esri_antarctic'); "
+                                        "localStorage.setItem('gsm.basemap', 'esri_antarctic'); } catch (e) {}")
+        self.assertEqual(errors, [])
+        options = page.eval_on_selector_all("#basemap option", "os => os.map(o => o.value)")
+        self.assertNotIn("esri_antarctic", options)
+        self.assertIn("rema", options)
+        self.assertEqual(page.eval_on_selector("#basemap", "s => s.value"), "lima")
+        self.assertFalse([u for u in asked if "arcgisonline.com" in u], "공개 판이 Esri 를 불렀다")
+        self.assertTrue([u for u in asked if "overlord.pgc.umn.edu" in u and "ant_pgc_composite_mosaic/MapServer/tile/" in u],
+                        "LIMA 를 부르지 않았다")
+        self.assertTrue([u for u in asked if "gibs.earthdata.nasa.gov/wmts/epsg3031/" in u], "바다의 Blue Marble 을 부르지 않았다")
+
     def test_처음_열면_키_둘을_묻는다(self):
         """KIGAM·VWorld 둘 다 각자 키 — 처음 열면 둘을 받는 창이 뜬다 (wetherilli 174)."""
         page, errors = self.open("korea", ask_keys=True)

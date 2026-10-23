@@ -141,6 +141,17 @@ class PutGet(CacheCase):
             self.assertIsNone(tilecache.get("g" * 64))
 
 
+class Size(CacheCase):
+    def test_크기만_보고_쓰인_때를_남기지_않는다(self):
+        """오프라인 묶음의 어림이 쓴다 — 어림이 수천 장을 "쓰인 것" 으로 만들면 prune 이 흐려진다 (wetherilli 408)"""
+        tilecache.put("k" * 64, b"abc")
+        path = tilecache._path("k" * 64)
+        os.utime(path, (1000, path.stat().st_mtime))
+        self.assertEqual(tilecache.size("k" * 64), 3)
+        self.assertEqual(path.stat().st_atime, 1000)
+        self.assertIsNone(tilecache.size("z" * 64))
+
+
 class Prune(CacheCase):
     def test_늙은_것을_버린다(self):
         fresh, old = "1" * 64, "2" * 64

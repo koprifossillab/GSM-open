@@ -366,6 +366,39 @@ class VisitDay(models.Model):
         return f"{self.day} {self.screen} {self.client} {self.count}"
 
 
+class OfflinePackRequest(models.Model):
+    """오프라인 묶음 굽기 요청 하나 (wetherilli P16·408) — 화면에서 범위·레이어·줌을 골라 요청하고, staff 가 승인하면 일꾼이 굽는다.
+
+    **승인해야 굽는다** — VWorld 를 수천 장 부르는 일이라 한 번 거른다(사람, 2026-10-21). 요청한 이는 이름 칸뿐이다(로그인 없이,
+    연구실 안의 길). `box` 는 `data/offline_boxes.json` 의 한 칸과 같은 꼴이고, 굽는 것은 `build_offline_pack --queue` 다(한 번에 하나).
+    묶음 파일은 `req<번호>-<날짜>.gsmpack` 로 `/GSM/offline/` 목록에 뜬다."""
+
+    WAITING, APPROVED, BAKING, DONE, FAILED, REJECTED = "waiting", "approved", "baking", "done", "failed", "rejected"
+    STATUSES = ((WAITING, "기다림"), (APPROVED, "승인됨"), (BAKING, "굽는 중"), (DONE, "됨"), (FAILED, "실패"), (REJECTED, "거절됨"))
+
+    requester = models.CharField("요청한 이", max_length=40)
+    note = models.TextField("쓰임", blank=True)
+    box = models.JSONField("박스")                           # {title, region, bbox, layers: {이름: [처음, 마지막]}, units, budget_mb}
+    status = models.CharField("상태", max_length=10, choices=STATUSES, default=WAITING)
+    approved_by = models.CharField("승인한 staff", max_length=150, blank=True)
+    pack = models.CharField("묶음 파일", max_length=120, blank=True)
+    last_line = models.CharField("마지막 줄", max_length=500, blank=True)
+    created_at = models.DateTimeField("요청한 때", auto_now_add=True)
+    decided_at = models.DateTimeField("승인·거절한 때", null=True, blank=True)
+    started_at = models.DateTimeField("굽기 시작", null=True, blank=True)
+    finished_at = models.DateTimeField("굽기 끝", null=True, blank=True)
+
+    class Meta:
+        ordering = ["-created_at", "-id"]
+
+    @property
+    def box_name(self) -> str:
+        return f"req{self.pk}"
+
+    def __str__(self):
+        return f"{self.box_name} {self.box.get('title', '')} ({self.status})"
+
+
 # ── 데이터소스 (jikhanjung P03) ─────────────────────────────────────────
 #
 # 받아 두는 바깥 자료의 명세와 받은 차례의 기록. 둘 다 처음엔 파일이었다(P02 — `<DB 옆>/sources.json`·`store.sqlite` 의 `fetch_log`).

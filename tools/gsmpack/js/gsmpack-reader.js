@@ -49,29 +49,49 @@
   }
 
   /** 레이어·타일 자리의 Blob 하나, 없으면 null. 열쇠는 화면의 tileCoord 그대로다 — 격자는 머리의 `layers.<이름>.tile_size`.
-   *  `tileSize` 를 주면 그것이 다른 묶음은 null 이다 — 격자가 어긋난 묶음이 엉뚱한 자리에 그리지 않게 */
-  function tile(pack, name, z, x, y, tileSize) {
+   *  `want` 를 주면 격자가 다른 묶음은 null 이다 — 격자가 어긋난 묶음이 엉뚱한 자리에 그리지 않게. `want` 는 타일 크기(수) 또는
+   *  `{size, grid}` — 남극 탭에는 256 px 격자가 셋이라(3031·Esri 극 격자·옮겨 그리는 3857) 크기만으로는 못 가른다(wetherilli 410) */
+  function tile(pack, name, z, x, y, want) {
     var at = pack.head.tiles[name + "/" + z + "/" + x + "/" + y];
     if (!at) return null;
     var meta = pack.head.layers[name] || {};
-    if (tileSize && meta.tile_size && meta.tile_size !== tileSize) return null;
+    if (!fits(meta, want)) return null;
     return pack.blob.slice(pack.base + at[0], pack.base + at[0] + at[1], meta.type || "image/png");
+  }
+
+  /** 머리의 레이어(`tile_size`·`grid`)가 화면 소스의 격자와 맞나. `grid` 를 적지 않은 옛 묶음은 3857 이다 */
+  function fits(meta, want) {
+    if (!want) return true;
+    var size = typeof want === "number" ? want : want.size;
+    if (size && meta.tile_size && meta.tile_size !== size) return false;
+    return typeof want === "number" || !want.grid || (meta.grid || "EPSG:3857") === want.grid;
   }
 
   //: 늘려 그리는 한도 — 마지막 줌에서 이만큼 깊은 줌까지(2^4 = 16 배). 그보다 깊으면 그릴 것이 없다고 본다
   var MAX_OVERZOOM = 4;
 
-  /** 묶음의 마지막 줌보다 깊은 자리 — 그 레이어의 마지막 줌에서 이 자리를 품은 타일과, 그 안에서 이 자리가 차지하는 칸.
-   *  `{blob, dz, col, row}` — 타일 한 변을 2^dz 로 나눈 칸 가운데 왼쪽에서 col, 위에서 row 번째다. 묶음이 그 줌까지 담았거나(그때는
-   *  `tile` 이 답한다) 그 자리에 타일이 없으면(바다 따위) null (wetherilli 405) */
-  function deeper(pack, name, z, x, y, tileSize) {
+  /** 굽다가 받지 못한 자리인가 — 머리의 `missing`(열쇠 목록, wetherilli 409). 없는 열쇠라도 이것이 아니면 "그릴 것이 없는 자리" 다 */
+  function missing(pack, name, z, x, y) {
+    var list = pack.head.missing;
+    return !!list && list.indexOf(name + "/" + z + "/" + x + "/" + y) >= 0;
+  }
+
+  /** 묶음에 없는 자리를 얕은 줌의 타일로 메운다 — 묶음의 마지막 줌보다 깊은 자리(wetherilli 405)와, 굽다가 받지 못한 자리(`missing`,
+   *  wetherilli 409). 이 자리를 품은 가장 깊은 타일과 그 안에서 이 자리가 차지하는 칸 — `{blob, dz, col, row}` 는 타일 한 변을 2^dz 로
+   *  나눈 칸 가운데 왼쪽에서 col, 위에서 row 번째다. 묶음이 그 자리를 담았거나(그때는 `tile` 이 답한다) 그 자리에 그릴 것이 없으면
+   *  (바다 따위) null. 받지 못한 타일 위로는 한 줌씩 더 올라간다 */
+  function deeper(pack, name, z, x, y, want) {
     var meta = pack.head.layers[name];
     if (!meta || !meta.zooms) return null;
-    var last = meta.zooms[1], dz = z - last;
-    if (dz < 1 || dz > MAX_OVERZOOM) return null;
-    var blob = tile(pack, name, last, x >> dz, y >> dz, tileSize);
-    if (!blob) return null;
-    return { blob: blob, dz: dz, col: x - ((x >> dz) << dz), row: y - ((y >> dz) << dz) };
+    var first = meta.zooms[0], last = meta.zooms[1];
+    if (z <= last && !missing(pack, name, z, x, y)) return null;
+    for (var p = Math.min(last, z - 1); p >= first && z - p <= MAX_OVERZOOM; p--) {
+      var dz = z - p, px = x >> dz, py = y >> dz;
+      var blob = tile(pack, name, p, px, py, want);
+      if (blob) return { blob: blob, dz: dz, col: x - (px << dz), row: y - (py << dz) };
+      if (!missing(pack, name, p, px, py)) return null;
+    }
+    return null;
   }
 
   /** 경위도 한 자리가 묶음의 범위(`bbox`) 안인가 */
@@ -147,6 +167,7 @@
     readHeader: readHeader,
     tile: tile,
     deeper: deeper,
+    missing: missing,
     contains: contains,
     hasUnits: hasUnits,
     readUnits: readUnits,

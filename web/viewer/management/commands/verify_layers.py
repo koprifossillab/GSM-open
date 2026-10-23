@@ -232,13 +232,14 @@ def _xyz(lon: float, lat: float, z: int) -> tuple:
 def tile_for(layer, extra) -> tuple:
     """타일 주소의 칸 (z, x, y) — 화면의 격자를 따라. 범위 한가운데(또는 `VERIFY_AT`)를 품은 칸"""
     grid = extra.get("grid")
-    if grid:                                    # 한반도 음영판·Bedmap3 — 원점·해상도를 받은 격자, 칸은 256 px
+    if grid:                                    # 한반도 음영판·Bedmap3·GIBS — 원점·해상도를 받은 격자, 칸은 256 px(GIBS 는 `tileSize` 512)
         z = grid.get("minZoom") or 0
         res = grid["resolutions"][z]
+        side = grid.get("tileSize") or 256
         ext = grid.get("extent")
         ox, oy = grid.get("origin") or (ext[0], ext[3])
         px, py = ((ext[0] + ext[2]) / 2, (ext[1] + ext[3]) / 2) if ext else (0.0, 0.0)
-        return z, int((px - ox) / (256 * res)), int((oy - py) / (256 * res))
+        return z, int((px - ox) / (side * res)), int((oy - py) / (side * res))
     if extra.get("projection") == "EPSG:3031":  # 우리가 자른 남극 판(ADMAP·IBCSO) — GeoMAP 격자, 줌 0 한 장이 다 덮는다
         return 0, 0, 0
     w, s, e, n = layer.bbox or WORLD

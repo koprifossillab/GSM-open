@@ -1,5 +1,5 @@
 """조건이 열린 배경으로 나가는 문 — NASA GIBS(Blue Marble WMTS·WMS)와 GEBCO 해저 지형(WMS) (wetherilli 184),
-NPI 의 스발바르 지형도·위성 모자이크 타일 (wetherilli 200).
+NPI 의 스발바르 지형도·위성 모자이크 타일 (wetherilli 200), 그리고 배경이 아니라 겹쳐 그리는 GIBS 레이어 — MEaSUREs 빙하 속도 (wetherilli 413).
 
 브라우저가 곧장 부르던 배경 가운데 **담아 두어도 되는 것**만 서버를 거쳐 캐시에 담는다(`views.gibs_tile`·`gibs_wms`·`gebco_wms`).
 
@@ -12,6 +12,11 @@ NPI 의 스발바르 지형도·위성 모자이크 타일 (wetherilli 200).
 그대로 넘긴다. 레이어·투영·줌은 화면이 쓰는 것만 받는다. 조건을 먼저 봐야 하는 배경(PGC 음영·NPI 타일·Trek 영상·EOX·Esri)은
 여기 없다 — 조건을 읽고 나서 이 문에 더한다. VWorld 는 열쇠에 도메인 제한이 걸려 곧장 부른다(003).
 PGC 음영·Trek 영상은 2026-10-04 에 읽었지만 다시 내줘도 되는지가 분명하지 않아 그대로 둔다(wetherilli 200, TODOs (사람)).
+
+**GIBS 의 겹쳐 그리는 레이어**(`GIBS_OVERLAYS`) — 남극·그린란드 빙하 속도(NSIDC-0484·0478)는 카탈로그 레이어(`gibs:` 씨앗)지만
+같은 GIBS 의 같은 격자라 문을 새로 내지 않고 여기에 얹는다. 다른 것은 셋이다 — PNG(투명)이고, 시점(`Time`)이 경로에 들고,
+레이어 이름을 화면이 아니라 이 표가 고른다. 시점은 Capabilities 의 `Default` 를 적어 둔다. 범례는 GIBS 의 SVG 를 화면이 곧장 부른다.
+누른 자리의 값은 없다 — WMTS 라 `GetFeatureInfo` 가 없다.
 
 두 상류를 문 하나에 묶은 것은 하는 일이 같아서다 — 열쇠 없이 타일 한 장을 받아 그림인지만 본다. `elevation.py` 가 표고 상류
 셋을 묶은 것과 같은 까닭이다. 상류가 바뀌면 고칠 자리는 `settings.GIBS_URL`·`GEBCO_WMS_URL` 과 아래 표다.
@@ -30,6 +35,18 @@ log = logging.getLogger(__name__)
 GIBS_LAYERS = ("BlueMarble_ShadedRelief_Bathymetry", "BlueMarble_NextGeneration", "BlueMarble_ShadedRelief")
 #: GIBS WMTS 의 투영 → 500 m 판의 마지막 줌. 4326 은 줌 0 이 288° 한 장(가로 2·세로 1), 극지는 2×2 장이다
 GIBS_ZOOMS = {"4326": 8, "3413": 4, "3031": 4}
+#: 겹쳐 그리는 GIBS 레이어 — 카탈로그 이름 → (GIBS 레이어, 투영, 시점). 격자는 Blue Marble 과 같은 `500m`(줌 0–4, 512 px)다
+GIBS_OVERLAYS = {
+    "gibs:ice_velocity_antarctica": ("MEaSUREs_Ice_Velocity_Antarctica", "3031", "1996-01-01"),
+    "gibs:ice_velocity_greenland": ("MEaSUREs_Ice_Velocity_Greenland", "3413", "2008-12-01"),
+}
+GIBS_OVERLAY_ZOOM = 4
+GIBS_ATTRIBUTION = ('Ice velocity: <a href="https://doi.org/{doi}" target="_blank" rel="noopener">MEaSUREs {short}</a> '
+                    '({who}, NASA NSIDC DAAC) via <a href="https://earthdata.nasa.gov/gibs" target="_blank" rel="noopener">NASA GIBS</a>')
+GIBS_CITES = {
+    "gibs:ice_velocity_antarctica": {"doi": "10.5067/D7GK8F5J8M8R", "short": "NSIDC-0484", "who": "Rignot, Mouginot &amp; Scheuchl 2017"},
+    "gibs:ice_velocity_greenland": {"doi": "10.5067/OC7B04ZM9G6Q", "short": "NSIDC-0478", "who": "Joughin et al. 2015"},
+}
 #: 화면이 쓰는 GEBCO 레이어(`map.js` 의 `gebcoLayer`, `earth.js` 의 `BASES.gebco`)
 GEBCO_LAYERS = ("GEBCO_LATEST", "GEBCO_LATEST_SUB_ICE_TOPO")
 #: WMS 한 장의 가장 큰 변 — 화면은 512 를, Cesium 은 256 을 부른다
@@ -107,6 +124,49 @@ def gibs_tile(epsg: str, layer: str, z: int, x: int, y: int) -> bytes:
     return _get("gibs", f"{base}/wmts/epsg{epsg}/best/{layer}/default/500m/{z}/{y}/{x}.jpeg")
 
 
+def knows_gibs_overlay(epsg: str, layer: str, z: int, x: int, y: int) -> bool:
+    """겹쳐 그리는 GIBS 타일인가 — 경로의 레이어는 GIBS 의 이름이다"""
+    if not any(spec[:2] == (layer, epsg) for spec in GIBS_OVERLAYS.values()) or not 0 <= z <= GIBS_OVERLAY_ZOOM:
+        return False
+    cols, rows = gibs_tile_count(epsg, z)
+    return 0 <= x < cols and 0 <= y < rows
+
+
+def gibs_overlay_time(layer: str) -> str:
+    return next(time for name, epsg, time in GIBS_OVERLAYS.values() if name == layer)
+
+
+def gibs_overlay_path(name: str) -> str:
+    """카탈로그 레이어 → 화면이 부를 우리 주소의 꼴 (`gibs/<투영>/<레이어>/{z}/{y}/{x}.png`)"""
+    layer, epsg, _ = GIBS_OVERLAYS[name]
+    return f"gibs/{epsg}/{layer}/{{z}}/{{y}}/{{x}}.png"
+
+
+def gibs_overlay_direct(name: str) -> str:
+    """정적 판이 곧장 부를 GIBS 주소의 꼴 — 서버가 받는 것과 같다"""
+    layer, epsg, time = GIBS_OVERLAYS[name]
+    return f"{settings.GIBS_URL.rstrip('/')}/wmts/epsg{epsg}/best/{layer}/default/{time}/500m/{{z}}/{{y}}/{{x}}.png"
+
+
+def gibs_overlay_legend(name: str) -> str:
+    """GIBS 의 가로 범례 그림(SVG) — 화면이 `<img>` 로 곧장 부른다(그 안의 스크립트는 `<img>` 에서 돌지 않는다)"""
+    return f"{settings.GIBS_URL.rstrip('/')}/legends/{GIBS_OVERLAYS[name][0]}_H.svg"
+
+
+def gibs_overlay_grid() -> dict:
+    """화면이 받을 격자 — `map.js` 의 `gibsLayer` 와 같다(원점 (-4194304, 4194304), 줌 0 이 8192 m, 512 px)"""
+    return {"origin": [-4194304, 4194304], "extent": [-4194304, -4194304, 4194304, 4194304], "tileSize": 512,
+            "resolutions": [8192 / 2 ** z for z in range(GIBS_OVERLAY_ZOOM + 1)]}
+
+
+def gibs_overlay_tile(epsg: str, layer: str, z: int, x: int, y: int) -> bytes:
+    """겹쳐 그리는 GIBS 타일 한 장 (PNG). 경로는 정적 판이 부르는 그대로다 — 시점을 넣은 z/y/x"""
+    if not knows_gibs_overlay(epsg, layer, z, x, y):
+        raise BasemapError("모르는 GIBS 타일이다")
+    return _get("gibs", f"{settings.GIBS_URL.rstrip('/')}/wmts/epsg{epsg}/best/{layer}/default/"
+                        f"{gibs_overlay_time(layer)}/500m/{z}/{y}/{x}.png")
+
+
 def gibs_wms(params: dict) -> bytes:
     """GIBS WMS(4326) 한 장 — 온 지구의 구(Cesium)가 부른다."""
     if not wms_ok(params, GIBS_LAYERS):
@@ -119,3 +179,9 @@ def gebco_wms(params: dict) -> bytes:
     if not wms_ok(params, GEBCO_LAYERS):
         raise BasemapError("화면이 부르는 꼴의 GetMap 이 아니다")
     return _get("gebco", settings.GEBCO_WMS_URL, params)
+
+
+#: 레이어 패널의 딱지 — 겹쳐 그리는 GIBS 레이어(빙하 속도)만 카탈로그에 선다. 배경은 딱지가 없다 (`doors.py`, wetherilli 413)
+REGISTRY = [
+    {"upstream": "gibs", "tag": "NASA", "title": "미국 항공우주국 GIBS"},
+]

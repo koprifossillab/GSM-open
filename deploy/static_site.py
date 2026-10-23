@@ -40,7 +40,8 @@ REGIONS = ["korea", "greenland", "svalbard", "arctic_ocean", "antarctica"]
 #: 정적 판에 실을 상류 — kigam·vworld 는 각자 키로 곧장(map.js 의 STATIC_KIGAM·STATIC_VWORLD).
 #: 극지 여섯은 `static-kinds.js` 가 곧장 부른다(wetherilli 161) — GEUS·NPI·PGC·EMODnet·극지연구소 KPDC 의 지도 서버·그린란드 포털 점.
 #: 극지연구소의 모아 둔 점(시료·운석·KPDC 목록)은 구운 것이 있어야 선다(`views._static_catalog`)
-UPSTREAMS = ["kigam", "vworld", "geus", "npolar", "pgc", "emodnet", "kopri", "grportal"]
+#: GIBS 빙하 속도(wetherilli 413)는 `map.js` 의 `gibsOverlaySource` 가 GIBS 를 곧장 부른다 — NASA 자료라 쓰임에 제한이 없다, CORS `*`
+UPSTREAMS = ["kigam", "vworld", "geus", "npolar", "pgc", "emodnet", "kopri", "grportal", "gibs"]
 #: 구운 것(`--baked`)이 있으면 더 서는 극지 — 남극 GeoMAP·IBCSO·NPI 점, 얀마옌, 그린란드 포털 점, 스발바르 NPI 점,
 #: 극지연구소 KPDC 점 (wetherilli 160·165). 브라우저가 곧장 부르는 극지 상류(`static-kinds.js`)가 오면 그 레이어도 함께 선다
 BAKED_REGIONS = ["antarctica", "greenland", "svalbard", "jan_mayen", "arctic_ocean"]

@@ -1,0 +1,113 @@
+{% load static gsm_i18n %}<!DOCTYPE html>
+<html lang="{{ lang }}">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{% t "오프라인 묶음 요청" %} · GSM</title>
+{% comment %}
+오프라인 묶음 굽기 요청 (wetherilli P16·408). 범위(도폭 하나 크기까지)·레이어·줌을 고르고 어림을 본 뒤 요청한다.
+staff 가 관리 화면 "오프라인 묶음" 탭에서 승인해야 서버가 굽는다(한 번에 하나). 연구실 안에서만 연다(`GSM_PUBLIC` 이면 404).
+꼴은 묶음 목록(`offline.html`)과 같다.
+{% endcomment %}
+<style>
+:root { --bg: #f6f3ee; --fg: #2a2118; --muted: #7a6c5c; --line: #ddd3c4; --accent: #8a5a1c; --bad: #a3321f; --card: #fffdf9; }
+@media (prefers-color-scheme: dark) { :root { --bg: #14110d; --fg: #eee6da; --muted: #a8998a; --line: #3a3129; --accent: #e0a54f; --bad: #f08a6e; --card: #1d1914; } }
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--bg); color: var(--fg); font: 15px/1.5 system-ui, sans-serif; }
+main { max-width: 760px; margin: 0 auto; padding: 20px 16px 40px; }
+h1 { font-size: 1.3rem; margin: 0 0 4px; }
+h2 { font-size: 1.05rem; margin: 26px 0 8px; }
+p.lead, .hint { color: var(--muted); }
+p.lead { margin: 0 0 18px; }
+.hint { font-size: .88rem; }
+label { display: block; font-size: .9rem; color: var(--muted); margin: 10px 0 3px; }
+input, textarea { font: inherit; color: var(--fg); background: var(--card); border: 1px solid var(--line); border-radius: 6px; padding: 6px 8px; width: 100%; }
+textarea { min-height: 3.2em; }
+.bbox { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 6px; }
+.bbox input { font-variant-numeric: tabular-nums; }
+.layers { width: 100%; border-collapse: collapse; }
+.layers td { border-top: 1px solid var(--line); padding: 6px 4px; vertical-align: middle; }
+.layers td.z { width: 9.5em; white-space: nowrap; }
+.layers td.z input { width: 4em; padding: 4px; text-align: center; }
+.layers .group { color: var(--muted); font-size: .82rem; }
+.layers .unit { color: var(--accent); font-size: .8rem; }
+.layers input[type=checkbox] { width: auto; transform: scale(1.2); }
+.layers label.name { color: var(--fg); margin: 0; font-size: .95rem; overflow-wrap: anywhere; }
+.actions { display: flex; flex-wrap: wrap; gap: 8px; margin: 16px 0 6px; }
+button { font: inherit; padding: 8px 16px; border-radius: 6px; border: 1px solid var(--accent); background: var(--card); color: var(--accent); cursor: pointer; }
+button.go { background: var(--accent); color: var(--bg); font-weight: 600; }
+button:disabled { opacity: .5; cursor: default; }
+pre#estimate { background: var(--card); border: 1px solid var(--line); border-radius: 6px; padding: 10px; font-size: .8rem; overflow-x: auto; white-space: pre; margin: 8px 0; }
+#said { min-height: 1.5em; margin: 6px 0; }
+#said.bad { color: var(--bad); }
+ul.rows { list-style: none; padding: 0; margin: 0; }
+ul.rows li { border-top: 1px solid var(--line); padding: 10px 0; }
+.meta { color: var(--muted); font-size: .88rem; overflow-wrap: anywhere; }
+.st { display: inline-block; font-size: .8rem; padding: 0 6px; border-radius: 4px; border: 1px solid var(--line); }
+.st.done { color: var(--accent); border-color: var(--accent); }
+.st.failed, .st.rejected { color: var(--bad); border-color: var(--bad); }
+a { color: var(--accent); }
+</style>
+</head>
+<body>
+<main>
+  <form id="csrf-form" hidden>{% csrf_token %}</form>
+  <h1>{% t "오프라인 묶음 요청" %}</h1>
+  <p class="lead">{% t "범위·레이어·줌을 골라 요청하면 staff 가 승인한 뒤 서버가 하나씩 굽는다. 다 되면 묶음 목록에 뜬다." %}
+    <a href="../">{% t "묶음 목록" %}</a></p>
+
+  <label for="r-title">{% t "묶음 이름" %}</label>
+  <input id="r-title" maxlength="60" placeholder="{% t "예: 진교 도폭 (하동)" %}">
+  <label>{% t "범위 — 서·남·동·북 (경위도)" %}</label>
+  <div class="bbox">
+    {% for v in bbox %}<input class="bb" inputmode="decimal" value="{{ v }}" aria-label="{% cycle 'W' 'S' 'E' 'N' %}">{% endfor %}
+  </div>
+  <p class="hint">{% t "도폭 하나 크기(한 변 {n}°)까지다. 지도의 범위잡기 팝업에서 오면 채워져 있다." n=max_side %}</p>
+
+  <h2>{% t "레이어와 줌" %}</h2>
+  <p class="hint">{% t "줌은 화면 줌이다 ({a}–{b}). 묶음 하나 {mb} MB 를 넘으면 아래에 있는 레이어부터 마지막 줌이 덜린다. ‘속성’ 이 붙은 지질도는 누른 자리의 지층 속성도 담는다." a=zooms.0 b=zooms.1 mb=budget %}</p>
+  <table class="layers" id="layers">
+    {% for l in layers %}
+    <tr data-name="{{ l.name }}">
+      <td><input type="checkbox" id="l-{{ forloop.counter }}" {% if l.on %}checked{% endif %}></td>
+      <td><label class="name" for="l-{{ forloop.counter }}">{{ l.title }}</label>
+        <span class="group">{{ l.group }}</span>{% if l.units %} <span class="unit">{% t "속성" %}</span>{% endif %}</td>
+      <td class="z"><input class="z0" type="number" min="{{ zooms.0 }}" max="{{ zooms.1 }}" value="{{ l.first }}" aria-label="{% t "처음 줌" %}">
+        – <input class="z1" type="number" min="{{ zooms.0 }}" max="{{ zooms.1 }}" value="{{ l.last }}" aria-label="{% t "마지막 줌" %}"></td>
+    </tr>
+    {% endfor %}
+  </table>
+
+  <label for="r-who">{% t "요청한 이" %}</label>
+  <input id="r-who" maxlength="40" autocomplete="name">
+  <label for="r-note">{% t "쓰임 (어디서·언제)" %}</label>
+  <textarea id="r-note" maxlength="500"></textarea>
+
+  <div class="actions">
+    <button type="button" id="b-estimate">{% t "어림" %}</button>
+    <button type="button" id="b-send" class="go">{% t "요청" %}</button>
+  </div>
+  <p id="said" role="status">{% if sent %}{% t "요청했다 — staff 가 승인하면 굽는다" %}{% endif %}</p>
+  <pre id="estimate" hidden></pre>
+
+  <h2>{% t "요청" %}</h2>
+  {% if rows %}
+  <ul class="rows">
+    {% for r in rows %}
+    <li>
+      <span class="st {{ r.status }}">{{ r.status_label }}</span> <b>{{ r.title }}</b>
+      <div class="meta">{{ r.name }} · {{ r.requester }} · {{ r.created }} · {% t "레이어 {n}" n=r.layers %} · {{ r.bbox }}</div>
+      {% if r.note %}<div class="meta">{{ r.note }}</div>{% endif %}
+      {% if r.pack %}<a href="../{{ r.pack }}" download>{% t "내려받기" %} — {{ r.pack }}</a>{% endif %}
+      {% if r.status == "failed" and r.last_line %}<div class="meta">{{ r.last_line }}</div>{% endif %}
+    </li>
+    {% endfor %}
+  </ul>
+  {% else %}
+  <p class="hint">{% t "요청이 아직 없다" %}</p>
+  {% endif %}
+</main>
+<script id="i18n-data" type="application/json">{{ i18n_json|safe }}</script>
+<script src="{% static 'viewer/offline-request.js' %}?v={{ version }}"></script>
+</body>
+</html>

@@ -3165,3 +3165,7 @@ a.tool { text-decoration: none; }                /* 3D 단추는 링크다 */
 body.embed-compact #panel, body.embed-compact #panel-handle, body.embed-compact #coordbar, body.embed-compact .toolbar,
 body.embed-compact .share-notice, body.embed-compact #legend-dock, body.embed-compact #timebar { display: none !important; }
 body.embed-compact #map-wrap { flex: 1 1 auto; height: 100vh; height: 100dvh; }
+
+/* 범위 팝업 끝의 "오프라인 묶음 요청" (wetherilli 408) */
+.popup-offline { margin: 8px 0 2px; font-size: .9em; color: var(--ink-soft); }
+.popup-offline a { color: var(--hi); font-weight: 600; }

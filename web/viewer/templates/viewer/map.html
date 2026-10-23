@@ -21,7 +21,7 @@
 <link rel="stylesheet" href="{% static 'viewer/vendor/ol.css' %}?v={{ stamp|default:version }}">
 <link rel="stylesheet" href="{% static 'viewer/map.css' %}?v={{ stamp|default:version }}">
 </head>
-<body data-linked-proxy="{{ linked_proxy|yesno:"1,0" }}">
+<body data-linked-proxy="{{ linked_proxy|yesno:"1,0" }}" data-offline-request="{{ offline_request|yesno:"1,0" }}">
 
 <div id="splash" role="status" aria-live="polite">
   {% comment %}그림은 아래 스크립트가 고른다 — 극지면 극지 대기 화면. 주소를 처음부터 적으면 브라우저가 먼저 받아 극지에서 둘을 받는다.

@@ -1,0 +1,20 @@
+{
+ "_주석": "북극 지질도 1:500만(GSC Open File 5816, Harrison 외 2008 — 국제 극지의 해에 북극 나라들과 CGMW 가 함께 엮었다) 씨앗이다 — 북극해 탭(북극 묶음에도 든다). 60°N 북쪽의 육상 셋(캐나다·미국, 그린란드, 북유럽·러시아)과 해저를 레이어 하나로 부른다(web/viewer/nrcan.py 의 SERVICES, 해저를 맨 밑에). 서비스는 캐나다 지질도와 같은 NRCan 서버다. 한글 제목은 사람이 붙였다. 북극 전체의 육상·해저 기반암이라 레이어군을 EMODnet(10) 앞에 둔다 (wetherilli 414).",
+ "_뽑은날": "2026-10-22",
+ "_출처": "https://maps-cartes.services.geo.ca/server_serveur/services/NRCan/international_polar_year_en/MapServer/WMSServer?request=GetCapabilities&service=WMS",
+ "_지역": "arctic_ocean",
+ "_상류": "nrcan",
+ "_레이어군차례": 5,
+ "레이어군순서": [
+  "북극 지질도 (GSC 1:500만)"
+ ],
+ "레이어": [
+  {
+   "name": "nrcan:arctic",
+   "title": "북극 지질도 — 육상·해저 기반암 (1:500만)",
+   "group": "북극 지질도 (GSC 1:500만)",
+   "abstract": "Geological map of the Arctic 1:5,000,000 (GSC Open File 5816, Harrison et al. 2008) — onshore and offshore bedrock north of 60°N",
+   "bbox": [-180.0, 60.0, 180.0, 90.0]
+  }
+ ]
+}

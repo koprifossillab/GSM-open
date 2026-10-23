@@ -176,3 +176,222 @@ class Page(TestCase):
         with override_settings(OFFLINE_DIR=self.tmp.name, PUBLIC=True):
             self.assertEqual(self.client.get("/GSM/offline/").status_code, 404)
             self.assertEqual(self.client.get("/GSM/offline/jangseong-20261010.gsmpack").status_code, 404)
+
+
+@override_settings(PUBLIC=False)
+class ViaGsm(TestCase):
+    """노트북의 `gsmpack bake --via` 가 묻는 길 — 주소의 꼴과 지층 면 (wetherilli 407)."""
+
+    @classmethod
+    def setUpTestData(cls):
+        group = LayerGroup.objects.create(name="지질도", region="korea")
+        Layer.objects.create(name="L_50K_Geology_Map", title="5만 지질도", group=group, upstream="kigam")
+        Layer.objects.create(name="L_Off", title="꺼진 것", group=group, upstream="kigam", enabled=False)
+
+    def test_주소의_꼴이_화면의_캐시_열쇠와_같다(self):
+        """굽는 쪽이 꼴에 칸의 범위를 채운 주소를 서버가 받으면, 미리 데우기·굽기가 담는 열쇠와 한 글자까지 같아야 캐시가 맞는다 (029)"""
+        from urllib.parse import parse_qsl, urlsplit
+        from viewer import views
+        from viewer.management.commands.prewarm import plan_for
+        spec = self.client.get("/GSM/offline/plan/?layer=L_50K_Geology_Map").json()
+        self.assertEqual((spec["tile_size"], spec["zoom_offset"], spec["kind"], spec["title"]), (512, -1, "kigam", "5만 지질도"))
+        plan = plan_for("L_50K_Geology_Map", "kigam")
+        for z, x, y in [(9, 436, 198), (14, 13990, 6370), (15, 27983, 12741)]:
+            url = spec["url"].format(z=z, x=x, y=y, bbox=grid.bbox_text(grid.cell_extent(z, x, y)))
+            query = dict(parse_qsl(urlsplit(url).query, keep_blank_values=True))
+            self.assertTrue(url.startswith("wms/?"))
+            self.assertEqual(views.map_cache_key(kigam.clean_params(query)), plan.key(z, x, y))
+
+    def test_vworld_와_굽지_못하는_레이어(self):
+        spec = self.client.get("/GSM/offline/plan/?layer=vworld:Satellite").json()
+        self.assertEqual((spec["url"], spec["type"], spec["tile_size"], spec["zoom_offset"]),
+                         ("vworld/Satellite/{z}/{y}/{x}.jpeg", "image/jpeg", 256, 0))
+        for name in ("vworld:Nope", "L_Off", "L_없다"):
+            self.assertEqual(self.client.get(f"/GSM/offline/plan/?layer={name}").status_code, 404, name)
+
+    def test_지층_면(self):
+        with mock.patch.object(kigam, "describe_layer", lambda name: ["geoOpen:l_50k_geology_litho_latest", "geoOpen:x_fault"]), \
+                mock.patch.object(kigam, "wfs_in_bbox", lambda t, bbox: UNITS), \
+                mock.patch.object(build_offline_pack.time, "sleep", lambda s: None):
+            got = self.client.get("/GSM/offline/units/?layer=L_50K_Geology_Map&bbox=129,37,129.03,37.05").json()
+        self.assertEqual(got["types"], ["geoOpen:l_50k_geology_litho_latest"])
+        self.assertEqual(len(got["features"]), 2)                      # 선은 버린다
+        first = got["features"][0]["properties"]
+        self.assertEqual(first["props"]["도폭"]["links"][0]["url"], "https://doi.org/10.22747/x")
+        self.assertIn("props_en", first)
+        flat = json.dumps(got["features"][0]["geometry"]["coordinates"])
+        self.assertNotIn("129.05", flat)                               # 박스로 잘랐다
+
+    def test_상류가_못_주면_502(self):
+        def broken(name):
+            raise ValueError("JSON 이 아니다")
+        with mock.patch.object(kigam, "describe_layer", broken):
+            got = self.client.get("/GSM/offline/units/?layer=L_50K_Geology_Map&bbox=129,37,129.03,37.05")
+        self.assertEqual(got.status_code, 502)
+
+    def test_지층_면의_범위를_가린다(self):
+        for bbox in ("", "129,37,129", "129,37,128,38", "126,34,129,37.05"):
+            self.assertEqual(self.client.get(f"/GSM/offline/units/?layer=L_50K_Geology_Map&bbox={bbox}").status_code, 400, bbox)
+        self.assertEqual(self.client.get("/GSM/offline/units/?layer=vworld:Base&bbox=129,37,129.03,37.05").status_code, 404)
+
+    def test_밖에_연_판에서는_닫는다(self):
+        with override_settings(PUBLIC=True):
+            self.assertEqual(self.client.get("/GSM/offline/plan/?layer=L_50K_Geology_Map").status_code, 404)
+            self.assertEqual(self.client.get("/GSM/offline/units/?layer=L_50K_Geology_Map&bbox=129,37,129.03,37.05").status_code, 404)
+
+    def test_안내_타일에는_표가_붙는다(self):
+        """굽는 쪽은 안내 타일(키가 없다)을 이 표로 실패로 읽는다 — 진짜 타일에는 붙지 않는다"""
+        with override_settings(KIGAM_KEY="", DEV_DIRECT_WMS=False, TILE_CACHE_DIR=tempfile.mkdtemp()):
+            got = self.client.get("/GSM/wms/?" + "&".join(f"{k}={v}" for k, v in tilegrid.wms_params("L_50K_Geology_Map", 9, 436, 198).items()))
+        self.assertEqual(got["X-GSM-Notice"], "1")
+
+
+REQUEST = {"title": "작은 요청", "requester": "시험", "note": "현장", "bbox": [129.0, 37.0, 129.05, 37.05],
+           "layers": {"vworld:Base": [10, 12], "L_50K_Geology_Map": [10, 12]}}
+
+
+@override_settings(PUBLIC=False)
+class Request(TestCase):
+    """요청 화면·어림·승인 (wetherilli 408) — 굽기는 `Queue` 가 본다."""
+
+    @classmethod
+    def setUpTestData(cls):
+        from django.contrib.auth import get_user_model
+        group = LayerGroup.objects.create(name="지질도", region="korea")
+        Layer.objects.create(name="L_50K_Geology_Map", title="5만 지질도", group=group, upstream="kigam")
+        Layer.objects.create(name="L_1M_Geology_Map", title="100만 지질도", group=group, upstream="kigam")
+        cls.staff = get_user_model().objects.create_user("staff", password="pw", is_staff=True)
+        cls.plain = get_user_model().objects.create_user("plain", password="pw")
+
+    def setUp(self):
+        self.tmp = tempfile.TemporaryDirectory()
+        self.addCleanup(self.tmp.cleanup)
+        patch = override_settings(OFFLINE_DIR=self.tmp.name, TILE_CACHE_DIR=self.tmp.name)
+        patch.enable()
+        self.addCleanup(patch.disable)
+        self.spawned = []
+        p = mock.patch("viewer.offlinereq.spawn", lambda: self.spawned.append(1))
+        p.start()
+        self.addCleanup(p.stop)
+
+    def post(self, url, body):
+        return self.client.post(url, json.dumps(body), content_type="application/json")
+
+    def test_화면은_범위를_채우고_세트를_고른다(self):
+        page = self.client.get("/GSM/offline/request/?bbox=129,37,129.05,37.05")
+        self.assertContains(page, 'value="129.05"')
+        self.assertContains(page, 'data-name="L_50K_Geology_Map"')
+        self.assertContains(page, 'data-name="vworld:Satellite"')
+        names = [r["name"] for r in page.context["layers"]]
+        self.assertLess(names.index("L_50K_Geology_Map"), names.index("vworld:Base"))       # 지질도가 앞선다
+        self.assertTrue(next(r for r in page.context["layers"] if r["name"] == "L_50K_Geology_Map")["on"])
+        self.assertFalse(next(r for r in page.context["layers"] if r["name"] == "vworld:white")["on"])
+
+    def test_요청_한_줄(self):
+        from viewer.models import OfflinePackRequest
+        got = self.post("/GSM/offline/request/", REQUEST).json()
+        row = OfflinePackRequest.objects.get(pk=got["id"])
+        self.assertEqual((row.status, row.requester, row.box_name), ("waiting", "시험", f"req{row.pk}"))
+        self.assertEqual(list(row.box["layers"]), ["L_50K_Geology_Map", "vworld:Base"])         # 고른 차례가 아니라 정한 차례
+        self.assertEqual(row.box["units"], ["L_50K_Geology_Map"])
+        self.assertEqual(row.box["budget_mb"], 200)
+        self.assertEqual(self.spawned, [])                                                       # 승인 전에는 굽지 않는다
+
+    def test_요청을_가린다(self):
+        bad = [dict(REQUEST, bbox=[129.0, 37.0, 129.4, 37.1]),                  # 도폭 하나보다 넓다
+               dict(REQUEST, bbox=[140.0, 37.0, 140.1, 37.1]),                  # 한국 밖
+               dict(REQUEST, layers={"L_없다": [10, 12]}),
+               dict(REQUEST, layers={"L_50K_Geology_Map": [12, 10]}),
+               dict(REQUEST, layers={"L_50K_Geology_Map": [10, 19]}),
+               dict(REQUEST, layers={}),
+               dict(REQUEST, requester=" ")]
+        for body in bad:
+            self.assertEqual(self.post("/GSM/offline/request/", body).status_code, 400, body)
+
+    def test_어림(self):
+        got = self.post("/GSM/offline/request/estimate/", REQUEST).json()
+        self.assertIn("L_50K_Geology_Map", got["lines"][0])
+        self.assertEqual(got["dropped"], {})
+        self.assertGreater(got["calls"], 0)
+
+    def test_승인은_staff_만(self):
+        from viewer.models import OfflinePackRequest
+        pk = self.post("/GSM/offline/request/", REQUEST).json()["id"]
+        url = f"/GSM/offline/request/{pk}/decide/"
+        self.assertEqual(self.client.post(url, {"action": "approve"}).status_code, 403)
+        self.client.force_login(self.plain)
+        self.assertEqual(self.client.post(url, {"action": "approve"}).status_code, 403)
+        self.client.force_login(self.staff)
+        self.assertRedirects(self.client.post(url, {"action": "approve"}), "/GSM/manage/?tab=offline", fetch_redirect_response=False)
+        row = OfflinePackRequest.objects.get(pk=pk)
+        self.assertEqual((row.status, row.approved_by), ("approved", "staff"))
+        self.assertEqual(self.spawned, [1])
+        self.client.post(url, {"action": "reject"})
+        self.assertEqual(OfflinePackRequest.objects.get(pk=pk).status, "rejected")
+        self.assertEqual(self.client.post(url, {"action": "reject"}).status_code, 400)          # 거절한 것을 또 거절하지 않는다
+
+    def test_관리_탭(self):
+        self.post("/GSM/offline/request/", REQUEST)
+        page = self.client.get("/GSM/manage/")
+        self.assertContains(page, 'data-tab="offline"')
+        self.assertContains(page, "작은 요청")
+        self.assertNotContains(page, 'name="action" value="approve"')                        # 로그인하지 않으면 단추가 없다
+        self.client.force_login(self.staff)
+        self.assertContains(self.client.get("/GSM/manage/"), 'name="action" value="approve"')
+
+    def test_밖에_연_판에서는_닫는다(self):
+        with override_settings(PUBLIC=True):
+            self.assertEqual(self.client.get("/GSM/offline/request/").status_code, 404)
+            self.assertEqual(self.post("/GSM/offline/request/", REQUEST).status_code, 404)
+            self.assertEqual(self.post("/GSM/offline/request/estimate/", REQUEST).status_code, 404)
+            self.assertNotContains(self.client.get("/GSM/manage/"), 'data-tab="offline"')
+
+
+class Queue(Build):
+    """일꾼(`--queue`) — 승인된 요청을 하나씩 굽고 상태를 적는다. 상류는 `Build` 의 가짜다 (wetherilli 408)."""
+
+    def request(self, status="approved", **box):
+        from viewer.models import OfflinePackRequest
+        return OfflinePackRequest.objects.create(requester="시험", status=status, box=dict(BOX["tiny"], **box))
+
+    def test_승인된_것을_굽는다(self):
+        from viewer.models import OfflinePackRequest as Req
+        done, waiting = self.request(), self.request(status="waiting")
+        call_command("build_offline_pack", "--queue", stdout=io.StringIO(), stderr=io.StringIO())
+        done.refresh_from_db()
+        self.assertEqual(done.status, Req.DONE)
+        self.assertTrue(done.pack.startswith(f"req{done.pk}-") and (Path(settings.OFFLINE_DIR) / done.pack).is_file())
+        self.assertIn("타일", done.last_line)
+        self.assertIsNotNone(done.finished_at)
+        self.assertEqual(Req.objects.get(pk=waiting.pk).status, Req.WAITING)                   # 승인하지 않은 것은 두고
+        self.assertIn(done.pack, self.client.get("/GSM/offline/").content.decode())            # 목록에 뜬다
+
+    def test_끊긴_것부터_잇는다(self):
+        from viewer.models import OfflinePackRequest as Req
+        later, cut = self.request(), self.request(status="baking")
+        out = io.StringIO()
+        call_command("build_offline_pack", "--queue", stdout=out, stderr=io.StringIO())
+        text = out.getvalue()
+        self.assertLess(text.index(f"req{cut.pk}"), text.index(f"req{later.pk}"))
+        self.assertEqual({r.status for r in Req.objects.all()}, {Req.DONE})
+
+    def test_실패는_적고_다음으로(self):
+        from viewer.models import OfflinePackRequest as Req
+        broken = self.request(layers={"L_50K_Geology_Map": [10, 10]})
+        fine = self.request()
+        with mock.patch.object(kigam, "has_key", lambda: False):
+            call_command("build_offline_pack", "--queue", stdout=io.StringIO(), stderr=io.StringIO())
+        broken.refresh_from_db(), fine.refresh_from_db()
+        self.assertEqual((broken.status, fine.status), (Req.FAILED, Req.FAILED))
+        self.assertIn("인증키", broken.last_line)
+
+    def test_다른_일꾼이_돌면_곧장_끝난다(self):
+        from viewer import offlinereq
+        from viewer.models import OfflinePackRequest as Req
+        row = self.request()
+        with offlinereq.queue_lock() as mine:
+            self.assertTrue(mine)
+            out = io.StringIO()
+            call_command("build_offline_pack", "--queue", stdout=out, stderr=io.StringIO())
+        self.assertIn("다른 일꾼", out.getvalue())
+        self.assertEqual(Req.objects.get(pk=row.pk).status, Req.APPROVED)

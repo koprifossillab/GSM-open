@@ -53,6 +53,7 @@ ITEMS = [
     # 남극
     Item("admap2/meta.json", "ADMAP_DIR", "meta.json", msg("남극 자력 이상 ADMAP-2"), "build_admap"),
     Item("geomap/*.gpkg", "GEOMAP_DIR", "", msg("남극 GeoMAP"), MANUAL),
+    Item("scar/cga_place_names.json", "SCAR_DIR", "cga_place_names.json", msg("남극 지명 SCAR 지명사전"), "fetch_scar_gazetteer"),
     Item("ibcso/tiles-bed", "IBCSO_DIR", "tiles-bed", msg("남극 해저·빙저 지형 IBCSO v2"), "build_ibcso"),
     Item("npolar/NP_J250_Geologi", "NPOLAR_DIR", "NP_J250_Geologi", msg("얀마옌 지질도"), MANUAL),
     # 북미·카리브

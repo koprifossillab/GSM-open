@@ -4,11 +4,17 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "gsmpack"
-version = "0.1.0"
+version = "0.2.0"
 description = "GSM 오프라인 묶음(.gsmpack)을 굽고 읽는다"
 license = "AGPL-3.0-only"
 requires-python = ">=3.10"
 dependencies = ["pillow"]
 
+[project.scripts]
+gsmpack = "gsmpack.cli:main"
+
 [tool.setuptools]
-packages = ["gsmpack"]
+packages = ["gsmpack", "gsmpack.sources"]
+
+[tool.setuptools.package-data]
+gsmpack = ["landmask.png"]

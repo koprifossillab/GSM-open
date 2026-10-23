@@ -323,7 +323,7 @@ WMS·z/x/y·우리가 굽는 것) 계획을 따로 둔다 (029).
   프랑스·독일·스페인·아일랜드가 영국에 둔 EGDI 1:100만을(143·147). 레이어명이 지역 하나에만 걸리기 때문이다.
   상류 이름 대신 `:` 로 끝나는 레이어 이름 앞머리도 된다 — 브라질·페루·에콰도르·아르헨티나·우루과이가 콜롬비아 지역의 SGC 가운데 남미 1:500만(`sgc:sa:`)만 빌린다(191·195·196·198)
 - 레이어군은 지역을 갖고(`LayerGroup.region`), 레이어는 상류를 갖는다
-  (`Layer.upstream` — kigam·kigam50k·geus·geusarc·vworld·grportal·npolar·gsj·gsitile·ccop·gsjows·gsmma·emodnet·ngu·gtk·sgu·natt·bgs·bgsgi·brgm·egdi·bgr·igme·gsi·gsni·sgc·sgb·ingemmet·segemar·dinamige·iige·mrdata·sgm·cgmw·aga·ispra·lneg·swisstopo·cgs·gsn·bumigeb·irgm·ga·gsq·gsv·gssa·ntgs·gns·mris·gsiindia·sgs·esdm·jmg·mgb·dmr·nrcan·ogs·sigeom·ygs·skgs·nsgs·ags·bcgs·calgs·nbmg·wadnr·dogami·dggs·geosphere·pig·tno·dov·spw·ineter·stri·usgscarib·vmme·georep·bas·phyloserver·china4m·geomap·janmayen·geo3al·kopri·earth). 서버는 레이어의
+  (`Layer.upstream` — kigam·kigam50k·geus·geusarc·vworld·grportal·npolar·gsj·gsitile·ccop·gsjows·gsmma·emodnet·ngu·gtk·sgu·natt·bgs·bgsgi·brgm·egdi·bgr·igme·gsi·gsni·sgc·sgb·ingemmet·segemar·dinamige·iige·mrdata·sgm·cgmw·aga·ispra·lneg·swisstopo·cgs·gsn·bumigeb·irgm·ga·gsq·gsv·gssa·ntgs·gns·mris·gsiindia·sgs·esdm·jmg·mgb·dmr·nrcan·ogs·sigeom·ygs·skgs·nsgs·ags·bcgs·calgs·nbmg·wadnr·dogami·dggs·geosphere·pig·tno·dov·spw·ineter·stri·usgscarib·vmme·georep·bas·scar·gibs·phyloserver·china4m·geomap·janmayen·geo3al·kopri·earth). 서버는 레이어의
   상류를 보고 문을 고른다
 - 레이어는 그리는 법도 갖는다 — 타일(WMS)이 거의 전부이고, `kind: vector` 는 단층
   선을 1° 칸으로 받아 우리가 그리고(020), `kind: points` 는 점·모양을 한 덩이로
@@ -359,7 +359,11 @@ WMS·z/x/y·우리가 굽는 것) 계획을 따로 둔다 (029).
   정적 판만 곧장 부른다. 조건을 읽지 않은 배경은 이 길로 옮기지 않는다. 일본의 찾기 칸(국토지리원 주소·지명 검색, 지리원 지도가 쓰는 것)과 팝업의 주소(역지오코더 — 시군구 코드를
   `japan-muni.json` 으로 옮긴다, `manage.py build_japan_muni`, wetherilli 230)도 브라우저가 곧장 부른다 —
   열쇠가 없고 CORS 가 열려 있다. 지리원 지도를 위한 것이라 예고 없이 바뀔 수 있다 (wetherilli 155).
-  EOX Sentinel-2 는 **비상업(CC BY-NC-SA)** 조건이고 Esri 남극 위성은 **Esri 이용 조건**이다 — 밖에 열 때 다시 본다 (040)
+  EOX Sentinel-2 는 **비상업(CC BY-NC-SA)** 조건이고 Esri 남극 위성은 **Esri 이용 조건**이다 — 밖에 열 때 다시 본다 (040).
+  **Esri 는 공개 판(정적 판)에 싣지 않는다** — Esri Master License Agreement 가 Esri 소프트웨어와 함께 쓰라고, 오프라인은 Esri Content Package 로만이라고 적는다.
+  오프라인 묶음에도 담지 않는다(사람, 2026-10-21, wetherilli P17). 그 자리는 **LIMA 위성**(USGS, 공공 도메인 — PGC 가 구운 3031 타일, 바다는 Blue Marble)이 채운다 —
+  정적 판의 남극이 그것으로 열린다(`map.js` 의 `STATIC` 분기, 사람, 2026-10-22). PGC 서버가 중간 인증서를 빼먹어 서버는 받지 못하고 브라우저가 곧장 부른다 —
+  연구소 망 안에서는 가로채기 장비가 막아 안 보일 수 있다(wetherilli 415)
 - **남미 1:500만은 CGMW 의 지도다** — SGC 가 WMS 를 열어 두었지만 CGMW 는 지도를 판다. 정적 판에 싣지 않았고, 밖에 열기 전에
   사람이 조건을 읽는다(TODOs). 콜롬비아 1:50만은 SGC 열린자료(CC BY 4.0)다 (wetherilli 188). **브라질 SGB 는 비상업(CC BY-NC 4.0)**
   이다 — GeoSGB 사이트가 그렇게 적는다. EOX 처럼 밖에 열 때 다시 본다 (wetherilli 191). **페루 INGEMMET 도 비상업(CC BY-NC-SA 4.0)** 이다 — 정적 판에 싣지 않았다 (wetherilli 195) **아르헨티나 SEGEMAR** 는 "SEGEMAR 의 재산,
@@ -521,7 +525,8 @@ web/viewer/       뷰어 앱 하나뿐이다. 앱을 더 가르지 않는다
   iige.py         에콰도르 지질·에너지 연구소(IIGE)로 나가는 문 (일반 지질도 ArcGIS WMS 를 3857 로, 범례는 보는 범위의 REST 통계 질의)
   nrcan.py        캐나다 천연자원부(NRCan·GSC)로 나가는 문 (캐나다 지질도 1:500만 Wheeler ArcGIS WMS 를 3978 로, 속성은 GeoJSON.
                   같은 서버의 편찬 지질도 CGMC·핵심 광물 시설·광상 유망도도 — `SERVICES`, wetherilli 250.
-                  CGMC 래스터는 REST identify 의 OBJECTID − 1 을 범례 34 칸으로 풀어 누른다, wetherilli 320)
+                  CGMC 래스터는 REST identify 의 OBJECTID − 1 을 범례 34 칸으로 풀어 누른다, wetherilli 320.
+                  북극 지질도 1:500만(3413 으로 곧장, 범위 범례), wetherilli 414)
   ogs.py          온타리오 지질조사소(OGS)로 나가는 문 (기반암 1:25만·제4기 ArcGIS WMS 를 3978 로, 속성은 REST identify — WMS 번호와 REST 번호가 다르다)
                   광물 산지 목록 MDI(OMEIS, WMS 11·REST 46, wetherilli 288)
   sigeom.py       퀘벡 SIGÉOM 으로 나가는 문 (일반·지역 지질 GeoServer WMS 1.1.1 만, 3978 로. Origin 이 붙으면 403 이라 문으로만, 속성은 text/plain —
@@ -563,6 +568,7 @@ web/viewer/       뷰어 앱 하나뿐이다. 앱을 더 가르지 않는다
   era5.py         ARCO-ERA5(Google Cloud 공개 버킷)로 나가는 문 (지난 바람). 37 층 덩이에서 그 층만 Range 로. 사람이 부른다(`build_era5_wind`)
   ecco.py         ECCO2(NASA NAS 데이터 포털, 로그인 없음)로 나가는 문 (해류, 3 일 평균 표층). netCDF 머리를 읽고 표층만 Range 로. 사람이 부른다(`build_ecco2`)
   kopri.py        극지연구소로 나가는 문 (암석 시료 DB·KPDC 자료 목록·KPDC 지도 서버·아라온호 위치). 목록은 모아 둔다(`fetch_kopri`), 아라온호는 매시간 쌓아(`fetch_araon`) 항적 레이어로 낸다 — 남극·북극해 탭과 온 지구. 지난 1 년은 한 번 떠 둔 것(`fetch_araon --past`, 날짜는 하루 단위)
+  scar.py         SCAR 남극 통합 지명사전으로 나가는 문 (AADC GeoServer WFS, CC BY). 모아 둔다(`fetch_scar_gazetteer`) — 지형마다 묶어 나라마다의 이름을 남극 탭의 찾기(`placenames/`)와 이름표(`scar:place_names`)에, wetherilli 412
   kpds.py         항우연 KPDS 로 나가는 문 (다누리 KPLO 과학자료 — 문서에 없는 검색 화면의 목록·라벨·내려받기). 모아 둔다(`fetch_kmag`)
   trek.py         NASA Trek 으로 나가는 문 (달·화성·수성의 지질도·표고·지명·착륙지). 달·화성·수성 화면(Cesium)만 쓴다
   macrostrat.py   Macrostrat 으로 나가는 문 (온 지구의 지질도 타일·누른 자리의 단위·범례). 온 지구 화면만 쓴다
@@ -630,8 +636,10 @@ web/viewer/       뷰어 앱 하나뿐이다. 앱을 더 가르지 않는다
   crs.py          평면 좌표계(TM·UTM-K·옛 Bessel·람베르트·북극 람베르트 등적) <-> 위경도. pyproj 없이
   i18n.py         한국어 원문 -> 영어 번역표. 지질시대 옮기기
   tilecache.py    받아온 타일을 디스크에 둔다. 같은 것을 두 번 받지 않는다
+  offlinereq.py   오프라인 묶음 굽기 요청 — 고를 레이어·박스 검사(도폭 하나 크기까지)·일꾼 띄우기와 한 번에 하나의 잠금. 요청은 `OfflinePackRequest`,
+                  staff 가 관리 화면 "오프라인 묶음" 탭에서 승인하면 `build_offline_pack --queue` 가 굽는다(wetherilli P16·408). 문이 아니다
   visits.py       화면을 연 것을 센다 — 날짜·화면·접속 주소마다 한 줄(`VisitDay`), 관리 화면 "접속 기록" 탭. 접속 주소는 staff 만, 1 년 두고 지운다(wetherilli 399). 문이 아니다
-  models.py       Layer·LayerGroup·PointSet·Point·Shape·PointSetDeletion·UpstreamDay·VisitDay·DataSource·DataSourceChange·FetchRun·FetchRunMark
+  models.py       Layer·LayerGroup·PointSet·Point·Shape·PointSetDeletion·UpstreamDay·VisitDay·DataSource·DataSourceChange·FetchRun·FetchRunMark·OfflinePackRequest
   views.py        화면 하나 + 프록시 둘 + 업로드
 deploy/           Docker·nginx·배포 스크립트. cron 이 부르는 것은 deploy/scripts/ — 컨테이너가 뜰 때 /srv/GSM/scripts/ 에 깔고
                   호스트 cron 은 그 사본을 전용 venv 로 돌린다(run.sh). 저장소를 부르지 않는다 (koprifossillab 005)
@@ -640,14 +648,19 @@ data/             카탈로그 씨앗
 tools/gsmpack/    오프라인 묶음(.gsmpack) 패키지 `gsmpack` — 꼴의 명세(README)·쓰기·읽기와 굽는 고리(어림·예산·받기·자르기, 빠르기 규칙도 여기 하나).
                   브라우저의 묶음 읽기는 `js/gsmpack-reader.js`(`GSMPack`, `static/gsmpack/` 으로 낸다) — 저장·지도 감싸기는 `offline.js` 다.
                   Django·viewer 를 import 하지 않아 노트북에서 혼자 돈다(`pip install ./tools/gsmpack`). GSM 은 깔지 않고 settings 가 sys.path 에 얹는다.
-                  GSM 안의 소스(KIGAM·VWorld 문과 서버 캐시)는 `build_offline_pack` 에 둔다 — 패키지에 문을 두지 않는다(wetherilli P16). 시험은 tools/gsmpack/tests(unittest)
+                  GSM 안의 소스(KIGAM·VWorld 문과 서버 캐시)는 `build_offline_pack` 에 둔다. 혼자 굽는 쪽의 소스 둘은 패키지의 `gsmpack/sources/` —
+                  GSM 경유(`via_gsm`, 화면이 부르는 `/GSM/wms/`·`/GSM/vworld/` 를 그대로, 주소의 꼴은 GSM 의 `offline/plan/`, 지층 면은 `offline/units/`)와
+                  곧장(`direct`, 쓰는 사람의 키). 명령은 `gsmpack bake <박스표> <박스> --via <GSM 주소> | --direct`·`gsmpack info <묶음>`(wetherilli 407).
+                  시험은 tools/gsmpack/tests(unittest)
 web/.tilecache/   받아둔 타일. 커밋하지 않는다 (운영은 /data/GSM/tiles, 컨테이너 안에서는 /srv/GSM/tiles)
 devlog/           왜 그렇게 했는지 — 색인은 devlog/README.md
 ```
 
-**상류마다 문이 하나다 — `kigam.py`·`vworld.py`·`geus.py`·`grportal.py`·`npolar.py`·`gsj.py`·`gsmma.py`·`emodnet.py`·`ngu.py`·`gtk.py`·`sgu.py`·`natt.py`·`bgs.py`·`brgm.py`·`egdi.py`·`bgr.py`·`cgs.py`·`igme.py`·`gsi.py`·`sgc.py`·`sgb.py`·`ingemmet.py`·`iige.py`·`mrdata.py`·`sgm.py`·`ga.py`·`austates.py`·`gns.py`·`mris.py`·`gsiindia.py`·`sgs.py`·`esdm.py`·`jmg.py`·`mgb.py`·`dmr.py`·`segemar.py`·`dinamige.py`·`ispra.py`·`lneg.py`·`swisstopo.py`·`nrcan.py`·`ogs.py`·`sigeom.py`·`ygs.py`·`skgs.py`·`nsgs.py`·`ags.py`·`bas.py`·`bcgs.py`·`calgs.py`·`usstates.py`·`geosphere.py`·`pig.py`·`tno.py`·`dov.py`·`spw.py`·`ineter.py`·`stri.py`·`usgscarib.py`·`vmme.py`·`georep.py`·`phyloserver.py`·`elevation.py`·`trek.py`·`kopri.py`·`kpds.py`·`macrostrat.py`·`pbdb.py`·`gvp.py`·`usgs.py`·`neotoma.py`·`basemaps.py`·`linked.py`·`gfs.py`·`era5.py`·`gmgsi.py`·`ecco.py`.**
-이 일흔일곱 말고는 어디서도 `requests` 를 쓰지 않는다. `gfs.py`·`era5.py`·`gmgsi.py`·`ecco.py` 는 **호스트에서만** 부른다 — 바람·해류를 받아
-굽는 일(numpy·ecCodes·numcodecs, `requirements-wind.txt`)이 `/srv/GSM/scripts/run.sh` 의 전용 venv 에서 돌고(koprifossillab 005), 컨테이너는 구운 PNG 를 내주기만 한다(koprifossillab P02). **호스트는 `GSM.db` 를 열지 않는다**(사람, 2026-10-07, jikhanjung P03) — `run.sh` 가 거는 `GSM_RUN_PLACE=host` 면 설정이 DB 엔진을 dummy 로 바꿔 실수로 열면 곧장 깨진다. 호스트의 명령은 파일만 남기고(`hourly_status.json`·`fetch_log_host/`·`upstream_host/` — 날마다 한 파일, 다 들인 그제 것부터 컨테이너가 지운다, jikhanjung 023) 컨테이너가 들인다(`hourly.sh` 끝의 `docker compose exec … sources_log --sync-only`). DB 가 필요한 일은 호스트에서 돌리지 않고 컨테이너 안에서 부른다(`docker compose exec web python manage.py …`) — 주간 백업의 DB 사본도 그렇다(`manage.py backup_db` 가 표준 출력으로 낸다, jikhanjung 017). `linked.py` 만은 주소를 우리가 정하지 않는다 — 개인 레이어를 남의 API 에
+**상류마다 문이 하나다 — `kigam.py`·`vworld.py`·`geus.py`·`grportal.py`·`npolar.py`·`gsj.py`·`gsmma.py`·`emodnet.py`·`ngu.py`·`gtk.py`·`sgu.py`·`natt.py`·`bgs.py`·`brgm.py`·`egdi.py`·`bgr.py`·`cgs.py`·`igme.py`·`gsi.py`·`sgc.py`·`sgb.py`·`ingemmet.py`·`iige.py`·`mrdata.py`·`sgm.py`·`ga.py`·`austates.py`·`gns.py`·`mris.py`·`gsiindia.py`·`sgs.py`·`esdm.py`·`jmg.py`·`mgb.py`·`dmr.py`·`segemar.py`·`dinamige.py`·`ispra.py`·`lneg.py`·`swisstopo.py`·`nrcan.py`·`ogs.py`·`sigeom.py`·`ygs.py`·`skgs.py`·`nsgs.py`·`ags.py`·`bas.py`·`bcgs.py`·`calgs.py`·`usstates.py`·`geosphere.py`·`pig.py`·`tno.py`·`dov.py`·`spw.py`·`ineter.py`·`stri.py`·`usgscarib.py`·`vmme.py`·`georep.py`·`phyloserver.py`·`elevation.py`·`trek.py`·`kopri.py`·`kpds.py`·`macrostrat.py`·`pbdb.py`·`gvp.py`·`usgs.py`·`neotoma.py`·`basemaps.py`·`linked.py`·`gfs.py`·`era5.py`·`gmgsi.py`·`ecco.py`·`scar.py`.**
+이 일흔여덟 말고는 어디서도 `requests` 를 쓰지 않는다. `gfs.py`·`era5.py`·`gmgsi.py`·`ecco.py` 는 **호스트에서만** 부른다 — 바람·해류를 받아
+굽는 일(numpy·ecCodes·numcodecs, `requirements-wind.txt`)이 `/srv/GSM/scripts/run.sh` 의 전용 venv 에서 돌고(koprifossillab 005), 컨테이너는 구운 PNG 를 내주기만 한다(koprifossillab P02). **호스트는 `GSM.db` 를 열지 않는다**(사람, 2026-10-07, jikhanjung P03) — `run.sh` 가 거는 `GSM_RUN_PLACE=host` 면 설정이 DB 엔진을 dummy 로 바꿔 실수로 열면 곧장 깨진다. 호스트의 명령은 파일만 남기고(`hourly_status.json`·`fetch_log_host/`·`upstream_host/` — 날마다 한 파일, 다 들인 그제 것부터 컨테이너가 지운다, jikhanjung 023) 컨테이너가 들인다(`hourly.sh` 끝의 `docker compose exec … sources_log --sync-only`). DB 가 필요한 일은 호스트에서 돌리지 않고 컨테이너 안에서 부른다(`docker compose exec web python manage.py …`) — 주간 백업의 DB 사본도 그렇다(`manage.py backup_db` 가 표준 출력으로 낸다, jikhanjung 017). **오프라인 묶음의 곧장 소스(`tools/gsmpack/gsmpack/sources/direct.py`)는 묶음 굽기에만 쓰는 둘째 문이다** — GSM 없이 노트북에서 쓰는 사람의 키로
+KIGAM `/openapi/wms`·VWorld WMTS 를 부른다. GSM 자신은 이것을 쓰지 않는다. 패키지는 `requests` 없이 표준 라이브러리(`gsmpack/net.py`)로 부르고,
+키는 환경변수로만 받아 묶음·parts·오류 문구에 적지 않는다(wetherilli 407). `linked.py` 만은 주소를 우리가 정하지 않는다 — 개인 레이어를 남의 API 에
 이을 때 브라우저가 곧장 못 받으면 거친다(wetherilli P09·122). 사설망은 `GSM_LINKED_ALLOW` 에 적은 호스트만, 밖에 열면 닫는다. 뷰가 직접 부르지 않는다. 상류가 바뀌거나 주소가
 닫힐 때 고칠 자리를 하나로 묶어두려는 것이다. `geomap.py`·`janmayen.py`·`geo3al.py`·`peninsula.py`·`china4m.py`·`moonmap.py`·`caribmap.py`·`ibcso.py`·`admap.py`·`ntgeo.py`·`sarad.py`·`kigam50k.py`·`kigamdata.py`·`twopen.py`·`zhurong.py`·`marscraters.py`·`marsmap.py`·`mercurymap.py`·`spamap.py`·`paleo.py`·`paleocoast.py`·`fossils.py`·`volcanoes.py`·`quakes.py`·`paleoeco.py`·`crust.py`·`glaciers.py`·`impacts.py`·`faults.py`·`minerals.py`·`stress.py`·`tectonics.py`·`seafloor.py`·`glim.py`·`heatflow.py`·`naturalearth.py`·`geonames.py`·`icemargins.py`·`mantle.py`·`earthpoints.py`·`pointvalues.py`·`sources.py`·`fetchlog.py`·`rawstore.py` 는
 상류가 아니라 우리 디스크의 파일을 읽으므로 문이 아니다. `warp.py` 도 문이 아니다 — 원본은 부르는 쪽이 넘긴다. 문은 서로를 타지 않는다 —

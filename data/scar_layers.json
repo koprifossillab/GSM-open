@@ -1,0 +1,20 @@
+{
+ "_주석": "SCAR 남극 통합 지명사전(Composite Gazetteer of Antarctica, CC BY) 씨앗이다. AADC GeoServer WFS 의 aadc:SCAR_CGA_PLACE_NAMES_SIMPLIFIED 를 manage.py fetch_scar_gazetteer 가 받아 지형마다 묶어 GSM_SCAR_DIR/cga_place_names.json 에 적는다. 파일은 저장소에 없다. 같은 파일을 남극 탭의 지명 찾기도 읽는다. 레이어군을 맨 앞에 두려고 차례를 5 로 한다 (wetherilli 412).",
+ "_뽑은날": "2026-10-22",
+ "_출처": "https://placenames.aq/",
+ "_지역": "antarctica",
+ "_상류": "scar",
+ "_레이어군차례": 5,
+ "레이어군순서": [
+  "지명 (SCAR)"
+ ],
+ "레이어": [
+  {
+   "name": "scar:place_names",
+   "title": "남극 지명 (SCAR 지명사전)",
+   "group": "지명 (SCAR)",
+   "abstract": "SCAR 남극 통합 지명사전 — 나라마다의 지명사전을 모은 이름 3 만 9 천, 지형 2 만. 이름표는 보이는 이름 하나이고(한국 지명사전의 것이 먼저), 찾기는 나라마다의 이름을 다 뒤진다. 멀리서는 여러 나라가 이름 붙인 큰 지형만",
+   "bbox": [-180, -90, 180, -60]
+  }
+ ]
+}

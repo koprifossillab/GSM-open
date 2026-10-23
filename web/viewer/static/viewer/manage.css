@@ -262,3 +262,14 @@ body.manage { display: block; height: auto; min-height: 100vh; overflow: visible
   .mg-sources tr.mg-src-more td { display: block; padding: 8px 4px; border: 0; }
   .mg-out, .mg-said { white-space: normal; max-width: none; }
 }
+
+/* 오프라인 묶음 요청 (wetherilli 408) — 승인·거절 단추는 한 줄에. 휴대폰에서는 칸 일곱을 카드로 세운다 */
+.mg-offline form { display: inline-block; margin: 0 4px 4px 0; }
+@media (max-width: 640px) {
+  .mg-offline thead { display: none; }
+  .mg-offline, .mg-offline tbody { display: block; }
+  .mg-offline tr { display: block; padding: 10px 4px; border-bottom: 1px solid var(--line); }
+  .mg-offline td { display: inline; padding: 0 6px 0 0; border: 0; white-space: normal; overflow-wrap: anywhere; }
+  .mg-offline td:first-child { font-weight: 600; }
+  .mg-offline td:nth-child(2), .mg-offline td:last-child { display: block; margin: 4px 0; }
+}

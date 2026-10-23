@@ -795,5 +795,10 @@
     }
     return;
   }
+  // 오프라인 묶음 요청을 승인·거절하고 돌아오면(`?tab=offline`) 그 탭을 연다 (wetherilli 408)
+  if (params.get("tab") === "offline" && document.getElementById("tab-offline")) {
+    showTab("offline");
+    return;
+  }
   showTab(/^(import|stored)$/.test(first) ? first : "import");
 })();

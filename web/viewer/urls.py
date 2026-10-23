@@ -15,6 +15,11 @@ urlpatterns = [
     path("linked/fetch/", views.linked_fetch, name="linked-fetch"),
     path("healthz/", views.healthz, name="healthz"),
     path("offline/", views.offline_view, name="offline"),
+    path("offline/plan/", views.offline_plan, name="offline-plan"),
+    path("offline/units/", views.offline_units, name="offline-units"),
+    path("offline/request/", views.offline_request, name="offline-request"),
+    path("offline/request/estimate/", views.offline_estimate, name="offline-estimate"),
+    path("offline/request/<int:pk>/decide/", views.offline_decide, name="offline-decide"),
     re_path(r"^offline/(?P<name>[a-z0-9_-]{1,64}-\d{8}\.gsmpack)$", views.offline_file, name="offline-file"),
     path("3d/", views.map3d_view, name="map3d"),
     path("moon/", views.moon_view, name="moon"),
@@ -197,6 +202,9 @@ urlpatterns = [
     re_path(r"^gibs/(?P<epsg>4326|3413|3031)/(?P<layer>\w+)/(?P<z>\d{1,2})/(?P<y>\d{1,5})/(?P<x>\d{1,5})\.jpeg$",
             views.gibs_tile, name="gibs-tile"),
     path("gibs/wms/", views.gibs_wms, name="gibs-wms"),
+    # 겹쳐 그리는 GIBS 레이어 — MEaSUREs 빙하 속도, 서버가 담는다 (basemaps.py, wetherilli 413)
+    re_path(r"^gibs/(?P<epsg>3413|3031)/(?P<layer>\w+)/(?P<z>\d{1,2})/(?P<y>\d{1,5})/(?P<x>\d{1,5})\.png$",
+            views.gibs_overlay_tile, name="gibs-overlay-tile"),
     # NPI 스발바르 배경 타일 — 서버가 담는다 (basemaps.py, wetherilli 200)
     re_path(r"^npi/(?P<service>NP_\w+)/(?P<z>\d{1,2})/(?P<y>\d{1,6})/(?P<x>\d{1,6})$", views.npi_tile, name="npi-tile"),
     path("gebco/wms/", views.gebco_wms, name="gebco-wms"),
@@ -218,6 +226,8 @@ urlpatterns = [
     path("mris/legend/", views.mris_legend, name="mris-legend"),
     # 사우디 — 보는 범위의 범례 (sgs.py, wetherilli 227)
     path("sgs/legend/", views.sgs_legend, name="sgs-legend"),
+    # 북극 지질도 1:500만 — 보는 범위의 범례 (nrcan.py, wetherilli 414)
+    path("nrcan/legend/", views.nrcan_legend, name="nrcan-legend"),
     path("sigeom/legend/", views.sigeom_legend, name="sigeom-legend"),
     path("esdm/legend/", views.esdm_legend, name="esdm-legend"),
     path("mrdata/legend/", views.mrdata_legend, name="mrdata-legend"),

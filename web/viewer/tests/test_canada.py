@@ -111,6 +111,15 @@ class Catalog(TestCase):
         self.assertIsNotNone(plan)
         self.assertEqual(plan.grid.crs, "EPSG:3978")
 
+    def test_북극_지질도는_북극해_탭에_3413_로(self):
+        """wetherilli 414 — 북극 묶음에도 든다(map.js 의 REGIONS.arctic.includes). 넓으면 느려 처음 줌을 둔다"""
+        rows = {l["name"]: (g, l) for g in views._catalog("ko") for l in g["layers"]}
+        group, layer = rows["nrcan:arctic"]
+        self.assertEqual((group["region"], layer["upstream"], layer["projection"]), ("arctic_ocean", "nrcan", "EPSG:3413"))
+        self.assertEqual((layer["legend"], layer["legendUrl"], layer["minZoom"]), ("extent", "nrcan/legend/", 3))
+        from viewer.management.commands import prewarm
+        self.assertEqual(prewarm.plan_for("nrcan:arctic", "nrcan").grid.crs, "EPSG:3413")
+
     def test_3D_는_3857_로(self):
         self.assertIn("nrcan", views.MAP3D_WMS)
         self.assertIn("ogs", views.MAP3D_WMS)
@@ -162,3 +171,73 @@ class NrcanServices(SimpleTestCase):
         out = nrcan.friendly(props)
         self.assertEqual((out["이름"], out["광종"], out["개발 단계"]), ("Beaver Brook", "Antimony", "Past producer"))
         self.assertNotIn("누리집", out)
+
+
+class NrcanArctic(SimpleTestCase):
+    """북극 지질도 1:500만 — 같은 서버의 `international_polar_year_en`, 북극 탭의 3413 으로 곧장 (wetherilli 414).
+    속성·통계 응답의 꼴은 2026-10-22 에 받아 본 그대로다"""
+
+    PROPS = {"MAP_LABEL": "KQ2", "AGE_DESCRI": "Cretaceous and younger (145.5 - 0.0 Ma)", "EON": "Phanerozoic",
+             "SETTING": "Sedimentary: undivided", "LITHOLOGY": "Sedimentary and/or volcanic rock: undivided",
+             "METAMORPHI": "Not known", "DOMAIN_R_1": "Arctic-North Atlantic region",
+             "DOMAIN_R_2": "Iceland, North Atlantic, East Greenland volcanic belt", "DOMAIN_R_3": "Oceanic basin",
+             "SOURCE_LOC": "Greenland and adjacent offshore", "COMPILATIO": "Hamann et al., 2005", "IPY_CODE": "130010100",
+             "COLOUR": "Spearmint 7"}
+
+    def test_해저를_맨_밑에_3413_그대로(self):
+        with mock.patch("viewer.nrcan.requests.get", return_value=response(ctype="image/png", content=b"png")) as get:
+            nrcan.get_map({"layers": "nrcan:arctic", "crs": "EPSG:3413", "bbox": "0,-2000000,1000000,-1000000",
+                           "width": "256", "height": "256"})
+        self.assertTrue(get.call_args.args[0].endswith("/NRCan/international_polar_year_en/MapServer/WMSServer"))
+        self.assertEqual(get.call_args[1]["params"]["layers"], "1,0,2,3")
+        self.assertEqual(get.call_args[1]["params"]["crs"], "EPSG:3413")
+
+    def test_속성은_시대만_옮긴다(self):
+        out = nrcan.friendly(self.PROPS)
+        self.assertEqual(out["기호"], "KQ2")
+        self.assertEqual(out["지질시대"], "백악기 이후 (145.5–0.0 Ma)")
+        self.assertEqual(out["지구조 구역"], "Arctic-North Atlantic region · Iceland, North Atlantic, East Greenland volcanic belt"
+                                          " · Oceanic basin")
+        self.assertNotIn("변성 정도", out)                     # "Not known" 은 적지 않는다
+        self.assertEqual(nrcan.friendly(self.PROPS, "en")["지질시대"], "Cretaceous and younger (145.5 - 0.0 Ma)")
+
+    def test_시대_괄호를_떼어_옮긴다(self):
+        self.assertEqual(nrcan.arctic_age("middle and late Paleoproterozoic (Orosirian and Statherian) (2050 - 1600 Ma)"),
+                         "고원생대 중기 및 후기 (오로세이라기 및 스타테로스기) (2050–1600 Ma)")
+        self.assertEqual(nrcan.arctic_age("Mesoarchean and Neoarchean (3200 - 2500 Ma)"), "중시생대 및 신시생대 (3200–2500 Ma)")
+        self.assertEqual(nrcan.arctic_age("something odd (12 - 3 Ma)"), "something odd (12–3 Ma)")
+
+    def test_보는_범위의_범례(self):
+        """네 레이어에 통계를 POST 로 묻고(고리가 길어 GET 은 404) 같은 단위는 넓이를 더한다. 색은 칠하기 규칙에서"""
+        def stats(*rows):
+            return response({"features": [{"attributes": dict(zip(("MAP_LABEL", "COLOUR", "AGE_DESCRI", "LITHOLOGY", "area"), r))}
+                                          for r in rows]})
+        sea = stats(("KQ4", "Spearmint 7", "Cretaceous and younger (145.5 - 0.0 Ma)", "Sandstone", 5.0),
+                    ("m15", "143", "Archean and Paleoproterozoic (4000 - 1600 Ma)", "Undivided crystalline rocks", 2.0))
+        land = stats(("m15", "143", "Archean and Paleoproterozoic (4000 - 1600 Ma)", "Undivided crystalline rocks", 7.0))
+        empty = stats()
+        renderer = lambda *pairs: response({"drawingInfo": {"renderer": {"uniqueValueInfos": [   # noqa: E731
+            {"value": v, "symbol": {"color": c}} for v, c in pairs]}}})
+        with override_settings(TILE_CACHE_DIR=tempfile.mkdtemp()), \
+             mock.patch("viewer.nrcan.requests.post", side_effect=[sea, empty, land, empty]) as post, \
+             mock.patch("viewer.nrcan.requests.get", side_effect=[renderer(("Spearmint 7", [166, 255, 77, 255])),
+                                                                  renderer(("143", [230, 153, 178, 255])),
+                                                                  renderer(), renderer()]) as get:
+            res = self.client.get("/GSM/nrcan/legend/", {"layer": "nrcan:arctic", "bbox": "-60,70,-40,80"})
+            again = self.client.get("/GSM/nrcan/legend/", {"layer": "nrcan:arctic", "bbox": "-60,70,-40,80"})
+        self.assertEqual(res.status_code, 200)
+        rows = res.json()["rows"]
+        self.assertEqual([r["symbol"] for r in rows], ["m15", "KQ4"])
+        self.assertEqual(rows[0]["color"], "#e699b2")
+        self.assertEqual(rows[1]["age"], "백악기 이후 (145.5–0.0 Ma)")
+        self.assertEqual(again.json(), res.json())
+        self.assertEqual(post.call_count, 4)                   # 두 번째는 캐시에서
+        self.assertEqual(get.call_count, 4)
+        sent = post.call_args_list[0]
+        self.assertTrue(sent.args[0].endswith("/rest/services/NRCan/international_polar_year_en/MapServer/1/query"))
+        ring = json.loads(sent.kwargs["data"]["geometry"])["rings"][0]
+        self.assertEqual(ring[0], ring[-1])
+        self.assertGreater(len(ring), 50)
+
+    def test_범례는_북극_지질도만(self):
+        self.assertEqual(self.client.get("/GSM/nrcan/legend/", {"layer": "nrcan:wheeler", "bbox": "0,0,1,1"}).status_code, 400)

@@ -4,7 +4,7 @@ import unittest
 from pathlib import Path
 from unittest import mock
 
-from gsmpack import bake, format, grid
+from gsmpack import bake, format, grid, landmask
 
 from .helpers import png
 
@@ -95,6 +95,63 @@ class Bake(unittest.TestCase):
         self.assertEqual(len(srcs["a"].asked), 3)
 
 
+    def test_받지_못한_열쇠를_머리와_로그에(self):
+        parts = bake.Parts(bake.parts_path(self.out, "tiny"))
+        hole = (12, *grid.tiles_for(BOX["bbox"], 12)[0])
+
+        def fail(z, x, y):
+            if (z, x, y) == hole:
+                raise bake.FetchError("500")
+
+        lines = []
+        done = bake.bake(bake.Plan("tiny", BOX, self.sources(parts, fail=fail)), self.out, parts, log=lines.append)
+        key = format.tile_key("a", *hole)
+        self.assertEqual(done["missing"], [key])
+        self.assertEqual(done["fails"], 1)
+        head, _ = format.read_header(done["path"])
+        self.assertEqual(head["missing"], [key])
+        self.assertNotIn(key, head["tiles"])
+        self.assertEqual(lines[-1], f"받지 못한 타일 1 — {key}")             # 수만이 아니라 어느 칸인지
+
+    def test_다_받으면_머리에_칸이_없다(self):
+        parts = bake.NoParts()
+        lines = []
+        done = bake.bake(bake.Plan("tiny", BOX, self.sources(parts)), self.out, parts, log=lines.append)
+        self.assertNotIn("missing", format.read_header(done["path"])[0])
+        self.assertEqual(lines[-1], "받지 못한 타일 없음")
+
+    def test_이웃이_채운_칸은_못_받은_것이_아니다(self):
+        """KIGAM 은 큰 그림 한 장으로 이웃 열다섯을 받는다 — 못 받은 칸이 뒤에 채워지면 받지 못한 것이 아니다"""
+        parts = bake.Parts(bake.parts_path(self.out, "tiny"))
+        tiles = grid.tiles_for(BOX["bbox"], 12)
+        first, second = (12, *tiles[0]), (12, *tiles[1])
+        state = {"failed": False}
+
+        def fail(z, x, y):
+            if (z, x, y) == first and not state["failed"]:
+                state["failed"] = True
+                raise bake.FetchError("500")
+            if (z, x, y) == second:
+                parts.put(format.tile_key("a", *first), png(size=256))       # 큰 그림이 이웃을 함께 담는다
+
+        done = bake.bake(bake.Plan("tiny", BOX, self.sources(parts, fail=fail)), self.out, parts, log=lambda s: None)
+        self.assertEqual(done["missing"], [])
+        self.assertIn(format.tile_key("a", *first), format.read_header(done["path"])[0]["tiles"])
+
+    def test_덜어_낸_줌의_구멍은_적지_않는다(self):
+        parts = bake.NoParts()
+
+        def fail(z, x, y):
+            if z == 12 and (x + y) % 2:
+                raise bake.FetchError("500")
+
+        plan = bake.Plan("tiny", BOX, self.sources(parts, fail=fail))
+        with mock.patch.object(bake, "fit_budget", side_effect=[({"a": [10, 11], "b": [10, 12]}, {"a": 12}, 0)]):
+            done = bake.bake(plan, self.out, parts, log=lambda s: None)
+        self.assertGreater(done["fails"], 0)
+        self.assertEqual(done["missing"], [])
+
+
 class FitBudget(unittest.TestCase):
     def test_차례(self):
         zooms, dropped, total = bake.fit_budget(["a", "b"], {"a": [5, 8], "b": [5, 8]}, lambda n, z: 4 ** (z - 5), 30)
@@ -126,3 +183,59 @@ class Estimate(unittest.TestCase):
         self.assertGreaterEqual(plan.counts[("a", 10)], bake.MIN_SAMPLES)
         self.assertEqual(plan.avg[("a", 10)], 200_000)
         self.assertEqual(plan.avg[("a", 12)], 100_000)                   # 깊은 줌은 캐시의 큰 그림이 아니라 표의 값
+
+
+class Sea(unittest.TestCase):
+    """바다 칸은 덜 센다 — 바다가 넓은 박스에서 어림이 30 % 넘쳤다 (wetherilli 406·409)"""
+    LAND = [127.0, 36.0, 127.2, 36.2]           # 충청 내륙
+    SEA = [129.6, 35.6, 129.8, 35.8]            # 포항 앞바다
+    COAST = [127.8, 34.8, 128.0, 35.0]          # 남해 — 반쯤 바다
+
+    def plan(self, bbox, share=None, name="vworld:Base"):
+        src = FakeSource(name, bake.NoParts())
+        if share is not None:
+            src.sea_share = share
+        return bake.Plan("t", dict(BOX, bbox=bbox, layers={name: [12, 14]}), {name: src})
+
+    def test_땅_몫(self):
+        self.assertEqual(landmask.fraction(self.LAND), 1.0)
+        self.assertEqual(landmask.fraction(self.SEA), 0.0)
+        self.assertTrue(0.3 < landmask.fraction(self.COAST) < 0.7)
+        self.assertEqual(landmask.fraction([140.0, 40.0, 140.1, 40.1]), 1.0)          # 마스크 밖은 모른다 — 땅으로 센다
+        self.assertEqual(landmask.fraction([129.70, 35.70, 129.7001, 35.7001]), 0.0)  # 칸보다 작은 네모도 센다
+
+    def test_칸은_박스_안쪽만_본다(self):
+        z, (x, y) = 9, grid.tiles_for(self.SEA, 9)[0]                 # 줌 9 칸은 육지까지 덮지만 박스 안은 바다뿐이다
+        self.assertEqual(landmask.tile_fraction(z, x, y, self.SEA), 0.0)
+        self.assertGreater(landmask.tile_fraction(z, x, y, [-180, -85, 180, 85]), 0.0)
+
+    def test_바다_칸은_바다_몫만큼(self):
+        land, sea = self.plan(self.LAND), self.plan(self.SEA)
+        self.assertEqual(sum(sea.sea.values()), sum(sea.counts.values()))
+        self.assertEqual(land.sea, {})
+        for z in (12, 13, 14):
+            self.assertAlmostEqual(sea.bytes[("vworld:Base", z)],
+                                   sea.counts[("vworld:Base", z)] * bake.guess_bytes("vworld:Base", z) * bake.SEA_SHARE["vworld:Base"])
+            self.assertEqual(land.bytes[("vworld:Base", z)], land.counts[("vworld:Base", z)] * bake.guess_bytes("vworld:Base", z))
+        self.assertIn("바다", sea.lines[0])
+
+    def test_해안은_땅이_든_칸만큼(self):
+        coast = self.plan(self.COAST)
+        full = sum(coast.counts[("vworld:Base", z)] * bake.guess_bytes("vworld:Base", z) for z in (12, 13, 14))
+        self.assertLess(coast.guess, full)
+        self.assertGreater(coast.guess, full * landmask.fraction(self.COAST))           # 반쪽 칸을 반으로 세지 않는다 — 넘치는 쪽
+
+    def test_표에_없는_레이어는_덜지_않는다(self):
+        sea = self.plan(self.SEA, name="Bouguer_Gravity_Raster_2018")                   # 바다도 칠하는 레이어
+        self.assertEqual(sea.sea, {})
+        self.assertEqual(self.plan(self.SEA, share=0).guess, 0)                         # 소스가 밝히면 그것을 따른다
+
+    def test_가진_것은_실제_크기로(self):
+        class Cached(FakeSource):
+            def cached(self, z, x, y):
+                return b"" if (x + y) % 2 else b"x" * 1000             # 반은 빈 타일 — 묶음에 들지 않는다
+
+        src = Cached("vworld:Base", bake.NoParts())
+        plan = bake.Plan("t", dict(BOX, bbox=self.LAND, layers={"vworld:Base": [13, 13]}), {"vworld:Base": src})
+        tiles = grid.tiles_for(self.LAND, 13)
+        self.assertEqual(plan.bytes[("vworld:Base", 13)], 1000 * sum(1 for x, y in tiles if not (x + y) % 2))

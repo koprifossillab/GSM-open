@@ -169,11 +169,11 @@
   function held() { return packs.length > 0 || covered.length > 0; }
 
   /** 레이어·타일 자리의 Blob 하나, 없으면 null. 열쇠는 소스의 tileCoord 그대로다 — KIGAM 은 512 px 격자라 격자 줌이 화면 줌보다
-   *  하나 낮고 VWorld 는 256 px 그대로다(wetherilli 381). `tileSize` 를 주면 머리의 `tile_size` 가 다른 묶음은 건너뛴다 — 격자가
+   *  하나 낮고 VWorld 는 256 px 그대로다(wetherilli 381). `want`(타일 크기와 격자, `wrap`)가 머리와 다른 묶음은 건너뛴다 — 격자가
    *  어긋난 묶음이 엉뚱한 자리에 그리지 않게 */
-  function tileBlob(name, z, x, y, tileSize) {
+  function tileBlob(name, z, x, y, want) {
     for (var i = 0; i < packs.length; i++) {
-      var blob = reader.tile(packs[i], name, z, x, y, tileSize);
+      var blob = reader.tile(packs[i], name, z, x, y, want);
       if (blob) return blob;
     }
     return null;
@@ -207,6 +207,17 @@
     return packs.filter(function (p) { return reader.contains(p, lon, lat); }).map(summary);
   }
 
+  /** 화면 소스의 격자 이름 — 투영 코드, 원점이 투영 범위의 왼쪽 위가 아니면 `@<원점 x>`(Esri 극 타일 따위). 굽는 쪽(`gsmpack.grid`)이 머리의
+   *  `layers.<이름>.grid` 에 적는 것과 같다 — 남극 탭에는 256 px 격자가 셋이다(wetherilli 410) */
+  function gridName(source, grid) {
+    var proj = source.getProjection && source.getProjection();
+    var code = proj ? proj.getCode() : "EPSG:3857";
+    var extent = proj && proj.getExtent();
+    var origin = grid && grid.getOrigin ? grid.getOrigin(0) : null;
+    if (!origin || !extent || (Math.abs(origin[0] - extent[0]) < 1 && Math.abs(origin[1] - extent[3]) < 1)) return code;
+    return code + "@" + origin[0].toFixed(2);
+  }
+
   /** 소스의 타일 손을 감싼다 — 묶음에 그 타일이 있으면 묶음에서, 없으면 원래 손으로(망·키). 묶음이 덮지 않는 레이어도 감싸
    *  둔다 — 나중에 묶음을 들이면 `refresh` 로 다시 그린다 */
   function wrap(source, name) {
@@ -214,7 +225,7 @@
     var original = source.getTileLoadFunction();
     var grid = source.getTileGrid && source.getTileGrid();
     var size = grid ? grid.getTileSize(0) : 0;
-    size = Array.isArray(size) ? size[0] : size;
+    size = { size: Array.isArray(size) ? size[0] : size, grid: gridName(source, grid) };
     source.setTileLoadFunction(function (tile, src) {
       var c = tile.getTileCoord();
       var now = packs.length ? found(name, c[0], c[1], c[2], size) : null;
@@ -225,13 +236,13 @@
     return source;
   }
 
-  /** 그 자리에 그릴 것 — 묶음에 그 타일이 있으면 그것(`{blob}`), 없으면 묶음의 마지막 줌 타일에서 이 자리의 칸을 늘려
-   *  (`{blob, dz, col, row}`, wetherilli 405). 줌을 다 담은 묶음이 늘린 것보다 앞선다. 없으면 null */
-  function found(name, z, x, y, tileSize) {
-    var blob = tileBlob(name, z, x, y, tileSize);
+  /** 그 자리에 그릴 것 — 묶음에 그 타일이 있으면 그것(`{blob}`), 없으면 얕은 줌 타일에서 이 자리의 칸을 늘려
+   *  (`{blob, dz, col, row}` — 마지막 줌보다 깊은 자리 wetherilli 405, 굽다가 받지 못한 자리 409). 줌을 다 담은 묶음이 늘린 것보다 앞선다. 없으면 null */
+  function found(name, z, x, y, want) {
+    var blob = tileBlob(name, z, x, y, want);
     if (blob) return { blob: blob };
     for (var i = 0; i < packs.length; i++) {
-      var over = reader.deeper(packs[i], name, z, x, y, tileSize);
+      var over = reader.deeper(packs[i], name, z, x, y, want);
       if (over) return over;
     }
     return null;

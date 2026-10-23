@@ -69,6 +69,8 @@ class Command(BaseCommand):
                 (settings.GSMMA_CATALOG_SEED, "대만 (GSMMA)", "taiwan", "gsmma"),
                 # 북극해 — EMODnet 해저 퇴적물·해저 지질. 스발바르 탭도 빌려 보인다 (wetherilli 135)
                 (settings.EMODNET_CATALOG_SEED, "북극해 (EMODnet)", "arctic_ocean", "emodnet"),
+                # 북극해 — GSC 북극 지질도 1:500만, 캐나다 지질도와 같은 NRCan 서버 (wetherilli 414)
+                (settings.NRCAN_ARCTIC_CATALOG_SEED, "북극 (NRCan)", "arctic_ocean", "nrcan"),
                 # 노르웨이·핀란드 — NGU·GTK 기반암 지질도. 북극 묶음에도 든다 (wetherilli 140)
                 (settings.NGU_CATALOG_SEED, "노르웨이 (NGU)", "fennoscandia", "ngu"),
                 (settings.GTK_CATALOG_SEED, "핀란드 (GTK)", "fennoscandia", "gtk"),
@@ -194,10 +196,14 @@ class Command(BaseCommand):
                 (settings.IBCSO_CATALOG_SEED, "남극 IBCSO", "antarctica", "ibcso"),
                 # 남극 자력 이상 ADMAP-2 — 우리가 칠해 잘라 둔 3031 타일 (wetherilli 262)
                 (settings.ADMAP_CATALOG_SEED, "남극 ADMAP-2", "antarctica", "admap"),
+                # 남극 지명 이름표 — 받아 둔 SCAR 지명사전 (wetherilli 412)
+                (settings.SCAR_CATALOG_SEED, "남극 SCAR 지명", "antarctica", "scar"),
                 # PGC 경사·등고선 — 극지 지질도 위에 겹친다 (wetherilli 099). 지역은 씨앗이 적는다
                 *((path, f"PGC ({path.stem})", "greenland", "pgc") for path in settings.PGC_CATALOG_SEEDS),
                 # 남극 — BAS 의 Bedmap3 빙저 지형·얼음 두께·윗면 (wetherilli 261)
                 (settings.BAS_CATALOG_SEED, "남극 (BAS Bedmap3)", "antarctica", "bas"),
+                # 남극·그린란드 — NASA GIBS 의 MEaSUREs 빙하 속도 (wetherilli 413). 지역은 씨앗이 적는다
+                *((path, f"GIBS ({path.stem})", "antarctica", "gibs") for path in settings.GIBS_CATALOG_SEEDS),
                 # 극지연구소 — 암석 시료·운석·KPDC 자료·기지·해안선 (053–057). 지역은 씨앗이 적는다
                 *((path, f"극지연구소 ({path.stem})", "antarctica", "kopri")
                   for path in settings.KOPRI_CATALOG_SEEDS),

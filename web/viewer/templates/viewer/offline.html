@@ -19,6 +19,7 @@ ul { list-style: none; padding: 0; margin: 0; }
 ul li { border-top: 1px solid var(--line); padding: 14px 0; }
 ul li b { font-size: 1.05rem; }
 .meta { color: var(--muted); font-size: .9rem; overflow-wrap: anywhere; }
+a { color: var(--accent); }
 a.get { display: inline-block; margin-top: 6px; color: var(--accent); font-weight: 600; }
 ol { padding-left: 1.2em; color: var(--muted); }
 </style>
@@ -26,7 +27,7 @@ ol { padding-left: 1.2em; color: var(--muted); }
 <body>
 <main>
   <h1>{% t "오프라인 묶음" %}</h1>
-  <p class="lead">{% t "연구실 현장용 — 밖으로 나누지 않는다" %}</p>
+  <p class="lead">{% t "연구실 현장용 — 밖으로 나누지 않는다" %} · <a href="request/">{% t "새 묶음 요청" %}</a></p>
   {% if packs %}
   <ul>
     {% for p in packs %}

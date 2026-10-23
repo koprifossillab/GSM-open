@@ -448,6 +448,7 @@
 | wetherilli P14 | 2026-10-16 | [중국 지질도 1:400만 스캔 — 좌표를 붙이고, 범례로 속성을 짓고, 지명을 얹는다 (계획)](20261016_wetherilli_P14_china_4m_scan.md) |
 | wetherilli P15 | 2026-10-20 | [CI 를 서버의 자체 러너로 — 시험·휴대폰 화면은 우리 서버, 이미지는 GitHub (계획)](20261020_wetherilli_P15_self_hosted_runner.md) |
 | wetherilli P16 | 2026-10-21 | [오프라인 묶음 굽기를 저장소 안의 독립 패키지로 — GSM 없이도 굽고, GSM 에서는 요청한다 (계획)](20261021_wetherilli_P16_gsmpack_package.md) |
+| wetherilli P17 | 2026-10-21 | [남극 오프라인 묶음 — 세종·장보고 기지 둘레 (계획)](20261021_wetherilli_P17_antarctic_packs.md) |
 | wetherilli 386 | 2026-10-16 | [중국 지질도 1:400만 — 경위선으로 좌표를 붙이고 중국 땅 마스크를 굽는다](20261016_wetherilli_386_china_4m_georeference.md) |
 | wetherilli 387 | 2026-10-16 | [중국 지질도 1:400만 — 3857 타일로 잘라 중국 탭에 올린다](20261016_wetherilli_387_china_4m_tiles.md) |
 | wetherilli 388 | 2026-10-16 | [중국 지질도 1:400만 — 범례 173 칸을 옮기고, 색으로 누른 자리의 시기·암상을 읽는다](20261016_wetherilli_388_china_4m_legend_attributes.md) |
@@ -468,6 +469,16 @@
 | wetherilli 403 | 2026-10-21 | [오프라인 묶음 읽기를 패키지로 — `gsmpack-reader.js` 와 꼴의 명세 (P16 2 단계)](20261021_wetherilli_403_gsmpack_reader.md) |
 | wetherilli 404 | 2026-10-21 | [오프라인 묶음의 어림을 레이어·줌마다 — 받기도 전에 덜리던 것](20261021_wetherilli_404_offline_estimate.md) |
 | wetherilli 405 | 2026-10-21 | [오프라인 묶음의 마지막 줌보다 가까이 — 그 줌을 늘려 그린다](20261021_wetherilli_405_offline_overzoom.md) |
+| wetherilli 406 | 2026-10-21 | [진교·사천·남해·삼천포 묶음 넷 — 호스트에서 굽고 운영에 옮기기](20261021_wetherilli_406_sacheon4_bake.md) |
+| wetherilli 407 | 2026-10-21 | [gsmpack 혼자 굽기 — GSM 경유·곧장 소스와 `gsmpack` 명령 (P16 3 단계)](20261021_wetherilli_407_gsmpack_cli.md) |
+| wetherilli 408 | 2026-10-21 | [GSM 에서 오프라인 묶음 요청하기 — 요청·어림·staff 승인·일꾼 (P16 4 단계)](20261021_wetherilli_408_gsmpack_request.md) |
+| wetherilli 409 | 2026-10-21 | [오프라인 묶음 굽기 다듬기 — 받지 못한 열쇠를 남기고, 바다 칸을 덜어 어림한다](20261021_wetherilli_409_offline_bake_polish.md) |
+| wetherilli 410 | 2026-10-21 | [묶음 패키지의 격자 — 3857 밖(남극 3031·Esri 극 타일)을 세고 자르기 (P17 1 단계)](20261021_wetherilli_410_gsmpack_polar_grid.md) |
+| wetherilli 411 | 2026-10-22 | [남극 묶음의 소스 — GeoMAP·REMA 음영·기지 위성, 세종 시험 굽기 (P17 2 단계)](20261022_wetherilli_411_gsmpack_polar_sources.md) |
+| wetherilli 414 | 2026-10-22 | [북극 지질도 1:500만 — 같은 NRCan 서버를 북극해 탭에, 3413 으로 곧장](20261022_wetherilli_414_arctic_geology_5m.md) |
+| wetherilli 412 | 2026-10-22 | [남극 지명 — SCAR 통합 지명사전을 받아 두고 남극 탭의 찾기·이름표에](20261022_wetherilli_412_scar_gazetteer.md) |
+| wetherilli 413 | 2026-10-22 | [남극·그린란드 빙하 속도 — NASA GIBS 의 MEaSUREs 를 레이어로](20261022_wetherilli_413_ice_velocity.md) |
+| wetherilli 415 | 2026-10-22 | [남극 — LIMA/PGC 합성 위성 배경, 브라우저가 곧장 · 정적 판의 남극 기본 배경](20261022_wetherilli_415_antarctic_lima.md) |
 | wetherilli 374 | 2026-10-07 | [온 세계 지명 찾기 — GeoNames 도시를 받아 두고, 지역 탭이 온 지구 찾기를 빌린다](20261007_wetherilli_374_world_place_search.md) |
 | wetherilli 375 | 2026-10-07 | [그때의 지구 — 판 조각 대신 PaleoDEM 고도·음영을 깐다](20261007_wetherilli_375_paleodem_relief.md) |
 | wetherilli 376 | 2026-10-07 | [온 지구 시간 막대 — 처음엔 접고, 띠는 대·기·세 세 줄로](20261007_wetherilli_376_timebar_folded_fewer_rows.md) |

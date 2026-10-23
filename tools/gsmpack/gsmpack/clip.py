@@ -2,7 +2,7 @@
 import io
 import math
 
-from PIL import Image
+from PIL import Image, ImageDraw
 
 from . import grid
 
@@ -27,8 +27,11 @@ def round_coords(coords, digits=UNITS_DIGITS):
     return [round_coords(c, digits) for c in coords]
 
 
-def clip_tile(data: bytes, z: int, x: int, y: int, bbox) -> bytes:
-    """3857 타일(격자 줌 z, 칸 수 2^z)에서 박스(경위도) 밖을 투명하게 비운다. 다 안이면 그대로, 다 밖이면 b""."""
+def clip_tile(data: bytes, z: int, x: int, y: int, bbox, on=None) -> bytes:
+    """타일(격자 줌 z)에서 박스(경위도) 밖을 투명하게 비운다. 다 안이면 그대로, 다 밖이면 b"".
+    `on` 은 격자(`grid.Grid`) — 없거나 3857 이면 지금까지의 셈(경위도 네모가 3857 의 네모다)이고, 다른 격자는 테두리를 투영해 다각형으로 자른다"""
+    if on is not None and on.name != grid.MERCATOR.name:
+        return _clip_projected(data, z, x, y, bbox, on)
     span = 2 * grid.HALF / 2 ** z
     left, top = -grid.HALF + x * span, grid.HALF - y * span
     west, south = grid.lonlat_to_3857(bbox[0], bbox[1])
@@ -49,6 +52,49 @@ def clip_tile(data: bytes, z: int, x: int, y: int, bbox) -> bytes:
     buf = io.BytesIO()
     out.save(buf, format="PNG", optimize=True)
     return buf.getvalue()
+
+
+def _inside(point, ring):
+    """점이 고리 안에 드나 — 짝홀 규칙."""
+    px, py = point
+    hit = False
+    for (ax, ay), (bx, by) in zip(ring, ring[1:] + ring[:1]):
+        if (ay > py) != (by > py) and px < ax + (bx - ax) * (py - ay) / (by - ay):
+            hit = not hit
+    return hit
+
+
+def _clip_projected(data, z, x, y, bbox, on):
+    """3857 밖의 격자(극 평사도법 따위, wetherilli 410) — 경위도 네모는 부채꼴이라 투영의 네모로 자르면 둘레가 샌다.
+    테두리를 투영한 다각형으로 칸 밖을 비운다. 네 귀가 다 안이고 테두리가 칸을 지나지 않으면 그대로 둔다"""
+    left, bottom, right, top = on.cell_extent(z, x, y)
+    ring = on.edge(bbox)
+    b = _bounds_of(ring)
+    if b[2] <= left or b[0] >= right or b[3] <= bottom or b[1] >= top:
+        return b""
+    corners = [(left, top), (right, top), (right, bottom), (left, bottom)]
+    crossing = any(left < px < right and bottom < py < top for px, py in ring)
+    if not crossing and all(_inside(c, ring) for c in corners):
+        return data
+    try:
+        image = Image.open(io.BytesIO(data)).convert("RGBA")
+    except (OSError, ValueError):
+        return data
+    w, h = image.size
+    pixels = [((px - left) / (right - left) * w, (top - py) / (top - bottom) * h) for px, py in ring]
+    mask = Image.new("L", image.size, 0)
+    ImageDraw.Draw(mask).polygon(pixels, fill=255)
+    if mask.getbbox() is None:
+        return b""
+    out = Image.new("RGBA", image.size, (0, 0, 0, 0))
+    out.paste(image, (0, 0), mask)
+    buf = io.BytesIO()
+    out.save(buf, format="PNG", optimize=True)
+    return buf.getvalue()
+
+
+def _bounds_of(points):
+    return (min(p[0] for p in points), min(p[1] for p in points), max(p[0] for p in points), max(p[1] for p in points))
 
 
 def _clip_ring(ring, bbox):

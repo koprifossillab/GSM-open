@@ -33,7 +33,9 @@ class Immutable(SimpleTestCase):
         self.assertEqual(resp["Cache-Control"], "public, max-age=86400")
 
 
-@override_settings(TILE_CACHE_SECONDS=86400, TILE_IMMUTABLE_SECONDS=31536000)
+# 개발 스위치(`GSM_DEV_DIRECT_WMS=1`, 개발자의 `.env`)가 켜져 있으면 키가 없어도 문이 열려 안내 타일 대신 상류를 부른다 —
+# 시험이 상류를 타고 깨진다. 시험은 스위치를 끈 채 돈다 (wetherilli 408)
+@override_settings(TILE_CACHE_SECONDS=86400, TILE_IMMUTABLE_SECONDS=31536000, DEV_DIRECT_WMS=False)
 class Views(TestCase):
     def setUp(self):
         patch = override_settings(TILE_CACHE_DIR=tempfile.mkdtemp(prefix="gsm-cachehdr-"))

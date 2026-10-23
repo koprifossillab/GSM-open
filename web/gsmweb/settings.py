@@ -390,6 +390,8 @@ CHINA4M_DIR = env("GSM_CHINA4M_DIR") or str(_data_dir() / "china4m")
 IBCSO_DIR = env("GSM_IBCSO_DIR") or str(_data_dir() / "ibcso")
 #: 남극 자력 이상 ADMAP-2 를 칠해 잘라 둔 것 (wetherilli 262). 원본은 NAS `sources/admap2/grid.zip`
 ADMAP_DIR = env("GSM_ADMAP_DIR") or str(_data_dir() / "admap2")
+#: SCAR 남극 통합 지명사전을 지형마다 묶어 적은 것 — `manage.py fetch_scar_gazetteer` 가 쓴다 (wetherilli 412)
+SCAR_DIR = env("GSM_SCAR_DIR") or str(_data_dir() / "scar")
 #: 노던테리토리 1:250만 지질도·단층 셰이프 ZIP 둘을 그대로 둔다 (wetherilli 361). 원본은 NAS `sources/australia/nt_geology/`
 NTGEO_DIR = env("GSM_NTGEO_DIR") or str(_data_dir() / "nt_geology")
 #: 남호주 방사능 농도 격자(K·Th·U)를 골라 적은 것 — 누른 자리의 값 (wetherilli 358). 원본은 NAS `sources/australia/sa_radiometrics/`
@@ -617,6 +619,8 @@ MRDATA_CATALOG_SEED = REPO_DIR / "data" / "mrdata_layers.json"
 SGM_CATALOG_SEED = REPO_DIR / "data" / "sgm_layers.json"
 #: 캐나다 (wetherilli 204)
 NRCAN_CATALOG_SEED = REPO_DIR / "data" / "nrcan_layers.json"
+#: 북극 지질도 1:500만 — 같은 NRCan 서버, 북극해 탭 (wetherilli 414)
+NRCAN_ARCTIC_CATALOG_SEED = REPO_DIR / "data" / "nrcan_arctic_layers.json"
 OGS_CATALOG_SEED = REPO_DIR / "data" / "ogs_layers.json"
 #: 캐나다의 주 판 — 퀘벡·유콘 (wetherilli 210)
 SIGEOM_CATALOG_SEED = REPO_DIR / "data" / "sigeom_layers.json"
@@ -694,10 +698,13 @@ CHINA4M_LEGEND = REPO_DIR / "data" / "china4m_legend.json"
 #: 남극 IBCSO 자료 출처(TID) — 우리가 잘라 둔 3031 타일 (071)
 IBCSO_CATALOG_SEED = REPO_DIR / "data" / "ibcso_layers.json"
 ADMAP_CATALOG_SEED = REPO_DIR / "data" / "admap_layers.json"
+SCAR_CATALOG_SEED = REPO_DIR / "data" / "scar_layers.json"
 #: PGC 경사·등고선 — 지질도 위에 겹치는 극지 레이어 (wetherilli 099). 지역이 셋이라 씨앗도 셋이다
 #: 남극 — BAS 의 Bedmap3 타일(ArcGIS Online, wetherilli 261)
 BAS_TILES_URL = env("GSM_BAS_TILES_URL", "https://tiles.arcgis.com/tiles/tPxy1hrFDhJfZ0Mf/arcgis/rest/services")
 BAS_CATALOG_SEED = REPO_DIR / "data" / "bas_antarctica_layers.json"
+#: 남극·그린란드 — NASA GIBS 의 MEaSUREs 빙하 속도. 타일은 서버가 받아 담는다(`viewer/basemaps.py`, wetherilli 413). 지역마다 한 장
+GIBS_CATALOG_SEEDS = tuple(REPO_DIR / "data" / f"gibs_{r}_layers.json" for r in ("antarctica", "greenland"))
 PGC_CATALOG_SEEDS = tuple(REPO_DIR / "data" / f"pgc_{r}_layers.json" for r in ("greenland", "svalbard", "antarctica"))
 #: 극지연구소(KOPRI) — 지역마다 한 장: 남극(시료·KPDC 자료·기지·해안선), 스발바르·그린란드(암석 시료·KPDC 자료),
 #: 북극해(KPDC 자료) (053–057·075·076)
