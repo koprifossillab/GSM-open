@@ -5,6 +5,11 @@
 - **왜 그렇게 했는지**는 `devlog/` — 괄호 안의 번호가 그 문서다
 - 날짜는 그 판을 붙인 날이다
 
+## v1.2.1 — 2026-10-23 · 호스트 받기 고침 · 파이썬 3.14 병렬 시험 (wetherilli 416–417)
+
+- **호스트 cron 의 받기가 다시 돈다** — 1.1.0 부터 viewer 가 묶음 패키지 `gsmpack` 을 import 하는데 호스트 사본(`/srv/GSM/scripts/app`)에 옮기지 않아 아라온·GFS 바람·GMGSI·최근 지진 받기가 import 에서 깨졌다. `install.sh` 가 `tools/gsmpack/gsmpack` 도 옮긴다 (wetherilli 417)
+- **시험** — 파이썬 3.14(리눅스 기본 시작 방식 forkserver)에서 `--parallel` 이 깨지던 것을 fork 로 고정한다 (wetherilli 416)
+
 ## v1.2.0 — 2026-10-22 · 오프라인 묶음 혼자 굽기 · GSM 에서 요청하기 · 극지 자료 여섯 (wetherilli 407–415)
 
 - **`gsmpack` 명령으로 노트북에서 혼자 굽는다** — `gsmpack bake <박스표> <박스> --via <GSM 주소>` 는 GSM 이 화면에 내주는 길을 그대로 불러 키 없이 서버 캐시를 함께 쓰고, `--direct` 는 쓰는 사람의 키로 상류를 곧장 부른다. `gsmpack info <묶음>`. GSM 에 새 길 `/GSM/offline/plan/`(주소의 꼴)·`/GSM/offline/units/`(지층 면), 안내 타일에는 머리 `X-GSM-Notice`. 패키지 0.2.0 (wetherilli P16·407)

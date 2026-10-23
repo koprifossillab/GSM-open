@@ -10,7 +10,11 @@
 
 `settings.TEST_RUNNER` 가 이것을 가리킨다. 병렬(`--parallel`)은 fork 로 갈라지므로 여기서 바꾼 것을 일꾼이 물려받는다.
 spawn 으로 뜨는 일꾼을 위해 환경변수에도 적는다.
+
+**병렬은 fork 로 고정한다** (wetherilli 416) — 파이썬 3.14 부터 리눅스의 기본 시작 방식이 forkserver 라 Django 5.2 가
+"Cloning with start method 'forkserver' is not supported" 로 깨진다. fork 가 없는 곳(macOS·윈도)은 건드리지 않는다.
 """
+import multiprocessing
 import os
 import shutil
 import sys
@@ -56,6 +60,11 @@ def changed(before: dict, after: dict) -> list:
 
 
 class GSMTestRunner(DiscoverRunner):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        if self.parallel > 1 and sys.platform.startswith("linux") and multiprocessing.get_start_method() == "forkserver":
+            multiprocessing.set_start_method("fork", force=True)
+
     def setup_test_environment(self, **kwargs):
         super().setup_test_environment(**kwargs)
         self._root = Path(tempfile.mkdtemp(prefix="gsm-test-"))

@@ -479,6 +479,8 @@
 | wetherilli 412 | 2026-10-22 | [남극 지명 — SCAR 통합 지명사전을 받아 두고 남극 탭의 찾기·이름표에](20261022_wetherilli_412_scar_gazetteer.md) |
 | wetherilli 413 | 2026-10-22 | [남극·그린란드 빙하 속도 — NASA GIBS 의 MEaSUREs 를 레이어로](20261022_wetherilli_413_ice_velocity.md) |
 | wetherilli 415 | 2026-10-22 | [남극 — LIMA/PGC 합성 위성 배경, 브라우저가 곧장 · 정적 판의 남극 기본 배경](20261022_wetherilli_415_antarctic_lima.md) |
+| wetherilli 416 | 2026-10-23 | [시험 — 파이썬 3.14 에서 병렬을 fork 로 고정한다](20261023_wetherilli_416_test_parallel_fork.md) |
+| wetherilli 417 | 2026-10-23 | [호스트 cron 사본에 묶음 패키지도 옮긴다](20261023_wetherilli_417_install_gsmpack.md) |
 | wetherilli 374 | 2026-10-07 | [온 세계 지명 찾기 — GeoNames 도시를 받아 두고, 지역 탭이 온 지구 찾기를 빌린다](20261007_wetherilli_374_world_place_search.md) |
 | wetherilli 375 | 2026-10-07 | [그때의 지구 — 판 조각 대신 PaleoDEM 고도·음영을 깐다](20261007_wetherilli_375_paleodem_relief.md) |
 | wetherilli 376 | 2026-10-07 | [온 지구 시간 막대 — 처음엔 접고, 띠는 대·기·세 세 줄로](20261007_wetherilli_376_timebar_folded_fewer_rows.md) |

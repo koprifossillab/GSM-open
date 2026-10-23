@@ -8,8 +8,9 @@
 #
 # 옮기는 것
 #   *.sh                   이 디렉토리의 스크립트 (run.sh·weekly_backup.sh …)
-#   app/                   앱 코드 사본 — web/{manage.py,gsmweb,viewer}·data/·requirements. 관리 명령이 viewer 를 타므로
-#                          코드가 함께 가야 한다. 정적 파일·시험은 cron 이 쓰지 않아 뺀다
+#   app/                   앱 코드 사본 — web/{manage.py,gsmweb,viewer}·data/·requirements·tools/gsmpack/gsmpack. 관리 명령이
+#                          viewer 를 타므로 코드가 함께 가야 한다 — viewer 가 import 하는 묶음 패키지도(settings 가 sys.path 에 얹는다,
+#                          빠뜨려 1.1.0 부터 호스트 받기가 다 깨졌다, wetherilli 417). 정적 파일·시험은 cron 이 쓰지 않아 뺀다
 # 옮기지 않는 것
 #   venv/                  호스트가 만든다(run.sh). 컨테이너의 파이썬은 /usr/local 이라 호스트에서 못 쓴다
 #
@@ -34,7 +35,7 @@ mkdir -p "$stage"
 tar -C "$SRC" -cf - \
     --exclude=__pycache__ --exclude='*.pyc' \
     --exclude=web/viewer/static --exclude=web/viewer/tests --exclude='data/*.xml' \
-    web/manage.py web/gsmweb web/viewer data "${REQS[@]}" \
+    web/manage.py web/gsmweb web/viewer data tools/gsmpack/gsmpack "${REQS[@]}" \
   | tar -C "$stage" -xf -
 
 # 다 풀고 나서 바꿔 끼운다 — 옮기다 멈춰도 앞의 사본이 깨지지 않는다
