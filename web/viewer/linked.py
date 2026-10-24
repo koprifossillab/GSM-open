@@ -27,7 +27,6 @@ import ipaddress
 import logging
 import re
 import socket
-import ssl
 import threading
 import time
 from collections import defaultdict, deque
@@ -39,7 +38,7 @@ from requests.adapters import HTTPAdapter
 from urllib3.connectionpool import HTTPConnectionPool, HTTPSConnectionPool
 from urllib3.util import connection as u3connection
 
-from . import usage
+from . import tls, usage
 from .i18n import msg
 
 log = logging.getLogger(__name__)
@@ -170,7 +169,7 @@ class _Pinned(HTTPAdapter):
     def init_poolmanager(self, *args, **kwargs):
         # 연구소 망의 TLS 검사 장비가 다시 서명한 것도 믿는다 — requests 가 늘 싣는 certifi 에 더해진다
         if settings.EXTRA_CA:
-            ctx = ssl.create_default_context()
+            ctx = tls.context()
             ctx.load_verify_locations(settings.EXTRA_CA)
             kwargs["ssl_context"] = ctx
         super().init_poolmanager(*args, **kwargs)

@@ -489,6 +489,7 @@
 | wetherilli 424 | 2026-10-24 | [남극 — SCAR KGIS 킹조지섬 지형 DB 를 받아 일곱 레이어로](20261024_wetherilli_424_king_george_kgis.md) |
 | wetherilli 425 | 2026-10-24 | [스발바르 — NPI 정주지 상세도(FKB)를 지형도 위에 얹은 배경](20261024_wetherilli_425_svalbard_fkb.md) |
 | wetherilli 423 | 2026-10-24 | [극지 보호구역 — 남극 ASPA 2024 와 스발바르 자연보호구역을 레이어로](20261024_wetherilli_423_polar_protected_areas.md) |
+| wetherilli 426 | 2026-10-24 | [연구소 망이 다시 서명한 잎 — 파이썬 3.13+ 의 엄격 검사만 푼다](20261024_wetherilli_426_tls_strict_intercept.md) |
 | wetherilli 374 | 2026-10-07 | [온 세계 지명 찾기 — GeoNames 도시를 받아 두고, 지역 탭이 온 지구 찾기를 빌린다](20261007_wetherilli_374_world_place_search.md) |
 | wetherilli 375 | 2026-10-07 | [그때의 지구 — 판 조각 대신 PaleoDEM 고도·음영을 깐다](20261007_wetherilli_375_paleodem_relief.md) |
 | wetherilli 376 | 2026-10-07 | [온 지구 시간 막대 — 처음엔 접고, 띠는 대·기·세 세 줄로](20261007_wetherilli_376_timebar_folded_fewer_rows.md) |

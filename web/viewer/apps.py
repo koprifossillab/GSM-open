@@ -8,6 +8,9 @@ class ViewerConfig(AppConfig):
 
     def ready(self):
         _record_fetch_commands()
+        # 연구소 망이 다시 서명한 잎을 파이썬 3.13+ 가 거절하지 않게 — 한 자리에서 (wetherilli 426)
+        from . import tls
+        tls.install()
 
 
 def _record_fetch_commands():

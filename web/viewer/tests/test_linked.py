@@ -261,7 +261,7 @@ class ExtraCA(SimpleTestCase):
 
     def test_있으면_싣는다(self):
         with override_settings(EXTRA_CA="/etc/ssl/certs/ca-certificates.crt"), \
-                mock.patch("viewer.linked.ssl.SSLContext.load_verify_locations") as load:
+                mock.patch("ssl.SSLContext.load_verify_locations") as load:
             adapter = linked._Pinned("93.184.216.34")
-        load.assert_called_once_with("/etc/ssl/certs/ca-certificates.crt")
+        load.assert_any_call("/etc/ssl/certs/ca-certificates.crt")
         self.assertIn("ssl_context", adapter.poolmanager.connection_pool_kw)

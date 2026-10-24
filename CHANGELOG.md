@@ -5,6 +5,10 @@
 - **왜 그렇게 했는지**는 `devlog/` — 괄호 안의 번호가 그 문서다
 - 날짜는 그 판을 붙인 날이다
 
+## v1.4.1 — 2026-10-24 · 연구소 망의 TLS 를 파이썬 3.13+ 에서도 받는다 (wetherilli 426)
+
+- **호스트의 받기(`fetch_recent_quakes` 등)가 다시 돈다** — 연구소 망의 TLS 검사 장비가 다시 서명한 잎에는 AKI 확장이 없어, 파이썬 3.13+ 의 엄격 검사(`VERIFY_X509_STRICT`)가 `Missing Authority Key Identifier` 로 거절했다(호스트 venv 가 3.14). 믿는 꾸러미에 그 장비의 CA("KOPRI SSL")가 들 때만 그 검사 하나를 끈다 — 체인 검증·호스트 이름 검사는 그대로다. `viewer/tls.py` 가 urllib3 기본 컨텍스트에 걸어 모든 `requests` 가 탄다. `gsmpack` 의 `net.py` 도 같은 규칙. 3.12 의 웹 컨테이너는 바뀌는 것이 없다 (wetherilli 426)
+
 ## v1.4.0 — 2026-10-24 · 극지 보호구역 · 킹조지섬 지형 SCAR KGIS · 스발바르 정주지 상세도 (wetherilli 423–425)
 
 - **남극 특별보호구역 ASPA 2024** — AADC 의 Terauds 외 2024 판(CC BY 4.0)을 받아 구워(`fetch_aspa`) 남극 탭 "보호구역 (AADC)" 의 면(75 곳 119 조각)과 점으로. 바다를 품은 것은 따로 색. 묶음 받기가 이메일을 물어 파일마다 받는다 (wetherilli 423)

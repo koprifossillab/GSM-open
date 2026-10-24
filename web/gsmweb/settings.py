@@ -478,6 +478,9 @@ def _default_ca_bundle() -> str:
     `verify=False` 로 끄지 않는다 — 검증을 끄면 가로채는 쪽을 못 가린다.
     시스템 꾸러미를 가리켜 제대로 검증한다. 컨테이너는 이미지를 만들 때
     KOPRI 인증서를 넣고(`deploy/Dockerfile.web`) 같은 자리를 본다.
+
+    파이썬 3.13+ 는 그 장비가 짓는 잎(AKI 가 없다)을 엄격 검사로 거절한다 —
+    그 검사 하나만 `viewer.tls` 가 푼다(wetherilli 426).
     """
     system = "/etc/ssl/certs/ca-certificates.crt"
     configured = env("GSM_CA_BUNDLE")

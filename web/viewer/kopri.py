@@ -21,7 +21,6 @@ import json
 import logging
 import math
 import re
-import ssl
 import time
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
@@ -30,7 +29,7 @@ import requests
 import requests.adapters
 from django.conf import settings
 
-from . import usage
+from . import tls, usage
 
 log = logging.getLogger(__name__)
 
@@ -720,7 +719,7 @@ _FIELD = re.compile(r"<b>\s*([A-Z]+)[^<]*</b>\s*:?\s*([^<]*)")
 
 class _LiveAdapter(requests.adapters.HTTPAdapter):
     def init_poolmanager(self, *args, **kwargs):
-        ctx = ssl.create_default_context(cafile=settings.CA_BUNDLE or None)
+        ctx = tls.context(cafile=settings.CA_BUNDLE or None)
         ctx.load_verify_locations(str(LIVE_INTERMEDIATE))
         kwargs["ssl_context"] = ctx
         super().init_poolmanager(*args, **kwargs)
