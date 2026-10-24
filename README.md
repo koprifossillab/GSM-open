@@ -167,6 +167,14 @@ devlog 까지 적는다). "(사람) 읽을 것" 은 조건을 아직 읽지 않�
 | `ibcso` | IBCSO v2 (파일) | CC BY 4.0 |  |
 | `admap` | ADMAP-2 (파일) | CC BY 3.0 |  |
 | `scar` | SCAR 남극 통합 지명사전 — AADC WFS 를 받아 둔 파일(`fetch_scar_gazetteer`), 남극 탭의 찾기·이름표 | CC BY (인용 — Secretariat SCAR, Composite Gazetteer of Antarctica) |  |
+| `earth` (`iodp`) | 과학 해양 시추공 DSDP·ODP·IODP — kml.iodp.org 의 목록을 받아 둔 파일(`fetch_iodp_holes`), 남극·북극 탭. ANDRILL·CRP·CIROS·MSSTS 는 PANGAEA 이벤트에서 손으로 | 공개 자료 — 프로그램을 밝힌다(Sample, Data, and Obligations Policy 2024)·PANGAEA CC BY |  |
+| `gtnp` | GTN-P 영구동토 시추공 — Arctic Portal WFS 를 받아 둔 파일(`fetch_gtnp`), 북극해·남극 탭의 점 | CC BY 3.0 (인용 — GTN-P 2015·2018, PANGAEA) |  |
+| `pangaea` | PANGAEA 극지 현장 자료 목록 — 검색을 받아 둔 파일(`fetch_pangaea`), 현장 다섯 둘레, 자료마다 한 점 | 메타데이터 CC0 (이용 약관 6.2). 자료 본문은 자료마다(대개 CC BY) — 싣지 않고 DOI 로 잇는다 |  |
+| `petrochron` | PetroChron Antarctica — Zenodo 의 엮은 표를 받아 구운 것(`fetch_petrochron`), 남극 탭의 암석 시료 화학·연대 점 | CC BY 4.0 (Sanchez 외 2021, doi:10.5281/zenodo.5032026) |  |
+| `orda` | 빙저호 목록 Livingstone 외 2022 — 셰필드대 ORDA 의 엑셀을 받아 둔 파일(`fetch_subglacial_lakes`), 남극·그린란드 탭 | CC BY 4.0 |  |
+| `raised` | RAISED 컨소시엄 2014 남극 접지선 20·15·10·5 ka — Quantarctica 사본(`build_raised`) | 논문 CC BY 3.0 — 사본에 조건 칸이 없어 사람이 논문의 조건을 걸었다(wetherilli 420). 정적 판에 싣지 않는다 |  |
+| `kgis` | SCAR KGIS 킹조지섬 지형 DB 2007 — PANGAEA.837976 의 셰이프 zip 을 받아 둔 파일(`fetch_kgis`) | CC BY 3.0 (AWI·SCAR 2007) |  |
+| `aadc` | 남극 특별보호구역 ASPA 2024 (Terauds 외, AADC) — 셰이프를 받아 둔 파일(`fetch_aspa`), 남극 탭의 면·점 | CC BY 4.0 (자료 안의 LICENSE·README) |  |
 | `bas` | 영국 남극조사소 Bedmap3 | CC BY 4.0 (타일 서비스 항목) |  |
 | `kopri` | 극지연구소 KPDC | **(사람) 읽을 것** — KPDC 공개 정책. 위 "먼저 볼 것" 2 |  |
 

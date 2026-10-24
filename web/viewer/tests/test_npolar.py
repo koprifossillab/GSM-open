@@ -451,3 +451,41 @@ class Sheets(SimpleTestCase):
     def test_사람_이메일_열은_받지_않는다(self):
         spec = npolar.POINTS["npolar:svalbard_sheet_index"]
         self.assertFalse(any("Folk" in f["from"] for f in spec["fields"].values()))
+
+
+class Protected(SimpleTestCase):
+    """스발바르 자연보호구역 (wetherilli 423) — 면은 갈래 색, 지정일은 날짜 꼴로. 상류는 부르지 않는다."""
+
+    def feature(self, form, date="20191220", oid=1):
+        return {"type": "Feature", "id": oid,
+                "geometry": {"type": "Polygon", "coordinates": [[[11.0, 79.6], [11.2, 79.6], [11.2, 79.7], [11.0, 79.6]]]},
+                "properties": {"offisieltnavn": "Liefdefjorden fuglereservat ", "verneform": form, "vernedato": date,
+                               "verneforskrift": "https://lovdata.no/forskrift/2014-04-04-377", "OBJECTID": oid}}
+
+    def test_보호_형태로_칠하고_범례를_싣는다(self):
+        name = "npolar:svalbard_protected_areas"
+        answer = {"type": "FeatureCollection", "features": [self.feature("naturreservatSvalbard", oid=1),
+                                                             self.feature("nasjonalparkSvalbard", oid=2),
+                                                             self.feature("naturreservatJanMayen", "1999", oid=3)]}
+        with mock.patch.object(npolar, "_get", return_value=mock.Mock(status_code=200, json=lambda: answer)) as got:
+            features = npolar.fetch(name)
+        self.assertEqual(got.call_args.args[1]["maxAllowableOffset"], 0.0001)
+        self.assertNotIn("resultOffset", got.call_args.args[1])              # 56 면이라 장을 넘기지 않는다
+        out = json.loads(npolar.body(name, json.dumps(features).encode()))
+        self.assertEqual(out["style"], "class")
+        self.assertEqual([(r["code"], r["count"]) for r in out["legend"]], [("park", 1), ("reserve", 2)])
+        first = out["features"][0]["properties"]
+        self.assertEqual((first["code"], first["date"], first["name"]), ("reserve", "2019-12-20", "Liefdefjorden fuglereservat"))
+        self.assertEqual(out["features"][2]["properties"]["date"], "1999")    # 꼴이 다르면 그대로
+        self.assertNotIn("form", out["labels"])                              # 보호 형태는 색으로만
+        self.assertIn("rule", out["links"])
+
+    def test_출처는_NPI_와_주지사(self):
+        for name in ("npolar:svalbard_protected_areas", "npolar:svalbard_bird_sanctuaries", "npolar:svalbard_ramsar",
+                     "npolar:svalbard_protection_boundary"):
+            self.assertIn("Sysselmesteren", npolar.attribution(name))
+            self.assertEqual(npolar.source_url(name), npolar.PROTECTED_URL)
+            self.assertIn(name, i18n.LAYER_EN)
+            for row in npolar.POINTS[name]["classes"]["table"] + (npolar.POINTS[name]["classes"]["else"],):
+                self.assertIn(row[1], i18n.EN)
+        self.assertEqual(npolar.attribution("npolar:rock_archive"), npolar.ATTRIBUTION)

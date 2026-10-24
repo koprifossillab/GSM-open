@@ -7,7 +7,8 @@
  "레이어군순서": [
   "스발바르 지질 (NPI)",
   "스발바르 시료·층서 (NPI)",
-  "스발바르 빙하 (NPI)"
+  "스발바르 빙하 (NPI)",
+  "스발바르 보호구역 (NPI)"
  ],
  "레이어": [
   {
@@ -73,6 +74,38 @@
    "abstract": "Glacier fronts of Svalbard — 4 064 front lines coloured by year, 1936–2025 (Sentinel-2, Landsat, aerial photos). CC BY 4.0",
    "bbox": [10.0, 74.0, 35.0, 81.0],
    "확인한날": "2026-09-30"
+  },
+  {
+   "name": "npolar:svalbard_protected_areas",
+   "title": "국립공원·자연보호구역",
+   "group": "스발바르 보호구역 (NPI)",
+   "abstract": "스발바르 환경보호법의 보호구역 56 면 — 국립공원 7·자연보호구역 47·지질 보호지 1 (얀마옌 자연보호구역 하나도 든다). 누르면 이름·지정일·관리 기관과 보호 규정(Lovdata)·Naturbase 자료 링크",
+   "bbox": [10.0, 74.0, 35.0, 81.0],
+   "확인한날": "2026-10-24"
+  },
+  {
+   "name": "npolar:svalbard_bird_sanctuaries",
+   "title": "조류 보호구역",
+   "group": "스발바르 보호구역 (NPI)",
+   "abstract": "조류 보호구역(fuglereservat) 16 곳의 자리 — 섬이 작아 점으로 둔다",
+   "bbox": [10.0, 74.0, 35.0, 81.0],
+   "확인한날": "2026-10-24"
+  },
+  {
+   "name": "npolar:svalbard_ramsar",
+   "title": "람사르 습지",
+   "group": "스발바르 보호구역 (NPI)",
+   "abstract": "람사르 협약 습지 9 곳 — 누르면 이름·람사르 번호와 Ramsar Sites Information Service·Naturbase 링크",
+   "bbox": [10.0, 74.0, 35.0, 81.0],
+   "확인한날": "2026-10-24"
+  },
+  {
+   "name": "npolar:svalbard_protection_boundary",
+   "title": "보호 경계선",
+   "group": "스발바르 보호구역 (NPI)",
+   "abstract": "보호구역의 법정 경계선 70 줄 — 바다 쪽 경계까지 선으로",
+   "bbox": [10.0, 74.0, 35.0, 81.0],
+   "확인한날": "2026-10-24"
   }
  ]
 }

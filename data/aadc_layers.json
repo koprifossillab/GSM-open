@@ -1,0 +1,27 @@
+{
+ "_주석": "남극 특별보호구역(ASPA) 2024 판(Terauds 외, AADC, CC BY 4.0) 씨앗이다. AADC 자료 저장소(EDS 5998)의 셰이프를 manage.py fetch_aspa 가 받아 위경도로 옮겨 GSM_AADC_DIR/aspa_2024.json 에 적는다. 파일은 저장소에 없다. 야외에서 들어가지 말아야 할 자리라 지명 바로 뒤에 둔다 (wetherilli 423).",
+ "_뽑은날": "2026-10-24",
+ "_출처": "https://data.aad.gov.au/metadata/AAS_4296_Updated_ASPAs_2024",
+ "_지역": "antarctica",
+ "_상류": "aadc",
+ "_레이어군차례": 6,
+ "레이어군순서": [
+  "보호구역 (AADC)"
+ ],
+ "레이어": [
+  {
+   "name": "aadc:aspa",
+   "title": "남극 특별보호구역 ASPA — 경계",
+   "group": "보호구역 (AADC)",
+   "abstract": "남극조약 환경보호의정서 부속서 V 의 남극 특별보호구역(ASPA) 75 곳의 면 119 조각 — 관리 계획의 좌표와 지도에 다시 맞춘 2024 판(Terauds 외). 들어가려면 허가가 있어야 한다. 누르면 ASPA 번호·이름·제안국·지정 문서",
+   "bbox": [-180, -90, 180, -60]
+  },
+  {
+   "name": "aadc:aspa_points",
+   "title": "남극 특별보호구역 ASPA — 자리",
+   "group": "보호구역 (AADC)",
+   "abstract": "ASPA 마다 한 점 — 면이 작아(가장 작은 것이 100 m²) 넓게 볼 때는 면이 보이지 않아 함께 둔다",
+   "bbox": [-180, -90, 180, -60]
+  }
+ ]
+}

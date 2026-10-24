@@ -144,6 +144,9 @@ def clean(value, kind):
     if kind == "link":
         # 주소는 http·https 만 받는다 — `javascript:` 를 팝업에 들이지 않는다
         return text if text.lower().startswith(("http://", "https://")) else None
+    if kind == "ymd":
+        # 여덟 자리 날짜(`20191220`, NPI 의 보호 지정일, wetherilli 423) → 2019-12-20. 꼴이 다르면 그대로
+        return f"{text[:4]}-{text[4:6]}-{text[6:]}" if re.fullmatch(r"\d{8}", text) else text
     if kind == "rgb":
         try:
             r, g, b = (int(p) for p in text.split()[:3])
@@ -162,6 +165,57 @@ def body(spec: dict, features_json: bytes) -> bytes:
     head = json.dumps({"type": "FeatureCollection", "labels": labels(spec), "links": links(spec),
                        "style": spec["style"]}, ensure_ascii=False)
     return head[:-1].encode("utf-8") + b', "features": ' + features_json + b"}"
+
+
+# ── 갈래 색 (wetherilli 089) ─────────────────────────────────────────
+#
+# 명세에 `classes` 가 있으면 feature 마다 갈래(`code`)를 붙이고 덩이에 `legend` 를 싣는다 — 화면은 `style: class` 로 그린다
+# (극지연구소 053 과 같은 꼴). 그린란드 포털에서 생겨 NPI 가 함께 쓴다.
+
+def class_of(spec: dict, props: dict) -> tuple:
+    """feature 하나의 갈래 (code, label, color, shape). 받은 값이 표의 머리말로 시작하면 그 갈래다 —
+    위에서부터 먼저 맞는 것. 캐시에는 넣지 않고 내보낼 때 가른다 — 색을 고쳐도 다시 받지 않는다."""
+    classes = spec["classes"]
+    raw = props.get(classes["by"]) if classes["by"] else None
+    value = str(raw if raw is not None else "")
+    for code, label, color, shape, heads in classes["table"]:
+        if isinstance(heads, dict):
+            # 다른 열을 보고 가른다 — 석류석 갈래 (wetherilli 157). `gt0` 는 그 열의 값이 0 보다 큰 것,
+            # `top` 은 그 열이 `of` 가운데 가장 크고 0 보다 큰 것(같으면 표의 앞 줄이 이긴다, wetherilli 178)
+            if "top" in heads:
+                values = [props.get(k) or 0 for k in heads["of"]]
+                if (props.get(heads["top"]) or 0) > 0 and (props.get(heads["top"]) or 0) >= max(values):
+                    return code, label, color, shape
+            elif (props.get(heads["gt0"]) or 0) > 0:
+                return code, label, color, shape
+        elif callable(heads):
+            if heads(props):
+                return code, label, color, shape
+        elif classes.get("numeric"):
+            # 값의 구간 `(이상, 미만)` — 미만이 None 이면 끝이 없다
+            low, high = heads
+            if isinstance(raw, (int, float)) and raw >= low and (high is None or raw < high):
+                return code, label, color, shape
+        elif value.startswith(heads):
+            return code, label, color, shape
+    return classes["else"]
+
+
+def class_body(spec: dict, features_json: bytes) -> bytes:
+    """갈래가 있는 레이어의 덩이 — feature 마다 `code`, 덩이에 `legend`([{code, label, color, shape, count}])"""
+    features = json.loads(features_json)
+    counts, table = {}, {}
+    for feature in features:
+        code, label, color, shape = class_of(spec, feature["properties"])
+        feature["properties"]["code"] = code
+        counts[code] = counts.get(code, 0) + 1
+        table[code] = (label, color, shape)
+    order = [row[0] for row in spec["classes"]["table"]] + [spec["classes"]["else"][0]]
+    legend = [{"code": c, "label": table[c][0], "color": table[c][1], "shape": table[c][2], "count": counts[c]}
+              for c in order if c in counts]
+    return json.dumps({"type": "FeatureCollection", "labels": labels(spec),
+                       "links": links(spec), "style": "class", "legend": legend,
+                       "features": features}, ensure_ascii=False, separators=(",", ":")).encode("utf-8")
 
 
 # ── 지명 찾기 (wetherilli 096) ──────────────────────────────────────

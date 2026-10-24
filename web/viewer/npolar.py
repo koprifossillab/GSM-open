@@ -28,6 +28,8 @@ import base64
 import io
 import logging
 import re
+import time
+from urllib.parse import quote
 
 import requests
 from django.conf import settings
@@ -39,6 +41,10 @@ log = logging.getLogger(__name__)
 ATTRIBUTION = "© Norsk Polarinstitutt (CC BY 4.0)"
 #: 출처 표기가 잇는 곳 — NPI 자료 목록
 DATA_URL = "https://data.npolar.no/"
+
+#: 스발바르 자연보호구역(wetherilli 423)의 자료 목록과 출처 — 서비스의 `copyrightText` 가 NPI 와 주지사를 함께 적는다
+PROTECTED_URL = "https://data.npolar.no/dataset/f0e95d92-f868-5f16-b20e-0ce9f7f2a24a"
+PROTECTED_CREDIT = "© Norsk Polarinstitutt, Sysselmesteren på Svalbard (CC BY 4.0)"
 
 #: 한 번에 받는 점의 수. 지도 서버의 `maxRecordCount` 가 1 000 인 것도 있어 거기 맞춘다.
 PAGE = 1000
@@ -195,6 +201,50 @@ POINTS = {
             "pub": _f("S_100_Geologi_Kartblad_Indeks.csv.NP_publikasjonsdatabase", "출판물", "link"),
             "archive": _f("S_100_Geologi_Kartblad_Indeks.csv.NP_kartarkiv", "지도 보관소", "link"),
         },
+    },
+    # 스발바르 자연보호구역(wetherilli 423) — NPI 와 주지사(Sysselmesteren)의 보호구역 서비스, 레이어 넷. NPI 자료 목록의
+    # "Protected areas"(f0e95d92…)가 이 서비스를 걸고 CC BY 4.0 이라 적는다. 면·선은 0.0001°(위도 11 m 남짓)로 줄여 받는다
+    # — 보호구역 56 면이 0.9 MB 에서 0.16 MB. 갈래(`classes`)는 그린란드 포털과 같은 틀이다(`arcpoints.class_of`)
+    "npolar:svalbard_protected_areas": {
+        "where": "map", "path": "Temadata/N_Nature_Reserves_Svalbard/MapServer/3", "oid": "OBJECTID", "paged": False,
+        "areal": True, "generalize": 0.0001, "style": "class", "source": PROTECTED_URL, "credit": PROTECTED_CREDIT,
+        "classes": {"by": "form", "table": (
+            ("park", "국립공원", "#2e7d32", "square", ("nasjonalpark",)),
+            ("reserve", "자연보호구역", "#c62828", "square", ("naturreservat",)),
+            ("geotope", "지질 보호지", "#6a1b9a", "square", ("geotopvern",)),
+        ), "else": ("other", "그 밖의 보호구역", "#757575", "square")},
+        "fields": {
+            "name": _f("offisieltnavn", "이름"),
+            "form": _f("verneform", ""),
+            "date": _f("vernedato", "보호 지정일", "ymd"),
+            "auth": _f("forvaltningsmyndighet", "관리 기관"),
+            "rule": _f("verneforskrift", "보호 규정", "link"),
+            "fact": _f("faktaark", "Naturbase 자료", "link"),
+        },
+    },
+    "npolar:svalbard_bird_sanctuaries": {
+        "where": "map", "path": "Temadata/N_Nature_Reserves_Svalbard/MapServer/0", "oid": "OBJECTID", "paged": False,
+        "style": "class", "source": PROTECTED_URL, "credit": PROTECTED_CREDIT,
+        "classes": {"by": "", "table": (), "else": ("bird", "조류 보호구역", "#e65100", "triangle")},
+        "fields": {"name": _f("NAVN", "이름")},
+    },
+    "npolar:svalbard_ramsar": {
+        "where": "map", "path": "Temadata/N_Nature_Reserves_Svalbard/MapServer/1", "oid": "OBJECTID", "paged": False,
+        "areal": True, "generalize": 0.0001, "style": "class", "source": PROTECTED_URL, "credit": PROTECTED_CREDIT,
+        "classes": {"by": "", "table": (), "else": ("ramsar", "람사르 습지", "#0277bd", "square")},
+        "fields": {
+            "name": _f("engelsknavn", "이름"),
+            "no": _f("sitenumber", "람사르 번호"),
+            "ris": _f("ramsarsis_url", "람사르 정보", "link"),
+            "fact": _f("faktaark", "Naturbase 자료", "link"),
+        },
+    },
+    # 보호 경계선 — 속성이 자료 날짜·정확도뿐이라 팝업에 올리지 않는다. 바다 쪽 경계가 면의 테두리보다 또렷하다
+    "npolar:svalbard_protection_boundary": {
+        "where": "map", "path": "Temadata/N_Nature_Reserves_Svalbard/MapServer/2", "oid": "OBJECTID", "paged": False,
+        "areal": True, "generalize": 0.0001, "style": "class", "source": PROTECTED_URL, "credit": PROTECTED_CREDIT,
+        "classes": {"by": "", "table": (), "else": ("boundary", "보호 경계", "#b71c1c", "stroke")},
+        "fields": {},
     },
     "npolar:place_names": {
         "where": "features", "path": "NPI_Place_Names_Svalbard/FeatureServer/0", "oid": "ObjectId",
@@ -579,7 +629,16 @@ def fetch(name: str, pause: float = None) -> list:
 
 
 def body(name: str, features_json: bytes) -> bytes:
-    return arcpoints.body(POINTS[name], features_json)
+    """갈래가 있는 레이어(보호구역, wetherilli 423)는 `legend` 를 싣는다 — 그린란드 포털과 같은 꼴"""
+    spec = POINTS[name]
+    if "classes" in spec:
+        return arcpoints.class_body(spec, features_json)
+    return arcpoints.body(spec, features_json)
+
+
+def attribution(name: str) -> str:
+    """점 레이어의 출처 표기 — 레이어가 따로 적은 것(`credit`)이 있으면 그것"""
+    return POINTS.get(name, {}).get("credit") or ATTRIBUTION
 
 
 # ── 지명 찾기 ────────────────────────────────────────────────────────
@@ -587,6 +646,25 @@ def body(name: str, features_json: bytes) -> bytes:
 def match_places(features: list, query: str, limit: int = 20) -> list:
     """받아 둔 지명 가운데 `query` 에 맞는 것 — 틀은 `arcpoints.match_index` 에 있다 (wetherilli 096)."""
     return arcpoints.match_index(arcpoints.name_index(features, ("name",), ("area",)), query, limit)
+
+
+# ── Quantarctica 사본 (wetherilli 420) ──────────────────────────────
+
+#: NPI 가 나누는 Quantarctica3 묶음 — 원 자료가 따로 열려 있지 않은 것(RAISED)만 여기서 받는다
+QUANTARCTICA_URL = "https://media.npolar.no/download/quantarctica/Quantarctica3/"
+
+
+def quantarctica(path: str, parts=(".shp", ".shx", ".dbf", ".prj", ".txt"), pause: float = 1.0) -> dict:
+    """Quantarctica 의 셰이프 한 벌 — `path` 는 확장자 없는 경로(`Glaciology/…/이름`). {확장자: 바이트}. 1 초 간격."""
+    out = {}
+    for i, ext in enumerate(parts):
+        if i:
+            time.sleep(pause)
+        r = _get(QUANTARCTICA_URL + quote(path + ext), {})
+        if r.status_code != 200:
+            raise NpolarError(f"Quantarctica 가 {r.status_code} 로 답했다 ({path}{ext})")
+        out[ext] = r.content
+    return out
 
 
 #: 이 파일이 여는 상류 — `doors.py` 가 모아 views·prewarm·화면의 표를 짓는다 (wetherilli 371)

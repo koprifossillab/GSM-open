@@ -9,7 +9,7 @@
     ibcso/<bed|ice>/<z>/<x>/<y>.webp        IBCSO 해저·빙저 지형 — 잘라 둔 파일을 옮긴다
     ibcso/tid/<z>/<x>/<y>.png               IBCSO 자료 출처
     points/<상류>/<이름>.json               점 레이어 (`points/?layer=<상류>:<이름>` 의 답). 언어에 따라 답이 다른 것은
-    points/<상류>/<이름>.en.json            영어판을 따로 — 얀마옌·극지연구소
+    points/<상류>/<이름>.en.json            영어판을 따로 — 얀마옌·극지연구소·PANGAEA
     peninsula/<shaded|plain>/<z>/<x>/<y>.webp  한반도 지질도 음영판·민판 — `--with peninsula` 일 때만
 
 자료는 서버와 같은 설정(`GSM_GEOMAP_DIR`·`GSM_IBCSO_DIR`·`GSM_NPOLAR_DIR`·`GSM_KOPRI_DIR`·`GSM_PENINSULA_DIR`)에서 읽고
@@ -23,7 +23,7 @@ from pathlib import Path
 
 from django.core.management.base import BaseCommand, CommandError
 
-from viewer import geomap, grportal, ibcso, janmayen, kopri, npolar, peninsula, tilecache, views
+from viewer import geomap, grportal, ibcso, janmayen, kopri, npolar, pangaea, peninsula, tilecache, views
 
 #: GeoMAP 레이어마다 굽는 마지막 줌. 2026-10-02 에 쟀다(devlog wetherilli 160) — 면 레이어 하나가 줌 9 까지 1 만 장·30 MB,
 #: 줌 10 까지 2 만 7 천 장·70 MB 남짓. 간추린 지질도만 10 까지
@@ -209,6 +209,19 @@ class Command(BaseCommand):
                 self.write(self._point_path(name), body)
                 report[name] = {"bytes": len(body)}
                 self.stdout.write(f"  {name}: {len(body) / 1e3:.0f} KB")
+        # PANGAEA 극지 현장 자료(wetherilli 421) — 모아 둔 파일에서. 현장 이름이 말마다 달라 두 벌이다. 자료가 없는 주제는 굽지 않는다
+        for name in pangaea.LAYERS if pangaea.available() else ():
+            try:
+                bodies = {lang: pangaea.file_body(name, lang) for lang in ("ko", "en")}
+            except (OSError, ValueError) as exc:
+                self.stderr.write(f"{name} 을 읽지 못했다: {exc}")
+                continue
+            if not json.loads(bodies["ko"])["features"]:
+                continue
+            for lang, body in bodies.items():
+                self.write(self._point_path(name, "" if lang == "ko" else lang), body)
+            report[name] = {"bytes": len(bodies["ko"]), "lang": True}
+            self.stdout.write(f"  {name}: {len(bodies['ko']) / 1e3:.0f} KB (언어 둘)")
         # 얀마옌·극지연구소 — 팝업 이름·갈래가 언어마다 다르다. 아라온호 항적은 매시간 자라고 연구실 안에서만이라 빼낸다
         langed = [(janmayen, n, janmayen.available(n)) for n in janmayen.LAYERS]
         langed += [(kopri, n, True) for n in kopri.LAYERS if kopri.knows_file(n) and kopri.file_of(n) != "araon"]

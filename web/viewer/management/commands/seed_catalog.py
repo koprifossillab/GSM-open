@@ -198,6 +198,16 @@ class Command(BaseCommand):
                 (settings.ADMAP_CATALOG_SEED, "남극 ADMAP-2", "antarctica", "admap"),
                 # 남극 지명 이름표 — 받아 둔 SCAR 지명사전 (wetherilli 412)
                 (settings.SCAR_CATALOG_SEED, "남극 SCAR 지명", "antarctica", "scar"),
+                # 영구동토 시추공 — 받아 둔 GTN-P 목록. 북극해·남극 (wetherilli 422)
+                *((path, f"GTN-P ({path.stem})", "antarctica", "gtnp") for path in settings.GTNP_CATALOG_SEEDS),
+                # 남극 암석 화학·연대 — 받아 구운 PetroChron Antarctica (wetherilli 419)
+                (settings.PETROCHRON_CATALOG_SEED, "남극 PetroChron", "antarctica", "petrochron"),
+                # 빙저호·RAISED 접지선 — 받아 둔 파일 (wetherilli 420). 지역·상류는 씨앗이 적는다
+                *((path, f"빙하 자료 ({path.stem})", "antarctica", "orda") for path in settings.GLACIO_CATALOG_SEEDS),
+                # 킹조지섬 지형 SCAR KGIS — 받아 둔 셰이프를 한 덩이씩 (wetherilli 424)
+                (settings.KGIS_CATALOG_SEED, "킹조지섬 SCAR KGIS", "antarctica", "kgis"),
+                # 남극 특별보호구역 ASPA — 받아 둔 AADC 파일의 면·점 (wetherilli 423)
+                (settings.AADC_CATALOG_SEED, "남극 보호구역 (AADC)", "antarctica", "aadc"),
                 # PGC 경사·등고선 — 극지 지질도 위에 겹친다 (wetherilli 099). 지역은 씨앗이 적는다
                 *((path, f"PGC ({path.stem})", "greenland", "pgc") for path in settings.PGC_CATALOG_SEEDS),
                 # 남극 — BAS 의 Bedmap3 빙저 지형·얼음 두께·윗면 (wetherilli 261)
@@ -207,6 +217,8 @@ class Command(BaseCommand):
                 # 극지연구소 — 암석 시료·운석·KPDC 자료·기지·해안선 (053–057). 지역은 씨앗이 적는다
                 *((path, f"극지연구소 ({path.stem})", "antarctica", "kopri")
                   for path in settings.KOPRI_CATALOG_SEEDS),
+                # PANGAEA — 극지 현장 둘레의 자료 목록을 주제마다 (wetherilli 421). 지역은 씨앗이 적는다
+                *((path, f"PANGAEA ({path.stem})", "antarctica", "pangaea") for path in settings.PANGAEA_CATALOG_SEEDS),
                 # 지구 자료 점 — 모아 둔 화석 산지·화산·지진·고생태 산지를 지역의 네모만큼 (wetherilli 185). 지역은 씨앗이 적는다
                 *((path, f"지구 자료 ({path.stem})", "korea", "earth") for path in settings.EARTH_CATALOG_SEEDS)):
             if not path.exists():

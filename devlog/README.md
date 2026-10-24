@@ -481,6 +481,14 @@
 | wetherilli 415 | 2026-10-22 | [남극 — LIMA/PGC 합성 위성 배경, 브라우저가 곧장 · 정적 판의 남극 기본 배경](20261022_wetherilli_415_antarctic_lima.md) |
 | wetherilli 416 | 2026-10-23 | [시험 — 파이썬 3.14 에서 병렬을 fork 로 고정한다](20261023_wetherilli_416_test_parallel_fork.md) |
 | wetherilli 417 | 2026-10-23 | [호스트 cron 사본에 묶음 패키지도 옮긴다](20261023_wetherilli_417_install_gsmpack.md) |
+| wetherilli 418 | 2026-10-23 | [극지 탭 — 과학 해양 시추공(DSDP·ODP·IODP)과 남극 대륙붕 시추를 점 레이어로](20261023_wetherilli_418_polar_boreholes.md) |
+| wetherilli 422 | 2026-10-23 | [영구동토 시추공 — GTN-P 지온 관측공을 받아 두고 북극해·남극 탭의 점으로](20261023_wetherilli_422_gtnp_boreholes.md) |
+| wetherilli 421 | 2026-10-23 | [PANGAEA 극지 현장 자료 — 현장 다섯의 둘레를 모아 두고 주제마다 점 레이어로](20261023_wetherilli_421_pangaea_points.md) |
+| wetherilli 419 | 2026-10-23 | [남극 암석 화학·연대 — PetroChron Antarctica 를 받아 구워 점 레이어로](20261023_wetherilli_419_petrochron.md) |
+| wetherilli 420 | 2026-10-23 | [빙저호 목록·RAISED 접지선 — 남극·그린란드 탭에](20261023_wetherilli_420_subglacial_lakes_raised.md) |
+| wetherilli 424 | 2026-10-24 | [남극 — SCAR KGIS 킹조지섬 지형 DB 를 받아 일곱 레이어로](20261024_wetherilli_424_king_george_kgis.md) |
+| wetherilli 425 | 2026-10-24 | [스발바르 — NPI 정주지 상세도(FKB)를 지형도 위에 얹은 배경](20261024_wetherilli_425_svalbard_fkb.md) |
+| wetherilli 423 | 2026-10-24 | [극지 보호구역 — 남극 ASPA 2024 와 스발바르 자연보호구역을 레이어로](20261024_wetherilli_423_polar_protected_areas.md) |
 | wetherilli 374 | 2026-10-07 | [온 세계 지명 찾기 — GeoNames 도시를 받아 두고, 지역 탭이 온 지구 찾기를 빌린다](20261007_wetherilli_374_world_place_search.md) |
 | wetherilli 375 | 2026-10-07 | [그때의 지구 — 판 조각 대신 PaleoDEM 고도·음영을 깐다](20261007_wetherilli_375_paleodem_relief.md) |
 | wetherilli 376 | 2026-10-07 | [온 지구 시간 막대 — 처음엔 접고, 띠는 대·기·세 세 줄로](20261007_wetherilli_376_timebar_folded_fewer_rows.md) |
@@ -510,3 +518,4 @@
 | koprifossillab 021 | 2026-10-06 | [지난 바람 ERA5 를 8 TB 하드로 — 루트 SSD 를 비운다](20261006_koprifossillab_021_era5_on_data.md) |
 | koprifossillab 022 | 2026-10-07 | [판을 띄운 뒤 옛 이미지를 정리한다](20261007_koprifossillab_022_prune_old_images.md) |
 | koprifossillab 023 | 2026-10-07 | [주간 백업을 월요일 03:10 으로 — 매시 받기(:40)와 비끼고 WegenersDream 뒤에](20261007_koprifossillab_023_backup_at_10.md) |
+| koprifossillab 024 | 2026-10-23 | [이미지 안의 pip 을 26.1 이상으로 · 서버 디스크가 바뀐 자리](20261023_koprifossillab_024_pip_security_and_disk_moves.md) |

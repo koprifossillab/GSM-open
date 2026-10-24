@@ -1,0 +1,97 @@
+{
+ "_주석": "PANGAEA 의 씨앗이다 (wetherilli 421). 현장 둘레(다산 기지 둘레(콩스피오르))의 자료 목록을 manage.py fetch_pangaea 가 받아 GSM_PANGAEA_DIR/pangaea.json 에 적고, 이 탭의 레이어는 그 파일을 주제마다 자른다. 무엇을 어디서 받는지는 web/viewer/pangaea.py 의 AREAS·TOPICS. 2026-10-23 에 받은 목록에서 이 탭에 자료가 다섯 건 넘는 주제만 넣었다. 레이어군을 KPDC 자료 뒤에 두려고 차례를 24 로 한다.",
+ "_뽑은날": "2026-10-23",
+ "_출처": "https://www.pangaea.de/",
+ "_지역": "svalbard",
+ "_상류": "pangaea",
+ "_레이어군차례": 24,
+ "레이어군순서": [
+  "PANGAEA 자료"
+ ],
+ "레이어": [
+  {
+   "name": "pangaea:litho_svalbard",
+   "title": "지질·퇴적물 (PANGAEA)",
+   "group": "PANGAEA 자료",
+   "abstract": "PANGAEA 자료 목록 — 다산 기지 둘레(콩스피오르). 자료마다 가운데 자리 한 점, 제목·저자·연도·조건과 DOI 링크(메타데이터 CC0, 자료 본문의 조건은 자료마다)",
+   "bbox": [
+    10.5,
+    78.7,
+    13.0,
+    79.2
+   ]
+  },
+  {
+   "name": "pangaea:cryo_svalbard",
+   "title": "빙권 (PANGAEA)",
+   "group": "PANGAEA 자료",
+   "abstract": "PANGAEA 자료 목록 — 다산 기지 둘레(콩스피오르). 자료마다 가운데 자리 한 점, 제목·저자·연도·조건과 DOI 링크(메타데이터 CC0, 자료 본문의 조건은 자료마다)",
+   "bbox": [
+    10.5,
+    78.7,
+    13.0,
+    79.2
+   ]
+  },
+  {
+   "name": "pangaea:bio_svalbard",
+   "title": "생물 (PANGAEA)",
+   "group": "PANGAEA 자료",
+   "abstract": "PANGAEA 자료 목록 — 다산 기지 둘레(콩스피오르). 자료마다 가운데 자리 한 점, 제목·저자·연도·조건과 DOI 링크(메타데이터 CC0, 자료 본문의 조건은 자료마다)",
+   "bbox": [
+    10.5,
+    78.7,
+    13.0,
+    79.2
+   ]
+  },
+  {
+   "name": "pangaea:ocean_svalbard",
+   "title": "해양 (PANGAEA)",
+   "group": "PANGAEA 자료",
+   "abstract": "PANGAEA 자료 목록 — 다산 기지 둘레(콩스피오르). 자료마다 가운데 자리 한 점, 제목·저자·연도·조건과 DOI 링크(메타데이터 CC0, 자료 본문의 조건은 자료마다)",
+   "bbox": [
+    10.5,
+    78.7,
+    13.0,
+    79.2
+   ]
+  },
+  {
+   "name": "pangaea:atmo_svalbard",
+   "title": "대기 (PANGAEA)",
+   "group": "PANGAEA 자료",
+   "abstract": "PANGAEA 자료 목록 — 다산 기지 둘레(콩스피오르). 자료마다 가운데 자리 한 점, 제목·저자·연도·조건과 DOI 링크(메타데이터 CC0, 자료 본문의 조건은 자료마다)",
+   "bbox": [
+    10.5,
+    78.7,
+    13.0,
+    79.2
+   ]
+  },
+  {
+   "name": "pangaea:chem_svalbard",
+   "title": "화학 (PANGAEA)",
+   "group": "PANGAEA 자료",
+   "abstract": "PANGAEA 자료 목록 — 다산 기지 둘레(콩스피오르). 자료마다 가운데 자리 한 점, 제목·저자·연도·조건과 DOI 링크(메타데이터 CC0, 자료 본문의 조건은 자료마다)",
+   "bbox": [
+    10.5,
+    78.7,
+    13.0,
+    79.2
+   ]
+  },
+  {
+   "name": "pangaea:other_svalbard",
+   "title": "그 밖 (PANGAEA)",
+   "group": "PANGAEA 자료",
+   "abstract": "PANGAEA 자료 목록 — 다산 기지 둘레(콩스피오르). 자료마다 가운데 자리 한 점, 제목·저자·연도·조건과 DOI 링크(메타데이터 CC0, 자료 본문의 조건은 자료마다)",
+   "bbox": [
+    10.5,
+    78.7,
+    13.0,
+    79.2
+   ]
+  }
+ ]
+}

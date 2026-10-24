@@ -392,6 +392,18 @@ IBCSO_DIR = env("GSM_IBCSO_DIR") or str(_data_dir() / "ibcso")
 ADMAP_DIR = env("GSM_ADMAP_DIR") or str(_data_dir() / "admap2")
 #: SCAR 남극 통합 지명사전을 지형마다 묶어 적은 것 — `manage.py fetch_scar_gazetteer` 가 쓴다 (wetherilli 412)
 SCAR_DIR = env("GSM_SCAR_DIR") or str(_data_dir() / "scar")
+#: GTN-P 영구동토 시추공 목록을 줄여 적은 것 — `manage.py fetch_gtnp` 가 쓴다 (wetherilli 422)
+GTNP_DIR = env("GSM_GTNP_DIR") or str(_data_dir() / "gtnp")
+#: PANGAEA 극지 현장 둘레의 자료 목록 — `manage.py fetch_pangaea` 가 쓴다 (wetherilli 421)
+PANGAEA_DIR = env("GSM_PANGAEA_DIR") or str(_data_dir() / "pangaea")
+#: PetroChron Antarctica — 받은 원본(`raw/<날짜>/`)과 구운 점 한 덩이. `manage.py fetch_petrochron` 이 쓴다 (wetherilli 419)
+PETROCHRON_DIR = env("GSM_PETROCHRON_DIR") or str(_data_dir() / "petrochron")
+#: 빙하 자료 — 빙저호 목록(`fetch_subglacial_lakes`)·RAISED 접지선(`build_raised`) (wetherilli 420)
+GLACIO_DIR = env("GSM_GLACIO_DIR") or str(_data_dir() / "glacio")
+#: SCAR KGIS 킹조지섬 지형 DB 의 셰이프 zip 열여섯을 그대로 둔다 — `manage.py fetch_kgis` 가 받는다 (wetherilli 424). 원본은 NAS `sources/kgis/`
+KGIS_DIR = env("GSM_KGIS_DIR") or str(_data_dir() / "kgis")
+#: 남극 특별보호구역 ASPA 2024 — 받은 원본(`aspa_raw/<날짜>/`)과 구운 것(`aspa_2024.json`). `manage.py fetch_aspa` 가 쓴다 (wetherilli 423)
+AADC_DIR = env("GSM_AADC_DIR") or str(_data_dir() / "aadc")
 #: 노던테리토리 1:250만 지질도·단층 셰이프 ZIP 둘을 그대로 둔다 (wetherilli 361). 원본은 NAS `sources/australia/nt_geology/`
 NTGEO_DIR = env("GSM_NTGEO_DIR") or str(_data_dir() / "nt_geology")
 #: 남호주 방사능 농도 격자(K·Th·U)를 골라 적은 것 — 누른 자리의 값 (wetherilli 358). 원본은 NAS `sources/australia/sa_radiometrics/`
@@ -699,6 +711,16 @@ CHINA4M_LEGEND = REPO_DIR / "data" / "china4m_legend.json"
 IBCSO_CATALOG_SEED = REPO_DIR / "data" / "ibcso_layers.json"
 ADMAP_CATALOG_SEED = REPO_DIR / "data" / "admap_layers.json"
 SCAR_CATALOG_SEED = REPO_DIR / "data" / "scar_layers.json"
+#: GTN-P 영구동토 시추공 — 북극해·남극 탭 (wetherilli 422)
+GTNP_CATALOG_SEEDS = [REPO_DIR / "data" / "gtnp_arctic_ocean_layers.json", REPO_DIR / "data" / "gtnp_antarctica_layers.json"]
+#: PANGAEA 극지 현장 자료 — 탭마다 한 장 (wetherilli 421)
+PANGAEA_CATALOG_SEEDS = [REPO_DIR / "data" / f"pangaea_{region}_layers.json" for region in ("antarctica", "svalbard", "greenland")]
+PETROCHRON_CATALOG_SEED = REPO_DIR / "data" / "petrochron_layers.json"
+#: 빙저호(남극·그린란드)·RAISED 접지선(남극) (wetherilli 420). 지역은 씨앗이 적는다
+GLACIO_CATALOG_SEEDS = (REPO_DIR / "data" / "orda_antarctica_layers.json", REPO_DIR / "data" / "orda_greenland_layers.json",
+                        REPO_DIR / "data" / "raised_layers.json")
+KGIS_CATALOG_SEED = REPO_DIR / "data" / "kgis_layers.json"
+AADC_CATALOG_SEED = REPO_DIR / "data" / "aadc_layers.json"
 #: PGC 경사·등고선 — 지질도 위에 겹치는 극지 레이어 (wetherilli 099). 지역이 셋이라 씨앗도 셋이다
 #: 남극 — BAS 의 Bedmap3 타일(ArcGIS Online, wetherilli 261)
 BAS_TILES_URL = env("GSM_BAS_TILES_URL", "https://tiles.arcgis.com/tiles/tPxy1hrFDhJfZ0Mf/arcgis/rest/services")

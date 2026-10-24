@@ -1,0 +1,20 @@
+{
+ "_주석": "PetroChron Antarctica(Zenodo 5032026, 판 0_1, CC BY 4.0) 씨앗이다. 엮은 표와 참고문헌을 manage.py fetch_petrochron 이 받아 GSM_PETROCHRON_DIR/petrochron.json 에 점 한 덩이로 굽는다. 파일은 저장소에 없다. 극지연구소 시료(차례 20) 바로 앞에 두려고 차례를 19 로 한다 (wetherilli 419).",
+ "_뽑은날": "2026-10-23",
+ "_출처": "https://doi.org/10.5281/zenodo.5032026",
+ "_지역": "antarctica",
+ "_상류": "petrochron",
+ "_레이어군차례": 19,
+ "레이어군순서": [
+  "암석 화학·연대 (PetroChron)"
+ ],
+ "레이어": [
+  {
+   "name": "petrochron:samples",
+   "title": "암석 시료 화학·연대 (PetroChron)",
+   "group": "암석 화학·연대 (PetroChron)",
+   "abstract": "PetroChron Antarctica — 남극 암석 시료의 분석 1 만 1 천(전암·광물 화학, 연대, 모형 암석 물성)을 논문 362 편에서 모은 것. 색은 암석 갈래, 누르면 암석·연대(방법)·주성분·참고문헌. 2021 년 판",
+   "bbox": [-180, -90, 180, -53]
+  }
+ ]
+}

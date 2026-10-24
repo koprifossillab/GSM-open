@@ -380,5 +380,83 @@
   ],
   "budget_mb": 200,
   "zoom_note": "줌 10 부터 — 네 도폭이 폰 한 화면에 드는 줌이다. VWorld 는 15 까지만 받고 더 가까이는 화면이 15 를 늘려 그린다(사람, 2026-10-21)"
+ },
+ "sejong": {
+  "title": "세종기지 둘레 (바턴·위버 반도)",
+  "region": "antarctica",
+  "sheet": "세종기지(62.22°S 58.79°W) 둘레 — 바턴·위버 반도와 필데스 반도 동쪽, 맥스웰만. 2026-10-22 시험 굽기 115.6 MB (wetherilli 411)",
+  "bbox": [
+   -59.05,
+   -62.3,
+   -58.55,
+   -62.1
+  ],
+  "layers": {
+   "geomap_simple_geology": [
+    6,
+    13
+   ],
+   "geomap_chronostratigraphic": [
+    6,
+    13
+   ],
+   "geomap_faults": [
+    6,
+    13
+   ],
+   "vworld:AntarcticaSejong": [
+    10,
+    16
+   ],
+   "basemap:rema": [
+    6,
+    14
+   ]
+  },
+  "units": [
+   "geomap_simple_geology",
+   "geomap_chronostratigraphic"
+  ],
+  "budget_mb": 200,
+  "zoom_note": "기지 위성(VWorld 테마)의 줌은 3857 의 줌이다 — 화면이 3031 에 옮겨 그려도 소스의 격자가 3857 이다. REMA 는 화면 줌(512 px 격자 = 화면 줌 − 1)"
+ },
+ "jangbogo": {
+  "title": "장보고기지 둘레 (테라노바만)",
+  "region": "antarctica",
+  "sheet": "장보고기지(74.62°S 164.23°E) 둘레 — 테라노바만, 멜버른 산 남쪽 기슭. 2026-10-22 굽기 85.8 MB (wetherilli 411)",
+  "bbox": [
+   163.6,
+   -74.95,
+   165.2,
+   -74.35
+  ],
+  "layers": {
+   "geomap_simple_geology": [
+    6,
+    13
+   ],
+   "geomap_chronostratigraphic": [
+    6,
+    13
+   ],
+   "geomap_faults": [
+    6,
+    13
+   ],
+   "basemap:rema": [
+    6,
+    13
+   ],
+   "vworld:AntarcticaJangbogo": [
+    10,
+    16
+   ]
+  },
+  "units": [
+   "geomap_simple_geology",
+   "geomap_chronostratigraphic"
+  ],
+  "budget_mb": 200,
+  "zoom_note": "박스가 47 × 67 km 라 예산이 빠듯하다 — REMA 를 기지 위성보다 앞에 두어 기지 위성은 줌 14(땅 위 2.5 m 남짓)까지만 담긴다"
  }
 }

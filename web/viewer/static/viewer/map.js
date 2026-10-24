@@ -1175,6 +1175,13 @@
     vmme: { source: null, info: null },       // 파라과이 — VMME 면 한 덩이 (wetherilli 256)
     ntgs: { source: null, info: null },       // 노던테리토리 — 열린자료 셰이프를 한 덩이로 (wetherilli 361)
     scar: { source: null, info: null },       // 남극 지명 이름표 — 받아 둔 SCAR 지명사전 한 덩이 (wetherilli 412)
+    gtnp: { source: null, info: null },       // 영구동토 시추공 — 받아 둔 GTN-P 목록 한 덩이 (wetherilli 422)
+    pangaea: { source: null, info: null },    // PANGAEA 극지 현장 자료 — 모아 둔 목록을 주제마다 한 덩이 (wetherilli 421)
+    petrochron: { source: null, info: null }, // 남극 암석 화학·연대 — 받아 구운 PetroChron 한 덩이 (wetherilli 419)
+    orda: { source: null, info: null },       // 빙저호 — 받아 둔 Livingstone 2022 목록 한 덩이 (wetherilli 420)
+    raised: { source: null, info: null },     // RAISED 접지선 — 연대마다 선 한 덩이 (wetherilli 420)
+    kgis: { source: null, info: null },       // 킹조지섬 지형 SCAR KGIS — 받아 둔 셰이프를 한 덩이씩 (wetherilli 424)
+    aadc: { source: null, info: null },       // 남극 특별보호구역 ASPA — 받아 둔 AADC 파일의 면·점 한 덩이 (wetherilli 423)
     npolar: { source: npolarSource, info: wmsInfoUrl },
     // 극지연구소 KPDC 지도 서버(057) — NPI 처럼 3031 로 곧장 받는다
     kopri: { source: npolarSource, info: wmsInfoUrl },
@@ -1823,6 +1830,15 @@
     regions: ["svalbard"], needs: "EPSG:3413",
     make: function () { return npiTiles("NP_Basiskart_Svalbard_WMTS_25833", NPI_TOPO); },
   };
+  // 정주지 상세도(FKB) — 뉘올레순(다산기지)·롱위에아르뷔엔 따위 둘레의 건물·길. 그 밖은 비어 있어 지형도 위에 얹는다 (wetherilli 425).
+  // CC BY 이고 롱위에아르뷔엔 둘레는 공동 소유자를 함께 밝힌다. 같은 폴더의 정사사진은 조건 칸이 비어 쓰지 않는다
+  var NPI_FKB = 'FKB detail map © <a href="https://data.npolar.no/" target="_blank" rel="noopener">Norsk Polarinstitutt</a>; Longyearbyen area co-owned by Longyearbyen lokalstyre, Store Norske, Sysselmesteren and Telenor (CC BY)';
+  BASEMAPS.npi_fkb = {
+    title: T("스발바르 정주지 상세도 (NPI FKB)"),
+    note: T("노르웨이 극지연구소 FKB. 뉘올레순·롱위에아르뷔엔 따위 정주지 둘레의 건물·길, 그 밖은 지형도다. CC BY"),
+    regions: ["svalbard"], needs: "EPSG:3413",
+    make: npiFkbLayer,
+  };
 
   // ── 일본 배경 — 국토지리원 지리원 타일 (devlog 024) ──
   //
@@ -2027,6 +2043,24 @@
         attributions: attribution,
       }),
     });
+  }
+
+  /** NPI 지형도 위에 정주지 상세도(FKB, 3857 격자)를 얹은 것. 범위는 서비스의 `fullExtent` 다 —
+   *  그 밖 칸은 묻지 않는다. 안의 빈 칸은 상류가 404 라 서버가 투명으로 낸다 (wetherilli 425) */
+  function npiFkbLayer() {
+    var service = "FKB_Svalbard_WMTS_3857";
+    var fkb = new ol.layer.Tile({
+      extent: ol.proj.transformExtent([1303496, 14385765, 1845321, 14899703], "EPSG:3857", viewProj()),
+      source: new ol.source.XYZ({
+        url: STATIC ? "https://geodata.npolar.no/arcgis/rest/services/Basisdata/" + service + "/MapServer/tile/{z}/{y}/{x}"
+                    : BASE + "npi/" + service + "/{z}/{y}/{x}",
+        maxZoom: 17,
+        crossOrigin: "anonymous",
+        transition: 0,
+        attributions: NPI_FKB,
+      }),
+    });
+    return new ol.layer.Group({ layers: [npiTiles("NP_Basiskart_Svalbard_WMTS_25833", NPI_TOPO), fkb] });
   }
 
   /** EOX 의 3857 타일. 극지 화면이면 OpenLayers 가 옮겨 그린다. */

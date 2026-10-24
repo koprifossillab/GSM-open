@@ -1,0 +1,25 @@
+{
+ "_주석": "Livingstone 외 2022 의 전 지구 빙저호 목록(셰필드대 ORDA, figshare 18094037, CC BY 4.0) 씨앗이다. manage.py fetch_subglacial_lakes 가 엑셀을 받아 GSM_GLACIO_DIR/subglacial_lakes.json 에 줄여 적는다. 파일은 저장소에 없다. 한글 제목과 레이어군은 사람이 붙였다 (wetherilli 420).",
+ "_뽑은날": "2026-10-23",
+ "_출처": "https://doi.org/10.15131/shef.data.18094037.v1",
+ "_지역": "greenland",
+ "_상류": "orda",
+ "_레이어군차례": 27,
+ "레이어군순서": [
+  "빙저호"
+ ],
+ "레이어": [
+  {
+   "name": "orda:lakes_greenland",
+   "title": "빙저호 (그린란드)",
+   "group": "빙저호",
+   "abstract": "그린란드 빙상 밑의 호수 64 곳 — 얼음 레이더로 본 안정 빙저호와 얼음 윗면이 꺼졌다 차오른 활성 빙저호. 누르면 이름·종류·찾은 법·문헌",
+   "bbox": [
+    -75,
+    59,
+    -10,
+    84
+   ]
+  }
+ ]
+}

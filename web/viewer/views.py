@@ -43,7 +43,7 @@ from . import (china4m, coords, gravmag, crs, datastatus, geo3al, geomap, geus, 
                fetchlog, marscraters, marsmap, mercurymap, sources, zhurong)
 from . import admap, arcpoints, kmag, caribmap, geonames, crust, glaciers, impacts, faults, minerals, stress, tectonics, seafloor, glim, heatflow, fossils, gvp, icemargins, kigam50k, macrostrat, mantle, metatile, naturalearth, neotoma, paleo, paleoeco, paleocoast, pbdb, quakes, recentquakes, verifylog, spamap, ocean, paleodem, usgs, volcanoes, wind
 from . import ags, austates, bas, basemaps, bcgs, bgr, bgs, brgm, calgs, cgs, dinamige, dmr, dov, egdi, emodnet, esdm, ga, georep, geosphere, gns, gsi, gsiindia, gtk, igme, iige, ineter, ingemmet, ispra, jmg, linked, lneg, mgb, mrdata, mris, natt, ngu, nrcan, nsgs, ogs, pig, segemar, sgb, sgc, sgm, sgs, sgu, sigeom, skgs, spw, stri, swisstopo, tno, twopen, usage, usgscarib, usstates, vmme, ygs
-from . import doors, earthpoints, offlinereq, pointvalues, profileband, scar, static_tables, tilegrid, timescale, visits
+from . import aadc, doors, earthpoints, gtnp, kgis, offlinereq, orda, pangaea, petrochron, pointvalues, profileband, raised, scar, static_tables, tilegrid, timescale, visits
 from .i18n import msg
 from .models import Layer, LayerGroup, Point, PointSet, PointSetDeletion, Shape
 
@@ -3049,7 +3049,7 @@ def _catalog(lang="ko"):
             "bbox": l.bbox,
             "queryable": l.queryable,
             # 대조할 상류가 없는 것(우리가 그리는 GeoMAP)은 "대조 안 함" 표를 달지 않는다
-            "verified": bool(l.verified_at) or l.upstream in ("geomap", "janmayen", "geo3al", "peninsula", "china4m", "kopri", "usgscarib", "stri", "sim3534", "vmme", "ntgs")
+            "verified": bool(l.verified_at) or l.upstream in ("geomap", "janmayen", "geo3al", "peninsula", "china4m", "kopri", "pangaea", "usgscarib", "stri", "sim3534", "vmme", "ntgs", "gtnp", "petrochron", "orda", "raised", "kgis")
                         or twopen.knows(l.name),
             # 영어판은 설명의 영어(`i18n.ABSTRACT_EN`, wetherilli 333) — 없으면 한국어가 든 설명을 숨긴다
             "abstract": _abstract_en(l) if en else l.abstract,
@@ -3082,6 +3082,10 @@ def _point_fields(layer) -> dict:
         unit = layer.name == ntgeo.UNITS
         return {"kind": "points", "queryable": False, "style": "unit" if unit else "line", "render": "image" if unit else None,
                 "source": ntgeo.SOURCE_URL, "attribution": ntgeo.ATTRIBUTION, "opacity": 0.75 if unit else 1}
+    if layer.upstream == "kgis" and kgis.knows(layer.name):
+        # 킹조지섬 지형 SCAR KGIS(wetherilli 424) — 받아 둔 셰이프를 한 덩이로. 등고선은 선이 2 천 4 백이라 구워 그린다
+        return {"kind": "points", "queryable": False, "style": "class", "render": "image" if layer.name == "kgis:contours" else None,
+                "source": kgis.SOURCE_URL, "attribution": kgis.ATTRIBUTION}
     if layer.upstream == "janmayen" and janmayen.knows(layer.name):
         # 얀마옌 지질도(022) — 점 말고 선·면도 이 길로 간다. 색은 자료가 준다
         return {"kind": "points", "queryable": False, "style": janmayen.LAYERS[layer.name]["style"],
@@ -3140,6 +3144,15 @@ def _point_fields(layer) -> dict:
             # 아라온호 항적 — 고를 기간(날수, 앞의 것이 기본). 화면이 이 안의 조각만 옅어지게 그린다 (koprifossillab 017)
             spec["periods"] = list(kopri.ARAON_PERIODS)
         return spec
+    if layer.upstream == "pangaea" and pangaea.knows(layer.name):
+        # PANGAEA 극지 현장 자료(wetherilli 421) — 모아 둔 목록을 주제마다. KPDC 자료와 같은 꼴, 색은 서버의 표
+        return {"kind": "points", "queryable": False, "style": "class", "source": pangaea.HOME,
+                "sourceLabel": str(msg("원본 자료 — PANGAEA, 메타데이터 CC0 · 자료는 자료마다의 조건")),
+                "attribution": pangaea.ATTRIBUTION}
+    if layer.upstream == "aadc" and aadc.knows(layer.name):
+        # 남극 특별보호구역 ASPA(wetherilli 423) — 받아 둔 AADC 파일의 면·점. 색은 서버의 표(바다를 품는가)
+        return {"kind": "points", "queryable": False, "style": "class", "attribution": aadc.CREDIT, "license": "CC BY 4.0",
+                "source": aadc.SOURCE_URL, "sourceLabel": str(msg("원본 자료 — AADC 남극 특별보호구역 2024, CC BY 4.0"))}
     if layer.upstream == "kigam50k" and kigam50k.knows_file(layer.name):
         # 5만 지질도의 화석산지·시료·광산·도폭 틀(wetherilli 199) — 받아 둔 WFS 파일. 색은 서버의 표
         return {"kind": "points", "queryable": False, "style": "class", "source": "https://data.kigam.re.kr/",
@@ -3152,10 +3165,20 @@ def _point_fields(layer) -> dict:
         return {"kind": "points", "queryable": False, "style": "class",
                 "source": earthpoints.SOURCE_URLS[src], "sourceLabel": str(earthpoints.SOURCE_LABELS[src]),
                 "attribution": earthpoints.CREDITS[src], "version": earthpoints.version(layer.name)}
+    if layer.upstream == "orda" and orda.knows(layer.name):
+        # 빙저호(wetherilli 420) — 받아 둔 엑셀을 줄인 파일에서. 종류(활성·안정)의 색은 서버의 표
+        return {"kind": "points", "queryable": False, "style": "class", "source": orda.SOURCE_URL,
+                "sourceLabel": str(msg("원본 자료 — Livingstone 외 2022 빙저호 목록 (셰필드대 ORDA), CC BY 4.0")),
+                "attribution": orda.CREDIT, "version": orda.version()}
+    if layer.upstream == "raised" and raised.knows(layer.name):
+        # RAISED 접지선(wetherilli 420) — Quantarctica 사본을 옮긴 파일에서. 신뢰도가 선의 굵기·끊김
+        return {"kind": "points", "queryable": False, "style": "class", "source": raised.SOURCE_URL,
+                "sourceLabel": str(msg("원본 자료 — RAISED 컨소시엄 2014 (논문 CC BY, Quantarctica 사본)")),
+                "attribution": raised.CREDIT, "version": raised.version()}
     if layer.upstream == "npolar" and npolar.knows_points(layer.name):
         return {"kind": "points", "queryable": False, "style": npolar.POINTS[layer.name]["style"],
                 "source": npolar.source_url(layer.name), "portal": npolar.DATA_URL,
-                "attribution": npolar.ATTRIBUTION, "license": "CC BY 4.0"}
+                "attribution": npolar.attribution(layer.name), "license": "CC BY 4.0"}
     return {}
 
 
@@ -3664,6 +3687,14 @@ def _layer_extra_base(layer, lang: str = "ko") -> dict:
         # 중국 지질도 1:400만의 지명 이름표(wetherilli 389) — Natural Earth 의 한국어·영어 이름과 한자. 화면이 글자로 그린다
         return {"kind": "points", "queryable": False, "style": "label", "attribution": naturalearth.CREDIT,
                 "source": "https://www.naturalearthdata.com/", "sourceLabel": str(msg("원본 자료 — Natural Earth 10 m, 퍼블릭 도메인"))}
+    if layer.upstream == "gtnp" and gtnp.knows(layer.name):
+        # 영구동토 시추공(wetherilli 422) — 받아 둔 GTN-P 목록. 색은 서버의 표(가장 최근 지온의 구간)
+        return {"kind": "points", "queryable": False, "style": "class", "attribution": gtnp.CREDIT,
+                "source": gtnp.SOURCE_URL, "sourceLabel": str(msg("원본 자료 — GTN-P 영구동토 시추공, CC BY 3.0"))}
+    if layer.upstream == "petrochron" and petrochron.knows(layer.name):
+        # 남극 암석 화학·연대(wetherilli 419) — 받아 구운 PetroChron 한 덩이. 극지연구소 암석 시료와 같은 손(`class`)으로 그린다
+        return {"kind": "points", "queryable": False, "style": "class", "attribution": petrochron.ATTRIBUTION,
+                "source": petrochron.SOURCE_URL, "sourceLabel": str(msg("원본 자료 — PetroChron Antarctica (Zenodo), CC BY 4.0"))}
     if layer.upstream == "scar" and layer.name == scar.PLACES:
         # 남극 지명 이름표(wetherilli 412) — 받아 둔 SCAR 지명사전. china4m 의 이름표와 같은 손으로 화면이 글자로 그린다
         return {"kind": "points", "queryable": False, "style": "label", "attribution": scar.CREDIT,
@@ -4008,12 +4039,13 @@ def gibs_overlay_tile(request, epsg, layer, z, y, x):
 
 @require_GET
 def npi_tile(request, service, z, y, x):
-    """NPI 의 스발바르 지형도·위성 모자이크 — `npi/<서비스>/<z>/<y>/<x>` (wetherilli 200). 조건이 CC BY 4.0 이라 담는다."""
+    """NPI 의 스발바르 지형도·위성 모자이크(wetherilli 200)·정주지 상세도 FKB(wetherilli 425) — `npi/<서비스>/<z>/<y>/<x>`.
+    조건이 CC BY 라 담는다. FKB 는 지형도 위에 얹는 것이라 못 받은 칸을 투명으로 낸다"""
     z, y, x = int(z), int(y), int(x)
     if not basemaps.knows_npi_tile(service, z, x, y):
         return JsonResponse({"error": i18n.t(msg("그런 타일은 없다"), i18n.lang_of(request))}, status=404)
     return _open_basemap(tilecache.key_text("npi-tile", f"{service}/{z}/{y}/{x}"),
-                         lambda: basemaps.npi_tile(service, z, x, y), 256, "NPI")
+                         lambda: basemaps.npi_tile(service, z, x, y), 256, "NPI", overlay=service == basemaps.FKB_SERVICE)
 
 
 def _open_wms(request, kind, layers, fetch, label):
@@ -5833,6 +5865,8 @@ def point_layer(request):
         return _janmayen_layer(name, lang)
     if ntgeo.knows(name):
         return _ntgeo_layer(name, lang)
+    if kgis.knows(name):
+        return _kgis_layer(name, lang)
     if geo3al.knows(name):
         return _geo3al_layer(name, lang)
     if usgscarib.knows(name):
@@ -5847,12 +5881,22 @@ def point_layer(request):
         return _ags_points_layer(name, lang)
     if kopri.knows_file(name):
         return _kopri_layer(name, lang)
+    if pangaea.knows(name):
+        return _pangaea_layer(name, lang)
     if earthpoints.knows(name):
         return _earth_points_layer(request, name, lang)
     if name == china4m.PLACES:
         return _china4m_places(name, lang)
     if name == scar.PLACES:
         return _scar_places(lang)
+    if gtnp.knows(name):
+        return _gtnp_layer(name, lang)
+    if petrochron.knows(name):
+        return _petrochron_layer(lang)
+    if orda.knows(name) or raised.knows(name):
+        return _glacio_layer(request, name, lang)
+    if aadc.knows(name):
+        return _aspa_layer(name, lang)
     if kigam50k.knows_file(name):
         return _kigam50k_layer(name, lang)
     _, module = _point_door(name)
@@ -5951,6 +5995,21 @@ def _ntgeo_layer(name, lang):
     except (ntgeo.NtGeoError, OSError, ValueError) as exc:
         log.warning("노던테리토리 지질도를 읽지 못했다 (%s): %s", name, exc)
         return JsonResponse({"error": i18n.t(msg("노던테리토리 지질도 자료(NTGS)를 읽지 못했다"), lang)}, status=500)
+    response = HttpResponse(content, content_type="application/geo+json")
+    if settings.TILE_CACHE_SECONDS > 0:
+        response["Cache-Control"] = f"public, max-age={settings.TILE_CACHE_SECONDS}"
+    return response
+
+
+def _kgis_layer(name, lang):
+    """킹조지섬 지형 SCAR KGIS 한 덩이 (wetherilli 424). 꼴은 `_ntgeo_layer` 와 같다"""
+    if not kgis.available(name):
+        return JsonResponse({"error": i18n.t(msg("킹조지섬 지형 자료(SCAR KGIS)가 서버에 없다"), lang)}, status=503)
+    try:
+        content = kgis.body(name, lang)
+    except (kgis.KgisError, OSError, ValueError) as exc:
+        log.warning("킹조지섬 지형을 읽지 못했다 (%s): %s", name, exc)
+        return JsonResponse({"error": i18n.t(msg("킹조지섬 지형 자료(SCAR KGIS)를 읽지 못했다"), lang)}, status=500)
     response = HttpResponse(content, content_type="application/geo+json")
     if settings.TILE_CACHE_SECONDS > 0:
         response["Cache-Control"] = f"public, max-age={settings.TILE_CACHE_SECONDS}"
@@ -6079,6 +6138,21 @@ def _kopri_layer(name, lang):
     return response
 
 
+def _pangaea_layer(name, lang):
+    """PANGAEA 극지 현장 자료(wetherilli 421) — `manage.py fetch_pangaea` 가 모아 둔 파일만 읽는다. 꼴과 까닭은 `_kopri_layer` 와 같다"""
+    try:
+        content = pangaea.file_body(name, lang)
+    except FileNotFoundError:
+        return JsonResponse({"error": i18n.t(msg("PANGAEA 자료를 아직 모으지 않았다 (fetch_pangaea)"), lang)}, status=503)
+    except (OSError, ValueError, KeyError) as exc:
+        log.warning("PANGAEA 자료를 읽지 못했다 (%s): %s", name, exc)
+        return JsonResponse({"error": i18n.t(msg("PANGAEA 자료를 읽지 못했다"), lang)}, status=500)
+    response = HttpResponse(content, content_type="application/geo+json")
+    if settings.TILE_CACHE_SECONDS > 0:
+        response["Cache-Control"] = f"public, max-age={settings.TILE_CACHE_SECONDS}"
+    return response
+
+
 def _kigam50k_layer(name, lang):
     """5만 지질도의 화석산지·시료·광산·도폭 틀 (wetherilli 199, jikhanjung P01 §5) — 받아 둔 WFS 파일에서. 꼴과 까닭은
     `_kopri_layer` 와 같다. 파일은 `manage.py fetch_kigam50k` 가 쓴다."""
@@ -6106,6 +6180,36 @@ def _china4m_places(name, lang):
     return response
 
 
+def _gtnp_layer(name, lang):
+    """영구동토 시추공(wetherilli 422) — `manage.py fetch_gtnp` 가 받아 둔 파일만 읽는다. 꼴과 까닭은 `_kopri_layer` 와 같다"""
+    try:
+        content = gtnp.body(name)
+    except FileNotFoundError:
+        return JsonResponse({"error": i18n.t(msg("GTN-P 시추공 목록을 아직 받지 않았다 (fetch_gtnp)"), lang)}, status=503)
+    except (OSError, ValueError, KeyError) as exc:
+        log.warning("GTN-P 시추공 목록을 읽지 못했다: %s", exc)
+        return JsonResponse({"error": i18n.t(msg("GTN-P 시추공 목록을 읽지 못했다"), lang)}, status=500)
+    response = HttpResponse(content, content_type="application/geo+json")
+    if settings.TILE_CACHE_SECONDS > 0:
+        response["Cache-Control"] = f"public, max-age={settings.TILE_CACHE_SECONDS}"
+    return response
+
+
+def _petrochron_layer(lang):
+    """남극 암석 화학·연대(wetherilli 419) — `manage.py fetch_petrochron` 이 구운 덩이만 읽는다. 없으면 503 으로 까닭을 말한다"""
+    try:
+        content = petrochron.body()
+    except FileNotFoundError:
+        return JsonResponse({"error": i18n.t(msg("PetroChron 을 아직 받지 않았다 (fetch_petrochron)"), lang)}, status=503)
+    except (OSError, ValueError, KeyError) as exc:
+        log.warning("PetroChron 을 읽지 못했다: %s", exc)
+        return JsonResponse({"error": i18n.t(msg("모아 둔 자료를 읽지 못했다"), lang)}, status=500)
+    response = HttpResponse(content, content_type="application/geo+json")
+    if settings.TILE_CACHE_SECONDS > 0:
+        response["Cache-Control"] = f"public, max-age={settings.TILE_CACHE_SECONDS}"
+    return response
+
+
 def _scar_places(lang):
     """남극 지명 이름표(wetherilli 412) — `manage.py fetch_scar_gazetteer` 가 받아 둔 파일만 읽는다. 없으면 503 으로 까닭을 말한다"""
     try:
@@ -6115,6 +6219,39 @@ def _scar_places(lang):
     except (OSError, ValueError, KeyError) as exc:
         log.warning("SCAR 지명사전을 읽지 못했다: %s", exc)
         return JsonResponse({"error": i18n.t(msg("SCAR 지명사전을 읽지 못했다"), lang)}, status=500)
+    response = HttpResponse(content, content_type="application/geo+json")
+    if settings.TILE_CACHE_SECONDS > 0:
+        response["Cache-Control"] = f"public, max-age={settings.TILE_CACHE_SECONDS}"
+    return response
+
+
+def _glacio_layer(request, name, lang):
+    """빙저호·RAISED 접지선(wetherilli 420) — 받아 둔 파일만 읽는다. 없으면 503 으로 까닭을 말한다"""
+    module = orda if orda.knows(name) else raised
+    try:
+        content = module.body(name, lang)
+    except FileNotFoundError:
+        missing = (msg("빙저호 목록을 아직 받지 않았다 (fetch_subglacial_lakes)") if module is orda
+                   else msg("RAISED 접지선을 아직 굽지 않았다 (build_raised)"))
+        return JsonResponse({"error": i18n.t(missing, lang)}, status=503)
+    except (OSError, ValueError, KeyError) as exc:
+        log.warning("빙하 자료를 읽지 못했다 (%s): %s", name, exc)
+        return JsonResponse({"error": i18n.t(msg("모아 둔 자료를 읽지 못했다"), lang)}, status=500)
+    response = HttpResponse(content, content_type="application/geo+json")
+    if settings.TILE_CACHE_SECONDS > 0:
+        response["Cache-Control"] = f"public, max-age={settings.TILE_CACHE_SECONDS}"
+    return _immutable(request, response, module.version())
+
+
+def _aspa_layer(name, lang):
+    """남극 특별보호구역 ASPA(wetherilli 423) — `manage.py fetch_aspa` 가 구워 둔 파일만 읽는다. 없으면 503 으로 까닭을 말한다"""
+    if not aadc.available():
+        return JsonResponse({"error": i18n.t(msg("남극 특별보호구역 자료를 아직 받지 않았다 (fetch_aspa)"), lang)}, status=503)
+    try:
+        content = aadc.body(name, lang)
+    except (aadc.AadcError, OSError, ValueError, KeyError) as exc:
+        log.warning("ASPA 를 읽지 못했다 (%s): %s", name, exc)
+        return JsonResponse({"error": i18n.t(msg("남극 특별보호구역 자료를 읽지 못했다"), lang)}, status=500)
     response = HttpResponse(content, content_type="application/geo+json")
     if settings.TILE_CACHE_SECONDS > 0:
         response["Cache-Control"] = f"public, max-age={settings.TILE_CACHE_SECONDS}"

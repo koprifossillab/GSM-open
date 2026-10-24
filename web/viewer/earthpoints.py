@@ -1,5 +1,5 @@
 """지역 탭의 지구 자료 점 — 화석 산지(PBDB)·홀로세 화산(GVP)·지진(USGS)·제4기 고생태 산지(Neotoma) (wetherilli 185),
-지열류(IHFC, wetherilli 275). 그리고 온 지구 화면에 구워 둔 선·면·막대 — 활성단층(GEM)·판 경계와 지질구(Hasterok)·지각 응력(WSM)·
+지열류(IHFC, wetherilli 275), 과학 해양 시추공(DSDP·ODP·IODP, wetherilli 418). 그리고 온 지구 화면에 구워 둔 선·면·막대 — 활성단층(GEM)·판 경계와 지질구(Hasterok)·지각 응력(WSM)·
 세계 광상(USGS) (wetherilli 390). 이름은 "점" 이지만 선·면도 같은 덩이로 낸다 — 화면의 `classStyle` 이 범례 줄의 모양대로 그린다.
 
 온 지구 화면이 경위도 타일로 그리는 것을, 지역 탭은 **점 레이어**(`kind: points`)로 받는다 — 지역의 네모 안만 잘라
@@ -14,7 +14,7 @@ import re
 
 from django.conf import settings
 
-from . import (faults, fossils, gvp, heatflow, i18n, minerals, neotoma, paleoeco, pbdb, quakes, recentquakes, stress, tectonics,
+from . import (faults, fossils, gvp, heatflow, i18n, iodp, minerals, neotoma, paleoeco, pbdb, quakes, recentquakes, stress, tectonics,
                usgs, volcanoes)
 from .i18n import msg
 
@@ -43,9 +43,12 @@ HOSTS = {"eastasia": ("japan", "동아시아"), "southeast_asia": ("indonesia", 
 CAP = 20000
 #: 모으는 칸(°) — 가는 것부터 써서 `CAP` 밑으로 떨어지는 첫 칸
 MERGE_CELLS = (0.01, 0.05, 0.1, 0.2, 0.5)
-SOURCES = ("pbdb", "gvp", "quakes", "neotoma", "heatflow", "recentquakes", "faults", "plates", "provinces", "stress", "minerals")
+SOURCES = ("pbdb", "gvp", "quakes", "neotoma", "heatflow", "recentquakes", "faults", "plates", "provinces", "stress", "minerals",
+           "iodp")
+#: 극지 탭(남극·북극)에만 두는 자료 — 해양 시추공은 극지 자료로 붙였다 (wetherilli 418)
+POLAR_ONLY = {"iodp": ("antarctica", "arctic")}
 #: 레이어 이름 `earth:<자료>_<네모>` → (자료, 네모)
-LAYERS = {f"earth:{src}_{box}": (src, box) for src in SOURCES for box in BOXES}
+LAYERS = {f"earth:{src}_{box}": (src, box) for src in SOURCES for box in BOXES if box in POLAR_ONLY.get(src, BOXES)}
 
 #: 소수 자리 — 5 자리면 1 m 남짓이다
 DIGITS = 5
@@ -76,11 +79,14 @@ LABELS = {
     "stress": {"azi": "최대 수평 응력 방향", "regime": "응력 체제", "quality": "품질", "type": "측정법", "depth": "깊이 (km)",
                "place": "곳", "mag": "규모", "date": "일시", "ref": "참고 문헌"},
     "minerals": {"name": "광상", "commodity": "광종", "status": "상태", "kind": "광상 유형", "country": "나라", "link": "USGS 쪽"},
+    # 과학 해양 시추공(wetherilli 418) — 손으로 더한 대륙붕 시추의 `link` 는 PANGAEA 자료다
+    "iodp": {"name": "시추공", "program": "시추 프로그램", "cruise": "항차", "date": "시추 일시", "water": "해저 수심 (m)",
+             "penetrated": "뚫은 길이 (m)", "recovered": "회수한 코어 (m)", "link": "코어 보기", "log": "검층 자료"},
 }
-LINKS = ("link",)
+LINKS = ("link", "log")
 CREDITS = {"pbdb": pbdb.CREDIT, "gvp": gvp.CREDIT, "quakes": usgs.CREDIT, "neotoma": neotoma.CREDIT,
            "heatflow": heatflow.CREDIT, "recentquakes": usgs.CREDIT, "faults": faults.CITE, "plates": tectonics.CITE,
-           "provinces": tectonics.CITE, "stress": stress.CREDIT, "minerals": minerals.CREDIT}
+           "provinces": tectonics.CITE, "stress": stress.CREDIT, "minerals": minerals.CREDIT, "iodp": iodp.CREDIT}
 #: 범례 칸의 원본 자료 글 (화면이 `T()` 로 옮긴다). GVP 는 비상업·인용 조건을 적는다 (wetherilli 134)
 SOURCE_LABELS = {
     "pbdb": msg("원본 자료 — Paleobiology Database, CC BY 4.0"),
@@ -94,13 +100,14 @@ SOURCE_LABELS = {
     "provinces": msg("원본 자료 — Hasterok 외 2022, CC BY 4.0"),
     "stress": msg("원본 자료 — World Stress Map 2025, CC BY 4.0"),
     "minerals": msg("원본 자료 — USGS MRDS·세계 광물 자원 평가, 공공 영역"),
+    "iodp": msg("원본 자료 — IODP 시추공 목록(kml.iodp.org, 공개 자료 — 프로그램을 밝힌다)·PANGAEA"),
 }
 SOURCE_URLS = {"pbdb": "https://paleobiodb.org/", "gvp": "https://volcano.si.edu/",
                "quakes": "https://earthquake.usgs.gov/earthquakes/search/", "neotoma": "https://www.neotomadb.org/",
                "heatflow": heatflow.DOI, "recentquakes": "https://earthquake.usgs.gov/earthquakes/map/",
                "faults": "https://github.com/GEMScienceTools/gem-global-active-faults",
                "plates": "https://doi.org/10.5281/zenodo.5093930", "provinces": "https://doi.org/10.5281/zenodo.5093930",
-               "stress": stress.DOI, "minerals": minerals.LINK}
+               "stress": stress.DOI, "minerals": minerals.LINK, "iodp": iodp.SOURCE_URL}
 #: 자료가 없을 때 패널에 띄우는 글 — 어느 명령이 모으는지 적는다
 MISSING = {
     "pbdb": msg("화석 산지 자료를 아직 모으지 않았다 (fetch_pbdb)"),
@@ -114,11 +121,12 @@ MISSING = {
     "provinces": msg("지질구 자료를 아직 굽지 않았다 (build_tectonics)"),
     "stress": msg("응력 자료를 아직 굽지 않았다 (build_stress)"),
     "minerals": msg("광상 자료를 아직 굽지 않았다 (build_minerals)"),
+    "iodp": msg("시추공 목록을 아직 받지 않았다 (fetch_iodp_holes)"),
 }
 _AVAILABLE = {"pbdb": fossils.available, "gvp": volcanoes.available, "quakes": quakes.available, "neotoma": paleoeco.available,
               "heatflow": heatflow.available, "recentquakes": recentquakes.available, "faults": faults.available,
               "plates": tectonics.available, "provinces": tectonics.available, "stress": stress.available,
-              "minerals": minerals.available}
+              "minerals": minerals.available, "iodp": iodp.available}
 
 
 def knows(name: str) -> bool:
@@ -158,6 +166,8 @@ def stamp(name: str) -> str:
         return stress.built()
     if src == "minerals":
         return minerals.built()
+    if src == "iodp":
+        return iodp.fetched()
     conn = fossils.db()
     row = conn.execute("SELECT v FROM meta WHERE k = 'built'").fetchone() if conn else None
     return row[0] if row else ""
@@ -323,6 +333,7 @@ _KEEP = {
     "recentquakes": lambda p: float(str(p.get("mag") or "0").split()[0]),
     "stress": lambda p: -"ABCD".index(p.get("q") or "D"),
     "minerals": lambda p: 1.0 if p.get("shape") == "diamond" else 0.0,
+    "iodp": lambda p: float(str(p.get("penetrated") or "0").replace(",", "")),   # 팝업 값이라 천 자리 쉼표가 든다 (418 뒤)
 }
 
 
@@ -438,10 +449,32 @@ def _mineral_features(box, lang):
     return out, legend
 
 
+#: 시추 프로그램 → (이름, 색). 차례가 범례의 차례다 — 남극 대륙붕 시추(ANDRILL·CRP·CIROS·MSSTS)는 손으로 더한 것
+IODP_PROGRAMS = {"dsdp": (msg("DSDP (1968–1983)"), "#8c6d31"), "odp": (msg("ODP (1985–2003)"), "#3182bd"),
+                 "iodp": (msg("IODP (2003–)"), "#e6550d"),
+                 "shelf": (msg("남극 대륙붕 시추 (ANDRILL·CRP·CIROS·MSSTS)"), "#31a354")}
+
+
+def _iodp_features(box, lang):
+    """과학 해양 시추공(wetherilli 418) — 프로그램의 색. 공 하나가 점 하나다(같은 사이트의 A·B·C 공은 몇 m 떨어져 겹친다)"""
+    num = lambda v: f"{v:,g}" if v is not None else ""      # noqa: E731
+    order = list(IODP_PROGRAMS)
+    rows = sorted(iodp.holes(*box), key=lambda h: order.index(h["program"]))
+    out = []
+    for i, h in enumerate(rows):
+        label = IODP_PROGRAMS[h["program"]][0]
+        out.append(_point(h["lon"], h["lat"], {
+            "code": h["program"], "name": h["hole"], "program": i18n.t(label, lang), "cruise": h["cruise"], "date": h["date"],
+            "water": num(h["water"]), "penetrated": num(h["penetrated"]), "recovered": num(h["recovered"]),
+            "link": h["core"], "log": h["log"]}, i))
+    legend = [(code, label, color) for code, (label, color) in IODP_PROGRAMS.items()]
+    return out, legend
+
+
 _FEATURES = {"pbdb": _fossil_features, "gvp": _volcano_features, "quakes": _quake_features,
              "neotoma": _neotoma_features, "heatflow": _heatflow_features, "recentquakes": _recent_quake_features,
              "faults": _fault_features, "plates": _plate_features, "provinces": _province_features, "stress": _stress_features,
-             "minerals": _mineral_features}
+             "minerals": _mineral_features, "iodp": _iodp_features}
 
 
 def body(name: str, lang: str = "ko") -> bytes:
@@ -466,7 +499,7 @@ def _body(name: str, lang: str, _stamp: str) -> bytes:
     legend = [{"code": code, "label": str(label), "color": color, "shape": shape, "count": counts[code], **(extra[0] if extra else {})}
               for code, label, color, *extra in table if counts.get(code)]
     labels = dict(LABELS[src], merged="같은 칸에 모인 수")
-    return json.dumps({"type": "FeatureCollection", "style": "class", "labels": labels, "links": list(LINKS),
+    return json.dumps({"type": "FeatureCollection", "style": "class", "labels": labels, "links": [k for k in LINKS if k in LABELS[src]],
                        "legend": legend, "features": features},
                       ensure_ascii=False, separators=(",", ":")).encode("utf-8")
 

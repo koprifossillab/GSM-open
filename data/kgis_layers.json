@@ -1,0 +1,97 @@
+{
+ "_주석": "SCAR KGIS 킹조지섬 지형 DB(2007) 씨앗이다 — AWI·SCAR 가 PANGAEA(10.1594/PANGAEA.837976, CC BY 3.0)에 둔 셰이프 zip 열여섯을 manage.py fetch_kgis 가 GSM_KGIS_DIR 에 받아 두고 web/viewer/kgis.py 가 한 덩이씩 화면에 준다. 지명은 SCAR 지명사전(scar:place_names)이 덮어 싣지 않는다. 파일은 저장소에 없다 (wetherilli 424).",
+ "_뽑은날": "2026-10-24",
+ "_출처": "https://doi.org/10.1594/PANGAEA.837976",
+ "_지역": "antarctica",
+ "_상류": "kgis",
+ "_레이어군차례": 18,
+ "레이어군순서": [
+  "킹조지섬 지형 (SCAR KGIS)"
+ ],
+ "레이어": [
+  {
+   "name": "kgis:contours",
+   "title": "등고선 10 m",
+   "group": "킹조지섬 지형 (SCAR KGIS)",
+   "abstract": "킹조지섬 얼음 없는 땅의 10 m 등고선 2 406 줄 — 50 m 마다 굵게. 2007 년 판",
+   "bbox": [
+    -59.1,
+    -62.3,
+    -57.38,
+    -61.83
+   ]
+  },
+  {
+   "name": "kgis:coastline",
+   "title": "해안선 (2007)",
+   "group": "킹조지섬 지형 (SCAR KGIS)",
+   "abstract": "암석 해안·얼음 해안(빙벽)을 가른 해안선 617 줄. 빙하 끝은 그 뒤로 물러났다",
+   "bbox": [
+    -59.1,
+    -62.3,
+    -57.38,
+    -61.83
+   ]
+  },
+  {
+   "name": "kgis:icefree",
+   "title": "얼음 없는 땅",
+   "group": "킹조지섬 지형 (SCAR KGIS)",
+   "abstract": "얼음이 덮지 않은 땅 563 면 — 노두·야외 조사의 자리",
+   "bbox": [
+    -59.1,
+    -62.3,
+    -57.38,
+    -61.83
+   ]
+  },
+  {
+   "name": "kgis:water",
+   "title": "물길·호수",
+   "group": "킹조지섬 지형 (SCAR KGIS)",
+   "abstract": "물길 1 387 줄과 호수 291 면. 바턴반도의 물길·호수가 든다",
+   "bbox": [
+    -59.1,
+    -62.3,
+    -57.38,
+    -61.83
+   ]
+  },
+  {
+   "name": "kgis:facilities",
+   "title": "기지·건물·시설",
+   "group": "킹조지섬 지형 (SCAR KGIS)",
+   "abstract": "기지 11·건물 226·탱크 79·관 104·피난처 12·착륙장 9. 세종기지의 건물·연료 탱크가 든다. 2007 년의 것",
+   "bbox": [
+    -59.1,
+    -62.3,
+    -57.38,
+    -61.83
+   ]
+  },
+  {
+   "name": "kgis:routes",
+   "title": "길·오솔길",
+   "group": "킹조지섬 지형 (SCAR KGIS)",
+   "abstract": "기지 둘레의 길 92 줄·오솔길 14 줄",
+   "bbox": [
+    -59.1,
+    -62.3,
+    -57.38,
+    -61.83
+   ]
+  },
+  {
+   "name": "kgis:protected",
+   "title": "보호구역·역사 유적 (2007)",
+   "group": "킹조지섬 지형 (SCAR KGIS)",
+   "abstract": "2007 년의 남극특별보호구역(ASPA) 여섯·남극특별관리구역(ASMA) 하나와 역사 유적 넷. 경계는 그 해의 것 — 현장에서는 남극조약사무국의 지금 관리 계획을 본다",
+   "bbox": [
+    -59.1,
+    -62.3,
+    -57.38,
+    -61.83
+   ]
+  }
+ ]
+}

@@ -310,6 +310,8 @@
     var text = String(value).split(/\s+/).join(" ").trim();
     if (!text) return null;
     if (kind === "link") return /^https?:\/\//i.test(text) ? text : null;
+    // 여덟 자리 날짜 → 2019-12-20 (`arcpoints.clean` 의 `ymd`, wetherilli 423)
+    if (kind === "ymd") return /^\d{8}$/.test(text) ? text.slice(0, 4) + "-" + text.slice(4, 6) + "-" + text.slice(6) : text;
     if (kind === "rgb") {
       var p = text.split(" ").slice(0, 3).map(Number);
       if (p.length < 3 || p.some(isNaN)) return null;

@@ -5,6 +5,26 @@
 - **왜 그렇게 했는지**는 `devlog/` — 괄호 안의 번호가 그 문서다
 - 날짜는 그 판을 붙인 날이다
 
+## v1.4.0 — 2026-10-24 · 극지 보호구역 · 킹조지섬 지형 SCAR KGIS · 스발바르 정주지 상세도 (wetherilli 423–425)
+
+- **남극 특별보호구역 ASPA 2024** — AADC 의 Terauds 외 2024 판(CC BY 4.0)을 받아 구워(`fetch_aspa`) 남극 탭 "보호구역 (AADC)" 의 면(75 곳 119 조각)과 점으로. 바다를 품은 것은 따로 색. 묶음 받기가 이메일을 물어 파일마다 받는다 (wetherilli 423)
+- **스발바르 자연보호구역** — NPI·주지사의 보호구역 서비스(CC BY 4.0)를 스발바르 탭 "스발바르 보호구역 (NPI)" 의 레이어 넷으로 — 보호구역 56(국립공원·자연보호구역·지질 보호지)·조류 보호구역 16·람사르 습지 9·보호 경계선. 그린란드 포털의 갈래 색 틀을 `arcpoints` 로 옮겨 함께 쓴다 (wetherilli 423)
+- **킹조지섬 지형 SCAR KGIS** — 2007 년 통합 지형 DB(PANGAEA.837976, CC BY 3.0)의 셰이프 열여섯을 받아 두고(`fetch_kgis`) 남극 탭 "킹조지섬 지형 (SCAR KGIS)" 의 레이어 일곱으로 — 등고선·해안선·얼음 없는 땅·물길과 호수·기지와 시설·길·보호구역(2007). 바턴반도의 세종기지 건물·길·탱크가 든다 (wetherilli 424)
+- **스발바르 정주지 상세도** — 배경 "스발바르 정주지 상세도 (NPI FKB)" — NPI 지형도 위에 FKB(CC BY)를 얹는다. 범위 밖 칸은 묻지 않고 빈 칸은 투명으로 담는다 (wetherilli 425)
+
+## v1.3.0 — 2026-10-23 · 극지 자료 2 차 — 시추공·영구동토·PANGAEA·PetroChron·빙저호·RAISED · 남극 기지 묶음 박스 (wetherilli 418–422)
+
+- **과학 해양 시추공** — DSDP·ODP·IODP 의 시추공 목록(kml.iodp.org)을 받아 두고(`fetch_iodp_holes`) 남극(123 공)·북극해(241 공) 탭의 "시추" 점 레이어로. 프로그램마다 색, 코어 보기·검층 링크. ANDRILL·CRP·CIROS·MSSTS 여덟은 PANGAEA 이벤트에서 손으로 (wetherilli 418)
+- **남극 암석 화학·연대** — PetroChron Antarctica(Zenodo, CC BY 4.0)를 받아 구워(`fetch_petrochron`) 남극 탭의 점 1 만 1 천으로. 암석 갈래 색은 극지연구소 시료와 같고 모양은 마름모, 팝업은 암석·연대(방법)·주성분·참고문헌·DOI (wetherilli 419)
+- **빙저호·빙상 후퇴** — Livingstone 외 2022 빙저호 목록(셰필드대 ORDA, CC BY 4.0, `fetch_subglacial_lakes`)을 남극(675)·그린란드(64) 탭의 점으로, RAISED 컨소시엄 2014 의 접지선 20·15·10·5 ka(Quantarctica 사본, `build_raised`)를 남극 탭의 선으로. RAISED 는 정적 판에 싣지 않는다 (wetherilli 420)
+- **PANGAEA 극지 현장 자료** — 세종·장보고·다산·디스코만·자켄베르그 둘레의 자료 목록 5 622 건(메타데이터 CC0, `fetch_pangaea`)을 탭 × 주제의 점 레이어로, 누르면 DOI. 정적 판에도 굽는다 (wetherilli 421)
+- **영구동토 시추공** — GTN-P 지온 관측공(Arctic Portal, CC BY 3.0, `fetch_gtnp`)을 북극해(1 061)·남극(91) 탭의 점으로, 색은 마지막 해의 연평균 지온 구간 (wetherilli 422)
+- **오프라인 박스 둘** — 세종기지·장보고기지 둘레(10-22 에 구운 두 묶음의 설정) (wetherilli P17·411)
+
+## v1.2.2 — 2026-10-23 · 보안: 이미지 안의 pip 26.1 이상 (koprifossillab 024)
+
+- **이미지 안의 pip 을 26.1 이상으로** — pip 25.0.1 의 설치 경로 밖 쓰기·코드 실행 취약점(CVE-2026-6357·3219·8643·13346·1703)을 피하려고 `deploy/Dockerfile.web` 에서 pip 을 먼저 올린다. 베이스 이미지를 새로 받아도 pip 은 안 올라간다. 베이스(Debian 13)의 보안 갱신도 함께. 기능 변경은 없다. 서버 디스크(sda 고장·sdc 열화)로 바뀐 자리도 같은 devlog 에 적었다 (koprifossillab 024)
+
 ## v1.2.1 — 2026-10-23 · 호스트 받기 고침 · 파이썬 3.14 병렬 시험 (wetherilli 416–417)
 
 - **호스트 cron 의 받기가 다시 돈다** — 1.1.0 부터 viewer 가 묶음 패키지 `gsmpack` 을 import 하는데 호스트 사본(`/srv/GSM/scripts/app`)에 옮기지 않아 아라온·GFS 바람·GMGSI·최근 지진 받기가 import 에서 깨졌다. `install.sh` 가 `tools/gsmpack/gsmpack` 도 옮긴다 (wetherilli 417)

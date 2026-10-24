@@ -662,33 +662,8 @@ compact = arcpoints.compact
 _clean = arcpoints.clean
 
 
-def class_of(spec: dict, props: dict) -> tuple:
-    """feature 하나의 갈래 (code, label, color, shape). 받은 값이 표의 머리말로 시작하면 그 갈래다 —
-    위에서부터 먼저 맞는 것. 캐시에는 넣지 않고 내보낼 때 가른다 — 색을 고쳐도 다시 받지 않는다."""
-    classes = spec["classes"]
-    raw = props.get(classes["by"]) if classes["by"] else None
-    value = str(raw if raw is not None else "")
-    for code, label, color, shape, heads in classes["table"]:
-        if isinstance(heads, dict):
-            # 다른 열을 보고 가른다 — 석류석 갈래 (wetherilli 157). `gt0` 는 그 열의 값이 0 보다 큰 것,
-            # `top` 은 그 열이 `of` 가운데 가장 크고 0 보다 큰 것(같으면 표의 앞 줄이 이긴다, wetherilli 178)
-            if "top" in heads:
-                values = [props.get(k) or 0 for k in heads["of"]]
-                if (props.get(heads["top"]) or 0) > 0 and (props.get(heads["top"]) or 0) >= max(values):
-                    return code, label, color, shape
-            elif (props.get(heads["gt0"]) or 0) > 0:
-                return code, label, color, shape
-        elif callable(heads):
-            if heads(props):
-                return code, label, color, shape
-        elif classes.get("numeric"):
-            # 값의 구간 `(이상, 미만)` — 미만이 None 이면 끝이 없다
-            low, high = heads
-            if isinstance(raw, (int, float)) and raw >= low and (high is None or raw < high):
-                return code, label, color, shape
-        elif value.startswith(heads):
-            return code, label, color, shape
-    return classes["else"]
+#: 갈래를 가르는 틀은 `arcpoints` 에 있다 — NPI 의 보호구역도 함께 쓴다 (wetherilli 423)
+class_of = arcpoints.class_of
 
 
 def _value_body(spec: dict, features_json: bytes) -> bytes:
@@ -745,19 +720,7 @@ def body(name: str, features_json: bytes) -> bytes:
         return _value_body(spec, features_json)
     if "classes" not in spec:
         return arcpoints.body(spec, features_json)
-    features = json.loads(features_json)
-    counts, table = {}, {}
-    for feature in features:
-        code, label, color, shape = class_of(spec, feature["properties"])
-        feature["properties"]["code"] = code
-        counts[code] = counts.get(code, 0) + 1
-        table[code] = (label, color, shape)
-    order = [row[0] for row in spec["classes"]["table"]] + [spec["classes"]["else"][0]]
-    legend = [{"code": c, "label": table[c][0], "color": table[c][1], "shape": table[c][2], "count": counts[c]}
-              for c in order if c in counts]
-    return json.dumps({"type": "FeatureCollection", "labels": arcpoints.labels(spec),
-                       "links": arcpoints.links(spec), "style": "class", "legend": legend,
-                       "features": features}, ensure_ascii=False, separators=(",", ":")).encode("utf-8")
+    return arcpoints.class_body(spec, features_json)
 
 
 #: 이 파일이 여는 상류 — `doors.py` 가 모아 views·prewarm·화면의 표를 짓는다 (wetherilli 371)

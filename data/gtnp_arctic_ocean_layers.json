@@ -1,0 +1,25 @@
+{
+ "_주석": "GTN-P 영구동토 시추공 씨앗 — 북극해 탭(북극 묶음에 든다). 북위 50° 너머의 공 — 시베리아·알래스카·캐나다 북부·스발바르·그린란드·스칸디나비아. Arctic Portal GeoServer 의 page21:magt 를 manage.py fetch_gtnp 가 받아 GSM_GTNP_DIR/gtnp_boreholes.json 에 적는다. 파일은 저장소에 없다. 조건은 CC BY 3.0 (wetherilli 422).",
+ "_뽑은날": "2026-10-23",
+ "_출처": "https://doi.pangaea.de/10.1594/PANGAEA.842820",
+ "_지역": "arctic_ocean",
+ "_상류": "gtnp",
+ "_레이어군차례": 21,
+ "레이어군순서": [
+  "영구동토 (GTN-P)"
+ ],
+ "레이어": [
+  {
+   "name": "gtnp:boreholes_arctic",
+   "title": "영구동토 시추공 (북극)",
+   "group": "영구동토 (GTN-P)",
+   "abstract": "GTN-P(Global Terrestrial Network for Permafrost) 영구동토 시추공 — 지온 관측공의 깊이·영구동토대와 1978–2016 년의 연평균 지온(MAGT). 색은 지온이 있는 마지막 해의 값이다",
+   "bbox": [
+    -180,
+    50,
+    180,
+    90
+   ]
+  }
+ ]
+}

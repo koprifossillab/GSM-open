@@ -1,0 +1,61 @@
+{
+ "_주석": "RAISED 컨소시엄(Bentley 외 2014, QSR 100) 의 20·15·10·5 ka 접지선 씨앗이다. 셰이프는 Quantarctica3 사본뿐이고(조건 칸이 비었다) 논문의 CC BY 를 자료에도 걸린다고 보고 붙였다 — 사람이 정했다, 정적 판에는 싣지 않는다. manage.py build_raised 가 GSM_GLACIO_DIR/raised.json 에 위경도로 적는다. 파일은 저장소에 없다 (wetherilli 420).",
+ "_뽑은날": "2026-10-23",
+ "_출처": "https://doi.org/10.1016/j.quascirev.2014.06.025",
+ "_지역": "antarctica",
+ "_상류": "raised",
+ "_레이어군차례": 28,
+ "레이어군순서": [
+  "빙상 후퇴 (RAISED)"
+ ],
+ "레이어": [
+  {
+   "name": "raised:20ka",
+   "title": "접지선 20 ka (RAISED)",
+   "group": "빙상 후퇴 (RAISED)",
+   "abstract": "RAISED 컨소시엄(Bentley 외 2014)이 연대 측정을 모아 그린 20 ka 의 남극 빙상 접지선. 굵은 선은 연대 측정이 받치는 것, 끊긴 선은 추정, 점선은 짐작이다. 동남극의 몇 곳은 시나리오 A·B 가 갈린다",
+   "bbox": [
+    -180,
+    -90,
+    180,
+    -55
+   ]
+  },
+  {
+   "name": "raised:15ka",
+   "title": "접지선 15 ka (RAISED)",
+   "group": "빙상 후퇴 (RAISED)",
+   "abstract": "RAISED 컨소시엄(Bentley 외 2014)이 연대 측정을 모아 그린 15 ka 의 남극 빙상 접지선. 굵은 선은 연대 측정이 받치는 것, 끊긴 선은 추정, 점선은 짐작이다. 동남극의 몇 곳은 시나리오 A·B 가 갈린다",
+   "bbox": [
+    -180,
+    -90,
+    180,
+    -55
+   ]
+  },
+  {
+   "name": "raised:10ka",
+   "title": "접지선 10 ka (RAISED)",
+   "group": "빙상 후퇴 (RAISED)",
+   "abstract": "RAISED 컨소시엄(Bentley 외 2014)이 연대 측정을 모아 그린 10 ka 의 남극 빙상 접지선. 굵은 선은 연대 측정이 받치는 것, 끊긴 선은 추정, 점선은 짐작이다. 동남극의 몇 곳은 시나리오 A·B 가 갈린다",
+   "bbox": [
+    -180,
+    -90,
+    180,
+    -55
+   ]
+  },
+  {
+   "name": "raised:5ka",
+   "title": "접지선 5 ka (RAISED)",
+   "group": "빙상 후퇴 (RAISED)",
+   "abstract": "RAISED 컨소시엄(Bentley 외 2014)이 연대 측정을 모아 그린 5 ka 의 남극 빙상 접지선. 굵은 선은 연대 측정이 받치는 것, 끊긴 선은 추정, 점선은 짐작이다. 동남극의 몇 곳은 시나리오 A·B 가 갈린다",
+   "bbox": [
+    -180,
+    -90,
+    180,
+    -55
+   ]
+  }
+ ]
+}

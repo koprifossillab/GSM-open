@@ -173,7 +173,7 @@ class Regions(TestCase):
         for box, (host, _) in earthpoints.HOSTS.items():
             seed = _json.loads((settings.REPO_DIR / "data" / f"earth_{box}_layers.json").read_text(encoding="utf-8"))
             self.assertEqual(seed["_지역"], host)
-            self.assertEqual({l["name"] for l in seed["레이어"]}, {f"earth:{s}_{box}" for s in earthpoints.SOURCES})
+            self.assertEqual({l["name"] for l in seed["레이어"]}, {f"earth:{s}_{box}" for s in earthpoints.SOURCES if s not in earthpoints.POLAR_ONLY})
             self.assertTrue(_re.search(host + r': \[[^\]]*"earth"', js) or host == "africa", host)    # 묶음의 다른 탭이 빌린다(아프리카는 탭이 하나)
 
     def test_많으면_칸으로_모은다(self):

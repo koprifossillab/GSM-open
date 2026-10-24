@@ -124,6 +124,53 @@
    ]
   },
   {
+   "id": "iodp_holes",
+   "name": {
+    "ko": "해양 시추공 DSDP·ODP·IODP",
+    "en": "Scientific ocean drilling holes DSDP·ODP·IODP"
+   },
+   "org": "IODP (kml.iodp.org)",
+   "kind": "fetch",
+   "commands": [
+    "fetch_iodp_holes"
+   ],
+   "runs_on": "container",
+   "schedule": "manual",
+   "license": "공개 자료 — 프로그램을 밝힌다 (Sample, Data, and Obligations Policy 2024)",
+   "flags": [],
+   "outputs": [
+    "earth/iodp_holes.json"
+   ],
+   "docs": [
+    "wetherilli 418"
+   ],
+   "note": "항차가 끝나 목록이 고쳐질 때 — 1 년에 몇 번"
+  },
+  {
+   "id": "petrochron",
+   "name": {
+    "ko": "남극 암석 화학·연대 PetroChron Antarctica",
+    "en": "Antarctic rock chemistry and ages PetroChron Antarctica"
+   },
+   "org": "Sanchez 외 (Zenodo 5032026)",
+   "kind": "fetch",
+   "commands": [
+    "fetch_petrochron"
+   ],
+   "runs_on": "container",
+   "schedule": "manual",
+   "license": "CC BY 4.0",
+   "flags": [],
+   "raw": "petrochron/raw",
+   "outputs": [
+    "petrochron/petrochron.json"
+   ],
+   "docs": [
+    "wetherilli 419"
+   ],
+   "note": "2021 년 판(0_1)에서 멈춰 있다 — 새 판이 Zenodo 에 오르면 그때 한 번"
+  },
+  {
    "id": "scar_gazetteer",
    "name": {
     "ko": "남극 지명 SCAR 통합 지명사전",
@@ -145,6 +192,145 @@
     "wetherilli 412"
    ],
    "note": "나라들이 이름을 더할 때마다 자란다 — 판을 붙이기 전이나 몇 달에 한 번"
+  },
+  {
+   "id": "gtnp",
+   "name": {
+    "ko": "영구동토 시추공 GTN-P",
+    "en": "Permafrost boreholes GTN-P"
+   },
+   "org": "GTN-P (Arctic Portal 호스팅)",
+   "kind": "fetch",
+   "commands": [
+    "fetch_gtnp"
+   ],
+   "runs_on": "container",
+   "schedule": "manual",
+   "license": "CC BY 3.0 (인용 — GTN-P 2015 PANGAEA.842820, GTN-P 2018 PANGAEA.884711)",
+   "flags": [],
+   "outputs": [
+    "gtnp/gtnp_boreholes.json"
+   ],
+   "docs": [
+    "wetherilli 422"
+   ],
+   "note": "지온은 2016 년에 멈춰 있다 — 판을 붙이기 전이나 상류가 바뀌었다고 들으면"
+  },
+  {
+   "id": "pangaea",
+   "name": {
+    "ko": "PANGAEA 극지 현장 자료 목록",
+    "en": "PANGAEA polar field-site dataset list"
+   },
+   "org": "PANGAEA (AWI·MARUM)",
+   "kind": "fetch",
+   "commands": [
+    "fetch_pangaea"
+   ],
+   "runs_on": "container",
+   "schedule": "manual",
+   "license": "메타데이터 CC0 (이용 약관 6.2), 자료 본문은 자료마다 — 대개 CC BY, 싣지 않고 DOI 로 잇는다",
+   "flags": [],
+   "outputs": [
+    "pangaea/pangaea.json"
+   ],
+   "docs": [
+    "wetherilli 421"
+   ],
+   "note": "현장 다섯(세종·장보고·다산·디스코만·자켄베르그)의 둘레, 1 초에 한 번 서른 쪽 남짓 — 판을 붙이기 전이나 몇 달에 한 번"
+  },
+  {
+   "id": "subglacial_lakes",
+   "name": {
+    "ko": "빙저호 목록 Livingstone 2022",
+    "en": "Subglacial lakes Livingstone et al. 2022"
+   },
+   "org": "셰필드대 ORDA (figshare)",
+   "kind": "fetch",
+   "commands": [
+    "fetch_subglacial_lakes"
+   ],
+   "runs_on": "container",
+   "schedule": "manual",
+   "license": "CC BY 4.0",
+   "flags": [],
+   "outputs": [
+    "glacio/subglacial_lakes.json"
+   ],
+   "docs": [
+    "wetherilli 420"
+   ],
+   "note": "몇 해에 한 번 고쳐진다 — 판을 붙이기 전에 가끔"
+  },
+  {
+   "id": "raised",
+   "name": {
+    "ko": "남극 빙상 후퇴 RAISED",
+    "en": "RAISED Antarctic deglaciation"
+   },
+   "org": "RAISED 컨소시엄 (Quantarctica 사본, NPI)",
+   "kind": "fetch",
+   "commands": [
+    "build_raised"
+   ],
+   "runs_on": "container",
+   "schedule": "manual",
+   "license": "논문 CC BY 3.0 — 셰이프 사본에는 조건 칸이 없다, 사람이 논문의 조건을 걸었다",
+   "flags": [],
+   "outputs": [
+    "glacio/raised.json"
+   ],
+   "docs": [
+    "wetherilli 420"
+   ],
+   "note": "2014 년에 멈춘 자료 — 한 번 부르면 된다. 정적 판에 싣지 않는다"
+  },
+  {
+   "id": "kgis",
+   "name": {
+    "ko": "킹조지섬 지형 SCAR KGIS",
+    "en": "King George Island topography SCAR KGIS"
+   },
+   "org": "SCAR·AWI (PANGAEA)",
+   "kind": "fetch",
+   "commands": [
+    "fetch_kgis"
+   ],
+   "runs_on": "container",
+   "schedule": "manual",
+   "license": "CC BY 3.0",
+   "flags": [],
+   "outputs": [
+    "kgis/Contour_010.zip"
+   ],
+   "docs": [
+    "wetherilli 424"
+   ],
+   "note": "2007 년에 멈춘 자료 — 한 번 받으면 끝이다"
+  },
+  {
+   "id": "aadc_aspa",
+   "name": {
+    "ko": "남극 특별보호구역 ASPA 2024",
+    "en": "Antarctic Specially Protected Areas ASPA 2024"
+   },
+   "org": "AADC (Terauds 외)",
+   "kind": "fetch",
+   "commands": [
+    "fetch_aspa"
+   ],
+   "runs_on": "container",
+   "schedule": "manual",
+   "license": "CC BY 4.0",
+   "flags": [],
+   "outputs": [
+    "aadc/aspa_2024.json"
+   ],
+   "raw": "aadc/aspa_raw",
+   "docs": [
+    "wetherilli 423"
+   ],
+   "note": "ATCM 이 해마다 지정·해제한다 — AADC 가 판을 올리면(자료 번호가 바뀐다) aadc.ASPA_ID·ASPA_UUID 를 고친다"
   },
   {
    "id": "kopri",

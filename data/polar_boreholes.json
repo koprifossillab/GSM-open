@@ -1,0 +1,21 @@
+{
+ "_주석": "IODP 목록(kml.iodp.org)에 없는 남극 대륙붕 시추 — ANDRILL·케이프로버츠(CRP)·CIROS·MSSTS. 자리·일시·수심(이벤트의 ELEVATION 을 뒤집은 것)·뚫은 길이·회수 길이는 PANGAEA 자료의 Event(s) 줄을 그대로 옮겼다(2026-10-23). source 는 그 자료다. 비면 PANGAEA 가 적지 않은 것이다. CRP-3 의 자리는 PANGAEA 가 CRP-2A 와 거의 같게 적었다 — 같은 줄의 설명(CRP-2 에서 225° 로 2.04 km)과 맞지 않지만 고치지 않고 옮겼다 (wetherilli 418).",
+ "holes": [
+  {"hole": "MSSTS-1", "cruise": "MSSTS", "lat": -77.557222, "lon": 163.386945, "date": "1979-11", "water": 195.0, "penetrated": 227.0,
+   "source": "https://doi.org/10.1594/PANGAEA.52013"},
+  {"hole": "CIROS-1", "cruise": "CIROS", "lat": -77.081872, "lon": 164.49886, "date": "1986-10-15", "water": 197.5, "penetrated": 702.14, "recovered": 660.0,
+   "source": "https://doi.org/10.1594/PANGAEA.52025"},
+  {"hole": "CIROS-2", "cruise": "CIROS", "lat": -77.683333, "lon": 163.533333, "water": 211.0,
+   "source": "https://doi.org/10.1594/PANGAEA.55366"},
+  {"hole": "CRP-1", "cruise": "Cape Roberts Project", "lat": -77.00758, "lon": 163.75508, "date": "1997-10-17", "water": 153.5, "penetrated": 132.06, "recovered": 113.32,
+   "source": "https://doi.org/10.1594/PANGAEA.667128"},
+  {"hole": "CRP-2A", "cruise": "Cape Roberts Project", "lat": -77.00598, "lon": 163.71945, "date": "1998-10-16", "water": 177.9, "penetrated": 624.15,
+   "source": "https://doi.org/10.1594/PANGAEA.58401"},
+  {"hole": "CRP-3", "cruise": "Cape Roberts Project", "lat": -77.006, "lon": 163.719, "date": "1999-10-09", "water": 295.0, "penetrated": 939.0, "recovered": 936.0,
+   "source": "https://doi.org/10.1594/PANGAEA.734089"},
+  {"hole": "AND-1B", "cruise": "ANDRILL MIS", "lat": -77.88944, "lon": 167.08932, "date": "2006-10-31", "water": 917.0, "recovered": 1284.85,
+   "source": "https://doi.org/10.1594/PANGAEA.858483"},
+  {"hole": "AND-2A", "cruise": "ANDRILL SMS", "lat": -77.758141, "lon": 165.276765, "date": "2007-10-10", "water": 380.0, "recovered": 1138.54,
+   "source": "https://doi.org/10.1594/PANGAEA.743269"}
+ ]
+}

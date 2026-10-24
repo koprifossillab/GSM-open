@@ -141,6 +141,22 @@ class Npi(TestCase):
             self.assertEqual(self.client.get("/GSM/npi/NP_Satellitt_Svalbard_WMTS_25833/18/0/0").status_code, 404)
         get.assert_not_called()
 
+    def test_FKB_는_정주지_범위만_묻고_빈_칸은_투명으로_담는다(self):
+        # 뉘올레순 z15 칸 — 범위 안. 상류가 404(그릴 것이 없다)면 투명한 칸을 담아 다시 묻지 않는다 (wetherilli 425)
+        url = reverse("viewer:npi-tile", kwargs={"service": "FKB_Svalbard_WMTS_3857", "z": "15", "y": "4214", "x": "17469"})
+        with mock.patch.object(basemaps.requests, "get", return_value=answer(b"nope", "text/html", status=404)) as get:
+            first, second = self.client.get(url), self.client.get(url)
+        get.assert_called_once()
+        self.assertEqual(get.call_args.args[0], "https://geodata.npolar.no/arcgis/rest/services/Basisdata/"
+                                                "FKB_Svalbard_WMTS_3857/MapServer/tile/15/4214/17469")
+        self.assertEqual((first["X-GSM-Cache"], second["X-GSM-Cache"]), ("miss", "hit"))
+        self.assertTrue(b"".join(first.streaming_content if first.streaming else [first.content]).startswith(b"\x89PNG"))
+        with mock.patch.object(basemaps.requests, "get") as get:
+            # 한국 둘레의 칸·정사사진은 묻지 않는다
+            self.assertEqual(self.client.get("/GSM/npi/FKB_Svalbard_WMTS_3857/10/400/870").status_code, 404)
+            self.assertEqual(self.client.get("/GSM/npi/NP_Ortofoto_Svalbard_WMTS_3857/15/4214/17469").status_code, 404)
+        get.assert_not_called()
+
     def test_화면은_서버를_거치고_정적_판만_곧장(self):
         js = Script.code(self, "map.js")
         for line in (l for l in js.splitlines() if "geodata.npolar.no/arcgis/rest/services/Basisdata" in l):
