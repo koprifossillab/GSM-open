@@ -44,7 +44,8 @@ python -m unittest discover -s tools/gsmpack/tests -t tools/gsmpack
   `[바이트 시작(머리 뒤에서 센다), 길이]`
 - `zooms` 는 **격자 줌**이다. 격자는 `tile_size` 가 밝힌다 — 512 px 격자는 화면 줌보다 하나 작다(KIGAM), 256 px 는 화면 줌 그대로다(VWorld)
 - `grid` 는 격자의 이름이다 — 투영 코드, 원점이 투영 범위의 왼쪽 위가 아니면 `@<원점 x>`: `EPSG:3857`(한국 탭), `EPSG:3031`(남극 탭의 GeoMAP·REMA,
-  범위 ±3333134.0276), `EPSG:3031@-33699550.99`(Esri 극 타일). 읽는 쪽은 `tile_size` 와 `grid` 가 화면 소스와 다르면 그 레이어를 건너뛴다.
+  범위 ±3333134.0276), `EPSG:3031@-33699550.99`(Esri 극 타일), `EPSG:25833`(스발바르 탭의 NPI 지형도·위성 — 원점 (−5 120 900, 9 998 100), 줌 0 이 21 674.71 m/px.
+  화면의 25833 에 투영 범위가 없어 원점을 붙이지 않는다, wetherilli 434). 읽는 쪽은 `tile_size` 와 `grid` 가 화면 소스와 다르면 그 레이어를 건너뛴다.
   적지 않은 옛 묶음은 `EPSG:3857` 이다 (wetherilli 410)
 - `dropped` 는 예산(기본 200 MB)에 맞추려고 덜어 낸 레이어마다 빠진 첫 격자 줌이다
 - `missing` 은 굽다가 받지 못한 타일의 열쇠 목록이다(하나도 없으면 칸이 없다) — `tiles` 에 없는 열쇠 가운데 이것만 "받지 못한 자리" 이고
@@ -52,6 +53,10 @@ python -m unittest discover -s tools/gsmpack/tests -t tools/gsmpack
 - 빈 타일(투명 한 장, 자료 밖)과 박스 밖의 타일은 넣지 않는다 — 없는 열쇠는 "그 자리에 그릴 것이 없다" 다. 박스에 걸친 타일은 박스 밖을 비웠다
 - `units` 는 누른 자리의 속성 — 박스로 자른 지층 면 GeoJSON 한 덩이가 `tiles` 의 `@units/<레이어>` 에 든다. 면마다
   `properties: {props, props_en}`, 좌표는 소수 다섯 자리
+- `vectors` 는 화면이 타일이 아니라 **한 덩이로 받아 그리는 점·모양 레이어**(`kind: points` — 킹조지섬 KGIS 따위) — 서버의 `points/?layer=` 가
+  주는 GeoJSON 덩이 그대로(`legend`·`labels`·`style` 칸까지)에서 박스에 닿는 모양만 남겨 `tiles` 의 `@vectors/<레이어>` 에 넣는다. 모양은 자르지
+  않는다. `{"kgis:contours": {"key": "@vectors/kgis:contours", "type": "application/geo+json", "title": "…", "attribution": "…"}}`.
+  화면은 그 레이어를 망보다 묶음에서 먼저 읽는다. 칸이 없던 옛 묶음도 그대로 읽힌다 (wetherilli 434)
 - `gsm` 은 구운 GSM 의 판(GSM 이 구웠을 때만)
 - **키는 어디에도 넣지 않는다** — 머리에도, 타일 주소에도
 
@@ -61,7 +66,7 @@ python -m unittest discover -s tools/gsmpack/tests -t tools/gsmpack
 |---|---|
 | `format` | 꼴 쓰기·읽기·폴더의 묶음 목록 |
 | `boxes` | 박스 표(`data/offline_boxes.json` 꼴) 읽기 |
-| `grid` | 타일 격자(`Grid` — 3857·3031·Esri 극 격자) — 박스를 덮는 칸, 칸의 범위, 투영 |
+| `grid` | 타일 격자(`Grid` — 3857·3031·Esri 극 격자·NPI 25833) — 박스를 덮는 칸, 칸의 범위, 투영 |
 | `clip` | 타일·지층 면을 박스로 잘라 내기, 빈 타일 가리기 |
 | `bake` | 굽는 고리 — 어림(`Plan`)·예산 맞추기·받기·쓰기, 이어 굽기(`Parts`) |
 | `units` | WFS 의 지층 면 → 묶음에 넣을 면(박스로 자르기·속성 손질) |

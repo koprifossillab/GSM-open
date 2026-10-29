@@ -85,7 +85,10 @@
 
   function writeSync() {
     var names = {};
-    packs.forEach(function (p) { Object.keys(p.head.layers || {}).forEach(function (n) { names[n] = true; }); });
+    packs.forEach(function (p) {
+      Object.keys(p.head.layers || {}).forEach(function (n) { names[n] = true; });
+      Object.keys(p.head.vectors || {}).forEach(function (n) { names[n] = true; });     // 점·모양 덩이 (wetherilli 434)
+    });
     covered = Object.keys(names);
     try { localStorage.setItem(SYNC_SLOT, JSON.stringify(covered)); } catch (e) { /* 사생활 모드 */ }
   }
@@ -145,7 +148,7 @@
     var h = p.head;
     return { id: p.id, name: p.name, size: p.size, added: p.added, box: h.box || "", title: h.title || h.box || p.name,
              built: h.built || "", bbox: h.bbox || null, region: h.region || "", note: h.note || "",
-             layers: Object.keys(h.layers || {}), tiles: Object.keys(h.tiles || {}).length,
+             layers: Object.keys(h.layers || {}).concat(Object.keys(h.vectors || {})), tiles: Object.keys(h.tiles || {}).length,
              attribution: attributionOf(p) };
   }
 
@@ -200,6 +203,21 @@
     var key = pack.id + "/" + name;
     if (!shapes[key]) shapes[key] = reader.readUnits(pack, name);
     return shapes[key].then(function (rows) { return reader.unitsAt(rows, lon, lat, lang); }, function () { return []; });
+  }
+
+  // ── 점·모양 덩이 (wetherilli 434) ──
+  //
+  // 화면이 타일이 아니라 한 덩이로 받아 그리는 레이어(`kind: points` — 킹조지섬 KGIS 따위). 묶음에 있으면 망보다 먼저 묶음에서 읽는다
+
+  /** 그 레이어의 덩이 — Promise<GeoJSON 객체 | null>. 덮는 묶음이 없으면 곧장 null(저장소를 기다리지 않는다) */
+  function vector(name) {
+    if (!packs.length && !coversSync(name)) return Promise.resolve(null);
+    return ready.then(function () {
+      for (var i = 0; i < packs.length; i++) {
+        if (reader.hasVector(packs[i], name)) return reader.readVector(packs[i], name).catch(function () { return null; });
+      }
+      return null;
+    });
   }
 
   /** 경위도 한 자리를 덮는 묶음들 — 화면의 "오프라인: 장성 · 10-10" 표 */
@@ -307,6 +325,7 @@
     tileBlob: tileBlob,
     hasUnits: hasUnits,
     unitsAt: unitsAt,
+    vector: vector,
     at: at,
     wrap: wrap,
     size: size,

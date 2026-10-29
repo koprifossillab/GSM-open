@@ -1,0 +1,37 @@
+{
+ "_주석": "GMRT 극지 WMS 씨앗이다 — 남극 탭. 남극 평사도법(3031) 서비스 wms_SP 와 잰 곳만 색인 wms_SP_mask 를 문(web/viewer/gmrt.py)이 고른다. 레이어군을 IBCSO(15) 앞에 둔다 (wetherilli 428).",
+ "_뽑은날": "2026-10-29",
+ "_출처": "https://www.gmrt.org/services/mapserver/",
+ "_지역": "antarctica",
+ "_상류": "gmrt",
+ "_레이어군차례": 14,
+ "레이어군순서": [
+  "극지 수심 (GMRT)"
+ ],
+ "레이어": [
+  {
+   "name": "gmrt:sp",
+   "title": "수심 (GMRT)",
+   "group": "극지 수심 (GMRT)",
+   "abstract": "GMRT 4.5 — 다중빔 수심을 손질해 GEBCO 2026 위에 이어 붙인 합성 지형. 잰 곳은 원래 해상도(수십 m)까지 보인다. 항해에 쓰지 않는다",
+   "bbox": [
+    -180,
+    -90,
+    180,
+    -40
+   ]
+  },
+  {
+   "name": "gmrt:sp_mask",
+   "title": "수심 — 잰 곳만 (GMRT)",
+   "group": "극지 수심 (GMRT)",
+   "abstract": "같은 GMRT 에서 다중빔으로 잰 곳만 색이고 GEBCO 로 메운 곳은 회색으로 죽였다 — 어느 항해가 어디를 쟀나를 본다",
+   "bbox": [
+    -180,
+    -90,
+    180,
+    -40
+   ]
+  }
+ ]
+}

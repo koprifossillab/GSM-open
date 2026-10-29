@@ -37,7 +37,7 @@ from django.utils import timezone
 
 from gsmpack import bake, boxes, format, grid, units
 from gsmweb.version import VERSION
-from viewer import elevation, geomap, i18n, kigam, offlinereq, tilecache, tilegrid, usage, views, vworld
+from viewer import basemaps, elevation, geomap, i18n, kgis, kigam, offlinereq, tilecache, tilegrid, usage, views, vworld
 from viewer.management.commands.prewarm import PREWARM_ERRORS, WmsPlan, plan_for
 from viewer.models import Layer
 
@@ -213,6 +213,78 @@ class RemaSource:
         return data
 
 
+#: 스발바르의 NPI 배경 — 묶음의 이름 → (NPI 서비스, 격자, 출처). 화면의 `NPI_PACK`·`npiTiles`·`npiFkbLayer`(`map.js`)와 같다 (wetherilli 434)
+NPI = {"basemap:npi_topo": ("NP_Basiskart_Svalbard_WMTS_25833", grid.NPI_SVALBARD,
+                            "Topographic map © Norsk Polarinstitutt (CC BY 4.0)"),
+       "basemap:npi_sat": ("NP_Satellitt_Svalbard_WMTS_25833", grid.NPI_SVALBARD,
+                           "Satellite mosaic © Norsk Polarinstitutt, contains modified Copernicus Sentinel data (CC BY 4.0)"),
+       "basemap:npi_fkb": (basemaps.FKB_SERVICE, grid.MERCATOR,
+                           "FKB detail map © Norsk Polarinstitutt; Longyearbyen area co-owned by Longyearbyen lokalstyre, "
+                           "Store Norske, Sysselmesteren and Telenor (CC BY)")}
+
+
+#: FKB 가 건물·길을 그린 정주지의 네모 — 그 밖은 상류가 404 다(빈 칸). 박스 전체를 세면 다산 박스 줌 17 에서 빈 칸을 수만 번 묻는다.
+#: VWorld 기지 위성의 `THEME_BBOX` 와 같은 까닭이다 (wetherilli 434). 뉘올레순 — 다산기지(78.925°N 11.93°E) 둘레
+FKB_SETTLEMENTS = {"ny-alesund": (11.84, 78.915, 11.99, 78.94)}
+
+
+class NpiSource:
+    """NPI 스발바르 배경 — 화면의 `npi/<서비스>/{z}/{y}/{x}`(256 px). 지형도·위성은 25833 격자, 정주지 상세도(FKB)는 3857. 격자 줌이 화면 줌이다.
+    CC BY 라 서버가 담는 배경이다 — 화면과 같은 캐시 열쇠(`npi-tile`)로 꺼내고, 없으면 문으로 받아 담는다 (wetherilli 200·425·434)"""
+    tile_size, type = 256, "image/png"
+
+    def __init__(self, name):
+        self.name, self.kind = name, name
+        self.service, self.grid, self.attribution = NPI[name]
+        self.title = {"basemap:npi_topo": "NPI 지형도", "basemap:npi_sat": "NPI Sentinel-2 위성",
+                      "basemap:npi_fkb": "NPI 정주지 상세도 (FKB)"}[name]
+
+    def grid_zoom(self, screen):
+        return screen
+
+    def tiles(self, bbox, z):
+        if self.service != basemaps.FKB_SERVICE:
+            return [(x, y) for x, y in self.grid.tiles_for(bbox, z) if self._knows(z, x, y)]
+        out = set()
+        for place in FKB_SETTLEMENTS.values():
+            part = (max(bbox[0], place[0]), max(bbox[1], place[1]), min(bbox[2], place[2]), min(bbox[3], place[3]))
+            if part[0] < part[2] and part[1] < part[3]:
+                out.update((x, y) for x, y in self.grid.tiles_for(part, z) if self._knows(z, x, y))
+        return sorted(out)
+
+    def _knows(self, z, x, y):
+        if self.service == basemaps.FKB_SERVICE:
+            return basemaps.knows_fkb_tile(z, x, y)
+        return basemaps.knows_npi_tile(self.service, z, x, y)
+
+    def _key(self, z, x, y):
+        return tilecache.key_text("npi-tile", f"{self.service}/{z}/{y}/{x}")
+
+    def cached(self, z, x, y):
+        return tilecache.get(self._key(z, x, y))
+
+    def cached_size(self, z, x, y):
+        return tilecache.size(self._key(z, x, y))
+
+    def fetch(self, z, x, y):
+        try:
+            data = basemaps.npi_tile(self.service, z, x, y)
+        except basemaps.BasemapError as exc:
+            raise _fetch_error(exc) from exc
+        tilecache.put(self._key(z, x, y), data)
+        return data
+
+
+def kgis_vector(name, bbox):
+    """킹조지섬 KGIS 레이어 하나 — 화면의 `points/?layer=` 덩이 그대로에서 박스에 닿는 모양만 (wetherilli 424·434). 우리 파일이라 상류를 타지 않는다"""
+    import json
+    data = bake.clip_vector(json.loads(kgis.body(name)), bbox)
+    if not data["features"]:
+        return None
+    title = Layer.objects.filter(name=name).values_list("title", flat=True).first() or name
+    return json.dumps(data, ensure_ascii=False, separators=(",", ":")).encode("utf-8"), {"title": title, "attribution": kgis.ATTRIBUTION}
+
+
 def geomap_units(name, bbox):
     """GeoMAP 레이어 하나의 지층 면 — 우리 파일(gpkg)의 R*Tree 에서 박스의 면을 뽑아 경위도로 옮긴다. 상류를 타지 않는다 (wetherilli 411)"""
     data = {"features": [{"type": "Feature", "properties": props,
@@ -271,6 +343,8 @@ def make_sources(box, parts) -> tuple:
             sources[name] = VWorldSource(name, name.split(":", 1)[1], parts)
         elif name in REMA:
             sources[name] = RemaSource(name, parts)
+        elif name in NPI:
+            sources[name] = NpiSource(name)
         elif name in geomap.LAYERS and geomap.available():
             sources[name] = GeomapSource(name, titles.get(name) or name)
         elif name in enabled and isinstance(plan_for(name, "kigam"), WmsPlan):
@@ -317,7 +391,7 @@ class Command(BaseCommand):
             raise CommandError("KIGAM 인증키가 없다")
         try:
             done = bake.bake(plan, out_dir, parts, units=lambda bbox, gap: self.gather_units(box, sources, bbox, gap),
-                             extra={"gsm": VERSION}, log=self.stdout.write)
+                             vectors=lambda bbox: self.gather_vectors(box, bbox), extra={"gsm": VERSION}, log=self.stdout.write)
         except bake.BakeError as exc:
             raise CommandError(str(exc)) from exc
         path = done["path"]
@@ -351,6 +425,24 @@ class Command(BaseCommand):
                 req.finished_at = timezone.now()
                 req.save(update_fields=["status", "pack", "last_line", "finished_at"])
 
+
+    def gather_vectors(self, box, bbox):
+        """박스의 `vectors` 레이어마다 점·모양 덩이 — `{레이어: (GeoJSON 바이트, {title, attribution})}`. 지금은 킹조지섬 KGIS 만 —
+        우리 파일이라 상류를 타지 않는다. 없거나 모르는 레이어는 건너뛰고 묶음은 굽는다 (wetherilli 434)"""
+        out = {}
+        for name in box.get("vectors", []):
+            if not (kgis.knows(name) and kgis.available(name)):
+                self.stderr.write(f"  {name} 덩이가 없다(모르는 레이어이거나 fetch_kgis 를 아직 돌리지 않았다) — 빼고 굽는다")
+                continue
+            try:
+                got = kgis_vector(name, bbox)
+            except (kgis.KgisError, OSError, ValueError) as exc:
+                self.stderr.write(f"  {name} 덩이를 읽지 못했다 — 빼고 굽는다: {exc}")
+                continue
+            if got:
+                out[name] = got
+                self.stdout.write(f"  {name} 덩이 {len(got[0]) / 1024:.0f} KB")
+        return out
 
     def gather_units(self, box, sources, bbox, gap):
         """박스의 `units` 레이어마다 지층 면 — `{레이어: (GeoJSON 바이트, 피처 타입)}`. 상류에 레이어마다 두 번(DescribeLayer·WFS),

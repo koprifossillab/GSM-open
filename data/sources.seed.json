@@ -717,6 +717,74 @@
    ]
   },
   {
+   "id": "itslive",
+   "name": {
+    "ko": "빙하 유속 ITS_LIVE",
+    "en": "Glacier velocity ITS_LIVE"
+   },
+   "org": "NASA ITS_LIVE (AWS)",
+   "kind": "build",
+   "commands": [
+    "build_itslive"
+   ],
+   "runs_on": "host",
+   "schedule": "manual",
+   "license": "CC0",
+   "flags": [],
+   "outputs": [
+    "itslive/antarctica/meta.json",
+    "itslive/greenland/meta.json",
+    "itslive/svalbard/meta.json"
+   ],
+   "docs": [
+    "wetherilli 433"
+   ]
+  },
+  {
+   "id": "antgg2021",
+   "name": {
+    "ko": "남극 중력 AntGG2021",
+    "en": "Antarctic gravity AntGG2021"
+   },
+   "org": "PANGAEA 971238",
+   "kind": "build",
+   "commands": [
+    "build_antgg"
+   ],
+   "runs_on": "host",
+   "schedule": "manual",
+   "license": "CC BY 4.0",
+   "flags": [],
+   "outputs": [
+    "antgg/bouguer/meta.json"
+   ],
+   "docs": [
+    "wetherilli 431"
+   ]
+  },
+  {
+   "id": "antarctic_ghf",
+   "name": {
+    "ko": "남극 지열류 모형",
+    "en": "Antarctic geothermal heat flow models"
+   },
+   "org": "PANGAEA 924857·930237·882503",
+   "kind": "build",
+   "commands": [
+    "build_antarctic_ghf"
+   ],
+   "runs_on": "person",
+   "schedule": "manual",
+   "license": "CC BY 4.0",
+   "flags": [],
+   "outputs": [
+    "antarctic_ghf/stal/meta.json"
+   ],
+   "docs": [
+    "wetherilli 432"
+   ]
+  },
+  {
    "id": "geomap",
    "name": {
     "ko": "남극 GeoMAP",
@@ -1490,6 +1558,28 @@
     "066"
    ],
    "note": "끝난 임무 — 다시 구울 일이 거의 없다"
+  },
+  {
+   "id": "acc_fronts",
+   "name": {
+    "ko": "남극순환류 전선",
+    "en": "Antarctic Circumpolar Current fronts"
+   },
+   "org": "SEANOE (Park & Durand 2019)",
+   "kind": "build",
+   "commands": [
+    "build_acc_fronts"
+   ],
+   "runs_on": "person",
+   "schedule": "manual",
+   "license": "CC BY 4.0",
+   "flags": [],
+   "outputs": [
+    "data/acc_fronts.json (저장소)"
+   ],
+   "docs": [
+    "wetherilli 429"
+   ]
   }
  ]
 }

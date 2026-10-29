@@ -15,6 +15,9 @@ NPI 의 스발바르 지형도·위성 모자이크 타일 (wetherilli 200)·정
 여기 없다 — 조건을 읽고 나서 이 문에 더한다. VWorld 는 열쇠에 도메인 제한이 걸려 곧장 부른다(003).
 PGC 음영·Trek 영상은 2026-10-04 에 읽었지만 다시 내줘도 되는지가 분명하지 않아 그대로 둔다(wetherilli 200, TODOs (사람)).
 
+**GIBS 의 날마다 영상**(`GIBS_DAILY`, wetherilli 427) — 극지 탭의 배경으로 MODIS·VIIRS 참색·3-6-7 밴드·VIIRS 해빙 일일을 날짜를 골라 본다.
+날짜가 경로와 캐시 열쇠에 든다. 사흘 안쪽의 날은 아직 영상이 차는 중이라 담지 않는다(`GIBS_DAILY_FRESH_DAYS`).
+
 **GIBS 의 겹쳐 그리는 레이어**(`GIBS_OVERLAYS`) — 남극·그린란드 빙하 속도(NSIDC-0484·0478)는 카탈로그 레이어(`gibs:` 씨앗)지만
 같은 GIBS 의 같은 격자라 문을 새로 내지 않고 여기에 얹는다. 다른 것은 셋이다 — PNG(투명)이고, 시점(`Time`)이 경로에 들고,
 레이어 이름을 화면이 아니라 이 표가 고른다. 시점은 Capabilities 의 `Default` 를 적어 둔다. 범례는 GIBS 의 SVG 를 화면이 곧장 부른다.
@@ -23,6 +26,7 @@ PGC 음영·Trek 영상은 2026-10-04 에 읽었지만 다시 내줘도 되는�
 두 상류를 문 하나에 묶은 것은 하는 일이 같아서다 — 열쇠 없이 타일 한 장을 받아 그림인지만 본다. `elevation.py` 가 표고 상류
 셋을 묶은 것과 같은 까닭이다. 상류가 바뀌면 고칠 자리는 `settings.GIBS_URL`·`GEBCO_WMS_URL` 과 아래 표다.
 """
+import datetime
 import logging
 import math
 
@@ -49,6 +53,20 @@ GIBS_CITES = {
     "gibs:ice_velocity_antarctica": {"doi": "10.5067/D7GK8F5J8M8R", "short": "NSIDC-0484", "who": "Rignot, Mouginot &amp; Scheuchl 2017"},
     "gibs:ice_velocity_greenland": {"doi": "10.5067/OC7B04ZM9G6Q", "short": "NSIDC-0478", "who": "Joughin et al. 2015"},
 }
+#: **날마다 영상** (wetherilli 427) — 남극·북극 탭의 배경. GIBS 레이어 → (확장자, 격자, 마지막 줌, 늦는 날 수).
+#: 격자는 Blue Marble 과 원점·첫 줌이 같고(줌 0 이 8192 m, 512 px) 끝만 다르다 — `250m` 은 줌 5, `1km` 은 줌 3.
+#: 늦는 날 수는 화면이 날짜를 고르지 않았을 때 며칠 전을 보일지다 — 참색은 어제(그날 것은 아직 차는 중), 해빙 L3 는 사흘 전이
+#: Capabilities 의 `Default` 였다(2026-10-29 에 10-26). 3031·3413 의 이름이 같다
+GIBS_DAILY = {
+    "VIIRS_NOAA20_CorrectedReflectance_TrueColor": ("jpeg", "250m", 5, 1),
+    "MODIS_Terra_CorrectedReflectance_TrueColor": ("jpeg", "250m", 5, 1),
+    "MODIS_Terra_CorrectedReflectance_Bands367": ("jpeg", "250m", 5, 1),
+    "VIIRS_NOAA20_L3_Sea_Ice_Daily": ("png", "1km", 3, 3),
+}
+#: 날마다 영상의 가장 이른 날 — MODIS Terra 의 첫날(2000-02-24). 그 앞은 묻지 않는다
+GIBS_DAILY_FIRST = datetime.date(2000, 2, 24)
+#: 이 날 수 안쪽의 날짜는 담지 않는다 — 그날·그 이튿날의 영상은 아직 차는 중이라 나중에 물으면 다른 그림이다(실시간성 자료)
+GIBS_DAILY_FRESH_DAYS = 3
 #: 화면이 쓰는 GEBCO 레이어(`map.js` 의 `gebcoLayer`, `earth.js` 의 `BASES.gebco`)
 GEBCO_LAYERS = ("GEBCO_LATEST", "GEBCO_LATEST_SUB_ICE_TOPO")
 #: WMS 한 장의 가장 큰 변 — 화면은 512 를, Cesium 은 256 을 부른다
@@ -93,7 +111,7 @@ def wms_ok(params: dict, layers) -> bool:
     return 0 < width <= MAX_SIDE and 0 < height <= MAX_SIDE and bool(params.get("bbox"))
 
 
-def _get(upstream: str, url: str, params=None, empty_404: bool = False):
+def _get(upstream: str, url: str, params=None, empty_404: bool = False, blank: int = 256):
     left = usage.paused()
     if left:
         raise BasemapError(f"차단 조짐이 있어 {int(left)}초 동안 상류에 묻지 않는다")
@@ -106,7 +124,7 @@ def _get(upstream: str, url: str, params=None, empty_404: bool = False):
     log.info("%s %s -> %s", upstream, r.url, r.status_code)
     if empty_404 and r.status_code == 404:
         usage.record(upstream, ok=True, elapsed=r.elapsed)
-        return tiles.blank_tile(256, 256)
+        return tiles.blank_tile(blank, blank)
     usage.record(upstream, ok=r.status_code == 200, blocked=usage.looks_blocked(r.status_code, r.content[:1000]), elapsed=r.elapsed)
     ctype = r.headers.get("content-type", "")
     if r.status_code != 200 or not ctype.startswith("image/"):
@@ -189,6 +207,40 @@ def gibs_overlay_tile(epsg: str, layer: str, z: int, x: int, y: int) -> bytes:
         raise BasemapError("모르는 GIBS 타일이다")
     return _get("gibs", f"{settings.GIBS_URL.rstrip('/')}/wmts/epsg{epsg}/best/{layer}/default/"
                         f"{gibs_overlay_time(layer)}/500m/{z}/{y}/{x}.png")
+
+
+def gibs_daily_date(text: str):
+    """`YYYY-MM-DD` → date, 받지 않을 날이면 None. 내일(UTC)까지는 받는다 — 한국은 UTC 보다 아홉 시간 앞이다"""
+    try:
+        day = datetime.date.fromisoformat(text)
+    except (TypeError, ValueError):
+        return None
+    today = datetime.datetime.now(datetime.timezone.utc).date()
+    return day if GIBS_DAILY_FIRST <= day <= today + datetime.timedelta(days=1) else None
+
+
+def knows_gibs_daily(epsg: str, layer: str, date: str, z: int, x: int, y: int) -> bool:
+    spec = GIBS_DAILY.get(layer)
+    if spec is None or epsg not in ("3413", "3031") or not 0 <= z <= spec[2] or gibs_daily_date(date) is None:
+        return False
+    cols, rows = gibs_tile_count(epsg, z)
+    return 0 <= x < cols and 0 <= y < rows
+
+
+def gibs_daily_fresh(date: str) -> bool:
+    """아직 차는 날의 영상인가 — 담지 않는다"""
+    today = datetime.datetime.now(datetime.timezone.utc).date()
+    return gibs_daily_date(date) > today - datetime.timedelta(days=GIBS_DAILY_FRESH_DAYS)
+
+
+def gibs_daily_tile(epsg: str, layer: str, date: str, z: int, x: int, y: int) -> bytes:
+    """날마다 영상 한 장. 경로는 정적 판이 부르는 그대로다 — 날짜를 넣은 z/y/x.
+    그날 영상이 없는 칸(극야·궤도 사이·아직 안 올라온 날)은 GIBS 가 404 를 준다 — 투명한 칸으로 낸다"""
+    if not knows_gibs_daily(epsg, layer, date, z, x, y):
+        raise BasemapError("모르는 GIBS 타일이다")
+    ext, matrix, _, _ = GIBS_DAILY[layer]
+    return _get("gibs", f"{settings.GIBS_URL.rstrip('/')}/wmts/epsg{epsg}/best/{layer}/default/{date}/{matrix}/{z}/{y}/{x}.{ext}",
+                empty_404=True, blank=512)
 
 
 def gibs_wms(params: dict) -> bytes:

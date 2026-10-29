@@ -52,6 +52,11 @@ MANUAL = msg("(손으로 둔다)")
 ITEMS = [
     # 남극
     Item("admap2/meta.json", "ADMAP_DIR", "meta.json", msg("남극 자력 이상 ADMAP-2"), "build_admap"),
+    Item("antgg/bouguer/meta.json", "ANTGG_DIR", "bouguer/meta.json", msg("남극 중력 AntGG2021"), "build_antgg"),
+    Item("antarctic_ghf/stal/meta.json", "ANTARCTIC_GHF_DIR", "stal/meta.json", msg("남극 지열류 모형"), "build_antarctic_ghf"),
+    Item("itslive/antarctica/meta.json", "ITSLIVE_DIR", "antarctica/meta.json", msg("빙하 유속 ITS_LIVE (남극)"), "build_itslive"),
+    Item("itslive/greenland/meta.json", "ITSLIVE_DIR", "greenland/meta.json", msg("빙하 유속 ITS_LIVE (그린란드)"), "build_itslive"),
+    Item("itslive/svalbard/meta.json", "ITSLIVE_DIR", "svalbard/meta.json", msg("빙하 유속 ITS_LIVE (스발바르)"), "build_itslive"),
     Item("geomap/*.gpkg", "GEOMAP_DIR", "", msg("남극 GeoMAP"), MANUAL),
     Item("gtnp/gtnp_boreholes.json", "GTNP_DIR", "gtnp_boreholes.json", msg("영구동토 시추공 GTN-P"), "fetch_gtnp"),
     Item("scar/cga_place_names.json", "SCAR_DIR", "cga_place_names.json", msg("남극 지명 SCAR 지명사전"), "fetch_scar_gazetteer"),

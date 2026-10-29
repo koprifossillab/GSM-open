@@ -142,7 +142,8 @@
                 first: "npolar:svalbard_units",
                 // 북극해의 해저 지질(EMODnet)을 빌려 보인다 — 스발바르를 둘러싼 바다다. 묶음(`includes`)으로 만들면
                 // KPDC 의 북극해 자료까지 따라와서, 상류 하나만 빌린다 (wetherilli 135). 지구 자료 점도 (wetherilli 185)
-                borrow: { arctic_ocean: ["emodnet", "earth"] } },
+                // 극지 수심(GMRT)도 빌린다 — 다산 기지 앞 콩스피오르의 다중빔 (wetherilli 428)
+                borrow: { arctic_ocean: ["emodnet", "gmrt", "earth"] } },
     // ── 북극해 (devlog 076) ──
     // 스발바르·그린란드 탭 밖의 북극 — 지금은 KPDC 자료(아라온의 축치해·베링해 항해, 캐나다
     // 케임브리지베이, 시베리아·스칸디나비아 관측소)뿐이다. 3413 은 경도 -45° 가 아래라 베링 해협이
@@ -609,6 +610,8 @@
     // 북극 람베르트 등적 유럽판 — NGU 지질도가 3413 을 그려 주지 않아 이것으로 받는다 (wetherilli 140).
     // 범위는 적도까지(극에서 약 9 000 km) — 타일 격자가 이 범위로 선다
     proj4.defs("EPSG:3575", "+proj=laea +lat_0=90 +lon_0=10 +x_0=0 +y_0=0 +datum=WGS84 +units=m +no_defs");
+    // 북극 평사도법(경도 0° 가 아래) — GMRT 북극 수심이 이것만 그려 준다 (wetherilli 428). 범위는 3413 과 같게 — 줌이 화면과 맞는다
+    proj4.defs("EPSG:3995", "+proj=stere +lat_0=90 +lat_ts=71 +lon_0=0 +k=1 +x_0=0 +y_0=0 +datum=WGS84 +units=m +no_defs");
     // 중부원점(GRS80) — phyloserver 의 한반도 지질도가 카카오맵 격자로 잘려 있다 (devlog 026)
     proj4.defs("EPSG:5181", "+proj=tmerc +lat_0=38 +lon_0=127 +k=1 +x_0=200000 +y_0=500000 +ellps=GRS80 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs");
     // UTM-K(GRS80) — 한반도 지질도 음영판을 이 격자로 잘라 둔다 (devlog 027)
@@ -623,6 +626,7 @@
     ol.proj.get("EPSG:3413").setExtent([-4194304, -4194304, 4194304, 4194304]);
     ol.proj.get("EPSG:3031").setExtent(GEOMAP_GRID.extent);
     ol.proj.get("EPSG:3575").setExtent([-9009964.76, -9009964.76, 9009964.76, 9009964.76]);
+    ol.proj.get("EPSG:3995").setExtent([-4194304, -4194304, 4194304, 4194304]);
     ol.proj.get("EPSG:3978").setExtent([-20037508.342789244, -20037508.342789244, 20037508.342789244, 20037508.342789244]);
   }
 
@@ -690,6 +694,9 @@
   // 넘겨받은 임시 레이어(`#ext=`, wetherilli 392)는 링크의 지역이 없어도(나라 밖의 점) 받는다 — SHARED 를 버리기 전에 떼어 둔다
   var EXT = extFrom(SHARED);
   if (SHARED && !(SHARED.r && REGIONS[SHARED.r])) SHARED = null;
+  // 날마다 영상의 날짜(`#d=`, wetherilli 427) — 고르지 않았으면 null 이고 영상마다 제 기본 날(어제·사흘 전)을 보인다.
+  // 기억하지 않는다 — 어제 고른 날이 내일도 남아 있으면 "어제" 가 아니다
+  var gibsDay = SHARED && /^\d{4}-\d{2}-\d{2}$/.test(SHARED.d || "") ? SHARED.d : null;
   // 다른 화면에 담긴 지도(wetherilli 395)는 링크가 없어도 덧층에만 쓴다 — 감싼 쪽이 지도를 옮길 때마다 그 사람의 자리·레이어 기억을 덮는다
   var STATE = window.GSMShare ? GSMShare.store((SHARED && sharedSeed(SHARED)) || (window.parent !== window ? {} : null)) : null;
   /** 넘겨받은 임시 레이어의 주소와 이름 (wetherilli 392). 같은 nginx 아래의 형제 앱(Cropobite 따위)이 `#ext=/앱/….geojson&extname=앱`
@@ -746,7 +753,7 @@
     var rows = active.filter(function (e) { return byName[e.name] && byName[e.name].upstream !== "geonavi"; });
     return GSMShare.link({ r: region, c: center[0].toFixed(5) + "," + center[1].toFixed(5), z: view.getZoom().toFixed(2),
                            p: view.getProjection().getCode().replace("EPSG:", ""), l: GSMShare.pack(rows),
-                           b: document.getElementById("basemap").value });
+                           b: document.getElementById("basemap").value, d: dailyDay(BASEMAPS[document.getElementById("basemap").value]) });
   }
 
   function stateKey(name) {
@@ -947,6 +954,22 @@
   function admapInfoUrl(source, coordinate) {
     var ll = toLL(coordinate);
     return BASE + "admap/info/?" + new URLSearchParams({ lat: ll[1].toFixed(6), lon: ll[0].toFixed(6) }).toString();
+  }
+
+  /** 칠해 잘라 둔 남극 격자(중력 AntGG2021 따위)의 속성 주소 — 레이어와 위경도로 묻는다(`polargrid/info/`, wetherilli 431). */
+  function polargridInfoUrl(source, coordinate) {
+    var ll = toLL(coordinate);
+    return BASE + "polargrid/info/?" + new URLSearchParams({
+      layer: source.get("gsmName"), lat: ll[1].toFixed(6), lon: ll[0].toFixed(6),
+    }).toString();
+  }
+
+  /** ITS_LIVE 빙하 유속의 속성 주소 — 레이어와 위경도로 묻는다(`itslive/info/`, wetherilli 433). */
+  function itsliveInfoUrl(source, coordinate) {
+    var ll = toLL(coordinate);
+    return BASE + "itslive/info/?" + new URLSearchParams({
+      layer: source.get("gsmName"), lat: ll[1].toFixed(6), lon: ll[0].toFixed(6),
+    }).toString();
   }
 
   /** IBCSO 자료 출처(TID)의 속성 주소 — 누른 자리의 위경도로 묻는다(`ibcso/info/`, 071). */
@@ -1180,6 +1203,7 @@
     petrochron: { source: null, info: null }, // 남극 암석 화학·연대 — 받아 구운 PetroChron 한 덩이 (wetherilli 419)
     orda: { source: null, info: null },       // 빙저호 — 받아 둔 Livingstone 2022 목록 한 덩이 (wetherilli 420)
     raised: { source: null, info: null },     // RAISED 접지선 — 연대마다 선 한 덩이 (wetherilli 420)
+    acc: { source: null, info: null },        // 남극순환류 전선 — 저장소의 선 한 덩이 (wetherilli 429)
     kgis: { source: null, info: null },       // 킹조지섬 지형 SCAR KGIS — 받아 둔 셰이프를 한 덩이씩 (wetherilli 424)
     aadc: { source: null, info: null },       // 남극 특별보호구역 ASPA — 받아 둔 AADC 파일의 면·점 한 덩이 (wetherilli 423)
     npolar: { source: npolarSource, info: wmsInfoUrl },
@@ -1205,6 +1229,8 @@
     bas: { source: esriGridSource, info: null },
     // 남극·그린란드 빙하 속도(wetherilli 413) — GIBS 극지 격자를 서버가 담는다. 누르기는 없다
     gibs: { source: gibsOverlaySource, info: null },
+    // 빙하 유속 ITS_LIVE(wetherilli 433) — 우리가 칠해 둔 타일, 격자는 GIBS 의 것과 같다. 누르면 m/년
+    itslive: { source: gibsOverlaySource, info: itsliveInfoUrl },
     phyloserver: { source: phyloserverSource, info: null },
     peninsula: { source: peninsulaSource, info: null },
     // 중국 지질도 1:400만 스캔(wetherilli 387) — 우리가 3857 로 잘라 둔 z/x/y. 그리는 손은 일본의 것과 같다. 누르면 범례 칸(389)
@@ -1213,6 +1239,10 @@
     ibcso: { source: geomapSource, info: ibcsoInfoUrl },
     // 남극 자력 이상 ADMAP-2(wetherilli 262) — 우리가 잘라 둔 3031 타일, 누른 자리는 위경도로
     admap: { source: geomapSource, info: admapInfoUrl },
+    // 남극 중력 AntGG2021(wetherilli 431) — ADMAP 처럼 우리가 잘라 둔 3031 타일
+    antgg: { source: geomapSource, info: polargridInfoUrl },
+    // 남극 지열류 모형 셋(wetherilli 432) — 같은 틀. 색은 IHFC 측정 점과 같다
+    ghfgrid: { source: geomapSource, info: polargridInfoUrl },
     // 자력 이상·부게 중력 이상(wetherilli 391) — 우리가 칠한 경위도 타일을 옮겨 그린다
     gravmag: { source: lonlatSource, info: gravmagInfoUrl },
   };
@@ -1746,6 +1776,27 @@
     regions: ["antarctica"], needs: "EPSG:3031",
     make: function () { return gibsLayer("3031", "BlueMarble_ShadedRelief_Bathymetry", 4); },
   };
+  // 날마다 영상 (wetherilli 427) — 세 기지로 떠나기 전에 해빙·구름을 본다. 날짜를 고른다(`basemap-date`, 기본은 영상마다 제 늦는 날).
+  // 서버가 날짜를 열쇠에 넣어 담고(`gibs/<투영>/<레이어>/<날짜>/…`) 정적 판만 곧장 부른다. 밑에는 Blue Marble 을 깐다 — 그날 영상이
+  // 없는 칸(극야·궤도 사이)이 비지 않게. 이름은 `basemaps.GIBS_DAILY` 와 같다
+  var GIBS_NORTH = ["greenland", "jan_mayen", "svalbard", "arctic_ocean", "fennoscandia", "iceland"];
+  [
+    { key: "gibs_viirs", layer: "VIIRS_NOAA20_CorrectedReflectance_TrueColor", ext: "jpeg", matrix: "250m", zoom: 5, lag: 1, first: "2018-01-05",
+      title: T("날마다 위성 참색 (VIIRS)"), note: T("NASA GIBS · VIIRS NOAA-20 참색 250 m. 고른 날의 영상이다 — 극야에는 검다") },
+    { key: "gibs_modis", layer: "MODIS_Terra_CorrectedReflectance_TrueColor", ext: "jpeg", matrix: "250m", zoom: 5, lag: 1, first: "2000-02-24",
+      title: T("날마다 위성 참색 (MODIS)"), note: T("NASA GIBS · MODIS Terra 참색 250 m. 고른 날의 영상이다 — 극야에는 검다") },
+    { key: "gibs_367", layer: "MODIS_Terra_CorrectedReflectance_Bands367", ext: "jpeg", matrix: "250m", zoom: 5, lag: 1, first: "2000-02-24",
+      title: T("날마다 눈·얼음과 구름 (MODIS 3-6-7)"), note: T("NASA GIBS · MODIS Terra 밴드 3-6-7 250 m. 눈·얼음은 붉고 구름은 희다 — 참색에서 둘이 같아 보일 때 가른다") },
+    { key: "gibs_seaice", layer: "VIIRS_NOAA20_L3_Sea_Ice_Daily", ext: "png", matrix: "1km", zoom: 3, lag: 3, first: "2018-01-05",
+      title: T("날마다 해빙 (VIIRS)"), note: T("NASA GIBS · VIIRS NOAA-20 해빙 일일 1 km, Blue Marble 위에. 구름 밑은 비고 사흘쯤 늦게 올라온다") },
+  ].forEach(function (d) {
+    [["n", "3413", GIBS_NORTH], ["s", "3031", ["antarctica"]]].forEach(function (pole) {
+      BASEMAPS[d.key + "_" + pole[0]] = {
+        title: d.title, note: d.note, regions: pole[2], needs: "EPSG:" + pole[1], daily: d,
+        make: function () { return gibsDailyLayer(pole[1], d); },
+      };
+    });
+  });
   BASEMAPS.esri_antarctic = {
     title: T("남극 위성 (Esri)"),
     note: T("Esri · Earthstar Geographics TerraColor 15 m. 줌 13 까지 영상이 있고 그 위는 늘려 보인다. Esri 이용 조건을 따른다"),
@@ -2021,13 +2072,17 @@
     });
   }
 
+  //: NPI 배경의 묶음 이름 — 다산기지 묶음이 담는다(`build_offline_pack` 의 `NPI`, wetherilli 434)
+  var NPI_PACK = { NP_Basiskart_Svalbard_WMTS_25833: "basemap:npi_topo", NP_Satellitt_Svalbard_WMTS_25833: "basemap:npi_sat",
+                   FKB_Svalbard_WMTS_3857: "basemap:npi_fkb" };
+
   /** NPI 가 25833 으로 구워 둔 타일. 격자는 서비스의 `tileInfo` 그대로다 —
-   *  원점 (-5120900, 9998100), 256 픽셀, 줌 0 이 21674.71 m, 18 단계. */
+   *  원점 (-5120900, 9998100), 256 픽셀, 줌 0 이 21674.71 m, 18 단계. 묶음에 있으면 묶음에서(`offlineWrap`) */
   function npiTiles(service, attribution) {
     var resolutions = [];
     for (var z = 0; z < 18; z++) resolutions.push(21674.7100160867 / Math.pow(2, z));
     return new ol.layer.Tile({
-      source: new ol.source.XYZ({
+      source: offlineWrap(new ol.source.XYZ({
         // 조건이 CC BY 4.0 이라 서버가 담는다 — 정적 판만 곧장 (wetherilli 200)
         url: STATIC ? "https://geodata.npolar.no/arcgis/rest/services/Basisdata/" + service + "/MapServer/tile/{z}/{y}/{x}"
                     : BASE + "npi/" + service + "/{z}/{y}/{x}",
@@ -2041,7 +2096,7 @@
         crossOrigin: "anonymous",
         transition: 0,
         attributions: attribution,
-      }),
+      }), NPI_PACK[service]),
     });
   }
 
@@ -2051,14 +2106,14 @@
     var service = "FKB_Svalbard_WMTS_3857";
     var fkb = new ol.layer.Tile({
       extent: ol.proj.transformExtent([1303496, 14385765, 1845321, 14899703], "EPSG:3857", viewProj()),
-      source: new ol.source.XYZ({
+      source: offlineWrap(new ol.source.XYZ({
         url: STATIC ? "https://geodata.npolar.no/arcgis/rest/services/Basisdata/" + service + "/MapServer/tile/{z}/{y}/{x}"
                     : BASE + "npi/" + service + "/{z}/{y}/{x}",
         maxZoom: 17,
         crossOrigin: "anonymous",
         transition: 0,
         attributions: NPI_FKB,
-      }),
+      }), NPI_PACK[service]),
     });
     return new ol.layer.Group({ layers: [npiTiles("NP_Basiskart_Svalbard_WMTS_25833", NPI_TOPO), fkb] });
   }
@@ -2097,6 +2152,48 @@
         attributions: GIBS,
       }),
     });
+  }
+
+  /** 날마다 영상의 날짜 — 고른 날, 없으면 그 영상의 기본 날(UTC 오늘에서 `lag` 날 앞). 날마다 영상이 아닌 배경이면 null */
+  function dailyDay(spec) {
+    if (!spec || !spec.daily) return null;
+    if (gibsDay) return gibsDay;
+    return new Date(Date.now() - spec.daily.lag * 86400000).toISOString().slice(0, 10);
+  }
+
+  /** GIBS 날마다 영상 한 겹 + 밑의 Blue Marble (wetherilli 427). 격자는 `gibsLayer` 와 같은 극지 격자이고 끝 줌만 다르다
+   *  (`250m` 5, `1km` 3). 날짜가 주소에 든다 — 서버가 그것을 열쇠에 넣어 담는다 */
+  function gibsDailyLayer(epsg, d) {
+    var day = dailyDay({ daily: d }), resolutions = [];
+    for (var z = 0; z <= d.zoom; z++) resolutions.push(8192 / Math.pow(2, z));
+    var daily = new ol.layer.Tile({
+      source: new ol.source.XYZ({
+        url: STATIC ? "https://gibs.earthdata.nasa.gov/wmts/epsg" + epsg + "/best/" + d.layer + "/default/" + day + "/" + d.matrix + "/{z}/{y}/{x}." + d.ext
+                    : BASE + "gibs/" + epsg + "/" + d.layer + "/" + day + "/{z}/{y}/{x}." + d.ext,
+        projection: "EPSG:" + epsg,
+        tileGrid: new ol.tilegrid.TileGrid({
+          extent: [-4194304, -4194304, 4194304, 4194304],
+          origin: [-4194304, 4194304],
+          resolutions: resolutions,
+          tileSize: 512,
+        }),
+        crossOrigin: "anonymous",
+        attributions: d.layer.replace(/_/g, " ") + " " + day + ' © <a href="https://earthdata.nasa.gov/gibs" target="_blank" rel="noopener">NASA EOSDIS GIBS</a>',
+      }),
+    });
+    return new ol.layer.Group({ layers: [gibsLayer(epsg, "BlueMarble_ShadedRelief_Bathymetry", 4), daily] });
+  }
+
+  /** 날짜 칸 — 날마다 영상을 골랐을 때만 보인다. 그 영상의 첫날부터 UTC 오늘까지 */
+  function syncDayBox() {
+    var spec = BASEMAPS[document.getElementById("basemap").value];
+    var wrap = document.getElementById("basemap-date-wrap"), box = document.getElementById("basemap-date");
+    if (!wrap || !box) return;
+    wrap.hidden = !(spec && spec.daily);
+    if (wrap.hidden) return;
+    box.min = spec.daily.first;
+    box.max = new Date().toISOString().slice(0, 10);
+    box.value = dailyDay(spec);
   }
 
   /** Esri 의 남극 위성 모자이크(Earthstar Geographics TerraColor, 15 m) — 3031 로 구워 둔 타일이라
@@ -4540,15 +4637,19 @@
         var slice = row.slice && !STATIC ? "&value=" + encodeURIComponent(storedValue()) : "";
         // 정적 판에서 구워 싣지 않은 극지 점은 상류(ArcGIS)에서 곧장 받는다 — 서버의 `/points/` 와 같은 덩이로 온다 (wetherilli 161)
         var live = STATIC && !Object.prototype.hasOwnProperty.call(staticBaked("points"), row.name) && layerKind(row.name).points;
-        (live ? layerKind(row.name).points(row.name, row) : fetch(pointsUrl(row.name) + slice)
-          .then(function (r) {
-            if (r.ok) return r.json();
-            // 서버가 까닭을 적어 보낸다 — "자료가 서버에 없다" 따위. 패널에 띄운다
-            return r.json().catch(function () { return {}; }).then(function (d) {
-              layer.set("gsmError", d.error || "");
-              throw new Error(String(r.status));
+        // 오프라인 묶음에 그 덩이가 있으면 망보다 먼저 — 세종 묶음의 킹조지섬 KGIS 따위 (wetherilli 434)
+        (Offline && Offline.vector ? Offline.vector(row.name) : Promise.resolve(null)).then(function (packed) {
+          if (packed) return packed;
+          return live ? layerKind(row.name).points(row.name, row) : fetch(pointsUrl(row.name) + slice)
+            .then(function (r) {
+              if (r.ok) return r.json();
+              // 서버가 까닭을 적어 보낸다 — "자료가 서버에 없다" 따위. 패널에 띄운다
+              return r.json().catch(function () { return {}; }).then(function (d) {
+                layer.set("gsmError", d.error || "");
+                throw new Error(String(r.status));
+              });
             });
-          }))
+        })
           .then(function (data) {
             var features = new ol.format.GeoJSON().readFeatures(data, {
               dataProjection: "EPSG:4326",
@@ -7473,6 +7574,7 @@
     // 지명 칸은 지명을 끌 수 있는 배경(위성)에서만 보인다
     var labelled = BASEMAPS[select.value] && BASEMAPS[select.value].labels;
     document.getElementById("basemap-labels-wrap").style.display = labelled ? "" : "none";
+    syncDayBox();
     document.getElementById("crs-pick").hidden = !spec.vworld;
     // 3D 는 메르카토르 하나뿐이라 남위 85° 안쪽은 없다(P02 §7). 그래도 남극도 연다 — 기지와
     // 산맥은 거의 그 바깥이고, 지형은 REMA·ArcticDEM 을 서버가 옮겨 준다 (032). 지질은 3857 로도
@@ -7745,9 +7847,20 @@
       restack();
     });
     labelBox.addEventListener("change", function () { setLabels(labelBox.checked); });
+    select.addEventListener("change", syncDayBox);
+    // 날짜를 바꾸면 배경을 새로 짓는다 — 날짜가 주소에 든다. 고른 날은 모든 날마다 영상이 함께 쓴다
+    var dayBox = document.getElementById("basemap-date");
+    if (dayBox) dayBox.addEventListener("change", function () {
+      if (!/^\d{4}-\d{2}-\d{2}$/.test(dayBox.value)) return;
+      gibsDay = dayBox.value;
+      setBasemap(select.value);
+      restack();
+      if (compareMode === "split") buildMap2();
+    });
 
     setBasemap(select.value);
     syncLabelBox();
+    syncDayBox();
   }
 
   // ── 설정과 판 이력 ─────────────────────────────────────────────

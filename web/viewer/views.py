@@ -41,9 +41,11 @@ from gsmweb.version import VERSION
 from . import (china4m, coords, gravmag, crs, datastatus, geo3al, geomap, geus, grportal, gsj, gsmma, i18n, ibcso, janmayen, kigam, kopri, npolar, ntgeo,
                patchnotes, elevation, moonmap, peninsula, phyloserver, pointsets, tilecache, tiles, trek, vworld, warp,
                fetchlog, marscraters, marsmap, mercurymap, sources, zhurong)
-from . import admap, arcpoints, kmag, caribmap, geonames, crust, glaciers, impacts, faults, minerals, stress, tectonics, seafloor, glim, heatflow, fossils, gvp, icemargins, kigam50k, macrostrat, mantle, metatile, naturalearth, neotoma, paleo, paleoeco, paleocoast, pbdb, quakes, recentquakes, verifylog, spamap, ocean, paleodem, usgs, volcanoes, wind
+from . import admap, antgg, ghfgrid, arcpoints, kmag, caribmap, geonames, crust, glaciers, impacts, faults, minerals, stress, tectonics, seafloor, glim, heatflow, fossils, gvp, icemargins, kigam50k, macrostrat, mantle, metatile, naturalearth, neotoma, paleo, paleoeco, paleocoast, pbdb, quakes, recentquakes, verifylog, spamap, ocean, paleodem, usgs, volcanoes, wind
 from . import ags, austates, bas, basemaps, bcgs, bgr, bgs, brgm, calgs, cgs, dinamige, dmr, dov, egdi, emodnet, esdm, ga, georep, geosphere, gns, gsi, gsiindia, gtk, igme, iige, ineter, ingemmet, ispra, jmg, linked, lneg, mgb, mrdata, mris, natt, ngu, nrcan, nsgs, ogs, pig, segemar, sgb, sgc, sgm, sgs, sgu, sigeom, skgs, spw, stri, swisstopo, tno, twopen, usage, usgscarib, usstates, vmme, ygs
-from . import aadc, doors, earthpoints, gtnp, kgis, offlinereq, orda, pangaea, petrochron, pointvalues, profileband, raised, scar, static_tables, tilegrid, timescale, visits
+from . import gmrt  # 극지 수심 (wetherilli 428)
+from . import accfronts  # 남극순환류 전선 (wetherilli 429)
+from . import aadc, doors, earthpoints, gtnp, itslive, kgis, offlinereq, orda, pangaea, petrochron, pointvalues, polargrid, profileband, raised, scar, static_tables, tilegrid, timescale, visits
 from .i18n import msg
 from .models import Layer, LayerGroup, Point, PointSet, PointSetDeletion, Shape
 
@@ -653,6 +655,7 @@ def map3d_view(request):
                                    or (l.get("upstream") == "geomap" and l["name"] in geomap.LAYERS)
                                    # IBCSO 자료 출처·ADMAP 자력 이상도 GeoMAP 처럼 서버가 3857 로 편다 (wetherilli 335)
                                    or l["name"] in ("ibcso:tid", admap.NAME)
+                                   or l["name"] in POLAR_SETS
                                    or (l.get("upstream") in ("gsj", "gsitile", "ingemmet", "ags", "sim3534", "gsjows", "china4m") and l.get("tiles")))])
               for g in catalog]
     # 커스텀 지질도 — 한반도 지질도 셋은 서버가 3857 로 다시 펴 주고(`warp/`), 암맥은
@@ -1783,6 +1786,8 @@ def earth_view(request):
                                                if impacts.available() else {}),
                                    # 세계 활성단층 GEM (wetherilli 279) — 구운 것이 있을 때만 레이어가 선다
                                    "faults": faults.legend(lang) if faults.available() else [],
+                                   # 남극순환류 전선 (wetherilli 429) — 저장소의 파일이 있을 때만 레이어가 선다
+                                   "accfronts": accfronts.legend(lang) if accfronts.available() else [],
                                    # 세계 광상 USGS (wetherilli 276) — 구운 것이 있을 때만. 광종 칸 여섯이 레이어가 된다
                                    "minerals": minerals.legend(lang) if minerals.available() else [],
                                    # 지각 응력 World Stress Map 2025 (wetherilli 273) — 구운 것이 있을 때만 레이어가 선다
@@ -2566,6 +2571,26 @@ def earth_faults_tile(request, z, x, y):
 
 
 @require_GET
+def earth_accfronts_tile(request, z, x, y):
+    """`earth/accfronts/tiles/<z>/<x>/<y>.png` — 남극순환류 전선, 경위도 격자 (`accfronts.render_tile`, wetherilli 429)"""
+    z, x, y = int(z), int(x), int(y)
+    if not accfronts.valid_tile(z, x, y):
+        return JsonResponse({"error": i18n.t(msg("그런 타일은 없다"), i18n.lang_of(request))}, status=404)
+    if not accfronts.available():
+        return _tile(tiles.blank_tile(), store=False)
+    version = accfronts_version()
+    key = tilecache.key_text("accfronts", f"{version}/{z}/{x}/{y}")
+    hit = tilecache.get(key)
+    if hit is not None:
+        return _immutable(request, _tile(hit, cached=True), version)
+    png = accfronts.render_tile(z, x, y)
+    tilecache.put(key, png)
+    response = _tile(png)
+    response["X-GSM-Cache"] = "miss"
+    return _immutable(request, response, version)
+
+
+@require_GET
 def earth_faults_at(request):
     """`?lon=&lat=&z=` — 누른 자리 둘레(그 줌의 8 화소)의 가장 가까운 활성단층"""
     lang = i18n.lang_of(request)
@@ -3170,6 +3195,11 @@ def _point_fields(layer) -> dict:
         return {"kind": "points", "queryable": False, "style": "class", "source": orda.SOURCE_URL,
                 "sourceLabel": str(msg("원본 자료 — Livingstone 외 2022 빙저호 목록 (셰필드대 ORDA), CC BY 4.0")),
                 "attribution": orda.CREDIT, "version": orda.version()}
+    if layer.upstream == "acc" and accfronts.knows(layer.name):
+        # 남극순환류 전선(wetherilli 429) — 저장소의 파일을 선 한 덩이로. 전선이 갈래(`class`)이고 색은 서버의 표
+        return {"kind": "points", "queryable": False, "style": "class", "source": accfronts.DOI,
+                "sourceLabel": str(msg("원본 자료 — Park & Durand 2019, SEANOE, CC BY 4.0")),
+                "attribution": accfronts.CREDIT, "version": accfronts.version()}
     if layer.upstream == "raised" and raised.knows(layer.name):
         # RAISED 접지선(wetherilli 420) — Quantarctica 사본을 옮긴 파일에서. 신뢰도가 선의 굵기·끊김
         return {"kind": "points", "queryable": False, "style": "class", "source": raised.SOURCE_URL,
@@ -3298,6 +3328,9 @@ def _layer_extra_base(layer, lang: str = "ko") -> dict:
         # 유럽 바다의 것(영국에 둔 것, wetherilli 176)은 유럽 탭들의 투영(3857)으로
         projection = "EPSG:3413" if layer.group.region == "arctic_ocean" else "EPSG:3857"
         return {"attribution": emodnet.ATTRIBUTION, "projection": projection}
+    if layer.upstream == "gmrt" and gmrt.knows(layer.name):
+        # 극지 수심 GMRT(wetherilli 428) — 남극은 3031 로 곧장, 북극은 3995 뿐이라 화면이 옮겨 그린다. 범례 그림이 비어 싣지 않는다
+        return {"attribution": gmrt.ATTRIBUTION, "projection": gmrt.projection(layer.name), "noLegend": True}
     if layer.upstream == "ngu":
         # 노르웨이 NGU(wetherilli 140) — 3413 을 그려 주지 않아 북극 람베르트(3575)로 받고 화면이 옮겨 그린다.
         # 광물 서비스는 3575 도 받지 않아 3857 로(wetherilli 326), 지구물리 격자는 누르지 않는다
@@ -3423,6 +3456,12 @@ def _layer_extra_base(layer, lang: str = "ko") -> dict:
                 "tiles": basemaps.gibs_overlay_path(layer.name), "direct": basemaps.gibs_overlay_direct(layer.name),
                 "projection": f"EPSG:{epsg}", "grid": basemaps.gibs_overlay_grid(), "queryable": False,
                 "legendImg": basemaps.gibs_overlay_legend(layer.name)}
+    if layer.upstream == "itslive" and layer.name in itslive.LAYERS:
+        # ITS_LIVE 빙하 유속(wetherilli 433) — 우리가 칠해 둔 타일을 413(GIBS)과 같은 격자로. 범례도 413 의 그림, 누르면 m/년
+        region = itslive.LAYERS[layer.name]
+        return {"attribution": itslive.ATTRIBUTION, "projection": f"EPSG:{itslive.REGIONS[region].epsg}",
+                "tiles": _versioned_url(f"itslive/{region}/{{z}}/{{x}}/{{y}}.webp", _dir_version(itslive.tiles_dir(region))),
+                "grid": itslive.grid(), "legendImg": itslive.legend_url(region)}
     if layer.upstream == "ags" and ags.knows(layer.name):
         # 앨버타(wetherilli 235) — 타일은 ArcGIS Online 의 3857 z/x/y 를 화면이 곧장(지리원 주제 타일과 같은 길), 누른 자리만 문이
         url, last = ags.LAYERS[layer.name]
@@ -3670,6 +3709,13 @@ def _layer_extra_base(layer, lang: str = "ko") -> dict:
         return {"attribution": admap.ATTRIBUTION, "projection": "EPSG:3031", "maxZoom": admap.MAX_ZOOM,
                 "tiles": _versioned_url("admap/{z}/{x}/{y}.webp", _dir_version(admap.tiles_dir())),
                 "classLegend": admap.legend(lang)}
+    if layer.name in POLAR_SETS:
+        # 남극 중력 AntGG2021(wetherilli 431)·지열류 모형(432) — ADMAP 처럼 우리가 칠해 잘라 둔 3031 타일(`polargrid.py`). 범례는 갈래 표
+        spec = POLAR_SETS[layer.name]
+        return {"attribution": spec.attribution, "projection": "EPSG:3031", "maxZoom": spec.max_zoom,
+                "tiles": _versioned_url(f"polargrid/{layer.name.replace(':', '/')}/{{z}}/{{x}}/{{y}}.webp",
+                                        _dir_version(spec.tiles_dir())),
+                "classLegend": _polar_legend(layer.name, lang)}
     if layer.upstream == "ibcso" and layer.name == ibcso.TID_LAYER:
         # IBCSO 자료 출처(071) — 우리가 잘라 둔 3031 타일. 격자는 GeoMAP 의 것이고 줌 6 까지다.
         # 범례는 갈래 표를 그대로 보낸다(그림이 아니라 — 컨테이너에 한글 글꼴이 없다)
@@ -3993,8 +4039,9 @@ def gibs_tile_key(epsg, layer, z, x, y):
     return tilecache.key_text("gibs", f"{epsg}/{layer}/{z}/{y}/{x}")
 
 
-def _open_basemap(key, fetch, size, label, overlay=False):
-    """`overlay` — 겹쳐 그리는 레이어(GIBS 빙하 속도, wetherilli 413)는 못 받은 칸을 안내 타일 대신 투명으로 낸다. 안내 그림이 아래 지도를 가리지 않게"""
+def _open_basemap(key, fetch, size, label, overlay=False, keep=True):
+    """`overlay` — 겹쳐 그리는 레이어(GIBS 빙하 속도, wetherilli 413)는 못 받은 칸을 안내 타일 대신 투명으로 낸다. 안내 그림이 아래 지도를 가리지 않게.
+    `keep=False` — 아직 차는 자료(GIBS 날마다 영상의 사흘 안쪽, wetherilli 427)는 캐시에 담지 않고 브라우저도 오래 들지 않는다"""
     hit = tilecache.get(key)
     if hit is not None:
         return _tile(hit, cached=True)
@@ -4009,8 +4056,9 @@ def _open_basemap(key, fetch, size, label, overlay=False):
         if overlay:
             return _tile(tiles.blank_tile(size, size), store=False)
         return _tile(tiles.notice_tile(size, size, tiles.SLOW if metatile.slow(exc) else tiles.NO_MAP), store=False)
-    tilecache.put(key, content)
-    response = _tile(content)
+    if keep:
+        tilecache.put(key, content)
+    response = _tile(content, store=keep)
     response["X-GSM-Cache"] = "miss"
     return response
 
@@ -4035,6 +4083,18 @@ def gibs_overlay_tile(request, epsg, layer, z, y, x):
     key = tilecache.key_text("gibs", f"{epsg}/{layer}/{basemaps.gibs_overlay_time(layer)}/{z}/{y}/{x}")
     return _open_basemap(key, lambda: basemaps.gibs_overlay_tile(epsg, layer, z, x, y), 512, "GIBS",
                          overlay=True)
+
+
+@require_GET
+def gibs_daily_tile(request, epsg, layer, date, z, y, x, ext):
+    """GIBS 날마다 영상 — `gibs/<투영>/<레이어>/<날짜>/<z>/<y>/<x>.<jpeg|png>` (wetherilli 427). 날짜가 캐시 열쇠에 든다.
+    사흘 안쪽의 날은 담지 않는다 — 영상이 아직 차는 중이다. 못 받은 칸은 투명하게 — 밑에 Blue Marble 이 깔린다"""
+    z, y, x = int(z), int(y), int(x)
+    if not basemaps.knows_gibs_daily(epsg, layer, date, z, x, y) or basemaps.GIBS_DAILY[layer][0] != ext:
+        return JsonResponse({"error": i18n.t(msg("그런 타일은 없다"), i18n.lang_of(request))}, status=404)
+    key = tilecache.key_text("gibs", f"{epsg}/{layer}/{date}/{z}/{y}/{x}")
+    return _open_basemap(key, lambda: basemaps.gibs_daily_tile(epsg, layer, date, z, x, y), 512, "GIBS",
+                         overlay=True, keep=not basemaps.gibs_daily_fresh(date))
 
 
 @require_GET
@@ -4234,6 +4294,84 @@ def admap_info(request):
     return JsonResponse({"features": [{"props": i18n.props_en(props) if lang == "en" else props}]})
 
 
+#: 칠해 잘라 둔 남극 격자 — 레이어 이름 → `polargrid.Set` (중력 wetherilli 431, 지열류 모형 432)
+POLAR_SETS = {**antgg.SETS, **ghfgrid.SETS}
+
+
+def _polar_legend(name, lang):
+    return (ghfgrid if name in ghfgrid.SETS else antgg).legend(name, lang)
+
+
+def _polar_notice(spec):
+    return msg("이 격자 자료가 서버에 없다")
+
+
+@require_GET
+def polargrid_tile(request, upstream, kind, z, x, y):
+    """칠해 잘라 둔 남극 격자의 타일 — `polargrid/<상류>/<판>/<z>/<x>/<y>.webp` (wetherilli 431). `build_*` 가 잘라 둔 것을
+    내주기만 한다. 잘라 두지 않았으면 안내 타일, 자료 밖은 빈 타일이다"""
+    z, x, y = int(z), int(x), int(y)
+    spec = POLAR_SETS.get(f"{upstream}:{kind}")
+    if spec is None or not spec.valid_tile(z, x, y):
+        return JsonResponse({"error": i18n.t(msg("그런 타일은 없다"), i18n.lang_of(request))}, status=404)
+    if not spec.available():
+        return _tile(tiles.notice_tile(256, 256, _polar_notice(spec)), store=False)
+    data = spec.read_tile(z, x, y)
+    version = _dir_version(spec.tiles_dir())
+    if data is None:
+        return _immutable(request, _tile(tiles.blank_tile(256, 256)), version)
+    return _immutable(request, _tile(data, content_type="image/webp"), version)
+
+
+@require_GET
+@browser_cached
+def polargrid_info(request):
+    """누른 자리의 값 — `polargrid/info/?layer=antgg:bouguer&lat=&lon=` (wetherilli 431). `/featureinfo/` 의 꼴로 낸다"""
+    lang = i18n.lang_of(request)
+    spec = POLAR_SETS.get(request.GET.get("layer", ""))
+    ll = _latlon(request)
+    if spec is None or ll is None:
+        return JsonResponse({"error": i18n.t(msg("layer·lat·lon 이 없다"), lang), "features": []}, status=400)
+    value = polargrid.value_at(spec, *ll)
+    if value is None:
+        return JsonResponse({"features": []})
+    props = {spec.prop: f"{value:+,.1f}".replace("-", "−") if spec.scale != 1 else value}
+    return JsonResponse({"features": [{"props": i18n.props_en(props) if lang == "en" else props, "unit": spec.unit}]})
+
+
+@require_GET
+def itslive_tile(request, region, z, x, y):
+    """ITS_LIVE 빙하 유속 — `itslive/<지역>/<z>/<x>/<y>.webp` (wetherilli 433). `build_itslive` 가 칠해 둔 것을 내준다.
+    구운 줌보다 가까우면 윗 타일을 잘라 늘린다(`itslive.read_tile`). 굽지 않았으면 안내 타일, 자료 밖은 빈 타일이다"""
+    z, x, y = int(z), int(x), int(y)
+    if region not in itslive.REGIONS or not itslive.valid_tile(z, x, y):
+        return JsonResponse({"error": i18n.t(msg("그런 타일은 없다"), i18n.lang_of(request))}, status=404)
+    size = itslive.TILE
+    if not itslive.available(region):
+        return _tile(tiles.notice_tile(size, size, msg("빙하 유속 자료(ITS_LIVE)가 서버에 없다")), store=False)
+    version = _dir_version(itslive.tiles_dir(region))
+    data = itslive.read_tile(region, z, x, y)
+    if data is None:
+        return _immutable(request, _tile(tiles.blank_tile(size, size)), version)
+    return _immutable(request, _tile(data, content_type="image/webp"), version)
+
+
+@require_GET
+@browser_cached
+def itslive_info(request):
+    """누른 자리의 빙하 유속 — `itslive/info/?layer=itslive:antarctica&lat=&lon=` (wetherilli 433)"""
+    lang = i18n.lang_of(request)
+    region = itslive.LAYERS.get(request.GET.get("layer", ""))
+    ll = _latlon(request)
+    if region is None or ll is None:
+        return JsonResponse({"error": i18n.t(msg("layer·lat·lon 이 없다"), lang), "features": []}, status=400)
+    value = itslive.value_at(region, *ll)
+    if value is None:
+        return JsonResponse({"features": []})
+    props = {"빙하 유속 (m/년)": value}
+    return JsonResponse({"features": [{"props": i18n.props_en(props) if lang == "en" else props}]})
+
+
 def _latlon(request):
     """`?lat=&lon=` → (위도, 경도). 없거나 틀리면 None."""
     try:
@@ -4301,7 +4439,8 @@ def warp_tile(request, upstream, layer, z, x, y, retina=None):
     size = 512 if retina else 256
     name = layer if upstream == "geomap" else f"{upstream}:{layer}"
     lang = i18n.lang_of(request)
-    zooms = {"geomap": GEOMAP_WARP_ZOOMS, "ibcso": IBCSO_WARP_ZOOMS, "admap": IBCSO_WARP_ZOOMS}.get(upstream, WARP_ZOOMS)
+    zooms = {"geomap": GEOMAP_WARP_ZOOMS, "ibcso": IBCSO_WARP_ZOOMS, "admap": IBCSO_WARP_ZOOMS}.get(
+        upstream, IBCSO_WARP_ZOOMS if name in POLAR_SETS else WARP_ZOOMS)
     if _lab_only(name) or not (zooms[0] <= z <= zooms[1]) or not (0 <= x < 2 ** z and 0 <= y < 2 ** z):
         return JsonResponse({"error": i18n.t(msg("그런 타일은 없다"), lang)}, status=404)
     if name in peninsula.SHEETS:
@@ -4332,6 +4471,14 @@ def warp_tile(request, upstream, layer, z, x, y, retina=None):
         if not admap.available():
             return _tile(tiles.notice_tile(size, size, msg("자력 이상 자료(ADMAP-2)가 서버에 없다")), store=False)
         grid = warp.polar_grid(admap.read_tile, admap.MAX_ZOOM, admap.valid_tile)
+    elif name in POLAR_SETS:
+        # 칠해 잘라 둔 남극 격자(wetherilli 431) — ADMAP 과 같은 길
+        spec = POLAR_SETS[name]
+        if warp.south_of(z, y) > GEOMAP_NORTH:
+            return _tile(tiles.blank_tile(size, size))
+        if not spec.available():
+            return _tile(tiles.notice_tile(size, size, _polar_notice(spec)), store=False)
+        grid = warp.polar_grid(spec.read_tile, spec.max_zoom, spec.valid_tile)
     elif upstream == "ibcso" and name in ibcso.SHEETS:
         if warp.south_of(z, y) > elevation.IBCSO_NORTH:
             return _tile(tiles.blank_tile(size, size))
@@ -4375,6 +4522,8 @@ def _warp_key(name, upstream, z, x, y, size):
         version = _dir_version(ibcso.tid_tiles_dir())
     elif name == admap.NAME:
         version = _dir_version(admap.tiles_dir())
+    elif name in POLAR_SETS:
+        version = _dir_version(POLAR_SETS[name].tiles_dir())
     else:
         return None
     if not version:
@@ -5251,6 +5400,7 @@ def tile_versions(page: str) -> dict:
                 "glaciers": glaciers_version(),
                 "impacts": impacts_version(),
                 "faults": faults_version(),
+                "accfronts": accfronts_version(),
                 "minerals": minerals_version(),
                 "stress": stress_version(),
                 "tectonics": tectonics_version(),
@@ -5332,6 +5482,10 @@ def minerals_version() -> str:
 
 def faults_version() -> str:
     return _stamp(faults.RENDERER, _content_stamp(settings.FAULTS_FILE))
+
+
+def accfronts_version() -> str:
+    return _stamp(accfronts.RENDERER, _content_stamp(settings.ACC_FRONTS_FILE))
 
 
 def impacts_version() -> str:
@@ -5895,6 +6049,8 @@ def point_layer(request):
         return _petrochron_layer(lang)
     if orda.knows(name) or raised.knows(name):
         return _glacio_layer(request, name, lang)
+    if accfronts.knows(name):
+        return _acc_fronts_layer(request, lang)
     if aadc.knows(name):
         return _aspa_layer(name, lang)
     if kigam50k.knows_file(name):
@@ -6241,6 +6397,18 @@ def _glacio_layer(request, name, lang):
     if settings.TILE_CACHE_SECONDS > 0:
         response["Cache-Control"] = f"public, max-age={settings.TILE_CACHE_SECONDS}"
     return _immutable(request, response, module.version())
+
+
+def _acc_fronts_layer(request, lang):
+    """남극순환류 전선(wetherilli 429) — 저장소의 `data/acc_fronts.json`. 없으면 503 으로 까닭을 말한다"""
+    try:
+        content = accfronts.body(lang)
+    except FileNotFoundError:
+        return JsonResponse({"error": i18n.t(msg("남극순환류 전선 파일이 없다 (build_acc_fronts)"), lang)}, status=503)
+    response = HttpResponse(content, content_type="application/geo+json")
+    if settings.TILE_CACHE_SECONDS > 0:
+        response["Cache-Control"] = f"public, max-age={settings.TILE_CACHE_SECONDS}"
+    return _immutable(request, response, accfronts.version())
 
 
 def _aspa_layer(name, lang):

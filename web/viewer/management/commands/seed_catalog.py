@@ -196,6 +196,14 @@ class Command(BaseCommand):
                 (settings.IBCSO_CATALOG_SEED, "남극 IBCSO", "antarctica", "ibcso"),
                 # 남극 자력 이상 ADMAP-2 — 우리가 칠해 잘라 둔 3031 타일 (wetherilli 262)
                 (settings.ADMAP_CATALOG_SEED, "남극 ADMAP-2", "antarctica", "admap"),
+                # 남극 중력 AntGG2021 — 우리가 칠해 잘라 둔 3031 타일 (wetherilli 431)
+                (settings.ANTGG_CATALOG_SEED, "남극 AntGG2021", "antarctica", "antgg"),
+                # 남극 지열류 모형 셋 — 같은 틀 (wetherilli 432)
+                (settings.ANTARCTIC_GHF_CATALOG_SEED, "남극 지열류 모형", "antarctica", "ghfgrid"),
+                # 극지 수심 — GMRT WMS, 남극·북극해 (wetherilli 428). 지역은 씨앗이 적는다
+                *((path, f"GMRT ({path.stem})", "antarctica", "gmrt") for path in settings.GMRT_CATALOG_SEEDS),
+                # 남극순환류 전선 — 저장소의 파일 (wetherilli 429)
+                (settings.ACC_CATALOG_SEED, "남극순환류 전선", "antarctica", "acc"),
                 # 남극 지명 이름표 — 받아 둔 SCAR 지명사전 (wetherilli 412)
                 (settings.SCAR_CATALOG_SEED, "남극 SCAR 지명", "antarctica", "scar"),
                 # 영구동토 시추공 — 받아 둔 GTN-P 목록. 북극해·남극 (wetherilli 422)
@@ -214,6 +222,8 @@ class Command(BaseCommand):
                 (settings.BAS_CATALOG_SEED, "남극 (BAS Bedmap3)", "antarctica", "bas"),
                 # 남극·그린란드 — NASA GIBS 의 MEaSUREs 빙하 속도 (wetherilli 413). 지역은 씨앗이 적는다
                 *((path, f"GIBS ({path.stem})", "antarctica", "gibs") for path in settings.GIBS_CATALOG_SEEDS),
+                # 남극·그린란드·스발바르 — ITS_LIVE 빙하 유속, 우리가 칠해 둔 타일 (wetherilli 433). 지역은 씨앗이 적는다
+                *((path, f"ITS_LIVE ({path.stem})", "antarctica", "itslive") for path in settings.ITSLIVE_CATALOG_SEEDS),
                 # 극지연구소 — 암석 시료·운석·KPDC 자료·기지·해안선 (053–057). 지역은 씨앗이 적는다
                 *((path, f"극지연구소 ({path.stem})", "antarctica", "kopri")
                   for path in settings.KOPRI_CATALOG_SEEDS),

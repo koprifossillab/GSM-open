@@ -385,6 +385,19 @@ svg .fill { fill: currentColor; }
   border-radius: var(--radius);
   cursor: pointer;
 }
+/* 날마다 영상의 날짜 칸 (wetherilli 427) — 날마다 영상을 골랐을 때만 */
+#basemap-date-wrap[hidden] { display: none; }
+#basemap-date {
+  flex: 1;
+  min-width: 0;
+  padding: 5px 8px;
+  font: inherit;
+  font-size: 12.5px;
+  color: var(--ink);
+  background: var(--panel-tint);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+}
 .basemap-labels {
   display: flex;
   align-items: center;

@@ -17,7 +17,8 @@
 (function () {
   "use strict";
   // ext·extname — 같은 사이트의 다른 앱이 넘기는 임시 레이어(map.js 의 `extFrom`, wetherilli 392)
-  var KEYS = ["r", "c", "z", "p", "l", "b", "m", "h", "hd", "pt", "res", "a", "ext", "extname"];
+  // d — 날마다 영상의 날짜 (map.js 의 `gibsDay`, wetherilli 427)
+  var KEYS = ["r", "c", "z", "p", "l", "b", "d", "m", "h", "hd", "pt", "res", "a", "ext", "extname"];
 
   function read() {
     var raw = (location.hash || "").replace(/^#/, "");

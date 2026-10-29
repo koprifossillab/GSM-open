@@ -1,0 +1,34 @@
+{
+ "_주석": "남극 지열류 모형 셋 씨앗이다 — Stål 외 2021 Aq1(PANGAEA 924857, CC BY 4.0)·Lösing & Ebbing 2021(930237, CC BY 4.0)·Martos 외 2017(882503, CC BY 3.0). 원본 글 파일을 manage.py build_antarctic_ghf 가 IHFC 측정 점과 같은 색 갈래로 칠해 GSM_ANTARCTIC_GHF_DIR/<판>/tiles 로 잘라 둔다. 파일은 저장소에 없다. 모형이지 측정이 아니다 (wetherilli 432).",
+ "_뽑은날": "2026-10-29",
+ "_출처": "https://doi.org/10.1594/PANGAEA.924857",
+ "_지역": "antarctica",
+ "_상류": "ghfgrid",
+ "_레이어군차례": 18,
+ "레이어군순서": [
+  "지열류 모형"
+ ],
+ "레이어": [
+  {
+   "name": "ghfgrid:stal",
+   "title": "지열류 모형 Aq1 (Stål 2021)",
+   "group": "지열류 모형",
+   "abstract": "모형이지 측정이 아니다 — 잘 잰 대륙과 닮은 정도로 셈한 지열류(mW/m², Aq1), 20 km. IHFC 측정 점과 같은 색. 누르면 그 자리의 값",
+   "bbox": [-180, -90, 180, -60]
+  },
+  {
+   "name": "ghfgrid:losing",
+   "title": "지열류 모형 (Lösing & Ebbing 2021)",
+   "group": "지열류 모형",
+   "abstract": "모형이지 측정이 아니다 — 지구물리 격자로 기계 학습이 예측한 지열류(mW/m²), 약 55 km. IHFC 측정 점과 같은 색. 누르면 그 자리의 값",
+   "bbox": [-180, -90, 180, -60]
+  },
+  {
+   "name": "ghfgrid:martos",
+   "title": "지열류 모형 (Martos 2017)",
+   "group": "지열류 모형",
+   "abstract": "모형이지 측정이 아니다 — 항공 자력의 퀴리 깊이로 셈한 지열류(mW/m²), 15 km. IHFC 측정 점과 같은 색. 누르면 그 자리의 값",
+   "bbox": [-180, -90, 180, -60]
+  }
+ ]
+}

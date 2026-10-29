@@ -159,9 +159,13 @@ GSMMA_SENSITIVE_LIST = env("GSM_GSMMA_SENSITIVE_LIST", "https://www.gsmma.gov.tw
 EMODNET_WMS_URL = env("GSM_EMODNET_WMS_URL", "https://drive.emodnet-geology.eu/geoserver/ows")
 #: 조건이 열린 배경 — NASA GIBS(Blue Marble)·GEBCO 해저 지형. 서버가 받아 캐시에 담는다 (`viewer/basemaps.py`, wetherilli 184). 열쇠가 없다
 GIBS_URL = env("GSM_GIBS_URL", "https://gibs.earthdata.nasa.gov")
+#: NASA ITS_LIVE v2 빙하 유속 모자이크의 COG 가 든 곳 — Range 로 필요한 몫만 받는다 (`viewer/itslive.py`, wetherilli 433)
+ITSLIVE_URL = env("GSM_ITSLIVE_URL", "https://its-live-data.s3.amazonaws.com/velocity_mosaic/v2/static/cog")
 #: NPI 의 스발바르 배경 타일 — 조건이 CC BY 4.0 이라 서버가 담는다 (wetherilli 200)
 NPI_TILE_URL = env("GSM_NPI_TILE_URL", "https://geodata.npolar.no/arcgis/rest/services/Basisdata")
 GEBCO_WMS_URL = env("GSM_GEBCO_WMS_URL", "https://wms.gebco.net/mapserv")
+#: GMRT — 극지 수심 WMS 와 점 표고 (wetherilli 428)
+GMRT_URL = env("GSM_GMRT_URL", "https://www.gmrt.org")
 #: 노르웨이·핀란드 기반암 지질도 — NGU MapServer·GTK ArcGIS WMS (`viewer/ngu.py`·`viewer/gtk.py`, wetherilli 140). 열쇠가 없다
 NGU_WMS_URL = env("GSM_NGU_WMS_URL", "https://geo.ngu.no/mapserver/BerggrunnWMS3")
 GTK_WMS_URL = env("GSM_GTK_WMS_URL", "https://gtkdata.gtk.fi/arcgis/services/Rajapinnat/GTK_Kalliopera_WMS/MapServer/WMSServer")
@@ -346,6 +350,8 @@ OFFLINE_DIR = env("GSM_OFFLINE_DIR") or str(_data_dir() / "offline")
 OFFLINE_BOXES_FILE = BASE_DIR.parent / "data" / "offline_boxes.json"
 #: 세계 활성단층 GEM Global Active Faults (wetherilli 279) — `manage.py build_faults` 가 굽는다. CC BY-SA 4.0, 2.9 MB 라 저장소 밖
 FAULTS_FILE = env("GSM_FAULTS_FILE") or str(Path(EARTH_DIR) / "earth_faults.json")
+#: 남극순환류 전선 — 작아서 저장소에 둔다(`build_acc_fronts`, wetherilli 429)
+ACC_FRONTS_FILE = REPO_DIR / "data" / "acc_fronts.json"
 #: 바람 — 구워 둔 u·v 텍스처 (`viewer/wind.py`, koprifossillab P02). 지금의 바람(GFS)은 호스트 cron 이 `fetch_gfs_wind` 로,
 #: 지난 바람(ERA5)은 사람이 `build_era5_wind` 로 굽는다. 우리 디스크의 파일이다. 없으면 바람 레이어 자리에 안내가 뜬다
 WIND_DIR = env("GSM_WIND_DIR") or str(_data_dir() / "wind")
@@ -390,6 +396,12 @@ CHINA4M_DIR = env("GSM_CHINA4M_DIR") or str(_data_dir() / "china4m")
 IBCSO_DIR = env("GSM_IBCSO_DIR") or str(_data_dir() / "ibcso")
 #: 남극 자력 이상 ADMAP-2 를 칠해 잘라 둔 것 (wetherilli 262). 원본은 NAS `sources/admap2/grid.zip`
 ADMAP_DIR = env("GSM_ADMAP_DIR") or str(_data_dir() / "admap2")
+#: 남극 중력 AntGG2021 을 칠해 잘라 둔 것 — 판마다 하위 폴더 (wetherilli 431). 원본은 NAS `sources/antgg2021/`
+ANTGG_DIR = env("GSM_ANTGG_DIR") or str(_data_dir() / "antgg")
+#: 남극 지열류 모형 셋(Stål·Lösing·Martos)을 칠해 잘라 둔 것 — 판마다 하위 폴더 (wetherilli 432). 원본은 NAS `sources/antarctic_ghf/`
+ANTARCTIC_GHF_DIR = env("GSM_ANTARCTIC_GHF_DIR") or str(_data_dir() / "antarctic_ghf")
+#: ITS_LIVE 빙하 유속을 칠해 잘라 둔 것 — 지역마다 하위 폴더 (wetherilli 433). 호스트의 `run.sh build_itslive` 가 쓴다
+ITSLIVE_DIR = env("GSM_ITSLIVE_DIR") or str(_data_dir() / "itslive")
 #: SCAR 남극 통합 지명사전을 지형마다 묶어 적은 것 — `manage.py fetch_scar_gazetteer` 가 쓴다 (wetherilli 412)
 SCAR_DIR = env("GSM_SCAR_DIR") or str(_data_dir() / "scar")
 #: GTN-P 영구동토 시추공 목록을 줄여 적은 것 — `manage.py fetch_gtnp` 가 쓴다 (wetherilli 422)
@@ -713,6 +725,12 @@ CHINA4M_LEGEND = REPO_DIR / "data" / "china4m_legend.json"
 #: 남극 IBCSO 자료 출처(TID) — 우리가 잘라 둔 3031 타일 (071)
 IBCSO_CATALOG_SEED = REPO_DIR / "data" / "ibcso_layers.json"
 ADMAP_CATALOG_SEED = REPO_DIR / "data" / "admap_layers.json"
+ANTGG_CATALOG_SEED = REPO_DIR / "data" / "antgg_layers.json"
+ANTARCTIC_GHF_CATALOG_SEED = REPO_DIR / "data" / "ghfgrid_layers.json"
+#: GMRT 극지 수심 — 남극·북극해 탭 (wetherilli 428)
+GMRT_CATALOG_SEEDS = [REPO_DIR / "data" / "gmrt_antarctica_layers.json", REPO_DIR / "data" / "gmrt_arctic_ocean_layers.json"]
+#: 남극순환류 전선 — 남극 탭 (wetherilli 429)
+ACC_CATALOG_SEED = REPO_DIR / "data" / "acc_layers.json"
 SCAR_CATALOG_SEED = REPO_DIR / "data" / "scar_layers.json"
 #: GTN-P 영구동토 시추공 — 북극해·남극 탭 (wetherilli 422)
 GTNP_CATALOG_SEEDS = [REPO_DIR / "data" / "gtnp_arctic_ocean_layers.json", REPO_DIR / "data" / "gtnp_antarctica_layers.json"]
@@ -730,6 +748,8 @@ BAS_TILES_URL = env("GSM_BAS_TILES_URL", "https://tiles.arcgis.com/tiles/tPxy1hr
 BAS_CATALOG_SEED = REPO_DIR / "data" / "bas_antarctica_layers.json"
 #: 남극·그린란드 — NASA GIBS 의 MEaSUREs 빙하 속도. 타일은 서버가 받아 담는다(`viewer/basemaps.py`, wetherilli 413). 지역마다 한 장
 GIBS_CATALOG_SEEDS = tuple(REPO_DIR / "data" / f"gibs_{r}_layers.json" for r in ("antarctica", "greenland"))
+#: 남극·그린란드·스발바르 — ITS_LIVE 빙하 유속. 우리가 받아 칠해 둔 타일 (wetherilli 433). 지역마다 한 장
+ITSLIVE_CATALOG_SEEDS = tuple(REPO_DIR / "data" / f"itslive_{r}_layers.json" for r in ("antarctica", "greenland", "svalbard"))
 PGC_CATALOG_SEEDS = tuple(REPO_DIR / "data" / f"pgc_{r}_layers.json" for r in ("greenland", "svalbard", "antarctica"))
 #: 극지연구소(KOPRI) — 지역마다 한 장: 남극(시료·KPDC 자료·기지·해안선), 스발바르·그린란드(암석 시료·KPDC 자료),
 #: 북극해(KPDC 자료) (053–057·075·076)

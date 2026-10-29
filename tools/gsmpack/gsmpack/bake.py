@@ -40,6 +40,10 @@ GUESS_BYTES = {
     "basemap:rema": {7: 64_000, 9: 66_000, 10: 43_000, 11: 39_000, 12: 29_000, 13: 20_000},
     "vworld:AntarcticaSejong": {10: 20_000, 12: 39_000, 13: 64_000, 14: 81_000, 15: 77_000, 16: 26_000},
     "vworld:AntarcticaJangbogo": {10: 20_000, 12: 39_000, 13: 64_000, 14: 81_000, 15: 77_000, 16: 26_000},
+    # 스발바르 NPI 배경 — **재지 않은 어림이다**(wetherilli 434). 지형도는 425 에서 본 한 장 15 KB, 위성·FKB 는 그 곁의 짐작. 다산 묶음을 구우면 잰 값으로 바꾼다
+    "basemap:npi_topo": {8: 15_000, 13: 15_000},
+    "basemap:npi_sat": {8: 25_000, 12: 25_000},
+    "basemap:npi_fkb": {12: 8_000, 17: 8_000},
 }
 GUESS_OTHER = 40_000           # 표에 없는 소스
 #: **다 바다인 칸이 땅이 든 칸의 몇 할인가** — 레이어 이름, 없으면 소스의 `kind` 로 찾는다. 적지 않은 것은 1(바다도 땅만큼 — 중력·자력처럼
@@ -212,10 +216,12 @@ class Plan:
                           f"상류에 묻기 약 {self.calls:,} 번 ≈ {math.ceil(self.calls * self.gap / 60)} 분")
 
 
-def bake(plan, out_dir, parts, *, units=None, extra=None, log=print, built=None) -> dict:
+def bake(plan, out_dir, parts, *, units=None, vectors=None, extra=None, log=print, built=None) -> dict:
     """어림한 대로 받아 `<출력>/<박스>-<날짜>.gsmpack` 하나로 쓴다.
 
     - `units(bbox, gap)` → `{레이어: (GeoJSON 바이트, 피처 타입들)}` — 누른 자리의 지층 면(wetherilli 384). 예산에서 먼저 뗀다
+    - `vectors(bbox)` → `{레이어: (GeoJSON 바이트, {title, attribution})}` — 화면이 타일이 아니라 한 덩이로 받아 그리는 점·모양 레이어
+      (킹조지섬 KGIS 따위, wetherilli 434). 지층 면처럼 예산에서 먼저 뗀다
     - `extra` 는 머리에 더할 것(`{"gsm": 판}` 따위). 키는 넣지 않는다
     - 돌려주는 것은 {path, tiles, asked, fails, missing}. 멈추면 `BakeError` — 받은 것은 parts 에 남는다
     - **받지 못한 타일의 열쇠**(`<레이어>/<z>/<x>/<y>`)는 로그 끝 한 줄과 머리의 `missing` 에 남긴다 — 수만 남으면 현장에서 어디가 비는지
@@ -277,7 +283,8 @@ def bake(plan, out_dir, parts, *, units=None, extra=None, log=print, built=None)
 
     # 지층 면(속성)은 예산에서 먼저 뗀다 — 묶음 하나가 예산을 넘지 않게 타일 쪽을 던다 (wetherilli 384)
     gathered = units(bbox, gap) if units else {}
-    reserved = sum(len(body) for body, _ in gathered.values())
+    shapes = vectors(bbox) if vectors else {}
+    reserved = sum(len(body) for body, _ in gathered.values()) + sum(len(body) for body, _ in shapes.values())
 
     # 받은 뒤의 실제 크기로 다시 맞춘다
     actual = {}
@@ -300,9 +307,13 @@ def bake(plan, out_dir, parts, *, units=None, extra=None, log=print, built=None)
     if gathered:
         header["units"] = {name: {"key": f"@units/{name}", "types": types, "type": "application/geo+json"}
                            for name, (_, types) in gathered.items()}
+    if shapes:
+        header["vectors"] = {name: {"key": f"@vectors/{name}", "type": "application/geo+json", **meta}
+                             for name, (_, meta) in shapes.items()}
     path = Path(out_dir) / f"{plan.box_name}-{built:%Y%m%d}{format.SUFFIX}"
     format.write(path, header, [*((k, v[2]) for k, v in keep.items()),
-                                *((f"@units/{name}", body) for name, (body, _) in gathered.items())])
+                                *((f"@units/{name}", body) for name, (body, _) in gathered.items()),
+                                *((f"@vectors/{name}", body) for name, (body, _) in shapes.items())])
     parts.remove()
     log(f"받지 못한 타일 {len(holes)} — {' '.join(holes)}" if holes else "받지 못한 타일 없음")
     return {"path": path, "tiles": len(keep), "asked": asked, "made": made, "fails": fails, "missing": holes}
@@ -313,6 +324,31 @@ def keep_tile(got, name, z, x, y, data, bbox, on=None):
     data = clip.clip_tile(data, z, x, y, bbox, on) if data else data
     if data and not clip.is_blank(data):
         got[format.tile_key(name, z, x, y)] = (name, z, data)
+
+
+def clip_vector(data: dict, bbox) -> dict:
+    """점·모양 덩이(GeoJSON, 경위도)에서 박스에 닿는 것만 — 모양의 네모가 박스와 겹치면 그대로 둔다(자르지 않는다). 덩이의 다른 칸
+    (`legend`·`labels`·`style` 따위 — 화면이 범례·갈래 색에 쓴다)은 그대로다 (wetherilli 434)"""
+    west, south, east, north = bbox
+
+    def points(c):
+        if c and isinstance(c[0], (int, float)):
+            yield c
+        else:
+            for part in c or ():
+                yield from points(part)
+
+    def touches(f):
+        g = f.get("geometry") or {}
+        pts = list(points(g.get("coordinates") or []))
+        if g.get("type") == "GeometryCollection":
+            pts = [p for sub in g.get("geometries", []) for p in points(sub.get("coordinates") or [])]
+        if not pts:
+            return False
+        xs, ys = [p[0] for p in pts], [p[1] for p in pts]
+        return min(xs) <= east and max(xs) >= west and min(ys) <= north and max(ys) >= south
+
+    return dict(data, features=[f for f in data.get("features", []) if touches(f)])
 
 
 def units_body(features) -> bytes:

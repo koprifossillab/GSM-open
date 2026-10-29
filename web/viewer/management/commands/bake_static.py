@@ -9,7 +9,7 @@
     ibcso/<bed|ice>/<z>/<x>/<y>.webp        IBCSO 해저·빙저 지형 — 잘라 둔 파일을 옮긴다
     ibcso/tid/<z>/<x>/<y>.png               IBCSO 자료 출처
     points/<상류>/<이름>.json               점 레이어 (`points/?layer=<상류>:<이름>` 의 답). 언어에 따라 답이 다른 것은
-    points/<상류>/<이름>.en.json            영어판을 따로 — 얀마옌·극지연구소·PANGAEA
+    points/<상류>/<이름>.en.json            영어판을 따로 — 얀마옌·극지연구소·PANGAEA, 말마다 다른 극지 파일 덩이(wetherilli 430)
     peninsula/<shaded|plain>/<z>/<x>/<y>.webp  한반도 지질도 음영판·민판 — `--with peninsula` 일 때만
 
 자료는 서버와 같은 설정(`GSM_GEOMAP_DIR`·`GSM_IBCSO_DIR`·`GSM_NPOLAR_DIR`·`GSM_KOPRI_DIR`·`GSM_PENINSULA_DIR`)에서 읽고
@@ -23,7 +23,7 @@ from pathlib import Path
 
 from django.core.management.base import BaseCommand, CommandError
 
-from viewer import geomap, grportal, ibcso, janmayen, kopri, npolar, pangaea, peninsula, tilecache, views
+from viewer import aadc, accfronts, geomap, grportal, gtnp, ibcso, janmayen, kgis, kopri, npolar, orda, pangaea, peninsula, tilecache, views
 
 #: GeoMAP 레이어마다 굽는 마지막 줌. 2026-10-02 에 쟀다(devlog wetherilli 160) — 면 레이어 하나가 줌 9 까지 1 만 장·30 MB,
 #: 줌 10 까지 2 만 7 천 장·70 MB 남짓. 간추린 지질도만 10 까지
@@ -238,6 +238,38 @@ class Command(BaseCommand):
                 continue
             report[name] = {"bytes": len(body), "lang": True}
             self.stdout.write(f"  {name}: {len(body) / 1e3:.0f} KB (언어 둘)")
+        report.update(self.bake_polar_files())
+        return report
+
+    #: 받아 둔 파일에서 짓는 극지 덩이 (wetherilli 430) — 빙저호·영구동토 시추공·킹조지섬 KGIS·남극 특별보호구역·남극순환류 전선.
+    #: 조건이 다 열렸다(CC BY 3.0·4.0). **RAISED 접지선은 싣지 않는다** — 사본에 조건 칸이 없어 사람이 연구소 판에만 두기로 정했다(420)
+    POLAR_FILES = (
+        *((n, lambda: orda.available(), lambda n, lang: orda.body(n, lang)) for n in orda.LAYERS),
+        *((n, lambda: gtnp.available(), lambda n, lang: gtnp.body(n)) for n in gtnp.LAYERS),
+        *((n, lambda n=n: kgis.available(n), lambda n, lang: kgis.body(n, lang)) for n in kgis.LAYERS),
+        *((n, lambda: aadc.available(), lambda n, lang: aadc.body(n, lang)) for n in aadc.LAYERS),
+        (accfronts.NAME, lambda: accfronts.available(), lambda n, lang: accfronts.body(lang)),
+    )
+
+    def bake_polar_files(self) -> dict:
+        """운영의 파일이 없는 레이어는 건너뛴다 — 굽기는 멈추지 않고 그 레이어만 정적 판에 서지 않는다.
+        말마다 답이 다르면 두 벌(`.en.json`), 같으면 한 벌이다"""
+        report = {}
+        for name, ready, make in self.POLAR_FILES:
+            if not ready():
+                self.stderr.write(f"{name} 자료가 없어 건너뛴다")
+                continue
+            try:
+                bodies = {lang: make(name, lang) for lang in ("ko", "en")}
+            except Exception as exc:                   # 깨진 파일 하나가 판 전체를 멈추지 않게 — 그 레이어만 뺀다
+                self.stderr.write(f"{name} 을 읽지 못했다: {exc}")
+                continue
+            langed = bodies["ko"] != bodies["en"]
+            self.write(self._point_path(name), bodies["ko"])
+            if langed:
+                self.write(self._point_path(name, "en"), bodies["en"])
+            report[name] = {"bytes": len(bodies["ko"]), **({"lang": True} if langed else {})}
+            self.stdout.write(f"  {name}: {len(bodies['ko']) / 1e3:.0f} KB" + (" (언어 둘)" if langed else ""))
         return report
 
     # ── 한반도 음영판·민판 ─────────────────────────────────────────

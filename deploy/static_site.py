@@ -43,7 +43,8 @@ REGIONS = ["korea", "greenland", "svalbard", "arctic_ocean", "antarctica"]
 #: GIBS 빙하 속도(wetherilli 413)는 `map.js` 의 `gibsOverlaySource` 가 GIBS 를 곧장 부른다 — NASA 자료라 쓰임에 제한이 없다, CORS `*`
 UPSTREAMS = ["kigam", "vworld", "geus", "npolar", "pgc", "emodnet", "kopri", "grportal", "gibs"]
 #: 구운 것(`--baked`)이 있으면 더 서는 극지 — 남극 GeoMAP·IBCSO·NPI 점, 얀마옌, 그린란드 포털 점, 스발바르 NPI 점,
-#: 극지연구소 KPDC 점 (wetherilli 160·165). 브라우저가 곧장 부르는 극지 상류(`static-kinds.js`)가 오면 그 레이어도 함께 선다
+#: 극지연구소 KPDC 점 (wetherilli 160·165), 그리고 빙저호·영구동토 시추공·킹조지섬 KGIS·남극 특별보호구역·남극순환류 전선
+#: (`bake_static` 의 `POLAR_FILES`, wetherilli 430 — 운영의 파일이 없으면 그 레이어만 빠진다. RAISED 접지선은 싣지 않는다, 420). 브라우저가 곧장 부르는 극지 상류(`static-kinds.js`)가 오면 그 레이어도 함께 선다
 BAKED_REGIONS = ["antarctica", "greenland", "svalbard", "jan_mayen", "arctic_ocean"]
 #: 구운 타일로 통째로 서는 상류 — 점 레이어는 상류가 아니라 이름으로 싣는다(`views._static_catalog`)
 BAKED_UPSTREAMS = {"geomap": "geomap", "ibcso": "ibcso"}

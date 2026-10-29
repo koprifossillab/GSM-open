@@ -493,6 +493,14 @@
 | wetherilli 374 | 2026-10-07 | [온 세계 지명 찾기 — GeoNames 도시를 받아 두고, 지역 탭이 온 지구 찾기를 빌린다](20261007_wetherilli_374_world_place_search.md) |
 | wetherilli 375 | 2026-10-07 | [그때의 지구 — 판 조각 대신 PaleoDEM 고도·음영을 깐다](20261007_wetherilli_375_paleodem_relief.md) |
 | wetherilli 376 | 2026-10-07 | [온 지구 시간 막대 — 처음엔 접고, 띠는 대·기·세 세 줄로](20261007_wetherilli_376_timebar_folded_fewer_rows.md) |
+| wetherilli 427 | 2026-10-29 | [427 — 극지 탭에 GIBS 날마다 영상 (참색·3-6-7·해빙)](20261029_wetherilli_427_gibs_daily.md) |
+| wetherilli 428 | 2026-10-29 | [428 — 극지 수심 GMRT (남극 3031·북극 3995)](20261029_wetherilli_428_gmrt_polar.md) |
+| wetherilli 429 | 2026-10-29 | [429 — 남극순환류 전선 (Park & Durand 2019)](20261029_wetherilli_429_acc_fronts.md) |
+| wetherilli 430 | 2026-10-29 | [430 — 극지 점·선 레이어를 정적 판에 (빙저호·GTN-P·KGIS·ASPA·ACC 전선)](20261029_wetherilli_430_static_polar_points.md) |
+| wetherilli 431 | 2026-10-29 | [남극 중력 AntGG2021 — ADMAP 의 굽는 틀을 떼어 함께 쓴다](20261029_wetherilli_431_antgg_gravity.md) |
+| wetherilli 432 | 2026-10-29 | [남극 지열류 모형 셋 — 측정 점과 같은 색으로, 셋을 따로](20261029_wetherilli_432_antarctic_heatflow_grids.md) |
+| wetherilli 433 | 2026-10-29 | [ITS_LIVE 빙하 유속 120 m — COG 에서 필요한 몫만 Range 로](20261029_wetherilli_433_its_live_velocity.md) |
+| wetherilli 434 | 2026-10-29 | [극지 묶음의 소스 둘 — 세종에 킹조지섬 KGIS 덩이, 다산에 NPI 스발바르 배경](20261029_wetherilli_434_offline_polar_sources.md) |
 | koprifossillab P01 | 2026-09-30 | [백업 — WegenersDream 의 틀로, 바뀌는 빠르기에 따라 넷으로 (계획)](20260930_koprifossillab_P01_backup_plan.md) |
 | koprifossillab 001 | 2026-09-30 | [매주 월요일 새벽: 운영 자료 백업과 KPDC 목록 갱신](20260930_koprifossillab_001_weekly_backup.md) |
 | koprifossillab 002 | 2026-09-30 | [`/healthz/` — 판·DB·백업 상태를 한 장으로](20260930_koprifossillab_002_healthz.md) |

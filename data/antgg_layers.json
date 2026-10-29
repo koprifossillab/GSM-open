@@ -1,0 +1,27 @@
+{
+ "_주석": "남극 중력 AntGG2021(Scheinert 외 2024, PANGAEA 971238, CC BY 4.0) 씨앗이다. 원본 NetCDF-4 둘(중력 이상·부게 이상)을 호스트의 manage.py build_antgg 가 칠해 GSM_ANTGG_DIR/<판>/tiles 로 잘라 둔다. 파일은 저장소에 없다. 레이어군을 ADMAP-2 바로 뒤에 둔다 (wetherilli 431).",
+ "_뽑은날": "2026-10-29",
+ "_출처": "https://doi.org/10.1594/PANGAEA.971238",
+ "_지역": "antarctica",
+ "_상류": "antgg",
+ "_레이어군차례": 17,
+ "레이어군순서": [
+  "지구물리 (AntGG2021)"
+ ],
+ "레이어": [
+  {
+   "name": "antgg:bouguer",
+   "title": "부게 중력 이상",
+   "group": "지구물리 (AntGG2021)",
+   "abstract": "남극 지상·항공 중력을 이은 부게 이상(mGal) — 5 km 격자. 붉은 쪽이 양(바다·얇은 지각), 푸른 쪽이 음(두꺼운 지각·고원). 누르면 그 자리의 mGal",
+   "bbox": [-180, -90, 180, -60]
+  },
+  {
+   "name": "antgg:free_air",
+   "title": "프리에어 중력 이상",
+   "group": "지구물리 (AntGG2021)",
+   "abstract": "남극 지상·항공 중력을 이은 지표의 중력 이상(프리에어, mGal) — 5 km 격자. 누르면 그 자리의 mGal",
+   "bbox": [-180, -90, 180, -60]
+  }
+ ]
+}

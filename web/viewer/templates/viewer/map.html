@@ -103,6 +103,10 @@
         <input type="checkbox" id="basemap-labels" checked>
         <span>{% t "지명 보이기" %}</span>
       </label>
+      <label class="basemap-row" id="basemap-date-wrap" hidden>
+        <span>{% t "영상 날짜" %}</span>
+        <input type="date" id="basemap-date" title="{% t "날마다 영상의 날짜 (UTC)" %}">
+      </label>
 
       <h3 class="sub-head">{% t "켠 지질 레이어" %} <span class="count" id="count-layers">0</span>
         <span class="hint">{% t "위가 앞이다" %}</span>

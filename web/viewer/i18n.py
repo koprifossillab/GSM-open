@@ -697,6 +697,8 @@ EN = {
     "없다 (밖에 연 판에는 두지 않는다)": "Absent (not kept on the public build)",
     "{n} 칸": "{n} entries",
     "남극 자력 이상 ADMAP-2": "Antarctic magnetic anomalies ADMAP-2",
+    "남극 중력 AntGG2021": "Antarctic gravity AntGG2021",
+    "남극 지열류 모형": "Antarctic geothermal heat flow models",
     "남극 GeoMAP": "Antarctic GeoMAP",
     "남극 해저·빙저 지형 IBCSO v2": "Antarctic seafloor and subglacial topography IBCSO v2",
     "얀마옌 지질도": "Jan Mayen geological map",
@@ -1191,6 +1193,21 @@ EN = {
         "Polar Geospatial Center. Hillshade drawn from 2 m elevation",
     "Blue Marble 위성 (NASA)": "Blue Marble satellite (NASA)",
     "NASA GIBS. 500 m 해상도라 넓게 볼 때 쓴다": "NASA GIBS. 500 m resolution, for wide views",
+    # 날마다 영상 (wetherilli 427)
+    "날마다 위성 참색 (VIIRS)": "Daily true color (VIIRS)",
+    "NASA GIBS · VIIRS NOAA-20 참색 250 m. 고른 날의 영상이다 — 극야에는 검다":
+        "NASA GIBS · VIIRS NOAA-20 true color 250 m, for the chosen day — dark in the polar night",
+    "날마다 위성 참색 (MODIS)": "Daily true color (MODIS)",
+    "NASA GIBS · MODIS Terra 참색 250 m. 고른 날의 영상이다 — 극야에는 검다":
+        "NASA GIBS · MODIS Terra true color 250 m, for the chosen day — dark in the polar night",
+    "날마다 눈·얼음과 구름 (MODIS 3-6-7)": "Daily snow, ice and cloud (MODIS 3-6-7)",
+    "NASA GIBS · MODIS Terra 밴드 3-6-7 250 m. 눈·얼음은 붉고 구름은 희다 — 참색에서 둘이 같아 보일 때 가른다":
+        "NASA GIBS · MODIS Terra bands 3-6-7 250 m. Snow and ice are red, clouds white — tells them apart where true color does not",
+    "날마다 해빙 (VIIRS)": "Daily sea ice (VIIRS)",
+    "NASA GIBS · VIIRS NOAA-20 해빙 일일 1 km, Blue Marble 위에. 구름 밑은 비고 사흘쯤 늦게 올라온다":
+        "NASA GIBS · VIIRS NOAA-20 daily sea ice 1 km over Blue Marble. Blank under clouds, posted about three days late",
+    "영상 날짜": "Imagery date",
+    "날마다 영상의 날짜 (UTC)": "Date of the daily imagery (UTC)",
     "남극 위성 (Esri)": "Antarctic satellite (Esri)",
     "Esri · Earthstar Geographics TerraColor 15 m. 줌 13 까지 영상이 있고 그 위는 늘려 보인다. Esri 이용 조건을 따른다":
         "Esri · Earthstar Geographics TerraColor 15 m. Imagery up to zoom 13, stretched beyond. Esri terms of use apply",
@@ -1643,6 +1660,18 @@ EN = {
     "온 세계 지구물리 격자 — EMAG2v3·EIGEN-6C4": "Global geophysical grids — EMAG2v3·EIGEN-6C4",
     "자력 이상 (4 km 높이)": "Magnetic anomaly (4 km altitude)", "자력 이상 (EMAG2v3)": "Magnetic anomaly (EMAG2v3)", "부게 중력 이상": "Bouguer gravity anomaly",
     "자력 이상 자료(ADMAP-2)가 서버에 없다": "The magnetic anomaly data (ADMAP-2) is not on the server",
+    # 칠해 잘라 둔 남극 격자 — 중력 AntGG2021 (wetherilli 431)
+    "이 격자 자료가 서버에 없다": "This grid is not on the server",
+    "프리에어 중력 이상": "Free-air gravity anomaly",
+    # 남극 지열류 모형 셋 (wetherilli 432)
+    "지열류 모형 Aq1 (Stål 2021)": "Heat flow model Aq1 (Stål 2021)",
+    "지열류 모형 (Lösing & Ebbing 2021)": "Heat flow model (Lösing & Ebbing 2021)",
+    "지열류 모형 (Martos 2017)": "Heat flow model (Martos 2017)",
+    # 빙하 유속 ITS_LIVE (wetherilli 433)
+    "빙하 유속 자료(ITS_LIVE)가 서버에 없다": "The glacier velocity data (ITS_LIVE) is not on the server",
+    "빙하 유속 ITS_LIVE (남극)": "Glacier velocity ITS_LIVE (Antarctica)",
+    "빙하 유속 ITS_LIVE (그린란드)": "Glacier velocity ITS_LIVE (Greenland)",
+    "빙하 유속 ITS_LIVE (스발바르)": "Glacier velocity ITS_LIVE (Svalbard)",
     "영국 남극조사소": "British Antarctic Survey",
     # 남극 지명 — SCAR 통합 지명사전 (wetherilli 412)
     "남극연구과학위원회": "Scientific Committee on Antarctic Research",
@@ -1688,6 +1717,14 @@ EN = {
         "Source data — RAISED Consortium 2014 (paper CC BY, Quantarctica copy)",
     "빙저호 목록을 아직 받지 않았다 (fetch_subglacial_lakes)": "The subglacial lake inventory has not been fetched yet (fetch_subglacial_lakes)",
     "RAISED 접지선을 아직 굽지 않았다 (build_raised)": "The RAISED grounding lines have not been built yet (build_raised)",
+    # 남극순환류 전선 (wetherilli 429)
+    "남극순환류 전선 (Park & Durand 2019)": "Antarctic Circumpolar Current fronts (Park & Durand 2019)",
+    "남극순환류 전선": "Antarctic Circumpolar Current fronts",
+    "북쪽 경계 (NB)": "Northern Boundary (NB)", "아남극 전선 (SAF)": "Subantarctic Front (SAF)", "극 전선 (PF)": "Polar Front (PF)",
+    "남쪽 ACC 전선 (SACCF)": "Southern ACC Front (SACCF)", "남쪽 경계 (SB)": "Southern Boundary (SB)",
+    "남극순환류 전선 파일이 없다 (build_acc_fronts)": "The ACC fronts file is missing (build_acc_fronts)",
+    "원본 자료 — Park & Durand 2019, SEANOE, CC BY 4.0": "Source data — Park & Durand 2019, SEANOE, CC BY 4.0",
+    "평균 역학 지형에서 뽑은 시간 평균의 자리 — 한 날의 전선이 아니다": "Time-mean positions from the mean dynamic topography — not the fronts of any one day",
     "빙저호 목록 Livingstone 2022": "Subglacial lakes, Livingstone 2022",
     "남극 빙상 후퇴 RAISED 접지선": "Antarctic deglaciation, RAISED grounding lines",
     # 남극 특별보호구역 ASPA — AADC 2024 판 (wetherilli 423)
@@ -1702,6 +1739,7 @@ EN = {
     "그 밖의 보호구역": "Other protected area", "조류 보호구역": "Bird sanctuary", "람사르 습지": "Ramsar site",
     "보호 경계": "Protection boundary",
     "미국 항공우주국 GIBS": "NASA Global Imagery Browse Services (GIBS)",
+    "GMRT 다중 해상도 지형": "Global Multi-Resolution Topography (GMRT)",
     # 대앤틸리스 — USGS SIM 3534 를 우리가 굽는다 (wetherilli 254)
     "대앤틸리스 지질도 파일이 서버에 없다": "The Greater Antilles geologic map file is not on the server",
     "덮인 단층": "Concealed fault",
@@ -2413,7 +2451,7 @@ PROP_EN = {
     # 세계 지질구 (wetherilli 272)
     "묶음": "Group", "마지막 조산 운동": "Last orogeny", "대륙": "Continent", "지각": "Crust",
     # 지열류 (wetherilli 267)
-    "지열류 (mW/m²)": "Heat flow (mW/m²)", "환경": "Setting", "품질": "Quality",
+    "지열류 (mW/m²)": "Heat flow (mW/m²)", "지열류 모형 (mW/m²)": "Modelled heat flow (mW/m²)", "환경": "Setting", "품질": "Quality",
     "오차 (mW/m²)": "Uncertainty (mW/m²)", "잰 법": "Method", "자리": "Site",
     "출처 지역": "Source area",   # 북극 지질도 (wetherilli 414)
     "시대별 암석": "Rock by age", "변성 정도": "Metamorphic grade", "지질구": "Geological province", "주기": "Cycle", "영역": "Domain",
@@ -2476,7 +2514,7 @@ PROP_EN = {
     "마지막 분화": "Last eruption",
     "표고 (m)": "Elevation (m)",
     "광산 이름": "Mine name", "상태": "Status", "조사 방법": "Observation method",
-    "같은 칸에 모인 수": "Points merged in this cell", "측점": "Station", "조사": "Survey", "프리에어 이상 (mGal)": "Free-air anomaly (mGal)", "부게 이상 (mGal)": "Bouguer anomaly (mGal)",
+    "같은 칸에 모인 수": "Points merged in this cell", "측점": "Station", "조사": "Survey", "프리에어 이상 (mGal)": "Free-air anomaly (mGal)", "부게 이상 (mGal)": "Bouguer anomaly (mGal)", "빙하 유속 (m/년)": "Glacier velocity (m/yr)",
     "지구조 환경": "Tectonic setting",
     "주 암석": "Major rock type",
     "근거": "Evidence",
@@ -2554,6 +2592,7 @@ PROP_EN = {
     "보전 생물지리구 (ACBR)": "Conservation biogeographic region (ACBR)",
     "관리국": "Managed by",
     "수심 (m)": "Depth (m)",
+    "전선": "Front", "위도 범위": "Latitude range",   # 남극순환류 전선 (wetherilli 429)
     "바닥": "Bed type",
     "도폭 (IMW)": "IMW sheet",
     "출처 날짜": "Source date",
@@ -3802,11 +3841,15 @@ GROUP_EN = {
     "탄전지질도": "Coalfield geological maps",
     "지구물리이상도": "Geophysical anomaly maps", "움직이는 지구": "Earth in flux", "지구물리": "Geophysics",
     "지구물리 (ADMAP-2)": "Geophysics (ADMAP-2)",
+    "지구물리 (AntGG2021)": "Geophysics (AntGG2021)",
+    "지열류 모형": "Heat flow models",
+    "빙하 흐름 (ITS_LIVE)": "Ice flow (ITS_LIVE)",
     "지명 (SCAR)": "Place names (SCAR)",
     "시추": "Drilling",                          # 과학 해양 시추공 (wetherilli 418)
     "영구동토 (GTN-P)": "Permafrost (GTN-P)",
     "암석 화학·연대 (PetroChron)": "Rock chemistry & ages (PetroChron)",
     "빙저호": "Subglacial lakes", "빙상 후퇴 (RAISED)": "Ice-sheet retreat (RAISED)",
+    "남빙양 (SEANOE)": "Southern Ocean (SEANOE)",
     "킹조지섬 지형 (SCAR KGIS)": "King George Island topography (SCAR KGIS)",
     "보호구역 (AADC)": "Protected areas (AADC)",
     "지화학도": "Geochemical maps",
@@ -3852,6 +3895,7 @@ GROUP_EN = {
     "KPDC 기본도": "KPDC base map",
     "지형 (PGC)": "Terrain (PGC)",
     "해저 지질 (EMODnet)": "Seabed geology (EMODnet)",
+    "극지 수심 (GMRT)": "Polar bathymetry (GMRT)",
     "북극 지질도 (GSC 1:500만)": "Geological map of the Arctic (GSC 1:5M)",
     "노르웨이 기반암 (NGU)": "Norway bedrock (NGU)",
     "노르웨이 광물 (NGU)": "Norway minerals (NGU)",
@@ -4101,11 +4145,17 @@ LAYER_EN = {
     "sgs:geology": "Geology (1:250k compilation)",
     # 동남아 (wetherilli 228)
     "admap:anomaly": "Magnetic anomaly",
+    "antgg:bouguer": "Bouguer gravity anomaly", "antgg:free_air": "Free-air gravity anomaly",
+    "ghfgrid:stal": "Heat flow model Aq1 (Stål 2021)", "ghfgrid:losing": "Heat flow model (Lösing & Ebbing 2021)",
+    "ghfgrid:martos": "Heat flow model (Martos 2017)",
+    "itslive:antarctica": "Glacier velocity (ITS_LIVE)", "itslive:greenland": "Glacier velocity (ITS_LIVE)",
+    "itslive:svalbard": "Glacier velocity (ITS_LIVE)",
     "scar:place_names": "Antarctic place names (SCAR gazetteer)",
     "gtnp:boreholes_arctic": "Permafrost boreholes (Arctic)", "gtnp:boreholes_antarctica": "Permafrost boreholes (Antarctic)",
     "petrochron:samples": "Rock sample chemistry & ages (PetroChron)",
     "orda:lakes_antarctica": "Subglacial lakes (Antarctica)", "orda:lakes_greenland": "Subglacial lakes (Greenland)",
     **{f"raised:{a}ka": f"Grounding line {a} ka (RAISED)" for a in ("20", "15", "10", "5")},
+    "acc:fronts": "Antarctic Circumpolar Current fronts (Park & Durand 2019)",
     "kgis:contours": "Contours 10 m", "kgis:coastline": "Coastline (2007)", "kgis:icefree": "Ice-free ground",
     "kgis:water": "Streams·lakes", "kgis:facilities": "Stations·buildings·facilities", "kgis:routes": "Roads·footpaths",
     "kgis:protected": "Protected areas·historic sites (2007)",
@@ -4353,6 +4403,9 @@ LAYER_EN = {
     "gtk:kalliopera_1m_siirrosrakenteet": "Faults (1:1M)",
     # EMODnet 해저 지질 (wetherilli 135)
     "emodnet:cp_wp4_pre_quaternary_geology_lithology": "Pre-Quaternary geology — lithology",
+    # 극지 수심 GMRT (wetherilli 428)
+    "gmrt:sp": "Bathymetry (GMRT)", "gmrt:np": "Bathymetry (GMRT)",
+    "gmrt:sp_mask": "Bathymetry — surveyed only (GMRT)", "gmrt:np_mask": "Bathymetry — surveyed only (GMRT)",
     "emodnet:cp_wp4_pre_quaternary_geology_age": "Pre-Quaternary geology — age",
     "emodnet:bgr:pre_quaternary_faults": "Pre-Quaternary faults",
     "emodnet:cp_wp3_seabed_substrate_folk_7": "Seabed substrate (Folk 7)",
@@ -4670,6 +4723,7 @@ ABSTRACT_EN = {
     "orda:lakes_greenland": "64 lakes beneath the Greenland Ice Sheet — stable lakes seen by ice-penetrating radar, and active lakes where the ice surface collapsed and refilled. Click for name, type, detection method and references",
     **{f"raised:{a}ka": f"The Antarctic Ice Sheet grounding line at {a} ka, drawn by the RAISED Consortium (Bentley et al. 2014) from compiled dates. Solid lines are supported by dated evidence, dashed are inferred, dotted are speculative. In a few East Antarctic sectors scenarios A and B differ"
        for a in ("20", "15", "10", "5")},
+    "acc:fronts": "The five fronts of the Antarctic Circumpolar Current from the satellite-altimetry mean dynamic topography (CNES-CLS18) — Northern Boundary, Subantarctic Front, Polar Front, Southern ACC Front, Southern Boundary. A time mean, not the fronts of any one day",
     "kgis:contours": "10 m contours of King George Island's ice-free ground, 2,406 lines — every 50 m drawn bold. 2007 edition",
     "kgis:coastline": "Coastline in 617 lines, split into rock coast and ice coast (ice cliff). Glacier fronts have retreated since",
     "kgis:icefree": "Ice-free ground, 563 polygons — where the outcrops and fieldwork are",
@@ -4709,6 +4763,14 @@ ABSTRACT_EN = {
     "gtnp:boreholes_arctic": "GTN-P (Global Terrestrial Network for Permafrost) permafrost boreholes — depth and permafrost zone of each ground temperature borehole, with mean annual ground temperature (MAGT) for 1978–2016. The colour is the value of the last year with a temperature",
     "gtnp:boreholes_antarctica": "GTN-P (Global Terrestrial Network for Permafrost) permafrost boreholes — depth and permafrost zone of each ground temperature borehole, with mean annual ground temperature (MAGT) for 1978–2016. The colour is the value of the last year with a temperature",
     "petrochron:samples": "PetroChron Antarctica — 11,000 analyses of Antarctic rock samples (whole-rock and mineral chemistry, ages, modelled rock properties) gathered from 362 papers. Coloured by rock class; click for rock, age (method), major oxides and reference. 2021 release",
+    "ghfgrid:stal": "Model, not measurement — geothermal heat flow (mW/m²) from similarity to well-measured continents (Aq1), 20 km. Same colours as the IHFC heat flow points. Click for the value there",
+    "ghfgrid:losing": "Model, not measurement — geothermal heat flow (mW/m²) predicted by machine learning from geophysical grids, about 55 km. Same colours as the IHFC heat flow points. Click for the value there",
+    "ghfgrid:martos": "Model, not measurement — geothermal heat flow (mW/m²) from Curie depths in airborne magnetics, 15 km. Same colours as the IHFC heat flow points. Click for the value there",
+    "antgg:bouguer": "Bouguer anomaly (mGal) joining ground and airborne gravity of Antarctica — 5 km grid. Red is positive (ocean, thin crust), blue negative (thick crust, plateaus). Click for the mGal value there",
+    "antgg:free_air": "Surface gravity anomaly (free-air, mGal) joining ground and airborne gravity of Antarctica — 5 km grid. Click for the mGal value there",
+    "itslive:antarctica": "Surface flow speed of glaciers (m/yr) — feature tracking of satellite image pairs combined over several years (v2 static mosaic), 480 m (120 m around Jang Bogo and King Sejong). Same colours as the MEaSUREs ice velocity. Click for m/yr there",
+    "itslive:greenland": "Surface flow speed of glaciers (m/yr) — feature tracking of satellite image pairs combined over several years (v2 static mosaic), 240 m. Same colours as the MEaSUREs ice velocity. Click for m/yr there",
+    "itslive:svalbard": "Surface flow speed of glaciers (m/yr) — feature tracking of satellite image pairs combined over several years (v2 static mosaic), 120 m. Same colours as the MEaSUREs ice velocity. Click for m/yr there",
     "admap:anomaly": "Magnetic anomaly (nT) joining airborne and marine magnetic surveys of Antarctica — 1.5 km grid. Red is positive, blue negative. Click for the nT value there",
     "ags:minocc": "Mineral Occurrences — metallic minerals (DIG 2019-0026), industrial minerals (DIG 2019-0027), lithium, silica sand, producers and mineral cores; 5,454 points",
     "bas:bedmap3_bed": "Height of the bedrock and seabed with the ice removed (relative to sea level) — Bedmap3 500 m grid, 2025",
@@ -4767,6 +4829,8 @@ ABSTRACT_EN = {
     "emodnet:cp_wp3_seabed_substrate_folk_7": "Grain size of seabed surface sediments — mud, sand, gravel and mixtures in Folk's seven classes. The upstream picks a more detailed edition as you zoom in",
     "emodnet:cp_wp4_pre_quaternary_geology_age": "The same areas coloured by geological age",
     "emodnet:cp_wp4_pre_quaternary_geology_lithology": "Lithology of the bedrock below the seabed (beneath the Quaternary). EMODnet joined each country's seabed geological maps — the Barents Sea is BGR's European 1:5M map",
+    "gmrt:sp": "GMRT 4.5 — edited multibeam bathymetry merged over GEBCO 2026. Surveyed areas show at their native resolution (tens of metres). Not for navigation", "gmrt:np": "GMRT 4.5 — edited multibeam bathymetry merged over GEBCO 2026. Surveyed areas show at their native resolution (tens of metres). Not for navigation",
+    "gmrt:sp_mask": "The same GMRT with only multibeam-surveyed areas in colour and GEBCO fill greyed out — shows which cruises mapped where", "gmrt:np_mask": "The same GMRT with only multibeam-surveyed areas in colour and GEBCO fill greyed out — shows which cruises mapped where",
     "emodnet:cp_wp6_geological_event_distribution_250k": "An index map dividing the sea into cells, marking each event as reported, absent or no data. Colour shows submarine landslides only — click to see all five for that cell: submarine landslides, volcanoes, Quaternary tectonics, tsunamis and fluid seepage",
     "esdm:geology": "Peta Geologi — GEOLOGIINDONESIA_AR_100K_2018. Drawn only up to zoom 10 (upstream maxScale 1:577,790)",
     "esdm:metal": "Potensi Sumber Daya dan Cadangan Mineral Logam — 3,214 sites",

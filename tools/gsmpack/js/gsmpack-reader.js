@@ -162,6 +162,24 @@
     return out;
   }
 
+  // ── 점·모양 덩이 (wetherilli 434) ──
+  //
+  // 머리의 `vectors.<레이어>` 는 `{key: "@vectors/<레이어>", …}` — 서버의 `points/?layer=` 가 주는 덩이 그대로에서 박스에 닿는 모양만 남긴 것
+
+  /** 그 레이어의 점·모양 덩이가 묶음에 있나 */
+  function hasVector(pack, name) {
+    var v = (pack.head.vectors || {})[name];
+    return !!(v && v.key && pack.head.tiles[v.key]);
+  }
+
+  /** 점·모양 덩이 → GeoJSON 객체(`legend`·`labels` 칸까지). 없으면 null */
+  function readVector(pack, name) {
+    if (!hasVector(pack, name)) return Promise.resolve(null);
+    var at = pack.head.tiles[pack.head.vectors[name].key];
+    var part = pack.blob.slice(pack.base + at[0], pack.base + at[0] + at[1]);
+    return (part.text ? part.text() : new Response(part).text()).then(JSON.parse);
+  }
+
   root.GSMPack = {
     MAGIC: MAGIC,
     readHeader: readHeader,
@@ -172,5 +190,7 @@
     hasUnits: hasUnits,
     readUnits: readUnits,
     unitsAt: unitsAt,
+    hasVector: hasVector,
+    readVector: readVector,
   };
 })(typeof self !== "undefined" ? self : this);

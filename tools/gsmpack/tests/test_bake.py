@@ -1,4 +1,5 @@
 """굽는 고리 — 가짜 소스로 굽고, 예산을 맞추고, 멈췄다 잇는다. 상류를 부르지 않는다."""
+import json
 import tempfile
 import unittest
 from pathlib import Path
@@ -64,6 +65,26 @@ class Bake(unittest.TestCase):
         self.assertEqual(head["units"]["a"]["key"], "@units/a")
         self.assertIn(b"Feature", format.read_tile(done["path"], "@units/a", (head, base)))
         self.assertFalse(parts.path.exists())                                   # 다 구우면 parts 를 지운다
+
+    def test_점_모양_덩이(self):
+        """화면이 한 덩이로 받는 레이어(킹조지섬 KGIS)를 `@vectors/` 에 — 박스에 닿는 모양만 (wetherilli 434)"""
+        parts = bake.Parts(bake.parts_path(self.out, "tiny"))
+        plan = bake.Plan("tiny", BOX, self.sources(parts))
+        west, south, east, north = plan.bbox
+        data = {"type": "FeatureCollection", "legend": [{"code": "c"}], "features": [
+            {"type": "Feature", "geometry": {"type": "Point", "coordinates": [(west + east) / 2, (south + north) / 2]}, "properties": {"n": 1}},
+            {"type": "Feature", "geometry": {"type": "LineString", "coordinates": [[west - 5, south], [west + 0.001, south]]}, "properties": {"n": 2}},
+            {"type": "Feature", "geometry": {"type": "Point", "coordinates": [east + 5, north]}, "properties": {"n": 3}}]}
+        kept = bake.clip_vector(data, plan.bbox)
+        self.assertEqual([f["properties"]["n"] for f in kept["features"]], [1, 2])
+        self.assertEqual(kept["legend"], [{"code": "c"}])
+        body = json.dumps(kept).encode("utf-8")
+        done = bake.bake(plan, self.out, parts, vectors=lambda bbox: {"k:lines": (body, {"title": "선", "attribution": "누구"})},
+                         log=lambda s: None)
+        head, base = format.read_header(done["path"])
+        self.assertEqual(head["vectors"]["k:lines"], {"key": "@vectors/k:lines", "type": "application/geo+json", "title": "선",
+                                                      "attribution": "누구"})
+        self.assertEqual(json.loads(format.read_tile(done["path"], "@vectors/k:lines", (head, base)))["legend"], [{"code": "c"}])
 
     def test_차단이면_멈추고_다시_부르면_잇는다(self):
         parts = bake.Parts(bake.parts_path(self.out, "tiny"))

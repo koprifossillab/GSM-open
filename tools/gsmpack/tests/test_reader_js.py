@@ -28,6 +28,7 @@ const blob = new Blob([fs.readFileSync(process.argv[3])]);
   const deepText = deep && await deep.blob.text();
   const tooDeep = P.deeper(pack, "L", 17, 3510 * 32, 1580 * 32);
   const rows = await P.readUnits(pack, "L");
+  const vector = await P.readVector(pack, "k:pts"), noVector = await P.readVector(pack, "L");
   const hole = P.deeper(pack, "L", 12, 3511, 1580);                    // 받지 못한 자리 → 줌 11 의 타일
   const holeText = hole && await hole.blob.text();
   const holeDeep = P.deeper(pack, "L", 13, 3511 * 2 + 1, 1581 * 2);     // 마지막 줌보다 깊은데 그 줌의 타일도 못 받았다 → 줌 11
@@ -39,7 +40,7 @@ const blob = new Blob([fs.readFileSync(process.argv[3])]);
     holeDeep: holeDeep && [holeDeep.dz, holeDeep.col, holeDeep.row], sea,
     missing: [P.missing(pack, "L", 12, 3511, 1580), P.missing(pack, "L", 12, 3510, 1581)], hasUnits: P.hasUnits(pack, "L"),
     inside: P.unitsAt(rows, 129.01, 37.01, "ko"), en: P.unitsAt(rows, 129.01, 37.01, "en"),
-    outside: P.unitsAt(rows, 129.09, 37.09, "ko"), contains: [P.contains(pack, 129.01, 37.01), P.contains(pack, 130, 37)], code}));
+    outside: P.unitsAt(rows, 129.09, 37.09, "ko"), vector, noVector, hasVector: [P.hasVector(pack, "k:pts"), P.hasVector(pack, "L")], contains: [P.contains(pack, 129.01, 37.01), P.contains(pack, 130, 37)], code}));
 })().catch(e => { console.error(e); process.exit(1); });
 """
 
@@ -56,8 +57,9 @@ class Reader(unittest.TestCase):
             format.write(path, {"box": "t", "title": "시험", "bbox": [129.0, 37.0, 129.1, 37.1],
                                 "layers": {"L": {"tile_size": 512, "type": "image/png", "zooms": [11, 12]}},
                                 "missing": ["L/12/3511/1580", "L/12/3511/1581"],
-                                "units": {"L": {"key": "@units/L"}}},
-                         [("L/12/3510/1580", b"tile-bytes"), ("L/11/1755/790", b"parent-bytes"), ("@units/L", json.dumps(units).encode("utf-8"))])
+                                "units": {"L": {"key": "@units/L"}}, "vectors": {"k:pts": {"key": "@vectors/k:pts"}}},
+                         [("L/12/3510/1580", b"tile-bytes"), ("L/11/1755/790", b"parent-bytes"), ("@units/L", json.dumps(units).encode("utf-8")),
+                          ("@vectors/k:pts", b'{"type":"FeatureCollection","legend":[1],"features":[]}')])
             script = Path(tmp) / "run.js"
             script.write_text(SCRIPT, encoding="utf-8")
             out = subprocess.run(["node", str(script), str(READER), str(path)], capture_output=True, text=True, timeout=60)
@@ -83,3 +85,6 @@ class Reader(unittest.TestCase):
         self.assertEqual(got["outside"], [])
         self.assertEqual(got["contains"], [True, False])
         self.assertEqual(got["code"], "not-pack")
+        self.assertEqual(got["vector"], {"type": "FeatureCollection", "legend": [1], "features": []})   # 점·모양 덩이 (wetherilli 434)
+        self.assertIsNone(got["noVector"])
+        self.assertEqual(got["hasVector"], [True, False])

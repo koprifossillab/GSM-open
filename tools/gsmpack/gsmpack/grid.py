@@ -75,6 +75,22 @@ def lonlat_to_3031(lon: float, lat: float) -> tuple:
     return (-rho * math.sin(lam), rho * math.cos(lam))
 
 
+def lonlat_to_25833(lon: float, lat: float) -> tuple:
+    """위경도 → UTM 33N(EPSG:25833, ETRS89 — GRS80 이라 WGS84 와 mm 안쪽으로 같다). 크뤼거 급수(Karney 2011, 여섯 차) —
+    `viewer/crs._tm_forward_raw` 와 같은 셈이다. NPI 의 스발바르 타일 격자가 이 투영이다 (wetherilli 434)"""
+    f = 1 / 298.257222101
+    n = f / (2 - f)
+    big_a = 6378137.0 / (1 + n) * (1 + n * n / 4 + n ** 4 / 64)
+    alpha = (n / 2 - 2 * n ** 2 / 3 + 5 * n ** 3 / 16, 13 * n ** 2 / 48 - 3 * n ** 3 / 5, 61 * n ** 3 / 240)
+    e = math.sqrt(f * (2 - f))
+    phi, lam = math.radians(lat), math.radians(lon - 15.0)
+    t = math.sinh(math.atanh(math.sin(phi)) - e * math.atanh(e * math.sin(phi)))
+    xi, eta = math.atan2(t, math.cos(lam)), math.atanh(math.sin(lam) / math.sqrt(1 + t * t))
+    x = eta + sum(a * math.cos(2 * j * xi) * math.sinh(2 * j * eta) for j, a in enumerate(alpha, 1))
+    y = xi + sum(a * math.sin(2 * j * xi) * math.cosh(2 * j * eta) for j, a in enumerate(alpha, 1))
+    return 500000.0 + 0.9996 * big_a * x, 0.9996 * big_a * y
+
+
 class Grid:
     """타일 격자 하나 — 원점(왼쪽 위)·줌 0 의 칸 한 변(미터)·범위·투영. 칸은 위에서 아래로 y(OpenLayers 의 tileCoord)."""
 
@@ -138,4 +154,8 @@ ANTARCTIC = Grid("EPSG:3031", (-EXTENT_3031, EXTENT_3031), 2 * EXTENT_3031,
 #: Esri 남극 위성 — 서비스의 `tileInfo`(원점·줌 0 이 238810.813354 m/px·256 px, `map.js` 의 `esriAntarcticLayer`)
 ESRI_ANTARCTIC = Grid("EPSG:3031@-33699550.99", (-33699550.99203, 33699551.01703), 256 * 238810.813354,
                       (-4524537.46, -4524537.92, 4524539.62, 4524539.16), lonlat_to_3031, tile=256)
-GRIDS = {g.name: g for g in (MERCATOR, ANTARCTIC, ESRI_ANTARCTIC)}
+#: 스발바르 탭의 NPI 배경(지형도·위성) — 서비스의 `tileInfo`(원점 (−5 120 900, 9 998 100), 256 px, 줌 0 이 21 674.71 m/px, `map.js` 의 `npiTiles`).
+#: 화면의 25833 에는 투영 범위가 없어(proj4 정의뿐) 화면이 붙이는 이름이 투영 코드 그대로다 (wetherilli 434)
+NPI_SVALBARD = Grid("EPSG:25833", (-5120900.0, 9998100.0), 256 * 21674.7100160867, (369976.0, 8221306.0, 878241.0, 9010719.0),
+                    lonlat_to_25833, tile=256)
+GRIDS = {g.name: g for g in (MERCATOR, ANTARCTIC, ESRI_ANTARCTIC, NPI_SVALBARD)}

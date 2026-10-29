@@ -1,0 +1,25 @@
+{
+ "_주석": "남극순환류 전선(Park & Durand 2019, SEANOE doi:10.17882/59800, CC BY 4.0) 씨앗이다 — 남극 탭. 원본 NetCDF 를 manage.py build_acc_fronts 가 data/acc_fronts.json 으로 굽고 저장소에 둔다. 해저 지형 레이어군들 곁에 두려고 차례를 17 로 한다 (wetherilli 429).",
+ "_뽑은날": "2026-10-29",
+ "_출처": "https://doi.org/10.17882/59800",
+ "_지역": "antarctica",
+ "_상류": "acc",
+ "_레이어군차례": 17,
+ "레이어군순서": [
+  "남빙양 (SEANOE)"
+ ],
+ "레이어": [
+  {
+   "name": "acc:fronts",
+   "title": "남극순환류 전선 (Park & Durand 2019)",
+   "group": "남빙양 (SEANOE)",
+   "abstract": "인공위성 고도계의 평균 역학 지형(CNES-CLS18)에서 뽑은 남극순환류의 전선 다섯 — 북쪽 경계·아남극 전선·극 전선·남쪽 ACC 전선·남쪽 경계. 시간 평균이라 한 날의 전선이 아니다",
+   "bbox": [
+    -180,
+    -75,
+    180,
+    -35
+   ]
+  }
+ ]
+}

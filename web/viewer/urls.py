@@ -111,6 +111,8 @@ urlpatterns = [
     # 세계 활성단층 GEM (faults.py, wetherilli 279)
     re_path(r"^earth/faults/tiles/(?P<z>\d{1,2})/(?P<x>\d{1,4})/(?P<y>\d{1,4})\.png$", views.earth_faults_tile, name="earth-faults-tile"),
     path("earth/faults/at/", views.earth_faults_at, name="earth-faults-at"),
+    # 남극순환류 전선 (accfronts.py, wetherilli 429)
+    re_path(r"^earth/accfronts/tiles/(?P<z>\d{1,2})/(?P<x>\d{1,4})/(?P<y>\d{1,4})\.png$", views.earth_accfronts_tile, name="earth-accfronts-tile"),
     # 세계 광상 USGS — 광종 칸마다 (minerals.py, wetherilli 276)
     re_path(r"^earth/minerals/tiles/(?P<band>min_[a-z]+)/(?P<z>\d{1,2})/(?P<x>\d{1,4})/(?P<y>\d{1,4})\.png$",
             views.earth_minerals_tile, name="earth-minerals-tile"),
@@ -184,13 +186,20 @@ urlpatterns = [
     # 남극 자력 이상 ADMAP-2 — 우리가 칠해 잘라 둔 3031 타일과 누른 자리의 nT (admap.py, wetherilli 262)
     re_path(r"^admap/(?P<z>\d{1,2})/(?P<x>\d{1,3})/(?P<y>\d{1,3})\.webp$", views.admap_tile, name="admap-tile"),
     path("admap/info/", views.admap_info, name="admap-info"),
+    # 칠해 잘라 둔 남극 격자 — 중력 AntGG2021·지열류 모형 (polargrid.py, wetherilli 431·432)
+    re_path(r"^polargrid/(?P<upstream>[a-z]+)/(?P<kind>\w+)/(?P<z>\d{1,2})/(?P<x>\d{1,3})/(?P<y>\d{1,3})\.webp$",
+            views.polargrid_tile, name="polargrid-tile"),
+    path("polargrid/info/", views.polargrid_info, name="polargrid-info"),
+    # 빙하 유속 ITS_LIVE — 우리가 칠해 둔 413 격자의 타일과 누른 자리의 m/년 (itslive.py, wetherilli 433)
+    re_path(r"^itslive/(?P<region>[a-z]+)/(?P<z>\d{1,2})/(?P<x>\d{1,3})/(?P<y>\d{1,3})\.webp$", views.itslive_tile, name="itslive-tile"),
+    path("itslive/info/", views.itslive_info, name="itslive-info"),
     # IBCSO 자료 출처(TID) 타일과 속성, 누른 자리의 수심·표고 (ibcso.py, devlog 070·071)
     re_path(r"^ibcso/tid/(?P<z>\d{1,2})/(?P<x>\d{1,3})/(?P<y>\d{1,3})\.png$",
             views.ibcso_tid_tile, name="ibcso-tid-tile"),
     path("ibcso/info/", views.ibcso_info, name="ibcso-info"),
     path("ibcso/depth/", views.ibcso_depth, name="ibcso-depth"),
     # 3D 가 쓰는 것 — 평면 격자(5179·5181·3031) 타일을 3857 로 다시 편다 (warp.py, 040)
-    re_path(r"^warp/(?P<upstream>peninsula|phyloserver|geomap|ibcso|admap)/(?P<layer>[\w-]+)/(?P<z>\d{1,2})/(?P<x>\d{1,6})/(?P<y>\d{1,6})(?P<retina>@2x)?\.png$",
+    re_path(r"^warp/(?P<upstream>peninsula|phyloserver|geomap|ibcso|admap|antgg|ghfgrid)/(?P<layer>[\w-]+)/(?P<z>\d{1,2})/(?P<x>\d{1,6})/(?P<y>\d{1,6})(?P<retina>@2x)?\.png$",
             views.warp_tile, name="warp-tile"),
     # 한반도 지질도 — phyloserver 의 카카오 격자 타일 (phyloserver.py, devlog 026)
     re_path(r"^phyloserver/(?P<layer>[\w-]+)/(?P<level>\d{1,2})/(?P<x>\d{1,5})_(?P<y>\d{1,5})\.png$",
@@ -205,6 +214,9 @@ urlpatterns = [
     # 겹쳐 그리는 GIBS 레이어 — MEaSUREs 빙하 속도, 서버가 담는다 (basemaps.py, wetherilli 413)
     re_path(r"^gibs/(?P<epsg>3413|3031)/(?P<layer>\w+)/(?P<z>\d{1,2})/(?P<y>\d{1,5})/(?P<x>\d{1,5})\.png$",
             views.gibs_overlay_tile, name="gibs-overlay-tile"),
+    # 날마다 영상 — 날짜가 경로에 든다 (wetherilli 427)
+    re_path(r"^gibs/(?P<epsg>3413|3031)/(?P<layer>\w+)/(?P<date>\d{4}-\d{2}-\d{2})/(?P<z>\d{1,2})/(?P<y>\d{1,5})/(?P<x>\d{1,5})"
+            r"\.(?P<ext>jpeg|png)$", views.gibs_daily_tile, name="gibs-daily-tile"),
     # NPI 스발바르 배경 타일 — 서버가 담는다 (basemaps.py, wetherilli 200)
     re_path(r"^npi/(?P<service>(?:NP|FKB)_\w+)/(?P<z>\d{1,2})/(?P<y>\d{1,6})/(?P<x>\d{1,6})$", views.npi_tile, name="npi-tile"),
     path("gebco/wms/", views.gebco_wms, name="gebco-wms"),

@@ -5,6 +5,17 @@
 - **왜 그렇게 했는지**는 `devlog/` — 괄호 안의 번호가 그 문서다
 - 날짜는 그 판을 붙인 날이다
 
+## v1.5.0 — 2026-10-29 · 극지 자료 3 차 — 날마다 위성 영상·GMRT 수심·남극순환류 전선·남극 중력·지열류 모형·ITS_LIVE 유속 · 정적 판과 묶음의 극지 소스 (wetherilli 427–434)
+
+- **GIBS 날마다 영상** — 남극·3413 탭(북극 묶음 포함) 배경에 VIIRS·MODIS 참색, MODIS 3-6-7(눈·얼음/구름), VIIRS 해빙 L3 를 날짜를 골라 본다. 기본은 영상마다 어제·사흘 전(UTC), 날짜는 공유 링크(`#d=`)에만 싣고 기억하지 않는다. 날짜가 캐시 열쇠에 들고 사흘 안쪽은 담지 않는다. 정적 판은 GIBS 를 곧장 부른다 (wetherilli 427)
+- **GMRT 극지 수심** — 새 문 `gmrt.py`. 남극(3031 곧장)·북극해(3995 를 화면이 옮겨 그린다)의 수심과 다중빔으로 잰 곳만의 판, 넷. 누른 자리의 수심은 GMRT PointServer. 스발바르 탭이 빌린다. CC BY 4.0, "not for navigation" (wetherilli 428)
+- **남극순환류 전선** — Park & Durand 2019(SEANOE, CC BY 4.0)의 전선 다섯을 남극 탭의 선과 온 지구의 타일로. NetCDF-3 를 numpy 없이 구워 저장소에 둔다(`build_acc_fronts`) (wetherilli 429)
+- **정적 판에 극지 점 레이어** — 빙저호·GTN-P 영구동토 시추공·킹조지섬 KGIS·남극 ASPA·남극순환류 전선을 굽는다. 파일이 없으면 그 레이어만 빠진다. RAISED 는 싣지 않는다(420 의 결정) (wetherilli 430)
+- **남극 중력 AntGG2021** — 부게·프리에어 5 km 를 칠한 3031 타일과 누른 자리의 mGal 로(`build_antgg`, 호스트). ADMAP 의 굽는 틀을 `polargrid.py` 로 떼어 함께 쓴다 (wetherilli 431)
+- **남극 지열류 모형 셋** — Stål 2021·Lösing & Ebbing 2021·Martos 2017 을 IHFC 측정 점과 같은 색 칸으로(`build_antarctic_ghf`). "모형이지 측정이 아니다" 를 설명 맨 앞에 (wetherilli 432)
+- **ITS_LIVE 빙하 유속** — 새 문 `itslive.py`. v2 COG 에서 고른 겹만 Range 로 받아 굽는다(`build_itslive`, 호스트) — 남극 480 m(장보고·세종 둘레 120 m)·그린란드 240 m·스발바르 120 m. GIBS 빙하 속도(413)와 같은 색이고 누르면 m/년 (wetherilli 433)
+- **극지 오프라인 묶음 소스** — 묶음 꼴에 `vectors` 칸(꼴의 판은 그대로). 세종 박스에 KGIS 일곱, 새 박스 `dasan`(콩스피오르)에 NPI 스발바르 배경(격자 EPSG:25833) (wetherilli 434)
+
 ## v1.4.1 — 2026-10-24 · 연구소 망의 TLS 를 파이썬 3.13+ 에서도 받는다 (wetherilli 426)
 
 - **호스트의 받기(`fetch_recent_quakes` 등)가 다시 돈다** — 연구소 망의 TLS 검사 장비가 다시 서명한 잎에는 AKI 확장이 없어, 파이썬 3.13+ 의 엄격 검사(`VERIFY_X509_STRICT`)가 `Missing Authority Key Identifier` 로 거절했다(호스트 venv 가 3.14). 믿는 꾸러미에 그 장비의 CA("KOPRI SSL")가 들 때만 그 검사 하나를 끈다 — 체인 검증·호스트 이름 검사는 그대로다. `viewer/tls.py` 가 urllib3 기본 컨텍스트에 걸어 모든 `requests` 가 탄다. `gsmpack` 의 `net.py` 도 같은 규칙. 3.12 의 웹 컨테이너는 바뀌는 것이 없다 (wetherilli 426)

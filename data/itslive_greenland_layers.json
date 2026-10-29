@@ -1,0 +1,25 @@
+{
+ "_주석": "NASA ITS_LIVE v2 빙하 유속 모자이크 씨앗이다 — 그린란드 탭. AWS 공개 자료 등록부의 COG(CC0)에서 필요한 몫만 Range 로 받아 호스트의 manage.py build_itslive 가 칠해 GSM_ITSLIVE_DIR/greenland/tiles 로 잘라 둔다. GIBS 의 MEaSUREs 빙하 속도(413)와 같은 격자·같은 색이라 나란히 둔다 (wetherilli 433).",
+ "_뽑은날": "2026-10-29",
+ "_출처": "https://registry.opendata.aws/its-live-data/",
+ "_지역": "greenland",
+ "_상류": "itslive",
+ "_레이어군차례": 26,
+ "레이어군순서": [
+  "빙하 흐름 (ITS_LIVE)"
+ ],
+ "레이어": [
+  {
+   "name": "itslive:greenland",
+   "title": "빙하 유속 (ITS_LIVE)",
+   "group": "빙하 흐름 (ITS_LIVE)",
+   "abstract": "빙하 윗면의 흐름 빠르기(m/년) — 위성 영상 쌍의 특징 추적을 여러 해 이은 합성(v2 정적 모자이크), 240 m. MEaSUREs 빙하 속도와 같은 색. 누르면 그 자리의 m/년",
+   "bbox": [
+    -75,
+    59,
+    -10,
+    84
+   ]
+  }
+ ]
+}

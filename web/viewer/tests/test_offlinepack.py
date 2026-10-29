@@ -153,6 +153,63 @@ class Grid(SimpleTestCase):
                 self.assertEqual(grid.tiles_for(bbox, z), [(x, y) for _, x, y in tilegrid.tiles_for(bbox, z)])
 
 
+class PolarSources(TestCase):
+    """극지 묶음의 소스 둘 — 다산의 NPI 배경(25833·FKB 3857)과 세종의 킹조지섬 KGIS 덩이 (wetherilli 434). 상류를 부르지 않는다"""
+    BOX = {"title": "다산", "region": "svalbard", "bbox": [11.85, 78.915, 11.98, 78.94],
+           "layers": {"basemap:npi_topo": [11, 12], "basemap:npi_fkb": [15, 15]},
+           "vectors": ["kgis:coastline", "kgis:nothing"], "budget_mb": 200}
+
+    def setUp(self):
+        self.tmp = tempfile.TemporaryDirectory()
+        self.settings = override_settings(TILE_CACHE_DIR=str(Path(self.tmp.name) / "tiles"))
+        self.settings.enable()
+        self.calls = []
+        from viewer import basemaps
+        p = mock.patch.object(basemaps, "npi_tile", lambda service, z, x, y: self.calls.append((service, z, x, y)) or png(size=256))
+        p.start()
+        self.addCleanup(p.stop)
+
+    def tearDown(self):
+        self.settings.disable()
+        self.tmp.cleanup()
+
+    def test_NPI_배경은_화면의_격자와_캐시_열쇠로(self):
+        sources, skipped = build_offline_pack.make_sources(self.BOX, bake.NoParts())
+        self.assertEqual(skipped, [])
+        topo, fkb = sources["basemap:npi_topo"], sources["basemap:npi_fkb"]
+        self.assertEqual((topo.grid.name, fkb.grid.name, topo.tile_size), ("EPSG:25833", "EPSG:3857", 256))
+        x, y = topo.tiles(self.BOX["bbox"], 12)[0]
+        self.assertIsNone(topo.cached(12, x, y))
+        topo.fetch(12, x, y)
+        self.assertEqual(self.calls, [("NP_Basiskart_Svalbard_WMTS_25833", 12, x, y)])
+        from viewer import tilecache
+        self.assertIsNotNone(tilecache.get(tilecache.key_text("npi-tile", f"NP_Basiskart_Svalbard_WMTS_25833/12/{y}/{x}")))  # 화면과 같은 열쇠
+        self.assertIsNotNone(topo.cached(12, x, y))
+
+    def test_FKB_는_정주지_네모만(self):
+        sources, _ = build_offline_pack.make_sources(dict(self.BOX, bbox=[11.3, 78.8, 12.7, 79.05]), bake.NoParts())
+        fkb = sources["basemap:npi_fkb"]
+        whole = grid.MERCATOR.tiles_for((11.3, 78.8, 12.7, 79.05), 15)
+        near = fkb.tiles((11.3, 78.8, 12.7, 79.05), 15)
+        self.assertTrue(0 < len(near) < len(whole) / 10)
+        self.assertEqual(fkb.tiles((20.0, 78.0, 20.5, 78.2), 15), [])          # 정주지 밖 박스는 하나도 묻지 않는다
+
+    def test_KGIS_덩이(self):
+        from viewer import kgis
+        body = {"type": "FeatureCollection", "style": "class", "legend": [{"code": "coast"}], "features": [
+            {"type": "Feature", "geometry": {"type": "LineString", "coordinates": [[11.9, 78.92], [11.95, 78.93]]}, "properties": {"code": "coast"}},
+            {"type": "Feature", "geometry": {"type": "Point", "coordinates": [-58.8, -62.2]}, "properties": {"code": "coast"}}]}
+        command = build_offline_pack.Command(stdout=io.StringIO(), stderr=io.StringIO())
+        with mock.patch.object(kgis, "available", lambda name: True), \
+                mock.patch.object(kgis, "body", lambda name, lang="ko": json.dumps(body).encode("utf-8")):
+            got = command.gather_vectors(self.BOX, self.BOX["bbox"])
+        self.assertEqual(list(got), ["kgis:coastline"])                       # 모르는 레이어는 건너뛴다
+        data, meta = got["kgis:coastline"]
+        data = json.loads(data)
+        self.assertEqual((len(data["features"]), data["legend"]), (1, [{"code": "coast"}]))   # 박스 밖 모양은 뺀다
+        self.assertEqual(meta["attribution"], kgis.ATTRIBUTION)
+
+
 class Page(TestCase):
     def setUp(self):
         self.tmp = tempfile.TemporaryDirectory()

@@ -41,6 +41,18 @@ class Grids(unittest.TestCase):
         cells = grid.ESRI_ANTARCTIC.tiles_for(SEJONG, 13)
         self.assertTrue(cells and all(0 <= x < 2 ** 13 and 0 <= y < 2 ** 13 for x, y in cells))
 
+    def test_NPI_스발바르_격자(self):
+        """NPI 지형도·위성의 25833 격자 — 다산기지 둘레의 칸, 그리고 UTM 33N 의 셈 (wetherilli 434)"""
+        x, y = grid.lonlat_to_25833(11.93, 78.925)                 # 뉘올레순 — viewer/crs.latlon_to_utm 과 mm 안
+        self.assertAlmostEqual(x, 434194.652, places=2)
+        self.assertAlmostEqual(y, 8763334.008, places=2)
+        self.assertEqual(grid.lonlat_to_25833(15.0, 0.0), (500000.0, 0.0))
+        cells = grid.NPI_SVALBARD.tiles_for((11.8, 78.9, 12.1, 78.95), 12)
+        self.assertEqual(len(cells), 30)
+        west, south, east, north = grid.NPI_SVALBARD.cell_extent(12, *cells[0])
+        self.assertAlmostEqual(east - west, 256 * 21674.7100160867 / 4096, places=6)
+        self.assertIn("EPSG:25833", grid.GRIDS)
+
     def test_세종은_3031_의_남서쪽이다(self):
         x, y = grid.lonlat_to_3031(-58.79, -62.22)
         self.assertLess(x, 0)

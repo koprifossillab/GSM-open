@@ -79,3 +79,43 @@ class Bake(SimpleTestCase):
         self.assertEqual(bake_static.Command._point_path("npolar:place_names"), "points/npolar/place_names.json")
         self.assertEqual(bake_static.Command._point_path("kopri:rock_antarctica", "en"),
                          "points/kopri/rock_antarctica.en.json")
+
+
+class PolarFiles(SimpleTestCase):
+    """받아 둔 파일에서 짓는 극지 덩이 (wetherilli 430) — 파일이 없으면 그 레이어만 빠지고 굽기는 돈다"""
+
+    def bake(self, **ready):
+        cmd = bake_static.Command(stdout=io.StringIO(), stderr=io.StringIO())
+        cmd.out, cmd.files = Path(tempfile.mkdtemp(prefix="gsm-bake-polar-")), []
+        with mock.patch("viewer.orda.available", return_value=ready.get("orda", False)), \
+             mock.patch("viewer.orda.body", side_effect=lambda n, lang: f'{{"n":"{n}","lang":"{lang}"}}'.encode()), \
+             mock.patch("viewer.gtnp.available", return_value=ready.get("gtnp", False)), \
+             mock.patch("viewer.gtnp.body", return_value=b'{"same":1}'), \
+             mock.patch("viewer.kgis.available", return_value=False), \
+             mock.patch("viewer.aadc.available", return_value=ready.get("aadc", False)), \
+             mock.patch("viewer.aadc.body", side_effect=ValueError("깨진 파일")):
+            report = cmd.bake_polar_files()
+        return cmd, report
+
+    def test_있는_것만_굽는다(self):
+        cmd, report = self.bake(gtnp=True)
+        self.assertIn("gtnp:boreholes_arctic", report)
+        self.assertIn("acc:fronts", report)                        # 저장소의 파일 — 늘 있다
+        self.assertNotIn("orda:lakes_antarctica", report)
+        self.assertIn("orda:lakes_antarctica 자료가 없어 건너뛴다", cmd.stderr.getvalue())
+
+    def test_말마다_다르면_두_벌(self):
+        cmd, report = self.bake(orda=True, gtnp=True)
+        self.assertTrue(report["orda:lakes_antarctica"]["lang"])
+        self.assertTrue((cmd.out / "points/orda/lakes_antarctica.en.json").is_file())
+        self.assertNotIn("lang", report["gtnp:boreholes_arctic"])
+        self.assertFalse((cmd.out / "points/gtnp/boreholes_arctic.en.json").exists())
+
+    def test_깨진_파일은_그_레이어만_뺀다(self):
+        cmd, report = self.bake(aadc=True)
+        self.assertNotIn("aadc:aspa", report)
+        self.assertIn("acc:fronts", report)
+
+    def test_RAISED_는_싣지_않는다(self):
+        """사본에 조건 칸이 없어 사람이 연구소 판에만 두기로 정했다 (wetherilli 420)"""
+        self.assertFalse(any(name.startswith("raised:") for name, _, _ in bake_static.Command.POLAR_FILES))

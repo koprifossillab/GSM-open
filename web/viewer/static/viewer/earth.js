@@ -236,6 +236,11 @@
     else CATALOG.splice(CATALOG.findIndex(function (g) { return g.layers[0].name === "crust"; }), 0,
                         { group: "활성단층 (GEM)", layers: [FAULT_LAYER] });
   }
+  // 남극순환류 전선 — Park & Durand 2019 의 다섯 전선(시간 평균). 저장소의 파일이 있을 때만. 지리 레이어군에 선다 (wetherilli 429)
+  if (THEN.accfronts && THEN.accfronts.length) {
+    CATALOG.filter(function (g) { return g.layers.some(function (l) { return l.name === "water"; }); })[0].layers.push(
+      { name: "accfronts", title: "남극순환류 전선", grid: "ll", legend: "accfronts", max: 7, src: "Park & Durand 2019, ACC fronts · SEANOE (CC BY 4.0)" });
+  }
   // 충돌구(오늘)·거대 화성암 지대(모든 연대 — 대륙 위의 것은 판 회전으로 그때의 자리에) (wetherilli 283)
   var IMP = THEN.impacts || {};
   if (IMP.impacts) {
@@ -276,7 +281,7 @@
     ["화석·고생태", ["fossils", "fossilheat"]],                      // 고생태 산지(Neotoma)의 자료형 칸은 `neo` 로 여기 선다
     ["그때의 지구", ["coast", "icemargins"]],
     ["움직이는 지구", ["wind", "cloud", "satcloud", "ocean", "recentquakes", "araon"]],
-    ["지리", ["names", "water", "ice", "glaciers"]],
+    ["지리", ["names", "water", "accfronts", "ice", "glaciers"]],
   ];
   CATALOG = (function (groups) {
     var theme = {};
@@ -309,6 +314,7 @@
     if (name === "impacts") return BASE + "earth/impacts/impacts/0/{z}/{x}/{y}.png" + vq("impacts");
     if (name === "lips") return BASE + "earth/impacts/lips/" + Math.round(paleoOn() ? age : 0) + "/{z}/{x}/{y}.png" + vq("impacts");
     if (name === "gemfaults") return BASE + "earth/faults/tiles/{z}/{x}/{y}.png" + vq("faults");
+    if (name === "accfronts") return BASE + "earth/accfronts/tiles/{z}/{x}/{y}.png" + vq("accfronts");
     if (LAYER[name] && LAYER[name].mineral) return BASE + "earth/minerals/tiles/" + name + "/{z}/{x}/{y}.png" + vq("minerals");
     if (name === "stress") return BASE + "earth/stress/tiles/{z}/{x}/{y}.png" + vq("stress");
     if (name === "tbound" || name === "tprov") return BASE + "earth/tectonics/" + name + "/{z}/{x}/{y}.png" + vq("tectonics");
@@ -347,6 +353,7 @@
   var FAULT_CREDIT = "GEM Global Active Faults (Styron & Pagani 2020) · CC BY-SA 4.0";
   var IMPACT_CREDIT = "Wikidata (CC0)", LIP_CREDIT = "Johansson et al. 2018 · EarthByte GPlates 2.3 (CC BY 4.0)";
   var RGI_CREDIT = "Randolph Glacier Inventory 7.0 (RGI Consortium 2023, CC BY 4.0)";
+  var ACC_CREDIT = "Park & Durand 2019, ACC fronts · SEANOE (CC BY 4.0)";
   /** 레이어 줄·카드의 출처 — `src`, 없으면 저작자 표시(자료에서 오는 칸 — 고생태·광상). 곁말(`note`)은 옮긴다 (wetherilli 360) */
   function srcOf(l) {
     var s = l.src || creditOf(l.name) || "";
@@ -357,6 +364,7 @@
     if (name === "impacts") return IMPACT_CREDIT;
     if (name === "lips") return LIP_CREDIT;
     if (name === "gemfaults") return FAULT_CREDIT;
+    if (name === "accfronts") return ACC_CREDIT;
     if (LAYER[name] && LAYER[name].mineral) return MIN_CREDIT;
     if (LAYER[name] && LAYER[name].neo) return NEO_CREDIT;
     return { geology: GEO_CREDIT, plates: PALEO_CREDIT, coast: COAST_CREDIT, fossils: PBDB_CREDIT, fossilheat: PBDB_CREDIT, volcanoes: GVP_CREDIT, pleistocene: GVP_CREDIT, quake6: QUAKE_CREDIT, quake55: QUAKE_CREDIT, quake5: QUAKE_CREDIT, recentquakes: QUAKE_CREDIT, crust: CRUST_CREDIT, stress: STRESS_CREDIT, tbound: TECT_CREDIT, tprov: TECT_CREDIT, glim: GLIM_CREDIT, heatflow: HEATFLOW_CREDIT, seaage: SEAAGE_CREDIT, sediment: SEDIMENT_CREDIT,
@@ -2514,6 +2522,13 @@
     if (kind === "fossilheat") {
       legends[kind] = '<li class="empty">' + esc(T("1° 칸의 산지 수(로그) — 조사가 몰린 곳이 진하다")) + "</li>" +
         (THEN.fossildensity || []).map(function (row) {
+          return '<li><span class="chip" style="background:' + esc(row.color) + '"></span>' + esc(row.name) + "</li>";
+        }).join("");
+      return Promise.resolve(legends[kind]);
+    }
+    if (kind === "accfronts") {
+      legends[kind] = '<li class="empty">' + esc(T("평균 역학 지형에서 뽑은 시간 평균의 자리 — 한 날의 전선이 아니다")) + "</li>" +
+        (THEN.accfronts || []).map(function (row) {
           return '<li><span class="chip" style="background:' + esc(row.color) + '"></span>' + esc(row.name) + "</li>";
         }).join("");
       return Promise.resolve(legends[kind]);
