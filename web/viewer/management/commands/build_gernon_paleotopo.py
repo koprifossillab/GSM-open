@@ -8,7 +8,9 @@ NAS `sources/antarctic_papers/` 에 두고 부른다. Pillow 로 읽어 numpy �
 
     manage.py build_gernon_paleotopo /nfs/temp-share/GSM/sources/antarctic_papers/gernon2026_zenodo_19205651_GIS_files.zip
 
-내는 연대 열 개(`gernontopo.AGES`)만 굽는다. 결과는 `<GSM_GERNON_PALEOTOPO_DIR>/<연대>/` — 운영은 `/srv/GSM/db/gernon_paleotopo/`.
+34 연대(`gernontopo.AGES`, 100–34 Ma, 2 Myr)를 다 굽는다(wetherilli 439). 결과는 `<GSM_GERNON_PALEOTOPO_DIR>/<연대>/` — 운영은
+`/srv/GSM/db/gernon_paleotopo/`. 같은 zip 에서 **등고선**(`contours.json`, 2.8 MB 남짓 — 저장소에 두기엔 커서 여기로 옮겼다)도 함께 굽는다.
+`--contours-only` 면 등고선만 (몇십 초).
 """
 import time
 import zipfile
@@ -16,7 +18,7 @@ from pathlib import Path
 
 from django.core.management.base import BaseCommand, CommandError
 
-from viewer import gernontopo, polargrid
+from viewer import antpapers, gernontopo, polargrid
 
 
 class Command(BaseCommand):
@@ -25,6 +27,7 @@ class Command(BaseCommand):
     def add_arguments(self, parser):
         parser.add_argument("zip", help="Zenodo 19205651 의 GIS_files zip")
         parser.add_argument("--out", default=None, help="기본: GSM_GERNON_PALEOTOPO_DIR (연대마다 하위 폴더)")
+        parser.add_argument("--contours-only", action="store_true", help="래스터는 두고 등고선(contours.json)만 다시 굽는다")
 
     def handle(self, *args, **o):
         path = Path(o["zip"])
@@ -38,6 +41,18 @@ class Command(BaseCommand):
         if missing:
             self.stderr.write(f"없는 연대 — {', '.join(map(str, missing))} Ma")
         with zipfile.ZipFile(path) as z:
+            started = time.monotonic()
+            out = Path(o["out"]) / "contours.json" if o["out"] else None
+            try:
+                counts = antpapers.build_contours(lambda age: z.read(found[age]), sorted(found, reverse=True), out)
+            except (OSError, ValueError, antpapers.AntPapersError) as exc:
+                raise CommandError(f"등고선: {exc}") from exc
+            out = out or antpapers.contours_path()
+            self.stdout.write(self.style.SUCCESS(
+                f"등고선 {len(counts)} 연대, 선 {sum(counts.values()):,} — {out} {out.stat().st_size // 1024} KB "
+                f"({time.monotonic() - started:.0f} 초)"))
+            if o["contours_only"]:
+                return
             for age in sorted(found, reverse=True):
                 started = time.monotonic()
                 spec = gernontopo.SETS[f"{gernontopo.UPSTREAM}:{gernontopo.kind(age)}"]

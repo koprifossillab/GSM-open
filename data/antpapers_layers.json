@@ -1,5 +1,5 @@
 {
- "_주석": "남극 논문 두 편(Armadillo 외 2026 · Gernon 외 2026)의 벡터 레이어 씨앗이다 — 남극 탭. 사람이 발표에서 논문 그림을 GSM 위에서 설명하려고 개인 레이어 대신 카탈로그에 늘 보이게 했다. 원본 zip 을 manage.py build_antarctic_papers 가 data/antarctic_papers.json 으로 굽고 저장소에 둔다 (wetherilli 435).",
+ "_주석": "남극 논문 두 편(Armadillo 외 2026 · Gernon 외 2026)의 벡터 레이어 씨앗이다 — 남극 탭. 사람이 발표에서 논문 그림을 GSM 위에서 설명하려고 개인 레이어 대신 카탈로그에 늘 보이게 했다. 원본 zip 을 manage.py build_antarctic_papers 가 data/antarctic_papers.json 으로 굽고 저장소에 둔다 (wetherilli 435). 고지형 등고선은 34 연대를 레이어 하나로 묶고 저장소 밖(build_gernon_paleotopo)으로 옮겼다, Fig. 4A 빙상 범위를 더했다 — 둘 다 연대 막대를 따른다 (wetherilli 439·440).",
  "_뽑은날": "2026-11-09",
  "_출처": "https://doi.org/10.6084/m9.figshare.25450219",
  "_지역": "antarctica",
@@ -7,7 +7,7 @@
  "_레이어군차례": 18,
  "레이어군순서": [
   "동남극 부채꼴 분지 (Armadillo 2026)",
-  "동남극 고지형 등고선 (Gernon 2026)"
+  "동남극 고지형 (Gernon 2026)"
  ],
  "레이어": [
   {
@@ -83,10 +83,10 @@
    ]
   },
   {
-   "name": "antpapers:gernon_100ma",
-   "title": "동남극 고지형 100 Ma (Gernon 2026)",
-   "group": "동남극 고지형 등고선 (Gernon 2026)",
-   "abstract": "Gernon 외 2026(Science 392:eadz6758, doi:10.1126/science.adz6758)의 FastScape 모형이 되살린 100 Ma 의 퀸모드랜드–감부르체프 일대 고도(5 km 격자, 34 Ma 바탕은 Paxman 외 2019)를 우리가 등고 0·1 000·1 500·2 000 m 로 뽑았다. 1 500 m 가 본문이 말하는 빙모가 생기는 문턱이다. 자료 Zenodo 19205651, CC BY 4.0(그림은 아니다). 모형이지 관측이 아니다. 좌표는 오늘의 자리다 — 판을 돌리지 않았다",
+   "name": "antpapers:gernon_contours",
+   "title": "동남극 고지형 등고선 (100–34 Ma)",
+   "group": "동남극 고지형 (Gernon 2026)",
+   "abstract": "Gernon 외 2026(Science 392:eadz6758, doi:10.1126/science.adz6758)의 FastScape 모형이 되살린 퀸모드랜드–감부르체프 일대 고도(5 km 격자, 100–34 Ma 2 Myr 간격 34 장, 34 Ma 바탕은 Paxman 외 2019)를 우리가 등고 0·1 000·1 500·2 000 m 로 뽑았다. 연대는 지도 밑의 연대 막대로 고른다. 1 500 m 가 본문이 말하는 빙모가 생기는 문턱이다. 자료 Zenodo 19205651, CC BY 4.0(그림은 아니다). 모형이지 관측이 아니다. 좌표는 오늘의 자리다 — 판을 돌리지 않았다",
    "bbox": [
     -180,
     -90,
@@ -95,111 +95,15 @@
    ]
   },
   {
-   "name": "antpapers:gernon_90ma",
-   "title": "동남극 고지형 90 Ma (Gernon 2026)",
-   "group": "동남극 고지형 등고선 (Gernon 2026)",
-   "abstract": "Gernon 외 2026(Science 392:eadz6758, doi:10.1126/science.adz6758)의 FastScape 모형이 되살린 90 Ma 의 퀸모드랜드–감부르체프 일대 고도(5 km 격자, 34 Ma 바탕은 Paxman 외 2019)를 우리가 등고 0·1 000·1 500·2 000 m 로 뽑았다. 1 500 m 가 본문이 말하는 빙모가 생기는 문턱이다. 자료 Zenodo 19205651, CC BY 4.0(그림은 아니다). 모형이지 관측이 아니다. 좌표는 오늘의 자리다 — 판을 돌리지 않았다",
+   "name": "antpapers:gernon_ice",
+   "title": "동남극 빙상 범위 (Fig. 4A, PISM)",
+   "group": "동남극 고지형 (Gernon 2026)",
+   "abstract": "Gernon 외 2026(Science 392:eadz6758, doi:10.1126/science.adz6758) Fig. 4A 의 PISM 빙상 모형이 그린 빙상 범위 — 100–34 Ma 의 6 Myr 간격 열두 장을 그림에서 땄다. 연대 막대가 고른 연대에서 3 Myr 안의 가장 가까운 장을 내고, 밖이면 비운다. 모형이지 관측이 아니다. 좌표는 오늘의 자리다 — 판을 돌리지 않았다",
    "bbox": [
     -180,
     -90,
     180,
-    -65.9
-   ]
-  },
-  {
-   "name": "antpapers:gernon_80ma",
-   "title": "동남극 고지형 80 Ma (Gernon 2026)",
-   "group": "동남극 고지형 등고선 (Gernon 2026)",
-   "abstract": "Gernon 외 2026(Science 392:eadz6758, doi:10.1126/science.adz6758)의 FastScape 모형이 되살린 80 Ma 의 퀸모드랜드–감부르체프 일대 고도(5 km 격자, 34 Ma 바탕은 Paxman 외 2019)를 우리가 등고 0·1 000·1 500·2 000 m 로 뽑았다. 1 500 m 가 본문이 말하는 빙모가 생기는 문턱이다. 자료 Zenodo 19205651, CC BY 4.0(그림은 아니다). 모형이지 관측이 아니다. 좌표는 오늘의 자리다 — 판을 돌리지 않았다",
-   "bbox": [
-    -180,
-    -90,
-    180,
-    -65.9
-   ]
-  },
-  {
-   "name": "antpapers:gernon_70ma",
-   "title": "동남극 고지형 70 Ma (Gernon 2026)",
-   "group": "동남극 고지형 등고선 (Gernon 2026)",
-   "abstract": "Gernon 외 2026(Science 392:eadz6758, doi:10.1126/science.adz6758)의 FastScape 모형이 되살린 70 Ma 의 퀸모드랜드–감부르체프 일대 고도(5 km 격자, 34 Ma 바탕은 Paxman 외 2019)를 우리가 등고 0·1 000·1 500·2 000 m 로 뽑았다. 1 500 m 가 본문이 말하는 빙모가 생기는 문턱이다. 자료 Zenodo 19205651, CC BY 4.0(그림은 아니다). 모형이지 관측이 아니다. 좌표는 오늘의 자리다 — 판을 돌리지 않았다",
-   "bbox": [
-    -180,
-    -90,
-    180,
-    -65.9
-   ]
-  },
-  {
-   "name": "antpapers:gernon_60ma",
-   "title": "동남극 고지형 60 Ma (Gernon 2026)",
-   "group": "동남극 고지형 등고선 (Gernon 2026)",
-   "abstract": "Gernon 외 2026(Science 392:eadz6758, doi:10.1126/science.adz6758)의 FastScape 모형이 되살린 60 Ma 의 퀸모드랜드–감부르체프 일대 고도(5 km 격자, 34 Ma 바탕은 Paxman 외 2019)를 우리가 등고 0·1 000·1 500·2 000 m 로 뽑았다. 1 500 m 가 본문이 말하는 빙모가 생기는 문턱이다. 자료 Zenodo 19205651, CC BY 4.0(그림은 아니다). 모형이지 관측이 아니다. 좌표는 오늘의 자리다 — 판을 돌리지 않았다",
-   "bbox": [
-    -180,
-    -90,
-    180,
-    -65.9
-   ]
-  },
-  {
-   "name": "antpapers:gernon_50ma",
-   "title": "동남극 고지형 50 Ma (Gernon 2026)",
-   "group": "동남극 고지형 등고선 (Gernon 2026)",
-   "abstract": "Gernon 외 2026(Science 392:eadz6758, doi:10.1126/science.adz6758)의 FastScape 모형이 되살린 50 Ma 의 퀸모드랜드–감부르체프 일대 고도(5 km 격자, 34 Ma 바탕은 Paxman 외 2019)를 우리가 등고 0·1 000·1 500·2 000 m 로 뽑았다. 1 500 m 가 본문이 말하는 빙모가 생기는 문턱이다. 자료 Zenodo 19205651, CC BY 4.0(그림은 아니다). 모형이지 관측이 아니다. 좌표는 오늘의 자리다 — 판을 돌리지 않았다",
-   "bbox": [
-    -180,
-    -90,
-    180,
-    -65.9
-   ]
-  },
-  {
-   "name": "antpapers:gernon_44ma",
-   "title": "동남극 고지형 44 Ma (Gernon 2026)",
-   "group": "동남극 고지형 등고선 (Gernon 2026)",
-   "abstract": "Gernon 외 2026(Science 392:eadz6758, doi:10.1126/science.adz6758)의 FastScape 모형이 되살린 44 Ma 의 퀸모드랜드–감부르체프 일대 고도(5 km 격자, 34 Ma 바탕은 Paxman 외 2019)를 우리가 등고 0·1 000·1 500·2 000 m 로 뽑았다. 1 500 m 가 본문이 말하는 빙모가 생기는 문턱이다. 자료 Zenodo 19205651, CC BY 4.0(그림은 아니다). 모형이지 관측이 아니다. 좌표는 오늘의 자리다 — 판을 돌리지 않았다",
-   "bbox": [
-    -180,
-    -90,
-    180,
-    -65.9
-   ]
-  },
-  {
-   "name": "antpapers:gernon_40ma",
-   "title": "동남극 고지형 40 Ma (Gernon 2026)",
-   "group": "동남극 고지형 등고선 (Gernon 2026)",
-   "abstract": "Gernon 외 2026(Science 392:eadz6758, doi:10.1126/science.adz6758)의 FastScape 모형이 되살린 40 Ma 의 퀸모드랜드–감부르체프 일대 고도(5 km 격자, 34 Ma 바탕은 Paxman 외 2019)를 우리가 등고 0·1 000·1 500·2 000 m 로 뽑았다. 1 500 m 가 본문이 말하는 빙모가 생기는 문턱이다. 자료 Zenodo 19205651, CC BY 4.0(그림은 아니다). 모형이지 관측이 아니다. 좌표는 오늘의 자리다 — 판을 돌리지 않았다",
-   "bbox": [
-    -180,
-    -90,
-    180,
-    -65.9
-   ]
-  },
-  {
-   "name": "antpapers:gernon_36ma",
-   "title": "동남극 고지형 36 Ma (Gernon 2026)",
-   "group": "동남극 고지형 등고선 (Gernon 2026)",
-   "abstract": "Gernon 외 2026(Science 392:eadz6758, doi:10.1126/science.adz6758)의 FastScape 모형이 되살린 36 Ma 의 퀸모드랜드–감부르체프 일대 고도(5 km 격자, 34 Ma 바탕은 Paxman 외 2019)를 우리가 등고 0·1 000·1 500·2 000 m 로 뽑았다. 1 500 m 가 본문이 말하는 빙모가 생기는 문턱이다. 자료 Zenodo 19205651, CC BY 4.0(그림은 아니다). 모형이지 관측이 아니다. 좌표는 오늘의 자리다 — 판을 돌리지 않았다",
-   "bbox": [
-    -180,
-    -90,
-    180,
-    -65.9
-   ]
-  },
-  {
-   "name": "antpapers:gernon_34ma",
-   "title": "동남극 고지형 34 Ma (Gernon 2026)",
-   "group": "동남극 고지형 등고선 (Gernon 2026)",
-   "abstract": "Gernon 외 2026(Science 392:eadz6758, doi:10.1126/science.adz6758)의 FastScape 모형이 되살린 34 Ma 의 퀸모드랜드–감부르체프 일대 고도(5 km 격자, 34 Ma 바탕은 Paxman 외 2019)를 우리가 등고 0·1 000·1 500·2 000 m 로 뽑았다. 1 500 m 가 본문이 말하는 빙모가 생기는 문턱이다. 자료 Zenodo 19205651, CC BY 4.0(그림은 아니다). 모형이지 관측이 아니다. 좌표는 오늘의 자리다 — 판을 돌리지 않았다",
-   "bbox": [
-    -180,
-    -90,
-    180,
-    -65.9
+    -60
    ]
   }
  ]

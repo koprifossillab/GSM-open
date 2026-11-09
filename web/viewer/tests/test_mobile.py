@@ -732,13 +732,67 @@ class RegionCompare(PhoneBase):
         page.evaluate("document.querySelector('[data-cmp=\"split\"]').click()")
         page.wait_for_timeout(800)
         names = page.evaluate("[...document.querySelectorAll('#compare-pick option')].map(o => o.value)")
-        self.assertIn("antpapers:gernon_50ma", names)
-        page.evaluate("const p = document.querySelector('#compare-pick'); p.value = 'antpapers:gernon_50ma'; "
+        self.assertIn("antpapers:gernon_contours", names)
+        page.evaluate("const p = document.querySelector('#compare-pick'); p.value = 'antpapers:gernon_contours'; "
                       "p.dispatchEvent(new Event('change'))")   # 휴대폰에서는 패널이 접혀 고르개가 안 보인다
         page.wait_for_timeout(1500)
-        self.assertIn("50", page.locator("#split-right").inner_text())
+        self.assertIn("등고선", page.locator("#split-right").inner_text())
+        # 오른쪽만 연대를 따르는 레이어여도 연대 막대가 뜬다 (wetherilli 439)
+        self.assertTrue(page.locator("#agebar").is_visible())
         self.assertEqual(errors, [])
         page.context.close()
+
+
+class RegionAgebar(PhoneBase):
+    """남극 탭의 연대 막대 (wetherilli 439) — 연대를 따르는 레이어가 켜졌을 때만 뜨고, 넘기면 타일·덩이 주소의 연대가 바뀌고,
+    ▶ 가 저절로 넘긴다. 390 px 에서 넘치지 않고 손잡이·툴바·축척 막대·좌표 막대와 겹치지 않는다"""
+
+    BOX = RegionCompare.BOX
+    assertApart = RegionCompare.assertApart
+
+    def test_연대_막대(self):
+        call_command("seed_catalog", stdout=open(os.devnull, "w"))
+        page, errors = self.open("map/?region=antarctica")
+        self.assertFalse(page.locator("#agebar").is_visible())                      # 연대를 따르는 레이어가 없다
+        page.evaluate("localStorage.setItem('gsm.layers.antarctica', JSON.stringify(["
+                      "{name: 'antpapers:gernon_contours', opacity: 1}, {name: 'gernontopo:paleotopo', opacity: 0.8}])); "
+                      "localStorage.setItem('gsm.paleoage', '60')")
+        asked = []
+        page.on("request", lambda r: asked.append(r.url) if "gernon" in r.url else None)
+        page.goto(self.live_server_url + "/GSM/map/?region=antarctica", wait_until="load")    # 주소의 `?region=` 은 열 때 지워진다
+        page.wait_for_timeout(1500)
+        self.assertTrue(page.locator("#agebar").is_visible())
+        self.assertEqual(page.locator("#agebar-age").inner_text(), "60 Ma")
+        self.assertTrue(any("/polargrid/gernontopo/60/" in u for u in asked), asked[:5])
+        self.assertTrue(any("gernon_contours" in u and "age=60" in u for u in asked), asked[:5])
+
+        bar = page.evaluate(self.BOX, "#agebar")
+        self.assertLessEqual(bar["right"], 391)
+        self.assertGreaterEqual(bar["left"], -1)
+        for sel in ("#panel-handle", "#toolbar .tool-col", "#scalebar", "#coordbar"):
+            self.assertApart(bar, page.evaluate(self.BOX, sel), f"연대 막대와 {sel}")
+        self.assertLessEqual(page.evaluate("document.documentElement.scrollWidth"), 390)
+
+        # 한 칸 — 오늘 쪽으로 2 Myr. 타일과 덩이가 새 연대로
+        asked.clear()
+        page.tap("#agebar-younger")
+        page.wait_for_timeout(800)
+        self.assertEqual(page.locator("#agebar-age").inner_text(), "58 Ma")
+        self.assertTrue(any("/polargrid/gernontopo/58/" in u for u in asked), asked[:5])
+        self.assertTrue(any("gernon_contours" in u and "age=58" in u for u in asked), asked[:5])
+        self.assertEqual(page.evaluate("localStorage.getItem('gsm.paleoage')"), "58")
+
+        # ▶ — 저절로 넘긴다. 다시 누르면 멈춘다
+        page.tap("#agebar-play")
+        page.wait_for_timeout(2100)
+        self.assertEqual(page.locator("#agebar-play").get_attribute("aria-pressed"), "true")
+        page.tap("#agebar-play")
+        played = page.locator("#agebar-age").inner_text()
+        self.assertIn(played, ("56 Ma", "54 Ma", "52 Ma"))
+        page.wait_for_timeout(1200)
+        self.assertEqual(page.locator("#agebar-age").inner_text(), played)                 # 멈췄다
+        self.assertEqual(page.locator("#agebar-play").get_attribute("aria-pressed"), "false")
+        self.assertEqual(errors, [])
 
 
 class Phone3D(PhoneBase):

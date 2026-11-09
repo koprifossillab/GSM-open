@@ -506,6 +506,8 @@
 | wetherilli 436 | 2026-11-09 | [동남극 고지형 Gernon 2026 — 열 연대를 고도 단계로 칠한 남극 탭 레이어](20261109_wetherilli_436_gernon_paleotopo.md) |
 | wetherilli 437 | 2026-11-09 | [EAFBP Fig. 2a 의 Fan·Fau 해석선을 PDF 벡터에서 땄다](20261109_wetherilli_437_eafbp_fig2a_digitize.md) |
 | wetherilli 438 | 2026-11-09 | [고지형 등고선의 색을 고도마다 갈랐다](20261109_wetherilli_438_contour_colors.md) |
+| wetherilli 439 | 2026-11-09 | [남극 탭에 Gernon 고지형의 연대 막대 — 가벼운 판](20261109_wetherilli_439_antarctic_timeline.md) |
+| wetherilli 440 | 2026-11-09 | [Gernon 2026 Fig. 4A 의 빙상 범위를 그림에서 땄다](20261109_wetherilli_440_gernon_fig4a_ice_extent.md) |
 | koprifossillab P01 | 2026-09-30 | [백업 — WegenersDream 의 틀로, 바뀌는 빠르기에 따라 넷으로 (계획)](20260930_koprifossillab_P01_backup_plan.md) |
 | koprifossillab 001 | 2026-09-30 | [매주 월요일 새벽: 운영 자료 백업과 KPDC 목록 갱신](20260930_koprifossillab_001_weekly_backup.md) |
 | koprifossillab 002 | 2026-09-30 | [`/healthz/` — 판·DB·백업 상태를 한 장으로](20260930_koprifossillab_002_healthz.md) |

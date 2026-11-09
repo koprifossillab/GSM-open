@@ -64,8 +64,9 @@ class Serve(TestCase):
         from django.conf import settings
         seed = json.loads(settings.ANTPAPERS_CATALOG_SEED.read_text(encoding="utf-8"))
         names = [r["name"] for r in seed["레이어"]]
-        self.assertEqual(len(names), 16)
-        self.assertTrue(all(antpapers.available(n) for n in names))
+        self.assertEqual(len(names), 8)
+        # 등고선은 저장소 밖(`build_gernon_paleotopo`)이다 (wetherilli 439)
+        self.assertTrue(all(antpapers.available(n) for n in names if n != antpapers.CONTOURS))
 
     def test_분지_이름표(self):
         body = json.loads(self.client.get("/GSM/points/?layer=antpapers:eafbp_basins").content)
@@ -78,14 +79,43 @@ class Serve(TestCase):
         self.assertEqual([f["geometry"]["coordinates"] for f in body["features"]][0], [129.9, -86.4])
         self.assertEqual(body["legend"][0]["shape"], "star")
 
-    def test_고지형_등고선(self):
-        body = json.loads(self.client.get("/GSM/points/?layer=antpapers:gernon_34ma").content)
-        codes = {f["properties"]["code"] for f in body["features"]}
-        self.assertEqual(codes, {"0", "1000", "1500", "2000"})
-        self.assertEqual(body["features"][0]["properties"]["age"], "34 Ma")
-        self.client.cookies["gsm_lang"] = "en"
-        en = json.loads(self.client.get("/GSM/points/?layer=antpapers:gernon_34ma").content)
-        self.assertIn("1,500 m — threshold for ice-cap growth", [r["label"] for r in en["legend"]])
+    def test_고지형_등고선은_연대를_따른다(self):
+        with tempfile.TemporaryDirectory() as tmp, override_settings(GERNON_PALEOTOPO_DIR=tmp):
+            url = "/GSM/points/?layer=antpapers:gernon_contours&age=34"
+            self.assertEqual(self.client.get(url).status_code, 503)                         # 굽지 않았다
+            line = [[0, -70], [1, -71]]
+            (Path(tmp) / "contours.json").write_text(json.dumps({"ages": {
+                "34": [[code, {}, "L", line] for code in ("0", "1000", "1500", "2000")],
+                "36": [["0", {}, "L", line]]}}), encoding="utf-8")
+            body = json.loads(self.client.get(url).content)
+            self.assertEqual({f["properties"]["code"] for f in body["features"]}, {"0", "1000", "1500", "2000"})
+            self.assertEqual(body["features"][0]["properties"]["age"], "34 Ma")
+            self.assertEqual(len(json.loads(self.client.get(url.replace("34", "36")).content)["features"]), 1)
+            self.assertEqual(self.client.get("/GSM/points/?layer=antpapers:gernon_contours").status_code, 400)   # 연대가 없다
+            self.assertEqual(self.client.get(url.replace("34", "35")).status_code, 400)                          # 없는 연대
+            self.client.cookies["gsm_lang"] = "en"
+            en = json.loads(self.client.get(url).content)
+            self.assertIn("1,500 m — threshold for ice-cap growth", [r["label"] for r in en["legend"]])
+
+    def test_빙상_범위는_3_Myr_안의_가장_가까운_장(self):
+        self.assertEqual(antpapers.ice_age({100, 94, 88}, 96), 94)
+        self.assertEqual(antpapers.ice_age({100, 94, 88}, 97), 100)                   # 같은 거리면 옛것
+        self.assertIsNone(antpapers.ice_age({100, 94}, 80))
+        body = json.loads(self.client.get("/GSM/points/?layer=antpapers:gernon_ice&age=60").content)
+        self.assertEqual({f["properties"]["age"] for f in body["features"]}, {"58 Ma"})
+        self.assertEqual(body["features"][0]["geometry"]["type"], "MultiPolygon")
+        self.assertEqual(body["legend"][0]["shape"], "area")
+
+    def test_fig4a(self):
+        ring = [[30, -80], [40, -80], [40, -75], [30, -80]]
+        doc = {"features": [{"geometry": {"type": "MultiPolygon", "coordinates": [[ring]]},
+                             "properties": {"age_ma": 52, "name": "52", "area_km2": 1234.4, "note": "근사"}},
+                            {"geometry": {"type": "Polygon", "coordinates": [ring]}, "properties": {"age_ma": 46.0}}]}
+        rows = antpapers.convert_fig4a(json.dumps(doc).encode())[antpapers.ICE]
+        self.assertEqual([r[1]["age"] for r in rows], [52, 46])
+        self.assertEqual(rows[0][1]["area"], 1234)
+        with self.assertRaises(antpapers.AntPapersError):
+            antpapers.convert_fig4a(b'{"features": [{"geometry": null, "properties": {}}]}')
 
     def test_파일이_없으면_503(self):
         with tempfile.TemporaryDirectory() as tmp, override_settings(ANTARCTIC_PAPERS_FILE=Path(tmp) / "none.json"):

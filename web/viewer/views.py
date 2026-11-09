@@ -3198,11 +3198,13 @@ def _point_fields(layer) -> dict:
                 "attribution": orda.CREDIT, "version": orda.version()}
     if layer.upstream == "antpapers" and antpapers.knows(layer.name):
         # 남극 논문 두 편(wetherilli 435) — 저장소의 파일을 레이어마다 한 덩이로. 갈래(`class`)의 색은 서버의 표
+        # 고지형 등고선·빙상 범위는 연대를 따른다 — `ages` 를 받은 화면이 연대 막대를 띄우고 `&age=` 로 부른다 (wetherilli 439)
         return {"kind": "points", "queryable": False, "style": "class", "source": antpapers.ARMADILLO_DATA
                 if layer.name.startswith("antpapers:eafbp") else antpapers.GERNON_DATA,
                 "sourceLabel": str(msg("원본 자료 — Armadillo 외 2026 (figshare)") if layer.name.startswith("antpapers:eafbp")
                                    else msg("원본 자료 — Gernon 외 2026 (Zenodo)")),
-                "attribution": antpapers.CREDIT, "version": antpapers.version()}
+                "attribution": antpapers.CREDIT, "version": antpapers.version(layer.name),
+                **({"ages": list(antpapers.TIMED[layer.name])} if layer.name in antpapers.TIMED else {})}
     if layer.upstream == "acc" and accfronts.knows(layer.name):
         # 남극순환류 전선(wetherilli 429) — 저장소의 파일을 선 한 덩이로. 전선이 갈래(`class`)이고 색은 서버의 표
         return {"kind": "points", "queryable": False, "style": "class", "source": accfronts.DOI,
@@ -3717,6 +3719,13 @@ def _layer_extra_base(layer, lang: str = "ko") -> dict:
         return {"attribution": admap.ATTRIBUTION, "projection": "EPSG:3031", "maxZoom": admap.MAX_ZOOM,
                 "tiles": _versioned_url("admap/{z}/{x}/{y}.webp", _dir_version(admap.tiles_dir())),
                 "classLegend": admap.legend(lang)}
+    if layer.name == gernontopo.LAYER:
+        # 동남극 고지형(wetherilli 436) — 연대 34 장을 한 레이어로. 타일 주소의 `{age}` 를 화면의 연대 막대가 바꿔 끼운다 (wetherilli 439).
+        # 판은 연대 폴더들을 담은 폴더의 때 — `build_gernon_paleotopo` 가 하위 폴더를 바꿔 끼우면 바뀐다
+        return {"attribution": gernontopo.ATTRIBUTION, "projection": "EPSG:3031", "maxZoom": gernontopo.MAX_ZOOM,
+                "tiles": _versioned_url(f"polargrid/{gernontopo.UPSTREAM}/{{age}}/{{z}}/{{x}}/{{y}}.webp",
+                                        _gernon_version()),
+                "ages": list(gernontopo.AGES), "classLegend": _polar_legend(layer.name, lang)}
     if layer.name in POLAR_SETS:
         # 남극 중력 AntGG2021(wetherilli 431)·지열류 모형(432) — ADMAP 처럼 우리가 칠해 잘라 둔 3031 타일(`polargrid.py`). 범례는 갈래 표
         spec = POLAR_SETS[layer.name]
@@ -4310,6 +4319,12 @@ def _polar_legend(name, lang):
     return next(m for m in (ghfgrid, gernontopo, antgg) if name in m.SETS).legend(name, lang)
 
 
+def _gernon_version():
+    """동남극 고지형 34 장의 판 — 연대 폴더마다의 때를 묶는다. 한 연대만 다시 구워도 바뀐다 (wetherilli 439)"""
+    stamps = [_dir_version(gernontopo.set_for(age).tiles_dir()) for age in gernontopo.AGES]
+    return _stamp(*stamps) if any(stamps) else ""
+
+
 def _polar_notice(spec):
     return msg("이 격자 자료가 서버에 없다")
 
@@ -4325,7 +4340,8 @@ def polargrid_tile(request, upstream, kind, z, x, y):
     if not spec.available():
         return _tile(tiles.notice_tile(256, 256, _polar_notice(spec)), store=False)
     data = spec.read_tile(z, x, y)
-    version = _dir_version(spec.tiles_dir())
+    # 동남극 고지형은 34 장이 판 하나를 나눠 쓴다 — 카탈로그 주소의 `?v=` 와 맞게 (wetherilli 439)
+    version = _gernon_version() if upstream == gernontopo.UPSTREAM else _dir_version(spec.tiles_dir())
     if data is None:
         return _immutable(request, _tile(tiles.blank_tile(256, 256)), version)
     return _immutable(request, _tile(data, content_type="image/webp"), version)
@@ -4336,7 +4352,9 @@ def polargrid_tile(request, upstream, kind, z, x, y):
 def polargrid_info(request):
     """누른 자리의 값 — `polargrid/info/?layer=antgg:bouguer&lat=&lon=` (wetherilli 431). `/featureinfo/` 의 꼴로 낸다"""
     lang = i18n.lang_of(request)
-    spec = POLAR_SETS.get(request.GET.get("layer", ""))
+    name = request.GET.get("layer", "")
+    # 연대를 따르는 고지형은 `&age=` 의 판으로 (wetherilli 439)
+    spec = gernontopo.set_for(request.GET.get("age")) if name == gernontopo.LAYER else POLAR_SETS.get(name)
     ll = _latlon(request)
     if spec is None or ll is None:
         return JsonResponse({"error": i18n.t(msg("layer·lat·lon 이 없다"), lang), "features": []}, status=400)
@@ -6060,7 +6078,7 @@ def point_layer(request):
     if accfronts.knows(name):
         return _acc_fronts_layer(request, lang)
     if antpapers.knows(name):
-        return _antpapers_layer(request, name, lang)
+        return _antpapers_layer(request, name, lang, request.GET.get("age"))
     if aadc.knows(name):
         return _aspa_layer(name, lang)
     if kigam50k.knows_file(name):
@@ -6409,16 +6427,20 @@ def _glacio_layer(request, name, lang):
     return _immutable(request, response, module.version())
 
 
-def _antpapers_layer(request, name, lang):
-    """남극 논문 두 편(wetherilli 435) — 저장소의 `data/antarctic_papers.json`. 없으면 503 으로 까닭을 말한다"""
+def _antpapers_layer(request, name, lang, age=None):
+    """남극 논문 두 편(wetherilli 435) — 저장소의 `data/antarctic_papers.json`, 고지형 등고선은 `<DB 옆>` 의 구운 것(439).
+    연대를 따르는 레이어는 `&age=` 의 것. 없으면 503 으로 까닭을 말한다"""
     try:
-        content = antpapers.body(name, lang)
+        content = antpapers.body(name, lang, age)
     except FileNotFoundError:
-        return JsonResponse({"error": i18n.t(msg("남극 논문 자료 파일이 없다 (build_antarctic_papers)"), lang)}, status=503)
+        return JsonResponse({"error": i18n.t(msg("고지형 등고선 파일이 없다 (build_gernon_paleotopo)") if name == antpapers.CONTOURS
+                                             else msg("남극 논문 자료 파일이 없다 (build_antarctic_papers)"), lang)}, status=503)
+    except ValueError:
+        return JsonResponse({"error": i18n.t(msg("그 연대의 자료가 없다"), lang)}, status=400)
     response = HttpResponse(content, content_type="application/geo+json")
     if settings.TILE_CACHE_SECONDS > 0:
         response["Cache-Control"] = f"public, max-age={settings.TILE_CACHE_SECONDS}"
-    return _immutable(request, response, antpapers.version())
+    return _immutable(request, response, antpapers.version(name))
 
 
 def _acc_fronts_layer(request, lang):

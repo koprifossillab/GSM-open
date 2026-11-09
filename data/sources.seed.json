@@ -800,10 +800,12 @@
    "license": "CC BY 4.0",
    "flags": [],
    "outputs": [
-    "gernon_paleotopo/100/meta.json"
+    "gernon_paleotopo/100/meta.json",
+    "gernon_paleotopo/contours.json"
    ],
    "docs": [
-    "wetherilli 436"
+    "wetherilli 436",
+    "wetherilli 439"
    ]
   },
   {

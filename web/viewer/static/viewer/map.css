@@ -3182,3 +3182,28 @@ body.embed-compact #map-wrap { flex: 1 1 auto; height: 100vh; height: 100dvh; }
 /* 범위 팝업 끝의 "오프라인 묶음 요청" (wetherilli 408) */
 .popup-offline { margin: 8px 0 2px; font-size: .9em; color: var(--ink-soft); }
 .popup-offline a { color: var(--hi); font-weight: 600; }
+
+/* 연대 막대 (wetherilli 439) — 연대를 따르는 레이어(남극 고지형)가 켜졌을 때만. 축척 막대 위, 가운데에 앉는다 —
+   위쪽은 손잡이 묶음·확대 단추가, 바로 밑은 축척 막대·남쪽 끝 표·출처 표기가 쓴다 */
+.agebar { position: absolute; left: 50%; bottom: 120px; z-index: 6; transform: translateX(-50%);
+          width: min(560px, calc(100% - 24px)); box-sizing: border-box;
+          display: flex; align-items: center; gap: 6px; padding: 6px 10px;
+          background: var(--glass); border: 1px solid var(--glass-line); border-radius: 10px;
+          box-shadow: var(--shadow); backdrop-filter: blur(6px); font-size: 12px; color: var(--ink-soft); }
+.agebar[hidden] { display: none; }
+.agebar .ab-cap { flex: none; font-weight: 700; letter-spacing: .08em; color: var(--gold-bright); }
+.agebar .ab-step, .agebar .ab-play { flex: none; width: 28px; height: 28px; padding: 0; font: 700 15px/1 sans-serif; color: var(--ink);
+          background: var(--panel-tint); border: 1px solid var(--line); border-radius: 5px; cursor: pointer;
+          touch-action: manipulation; user-select: none; }
+.agebar .ab-play { font-size: 12px; color: var(--on-hi); background: var(--hi); border-color: var(--hi); }
+.agebar .ab-play[aria-pressed="true"] { background: var(--gold); border-color: var(--gold); }
+.agebar .ab-step:disabled { opacity: .35; cursor: default; }
+.agebar .ab-range { flex: 1; min-width: 0; margin: 0; accent-color: var(--gold); touch-action: none; }
+.agebar .ab-age { flex: none; min-width: 52px; text-align: right; font: 700 13px var(--font-mono); color: var(--ink); white-space: nowrap; }
+/* 막대가 뜨면 높이 그래프는 그 위로 */
+#map-wrap.has-agebar .profile-dock { bottom: 168px; }
+@media (max-width: 760px) {
+  .agebar { width: auto; left: 8px; right: 8px; transform: none; gap: 4px; padding: 5px 7px; }
+  .agebar .ab-cap { display: none; }
+}
+body.embed-compact #agebar { display: none !important; }

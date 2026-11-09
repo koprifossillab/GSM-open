@@ -8,7 +8,8 @@ Gernon 외 2026(Science 392:eadz6758, doi:10.1126/science.adz6758)은 대륙이 
 - 원본은 3031, 한 칸 5 km, 601×601, float32 LZW(predictor 없음), 원점(왼쪽 위 모서리) x=−1 002 500 y=2 502 500, 빈 곳 NaN.
   Pillow 로 읽는다(**numpy 없이**, 컨테이너에서 `manage.py build_gernon_paleotopo <zip>`). 원본은 NAS `N:\\GSM\\sources\\antarctic_papers\\`,
   구운 것은 `GSM_GERNON_PALEOTOPO_DIR`(기본 `<DB 옆>/gernon_paleotopo`)의 연대마다 하위 폴더
-- 연대는 열 개만 낸다 — 100·90·80·70·60·50·44·40·36·34 Ma. 등고선 개인 레이어(wetherilli 435)와 같은 열이다. 2 Myr 마다 다 내면 패널이 34 줄이다
+- 연대는 34 장 모두(100–34 Ma, 2 Myr) 굽고 **카탈로그 레이어는 하나**(`gernontopo:paleotopo`)다 — 남극 탭의 연대 막대가 타일 주소의
+  `{age}` 를 바꿔 끼운다(wetherilli 439). 연대마다의 판(`gernontopo:<연대>`)은 타일·누른 자리를 내는 속 이름으로만 남는다
 - 칠하기는 PaleoDEM(`paleodem.py`)의 바다·뭍 빛을 **단계로** 끊었다 — 같은 남극 탭에서 어울리게. **1 500 m(본문의 빙모 문턱)부터는 녹슨
   빛으로 건너뛴다** — 그 위가 빙모가 앉을 수 있는 땅이라 Fig. 3A 를 읽는 열쇠다
 - 타일은 줌 3(3.3 km)까지 — 원본 한 칸이 5 km 다. 누른 자리는 m 단위의 int16
@@ -24,7 +25,12 @@ from .i18n import msg
 UPSTREAM = "gernontopo"
 WHERE = "GERNON_PALEOTOPO_DIR"
 MAX_ZOOM = 3
-AGES = (100, 90, 80, 70, 60, 50, 44, 40, 36, 34)
+#: 원자료의 연대 34 장 — 옛것부터 (wetherilli 439)
+AGES = tuple(range(100, 33, -2))
+#: 카탈로그의 레이어 하나 — 연대는 화면의 연대 막대가 고른다
+LAYER = f"{UPSTREAM}:paleotopo"
+#: 3D 는 연대 막대를 따르지 않는다 — 이 연대 하나로 (wetherilli 439)
+AGE_3D = 34
 ATTRIBUTION = ('Gernon et al. (2026, <a href="https://doi.org/10.1126/science.adz6758" target="_blank" rel="noopener">Science</a>; '
                '<a href="https://doi.org/10.5281/zenodo.19205651" target="_blank" rel="noopener">Zenodo</a>, CC BY 4.0) — '
                '34 Ma base: Paxman et al. (2019)')
@@ -61,13 +67,30 @@ def _set(age: int) -> polargrid.Set:
 
 
 SETS = {f"{UPSTREAM}:{kind(age)}": _set(age) for age in AGES}
+#: 카탈로그 이름으로 부르는 자리(3D 의 `warp/`)는 한 연대로 — 2D 는 `set_for` 로 연대를 고른다
+SETS[LAYER] = SETS[f"{UPSTREAM}:{kind(AGE_3D)}"]
+
+
+def set_for(age) -> "polargrid.Set | None":
+    """연대(Ma) → 그 연대의 판. 없는 연대면 None"""
+    try:
+        return SETS.get(f"{UPSTREAM}:{kind(int(age))}")
+    except (TypeError, ValueError):
+        return None
+
+
+def root() -> "Path":
+    from pathlib import Path
+
+    from django.conf import settings
+    return Path(getattr(settings, WHERE))
 
 
 def legend(name: str, lang: str = "ko") -> dict:
     from . import i18n
     age = name.split(":", 1)[1]
     rows = [{"code": i, "label": row[2].replace("-", "−"), "color": row[1]} for i, row in enumerate(CLASSES)]
-    title = i18n.t(msg("고지형 {age} Ma (FastScape 모형)", age=age), lang)
+    title = i18n.t(msg("고지형 (FastScape 모형)") if name == LAYER else msg("고지형 {age} Ma (FastScape 모형)", age=age), lang)
     return {"groups": [{"name": title, "rows": rows}], "attribution": ATTRIBUTION}
 
 
@@ -93,7 +116,7 @@ def read_tif(data: bytes) -> polargrid.Grid:
 
 
 def members(zip_path) -> dict:
-    """zip 안의 연대 → 파일 이름. 우리가 내는 열 개만"""
+    """zip 안의 연대 → 파일 이름 (34 장)"""
     with zipfile.ZipFile(zip_path) as z:
         out = {}
         for n in z.namelist():

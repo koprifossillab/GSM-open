@@ -895,7 +895,8 @@
       resolutions.push(width / GEOMAP_GRID.tileSize / Math.pow(2, z));
     }
     return new ol.source.XYZ({
-      url: BASE + (row.tiles || GEOMAP_TILE_URL.replace("{layer}", encodeURIComponent(name))),
+      // 연대를 따르는 판(남극 고지형, wetherilli 439)은 주소의 `{age}` 를 지금 연대로 — 연대 막대가 `setUrl` 로 바꿔 끼운다
+      url: BASE + (row.tiles ? ageUrl(row) : GEOMAP_TILE_URL.replace("{layer}", encodeURIComponent(name))),
       projection: "EPSG:3031",
       tileGrid: new ol.tilegrid.TileGrid({
         extent: GEOMAP_GRID.extent,
@@ -958,10 +959,10 @@
 
   /** 칠해 잘라 둔 남극 격자(중력 AntGG2021 따위)의 속성 주소 — 레이어와 위경도로 묻는다(`polargrid/info/`, wetherilli 431). */
   function polargridInfoUrl(source, coordinate) {
-    var ll = toLL(coordinate);
-    return BASE + "polargrid/info/?" + new URLSearchParams({
-      layer: source.get("gsmName"), lat: ll[1].toFixed(6), lon: ll[0].toFixed(6),
-    }).toString();
+    var ll = toLL(coordinate), row = byName[source.get("gsmName")] || {};
+    var q = { layer: source.get("gsmName"), lat: ll[1].toFixed(6), lon: ll[0].toFixed(6) };
+    if (row.ages) q.age = ageFor(row);      // 그 연대의 고도 (wetherilli 439)
+    return BASE + "polargrid/info/?" + new URLSearchParams(q).toString();
   }
 
   /** ITS_LIVE 빙하 유속의 속성 주소 — 레이어와 위경도로 묻는다(`itslive/info/`, wetherilli 433). */
@@ -1426,8 +1427,15 @@
     return row && row.upstream === "vworld" ? "VWorld" : row && row.upstream === "ccop" ? "CCOP · GSJ" : "";
   }
 
-  /** 켤 레이어 하나를 만든다. 타일(WMS)이 거의 전부이고, 벡터는 따로 짓는다. */
+  /** 켤 레이어 하나. 연대를 따르는 것은 지은 연대를 적어 둔다 — 연대 막대가 바뀐 것만 갈아 끼운다 (wetherilli 439) */
   function makeLayer(name) {
+    var layer = buildLayer(name), row = byName[name];
+    if (row && row.ages) layer.set("gsmAge", ageFor(row));
+    return layer;
+  }
+
+  /** 켤 레이어 하나를 만든다. 타일(WMS)이 거의 전부이고, 벡터는 따로 짓는다. */
+  function buildLayer(name) {
     var row = byName[name];
     if (row && row.kind === "vector") return vectorLayerFor(row);
     if (row && row.kind === "points") return pointLayerFor(row);
@@ -2849,6 +2857,7 @@
     refreshAttitudes();
     saveLayers();
     if (typeof refreshCompare === "function") refreshCompare();
+    refreshAgebar();
   }
 
   // ── 기억하기 ─────────────────────────────────────────────────────
@@ -4626,16 +4635,19 @@
   function pointsUrl(name) {
     // 판이 있는 덩이(지구 자료 점, wetherilli 185)는 `&v=` 를 붙인다 — 판이 같으면 브라우저가 오래 들고 있다
     var ver = byName[name] && byName[name].version;
-    if (!STATIC) return BASE + "points/?layer=" + encodeURIComponent(name) + "&lang=" + LANG + (ver ? "&v=" + encodeURIComponent(ver) : "");
+    // 연대를 따르는 덩이(남극 고지형 등고선·빙상 범위)는 지금 연대의 것 (wetherilli 439)
+    var age = byName[name] && byName[name].ages ? "&age=" + ageFor(byName[name]) : "";
+    if (!STATIC) return BASE + "points/?layer=" + encodeURIComponent(name) + "&lang=" + LANG + age + (ver ? "&v=" + encodeURIComponent(ver) : "");
     var en = LANG === "en" && staticBaked("points")[name];
     return BASE + "points/" + name.replace(":", "/") + (en ? ".en" : "") + ".json";
   }
 
   function pointLayerFor(row) {
-    var layer;
+    var layer, loads = 0, load;
     var source = new ol.source.Vector({
       attributions: pointAttribution(row),
-      loader: function (extent, resolution, projection, success, failure) {
+      loader: (load = function (extent, resolution, projection, success, failure) {
+        var seq = ++loads;
         // 잘라 주는 레이어(전암 화학, wetherilli 163)는 고른 원소의 점만 받는다. 정적 판은 구운 덩이 하나라 자르지 않는다
         var slice = row.slice && !STATIC ? "&value=" + encodeURIComponent(storedValue()) : "";
         // 정적 판에서 구워 싣지 않은 극지 점은 상류(ArcGIS)에서 곧장 받는다 — 서버의 `/points/` 와 같은 덩이로 온다 (wetherilli 161)
@@ -4654,6 +4666,8 @@
             });
         })
           .then(function (data) {
+            // 연대를 넘기는 동안(재생) 늦게 온 옛 연대의 덩이는 버린다 (wetherilli 439)
+            if (seq !== loads) { if (success) success([]); return; }
             var features = new ol.format.GeoJSON().readFeatures(data, {
               dataProjection: "EPSG:4326",
               featureProjection: projection || map.getView().getProjection(),
@@ -4670,6 +4684,8 @@
             layer.set("gsmCount", features.length);
             // 극지연구소(055) — 남극 전체를 덮는 넓은 범위라 그리지 않은 자료의 수
             layer.set("gsmWide", data.wide || 0);
+            // 연대를 바꿔 다시 받은 것이면 옛 연대의 모양을 이제야 걷는다 — 받는 동안 비어 깜빡이지 않게 (wetherilli 439)
+            if (layer.get("gsmSwap")) { layer.set("gsmSwap", false); source.clear(true); }
             source.addFeatures(features);
             // 암맥(026) — 멀리서 볼 도폭별 로즈를 같은 자료에서 세어 곁들인다
             if (row.style === "dike") source.addFeatures(dikeRoses(features));
@@ -4682,7 +4698,7 @@
             if (failure) failure();
             renderActive();
           });
-      },
+      }),
     });
     // 면이 만 개를 넘는 것(중국 geo3al, 025)은 한 장으로 구워 그린다 — 움직이는 동안
     // 다시 칠하지 않아 끌기가 버벅이지 않는다. 누른 자리 찾기는 그대로 된다
@@ -4701,6 +4717,13 @@
     });
     layer.set("gsmPoints", row.name);
     if (row.periods) layer.set("gsmPeriods", row.periods);
+    // 연대를 따르는 덩이(남극 고지형 등고선·빙상 범위, wetherilli 439) — 옛 모양을 둔 채 새 연대를 받아 갈아 끼운다
+    if (row.ages) {
+      layer.set("gsmReload", function () {
+        layer.set("gsmSwap", true);
+        load(ol.extent.createEmpty(), 0, map.getView().getProjection());
+      });
+    }
     return layer;
   }
 
@@ -7705,6 +7728,7 @@
       map2Layer.setZIndex(1);
       map2.addLayer(map2Layer);
     }
+    refreshAgebar();
     document.getElementById("split-right").textContent = rightLayerTitle();
     document.getElementById("split-left").textContent =
       active.length ? active.map(function (e) { return e.title; }).join(" · ") : T("켠 레이어가 없다");
@@ -7792,6 +7816,126 @@
     } else {
       placeSwipeBar();
     }
+  }
+
+  // ── 연대 막대 (wetherilli 439) ───────────────────────────────────
+  //
+  // 연대를 따르는 레이어(카탈로그 행의 `ages`, 옛것부터) — 남극의 Gernon 2026 고지형·등고선·빙상 범위 — 가 켜져 있을 때만
+  // 지도 밑에 뜬다. 연대는 하나를 모두가 따른다: 바꾸면 타일은 주소(`{age}`)를 바꿔 끼우고, 덩이는 새로 받아 갈아 끼운다.
+  // 나란히 보기의 오른쪽도 같다. 온 지구의 시간 축(`earth.js`)은 Cesium 에 엮여 있어 옮기지 않고 작게 새로 지었다 —
+  // 지질시대 띠·공유 링크는 없다(가벼운 판). 연대는 이 브라우저에 기억한다(`stored`) — 링크로 연 동안에는 덧층에만
+  var AGE_KEY = "gsm.paleoage";
+  var AGE_STEP_MS = 900;
+  var paleoAge = null, ageTimer = null;
+
+  function paleoAgeNow() {
+    if (paleoAge == null) {
+      var v = +stored(AGE_KEY);
+      paleoAge = isFinite(v) && v > 0 ? v : null;
+    }
+    return paleoAge;
+  }
+  /** 행이 가진 연대 가운데 지금 연대에 가장 가까운 것. 아직 고른 적이 없으면 가장 옛것 */
+  function ageFor(row) {
+    var now = paleoAgeNow(), ages = row.ages;
+    if (now == null) return ages[0];
+    return ages.reduce(function (best, a) { return Math.abs(a - now) < Math.abs(best - now) ? a : best; }, ages[0]);
+  }
+  function ageUrl(row) { return row.tiles.replace("{age}", row.ages ? ageFor(row) : ""); }
+
+  /** 지금 켠(나란히 보기의 오른쪽 포함) 레이어들이 가진 연대 — 옛것부터 */
+  function timedAges() {
+    var seen = {};
+    var names = active.map(function (e) { return e.name; });
+    if (compareMode === "split" && map2Name) names.push(map2Name);
+    names.forEach(function (n) { ((byName[n] || {}).ages || []).forEach(function (a) { seen[a] = true; }); });
+    return Object.keys(seen).map(Number).sort(function (a, b) { return b - a; });
+  }
+
+  function setPaleoAge(age) {
+    if (age === paleoAge) return;
+    paleoAge = age;
+    store(AGE_KEY, String(age));
+    var swap = function (layer, name) {
+      var row = byName[name];
+      if (!row || !row.ages || !layer || layer.get("gsmAge") === ageFor(row)) return;
+      layer.set("gsmAge", ageFor(row));
+      if (layer.get("gsmReload")) { layer.get("gsmReload")(); return; }
+      var source = layer.getSource && layer.getSource();
+      // XYZ 는 주소가 바뀌면 새 타일이 올 때까지 옛 타일을 둔다 — 넘기는 동안 비지 않는다
+      if (source && source.setUrl && row.tiles) source.setUrl(BASE + ageUrl(row));
+    };
+    active.forEach(function (e) { swap(e.layer, e.name); });
+    if (map2Layer) swap(map2Layer, map2Name);
+    refreshAgebar();
+  }
+
+  function stopAgePlay() {
+    if (ageTimer) clearInterval(ageTimer);
+    ageTimer = null;
+    var play = document.getElementById("agebar-play");
+    if (play) {
+      play.textContent = "▶";
+      play.title = T("재생 — 옛날에서 오늘 쪽으로 저절로 넘긴다");
+      play.setAttribute("aria-pressed", "false");
+    }
+  }
+
+  function refreshAgebar() {
+    var bar = document.getElementById("agebar");
+    if (!bar) return;
+    var ages = timedAges();
+    bar.hidden = !ages.length;
+    document.getElementById("map-wrap").classList.toggle("has-agebar", !!ages.length);
+    if (!ages.length) { stopAgePlay(); return; }
+    var now = paleoAgeNow();
+    var at = now == null ? 0 : ages.indexOf(now);
+    if (at < 0) {
+      // 지금 연대가 이 레이어들에 없다 — 가장 가까운 것으로
+      at = ages.reduce(function (best, a, i) { return Math.abs(a - now) < Math.abs(ages[best] - now) ? i : best; }, 0);
+    }
+    if (paleoAge !== ages[at]) { setPaleoAge(ages[at]); return; }
+    var range = document.getElementById("agebar-range");
+    range.max = ages.length - 1;
+    range.value = at;
+    range.setAttribute("aria-valuetext", ages[at] + " Ma");
+    document.getElementById("agebar-age").textContent = T("{age} Ma", { age: ages[at] });
+    document.getElementById("agebar-older").disabled = at === 0;
+    document.getElementById("agebar-younger").disabled = at === ages.length - 1;
+  }
+
+  function stepAge(delta) {
+    var ages = timedAges();
+    var at = ages.indexOf(paleoAgeNow());
+    var next = Math.max(0, Math.min(ages.length - 1, (at < 0 ? 0 : at) + delta));
+    if (ages.length) setPaleoAge(ages[next]);
+    return next;
+  }
+
+  function wireAgebar() {
+    if (!document.getElementById("agebar")) return;
+    document.getElementById("agebar-older").addEventListener("click", function () { stopAgePlay(); stepAge(-1); });
+    document.getElementById("agebar-younger").addEventListener("click", function () { stopAgePlay(); stepAge(1); });
+    // 끌면 한 칸(2 Myr)씩 딱딱 넘어간다 — 막대의 값은 연대가 아니라 칸 번호다
+    document.getElementById("agebar-range").addEventListener("input", function () {
+      stopAgePlay();
+      var ages = timedAges();
+      if (ages[+this.value] != null) setPaleoAge(ages[+this.value]);
+    });
+    document.getElementById("agebar-play").addEventListener("click", function () {
+      if (ageTimer) { stopAgePlay(); return; }
+      var ages = timedAges();
+      // 끝(가장 젊은 것)에서 누르면 처음부터
+      if (ages.indexOf(paleoAgeNow()) >= ages.length - 1) setPaleoAge(ages[0]);
+      this.textContent = "❚❚";
+      this.title = T("멈춘다");
+      this.setAttribute("aria-pressed", "true");
+      ageTimer = setInterval(function () {
+        var list = timedAges();
+        if (stepAge(1) >= list.length - 1) stopAgePlay();
+      }, AGE_STEP_MS);
+    });
+    stopAgePlay();
   }
 
   function wireCompare() {
@@ -8996,6 +9140,7 @@
   initMap();
   wireBasemap();
   wireCompare();
+  wireAgebar();
   renderCatalog();
   renderActive();
   renderPointSets();

@@ -335,6 +335,17 @@
   <div class="split-tag left"><span id="split-left"></span></div>
   <div class="split-tag right"><span id="split-right"></span></div>
 
+  {% comment %}연대 막대 (wetherilli 439) — 연대를 따르는 레이어(남극의 Gernon 2026 고지형·등고선·빙상 범위)가 켜졌을 때만 뜬다.
+  왼쪽이 옛날이다(온 지구의 시간 축처럼). 한 칸씩 딱딱 넘기고, ▶ 가 옛날에서 오늘 쪽으로 저절로 넘긴다. 칸은 map.js 의 refreshAgebar 가 채운다{% endcomment %}
+  <div id="agebar" class="agebar" role="group" aria-labelledby="agebar-cap" hidden>
+    <span class="ab-cap" id="agebar-cap">{% t "연대" %}</span>
+    <button type="button" class="ab-play" id="agebar-play" aria-pressed="false">&#9654;</button>
+    <button type="button" class="ab-step" id="agebar-older" title="{% t "더 옛날로 — 한 칸" %}" aria-label="{% t "더 옛날로" %}">&lsaquo;</button>
+    <input type="range" class="ab-range" id="agebar-range" min="0" max="0" step="1" value="0" aria-labelledby="agebar-cap">
+    <button type="button" class="ab-step" id="agebar-younger" title="{% t "오늘 쪽으로 — 한 칸" %}" aria-label="{% t "오늘 쪽으로" %}">&rsaquo;</button>
+    <output class="ab-age" id="agebar-age" aria-live="polite"></output>
+  </div>
+
   <div id="popup" class="popup">
     <button id="popup-close" class="popup-close" title="{% t "닫는다" %}">&times;</button>
     <div id="popup-body"></div>
