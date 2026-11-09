@@ -1030,6 +1030,8 @@ EN = {
         "With the subglacial bed, the 3D terrain also drops the ice down to bedrock.",
     # 3D 의 동남극 고지형 (wetherilli 441)
     "땅을 그 연대의 고지형으로 (Gernon 2026)": "Terrain from that age's palaeotopography (Gernon 2026)",
+    "고지형 등고선 (0·1 000·1 500·2 000 m)": "Palaeotopography contours (0, 1,000, 1,500, 2,000 m)",
+    "빙상 범위 (Fig. 4A, PISM 모형)": "Ice-sheet extent (Fig. 4A, PISM model)",
     "FastScape 모형 재구성(5 km)이고 판을 돌리지 않은 오늘의 자리다. 격자(동남극 3 000 km 네모) 밖은 오늘의 빙저 지형이다.":
         "A FastScape model reconstruction (5 km) on today's positions, without plate rotation. Outside the grid "
         "(a 3,000 km square over East Antarctica) the terrain is today's subglacial bed.",

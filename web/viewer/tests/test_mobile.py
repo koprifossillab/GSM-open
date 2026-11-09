@@ -845,13 +845,21 @@ class Phone3D(PhoneBase):
         self.assertTrue(until("/warp/gernontopo/60/"), asked[:5])
         self.assertLessEqual(page.evaluate("document.documentElement.scrollWidth"), 390)
 
+        # 등고선·빙상 범위 — 같은 연대의 덩이를 받아 땅 위에 편다 (wetherilli 442)
+        page.evaluate("document.getElementById('paleo3d-contours').click(); document.getElementById('paleo3d-ice').click()")
+        self.assertTrue(until("layer=antpapers%3Agernon_contours&age=60"), asked[:5])
+        self.assertTrue(until("layer=antpapers%3Agernon_ice&age=60"), asked[:5])
+        self.assertEqual(page.evaluate("localStorage.getItem('gsm.3d.paleo.ice')"), "1")
+
         asked.clear()
         page.tap("#agebar-younger")
         page.wait_for_timeout(300)
         self.assertEqual(page.locator("#agebar-age").inner_text(), "58 Ma")
+        self.assertTrue(until("layer=antpapers%3Agernon_contours&age=58"), asked[:5])
+        self.assertTrue(until("layer=antpapers%3Agernon_ice&age=58"), asked[:5])
         # 표고는 주소가 바뀐 것까지 본다 — 앞 연대의 표고 요청이 줄을 서 있으면 새 연대의 것은 그 뒤에 나간다(부하가 걸린 CI 에서
         # 8 초를 넘겼다). 땅과 음영은 한 원천을 함께 쓴다(`terrain.sourceCache` 가 그 원천의 것) — 지운 타일을 새 주소로 받는다
-        self.assertTrue(until("/warp/gernontopo/58/"), asked[:5])
+        self.assertIn("/warp/gernontopo/58/", page.evaluate("window.__gsm3d.getSource('kigam').tiles[0]"))
         self.assertEqual(page.evaluate("[window.__gsm3d.getSource('dem').tiles[0].split('?')[1], "
                                        "window.__gsm3d.getSource('shade').tiles[0].split('?')[1]]"), ["gernon=58", "gernon=58"])
         self.assertEqual(page.evaluate("localStorage.getItem('gsm.paleoage')"), "58")
@@ -860,7 +868,8 @@ class Phone3D(PhoneBase):
         page.tap("#agebar-play")
         self.assertEqual(page.locator("#agebar-play").get_attribute("aria-pressed"), "false")
         # 끄면 막대도 걷힌다(고지형 색은 남아 있어 막대가 그대로다 — 색을 바꾸면 걷힌다)
-        page.evaluate("document.getElementById('paleo3d').click()")
+        page.evaluate("document.getElementById('paleo3d').click(); document.getElementById('paleo3d-contours').click(); "
+                      "document.getElementById('paleo3d-ice').click()")
         page.evaluate("const s = document.getElementById('layer3d'); s.value = s.options[0].value; "
                       "s.dispatchEvent(new Event('change'))")
         page.wait_for_timeout(300)

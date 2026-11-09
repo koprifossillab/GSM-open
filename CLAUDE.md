@@ -395,7 +395,7 @@ WMS·z/x/y·우리가 굽는 것) 계획을 따로 둔다 (029).
   IBCSO v2(`GSM_IBCSO_DIR`, 기본 `<DB 옆>/ibcso`, 047 — 칠한 GeoTIFF 둘을 `manage.py build_ibcso` 로 3031 에 잘라 둔다), 남극 자력 이상 ADMAP-2(`GSM_ADMAP_DIR`, 기본 `<DB 옆>/admap2`, wetherilli 262 — `manage.py build_admap <grid.zip>`), 동남극 고지형 Gernon 외 2026
   (`GSM_GERNON_PALEOTOPO_DIR`, 기본 `<DB 옆>/gernon_paleotopo`, wetherilli 436 — `manage.py build_gernon_paleotopo <zip>`, FastScape 모형이지 관측이 아니다, 판을 돌리지 않았다.
   34 연대(100–34 Ma, 2 Myr)를 다 굽고 같은 명령이 등고선 `contours.json` 도 굽는다. 카탈로그 레이어는 하나씩이고 연대는 **남극 탭의 연대 막대**가 고른다 —
-  연대를 따르는 레이어(카탈로그 행의 `ages`)가 켜졌을 때만 지도 밑에 뜨고 ▶ 로 넘긴다. 공유 링크에는 싣지 않는다, wetherilli 439. 3D 도 같은 연대 막대로 색과 **땅**을 바꾼다 — `dem/gernon/<연대>/` 가 `values.i16` 을 Terrarium 으로 펴고 격자 밖은 IBCSO 빙저, wetherilli 441), 화성 크레이터
+  연대를 따르는 레이어(카탈로그 행의 `ages`)가 켜졌을 때만 지도 밑에 뜨고 ▶ 로 넘긴다. 공유 링크에는 싣지 않는다, wetherilli 439. 3D 도 같은 연대 막대로 색과 **땅**을 바꾼다 — `dem/gernon/<연대>/` 가 `values.i16` 을 Terrarium 으로 펴고 격자 밖은 IBCSO 빙저, wetherilli 441. 등고선·빙상 범위도 같은 덩이로 3D 땅 위에, 442), 화성 크레이터
   목록 Robbins 2012(`GSM_MARS_DIR`, 기본 `<DB 옆>/mars`, 067 — `manage.py build_mars_craters <zip>` 이 sqlite 한 장으로 굽고 타일은 그때그때 그린다), 화성 옛 지질도·지역도 — I-1802·SIM 2888·I-2650·MTM(같은 자리, 068·wetherilli 079 —
   `manage.py build_mars_originals <zip…>`, 달 원도의 틀을 빌렸다), 수성 지질도 — USGS 1:500만 도폭 합본(`GSM_MERCURY_DIR`, 기본
   `<DB 옆>/mercury`, wetherilli 144 — `manage.py build_mercury_geology <zip>`), 온 지구의 옛 해안선(`GSM_EARTH_DIR`, 기본 `<DB 옆>/earth`,

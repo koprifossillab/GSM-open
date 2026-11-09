@@ -330,6 +330,7 @@
     map.setTerrain({ source: "dem", exaggeration: 1.5 });
     renderCustom();
     renderPointSets();
+    renderGernonOverlays();
     window.__gsm3dReady = true;
     if (vworldKey) probeVworld();
   });
@@ -391,7 +392,59 @@
   var AGE_PAUSE_MS = 700;
   var agePlaying = false, ageTimer = null;
   function ageBarWanted() {
-    return REGION === "antarctica" && GERNON_AGES.length > 0 && (paleoOn || select.value === GERNON_LAYER);
+    return REGION === "antarctica" && GERNON_AGES.length > 0 &&
+           (paleoOn || select.value === GERNON_LAYER || OVERLAYS.some(function (o) { return o.on; }));
+  }
+
+  // ── 고지형 위의 선·면 — 등고선과 빙상 범위(Fig. 4A) (wetherilli 442) ──
+  // 2D 의 카탈로그 레이어(`antpapers:gernon_contours`·`gernon_ice`)와 같은 덩이(`points/?layer=&age=`)를 받아 땅 위에 편다.
+  // 색·굵기는 덩이의 범례(`legend` 의 code → color·width)를 그대로 — 2D 와 한 색이다. 연대를 넘기면 그 연대의 덩이로 갈아 끼운다
+  var OVERLAYS = [
+    { id: "gernon-ice", layer: "antpapers:gernon_ice", box: "paleo3d-ice", key: "gsm.3d.paleo.ice" },
+    { id: "gernon-contours", layer: "antpapers:gernon_contours", box: "paleo3d-contours", key: "gsm.3d.paleo.contours" },
+  ];
+  var EMPTY = { type: "FeatureCollection", features: [] };
+  OVERLAYS.forEach(function (o) {
+    o.on = false;
+    if (REGION !== "antarctica" || !GERNON_AGES.length || !document.getElementById(o.box)) return;
+    try { o.on = localStorage.getItem(o.key) === "1"; } catch (e) { /* 사생활 모드 */ }
+  });
+  function byCode(legend, field, fallback) {
+    var expr = ["match", ["to-string", ["get", "code"]]];
+    (legend || []).forEach(function (row) { if (row[field] != null) expr.push(String(row.code), row[field]); });
+    expr.push(fallback);
+    return expr.length > 3 ? expr : fallback;
+  }
+  /** 덩이를 받아 칠한다 — 처음엔 원천·겹을 짓고, 다음부터는 `setData` 만. 늦게 온 옛 연대의 응답은 버린다 */
+  function loadOverlay(o) {
+    if (!map.getSource(o.id)) map.addSource(o.id, { type: "geojson", data: EMPTY });
+    var source = map.getSource(o.id);
+    if (!o.on) { source.setData(EMPTY); return; }
+    var age = paleoAge, ask = o.asked = (o.asked || 0) + 1;
+    fetch(BASE + "points/?layer=" + encodeURIComponent(o.layer) + "&age=" + age + "&lang=" + LANG)
+      .then(function (r) { if (!r.ok) throw new Error(r.status); return r.json(); })
+      .then(function (d) {
+        if (ask !== o.asked || !o.on) return;
+        if (!o.styled) {
+          o.styled = true;
+          var color = byCode(d.legend, "color", "#1f78b4");
+          if (o.layer === "antpapers:gernon_ice") {
+            map.addLayer({ id: o.id + "-fill", type: "fill", source: o.id,
+                           paint: { "fill-color": color, "fill-opacity": 0.35 } });
+            map.addLayer({ id: o.id + "-edge", type: "line", source: o.id,
+                           paint: { "line-color": color, "line-width": 1.5 } });
+          } else {
+            map.addLayer({ id: o.id + "-line", type: "line", source: o.id,
+                           layout: { "line-join": "round", "line-cap": "round" },
+                           paint: { "line-color": color, "line-width": byCode(d.legend, "width", 1.5) } });
+          }
+        }
+        source.setData(d);
+      })
+      .catch(function (err) { console.error(o.layer, err); });
+  }
+  function renderGernonOverlays() {
+    OVERLAYS.forEach(function (o) { if (o.on || map.getSource(o.id)) loadOverlay(o); });
   }
   function refreshAgebar() {
     var bar = document.getElementById("agebar");
@@ -416,6 +469,7 @@
       map.getSource("shade").setTiles(demTiles());
     }
     if (select.value === GERNON_LAYER && map.getSource("kigam")) map.getSource("kigam").setTiles(geologySource(GERNON_LAYER).tiles);
+    if (window.__gsm3dReady) renderGernonOverlays();     // `isStyleLoaded` 는 타일을 받는 동안 거짓이다
     refreshAgebar();
   }
   function stepAge(delta) {
@@ -464,6 +518,17 @@
     document.getElementById("paleo3d-hint").hidden = !paleoOn;
     paleoBox.addEventListener("change", function () { stopAgePlay(); setPaleo(paleoBox.checked); });
     select.addEventListener("change", refreshAgebar);
+    OVERLAYS.forEach(function (o) {
+      var box = document.getElementById(o.box);
+      if (!box) return;
+      box.checked = o.on;
+      box.addEventListener("change", function () {
+        o.on = box.checked;
+        try { localStorage.setItem(o.key, o.on ? "1" : "0"); } catch (e) { /* 사생활 모드 */ }
+        loadOverlay(o);
+        refreshAgebar();
+      });
+    });
     document.getElementById("agebar-older").addEventListener("click", function () { stopAgePlay(); stepAge(-1); });
     document.getElementById("agebar-younger").addEventListener("click", function () { stopAgePlay(); stepAge(1); });
     document.getElementById("agebar-range").addEventListener("input", function () {
