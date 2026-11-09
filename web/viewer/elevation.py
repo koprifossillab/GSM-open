@@ -514,6 +514,112 @@ def _full_mask(fill):
     return ImageMath.lambda_eval(lambda a: a["float"](a["f"] >= 0.999) * 255, f=fill).convert("L")
 
 
+# ── 3D 의 동남극 고지형 (wetherilli 441) ─────────────────────────────
+#
+# Gernon 외 2026 의 연대마다 고지형(5 km, `gernontopo.py` 가 구운 `values.i16`)을 Terrarium 으로 편다 — 3D 의 땅이
+# 100→34 Ma 로 솟는 것을 보이려는 것이다. 원본 한 장(601×601)을 통째로 메모리에 두고 3857 타일마다 MESH 로 편다 —
+# warp 의 타일 모으기는 원본이 한 장이라 쓸 것이 없고, 멀리서 볼 때 모으는 판이 커진다.
+# **격자 밖은 오늘의 IBCSO 빙저**(그것도 없으면 AWS)다. 34 Ma 바탕이 Paxman 2019 라 오늘의 빙저와 닮았지만 같지 않아,
+# 격자 가장자리 `GERNON_FEATHER` 칸(100 km)에 걸쳐 둘을 섞는다 — 네모의 단을 감춘다.
+
+GERNON_TERRAIN_VERSION = 1
+GERNON_FEATHER = 20               # 칸 — 5 km × 20
+_GERNON_KEEP = 6                  # 메모리에 두는 연대 수 — 한 장이 (값, 무게) 2.9 MB
+_gernon_lock = threading.Lock()
+_gernon_cache = {}                # 연대 → (판, 값×무게 F, 무게 F, meta)
+
+
+def _gernon_grid(age):
+    """연대 → (판, 값×무게, 무게, meta). 구운 것이 없으면 None. 판은 values.i16 의 때·크기"""
+    from array import array
+    from PIL import ImageMath
+    from . import gernontopo, polargrid
+    spec = gernontopo.set_for(age)
+    if spec is None:
+        return None
+    path = spec.root() / "values.i16"
+    try:
+        st = path.stat()
+        stamp = f"{st.st_mtime_ns}-{st.st_size}"
+    except OSError:
+        return None
+    with _gernon_lock:
+        hit = _gernon_cache.get(age)
+        if hit and hit[0] == stamp:
+            return hit
+    meta = json.loads((spec.root() / "meta.json").read_text(encoding="utf-8"))
+    ne, nv = meta["ne"], meta["nv"]
+    raw = path.read_bytes()
+    if len(raw) != 2 * ne * nv:
+        raise ElevationError(f"고지형 {age} Ma 의 values.i16 크기가 meta 와 다르다")
+    ints = Image.frombytes("I", (ne, nv), raw, "raw", "I;16S")
+    scale = float(meta.get("scale") or 1)
+    valid = ImageMath.lambda_eval(lambda a: a["float"](a["v"] != polargrid.NODATA), v=ints)
+
+    def ramp(n):
+        return array("f", (min(1.0, (min(i, n - 1 - i) + 0.5) / GERNON_FEATHER) for i in range(n)))
+    fx = Image.frombytes("F", (ne, 1), ramp(ne).tobytes()).resize((ne, nv), Image.NEAREST)
+    fy = Image.frombytes("F", (1, nv), ramp(nv).tobytes()).resize((ne, nv), Image.NEAREST)
+    weight = ImageMath.lambda_eval(lambda a: a["ok"] * a["x"] * a["y"], ok=valid, x=fx, y=fy)
+    weighted = ImageMath.lambda_eval(lambda a: a["float"](a["v"]) / a["s"] * a["w"], v=ints, s=scale, w=weight)
+    got = (stamp, weighted, weight, meta)
+    with _gernon_lock:
+        _gernon_cache[age] = got
+        while len(_gernon_cache) > _GERNON_KEEP:
+            _gernon_cache.pop(next(iter(_gernon_cache)))
+    return got
+
+
+def _terrarium_values(png):
+    """Terrarium PNG → 해발 F"""
+    from PIL import ImageMath
+    r, g, b = Image.open(io.BytesIO(png)).convert("RGB").split()
+    return ImageMath.lambda_eval(lambda a: a["float"](a["r"]) * 256 + a["float"](a["g"]) + a["float"](a["b"]) / 256 - 32768,
+                                 r=r, g=g, b=b)
+
+
+def gernon_terrarium(age: int, z: int, x: int, y: int, size: int = 256):
+    """고지형 `age` Ma 를 편 3857 Terrarium 타일(PNG). 격자에 하나도 걸리지 않거나 구운 것이 없으면 None(→ 빙저)"""
+    from PIL import ImageMath
+    from . import geomap, warp
+    grid = _gernon_grid(age)
+    if grid is None:
+        return None
+    stamp, weighted, weight, meta = grid
+    key = tilecache.key_text("elev", f"gernon-terrarium/v{GERNON_TERRAIN_VERSION}/{age}/{stamp}/{z}/{x}/{y}/{size}")
+    hit = tilecache.get(key)
+    if hit is not None:
+        return None if hit == _NONE else hit
+    res, left, top = meta["res"], meta["x0"] - meta["res"] / 2, meta["ytop"] + meta["res"] / 2
+    cells = max(1, size // 16)
+    step = size / cells
+
+    def src(i, j):
+        lon, lat = warp._lonlat(z, x, y, i * step, j * step, size)
+        e, n = geomap.lonlat_to_3031(lon, max(lat, -89.9999))
+        return (e - left) / res, (top - n) / res
+    corners = {(i, j): src(i, j) for i in range(cells + 1) for j in range(cells + 1)}
+    mesh = []
+    for i in range(cells):
+        for j in range(cells):
+            box = (round(i * step), round(j * step), round((i + 1) * step), round((j + 1) * step))
+            mesh.append((box, corners[i, j] + corners[i, j + 1] + corners[i + 1, j + 1] + corners[i + 1, j]))
+    w = weight.transform((size, size), Image.MESH, mesh, resample=Image.BILINEAR)
+    png = None
+    if w.getextrema()[1] > 0:
+        vw = weighted.transform((size, size), Image.MESH, mesh, resample=Image.BILINEAR)
+        if w.getextrema()[0] < 0.999:
+            under = ibcso_terrarium("bed", z, x, y) or terrarium_tile(z, x, y)
+            below = (_terrarium_values(under).resize((size, size), Image.BILINEAR) if under
+                     else Image.new("F", (size, size), 0.0))
+            vw = ImageMath.lambda_eval(lambda a: a["vw"] + (1 - a["w"]) * a["u"], vw=vw, w=w, u=below)
+        buf = io.BytesIO()
+        terrarium_encode(vw).save(buf, "PNG")
+        png = buf.getvalue()
+    tilecache.put(key, png or _NONE)
+    return png
+
+
 # ── 3D 의 일본 지형 ──────────────────────────────────────────────────
 
 def japan_terrarium(z: int, x: int, y: int):

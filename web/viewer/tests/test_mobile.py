@@ -817,6 +817,56 @@ class Phone3D(PhoneBase):
                       f"콘솔 끝 {getattr(page, 'gsm_console', [])[-8:]}")
         print(f"\n3D 첫 화면 {time.monotonic() - started:.1f} 초", file=sys.stderr, flush=True)
 
+    def test_3D_의_고지형_연대(self):
+        """남극 3D 에서 땅을 고지형으로 — 연대 막대가 뜨고, 넘기면 표고·색 타일의 연대가 바뀐다. 390 px 에서 넘치지 않는다
+        (wetherilli 441)"""
+        call_command("seed_catalog", stdout=open(os.devnull, "w"))
+        started = time.monotonic()
+        page, errors = self.open("3d/?region=antarctica", settle=500)
+        self.wait_ready(page, started)
+        self.assertFalse(page.locator("#agebar").is_visible())
+        page.evaluate("localStorage.setItem('gsm.paleoage', '60')")
+        page.reload(wait_until="load")
+        self.wait_ready(page, time.monotonic())
+        asked = []
+        page.on("request", lambda r: asked.append(r.url) if "gernon" in r.url else None)
+        page.evaluate("document.getElementById('paleo3d').click()")    # 휴대폰에서는 판이 접혀 있다
+        def until(part):    # CI 에서는 표고 타일이 색 타일보다 늦게 나간다 — 정해진 시간이 아니라 나갈 때까지(8 초)
+            for _ in range(32):
+                if any(part in u for u in asked):
+                    return True
+                page.wait_for_timeout(250)
+            return False
+        page.wait_for_timeout(500)
+        self.assertTrue(page.locator("#agebar").is_visible())
+        self.assertEqual(page.locator("#agebar-age").inner_text(), "60 Ma")
+        self.assertEqual(page.evaluate("document.getElementById('layer3d').value"), "gernontopo:paleotopo")
+        self.assertTrue(until("/dem/gernon/60/"), asked[:5])
+        self.assertTrue(until("/warp/gernontopo/60/"), asked[:5])
+        self.assertLessEqual(page.evaluate("document.documentElement.scrollWidth"), 390)
+
+        asked.clear()
+        page.tap("#agebar-younger")
+        page.wait_for_timeout(300)
+        self.assertEqual(page.locator("#agebar-age").inner_text(), "58 Ma")
+        # 표고는 주소가 바뀐 것까지 본다 — 앞 연대의 표고 요청이 줄을 서 있으면 새 연대의 것은 그 뒤에 나간다(부하가 걸린 CI 에서
+        # 8 초를 넘겼다). 땅과 음영은 한 원천을 함께 쓴다(`terrain.sourceCache` 가 그 원천의 것) — 지운 타일을 새 주소로 받는다
+        self.assertTrue(until("/warp/gernontopo/58/"), asked[:5])
+        self.assertEqual(page.evaluate("[window.__gsm3d.getSource('dem').tiles[0].split('?')[1], "
+                                       "window.__gsm3d.getSource('shade').tiles[0].split('?')[1]]"), ["gernon=58", "gernon=58"])
+        self.assertEqual(page.evaluate("localStorage.getItem('gsm.paleoage')"), "58")
+        page.tap("#agebar-play")
+        self.assertEqual(page.locator("#agebar-play").get_attribute("aria-pressed"), "true")
+        page.tap("#agebar-play")
+        self.assertEqual(page.locator("#agebar-play").get_attribute("aria-pressed"), "false")
+        # 끄면 막대도 걷힌다(고지형 색은 남아 있어 막대가 그대로다 — 색을 바꾸면 걷힌다)
+        page.evaluate("document.getElementById('paleo3d').click()")
+        page.evaluate("const s = document.getElementById('layer3d'); s.value = s.options[0].value; "
+                      "s.dispatchEvent(new Event('change'))")
+        page.wait_for_timeout(300)
+        self.assertFalse(page.locator("#agebar").is_visible())
+        self.assertEqual(errors, [])
+
     def test_늦게_실패한_타일에도_3D_가_뜬다(self):
         """마지막 타일이 마지막 그리기보다 늦게 실패하면 MapLibre 가 `load` 를 쏘지 않았다 — 실패한 타일은 다시
         그리기를 부르지 않기 때문이다. 휴대폰 job 이 가끔 깨진 까닭이 이것이었다(`loaded()` 는 참인데 신호가 없다).

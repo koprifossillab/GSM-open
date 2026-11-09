@@ -1028,6 +1028,11 @@ EN = {
     # 3D 남극 IBCSO (051)
     "빙저 지형을 고르면 3D 의 땅도 얼음을 걷어 낸 기반암이 된다.":
         "With the subglacial bed, the 3D terrain also drops the ice down to bedrock.",
+    # 3D 의 동남극 고지형 (wetherilli 441)
+    "땅을 그 연대의 고지형으로 (Gernon 2026)": "Terrain from that age's palaeotopography (Gernon 2026)",
+    "FastScape 모형 재구성(5 km)이고 판을 돌리지 않은 오늘의 자리다. 격자(동남극 3 000 km 네모) 밖은 오늘의 빙저 지형이다.":
+        "A FastScape model reconstruction (5 km) on today's positions, without plate rotation. Outside the grid "
+        "(a 3,000 km square over East Antarctica) the terrain is today's subglacial bed.",
     "2D 로 돌아간다": "Back to 2D",
     "지역": "Regions",
     "한국": "Korea",

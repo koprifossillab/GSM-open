@@ -285,6 +285,9 @@ urlpatterns = [
     # 얼음을 걷어 낸 남극 — IBCSO 해저·빙저 (051)
     re_path(r"^dem/(?P<kind>bed)/(?P<z>\d{1,2})/(?P<x>\d{1,6})/(?P<y>\d{1,6})\.png$", views.dem_tile,
             name="dem-bed-tile"),
+    # 3D 의 동남극 고지형 — 연대마다의 땅 (wetherilli 441)
+    re_path(r"^dem/gernon/(?P<age>\d{2,3})/(?P<z>\d{1,2})/(?P<x>\d{1,6})/(?P<y>\d{1,6})\.png$", views.dem_tile,
+            name="dem-gernon-tile"),
 
     path("coords/parse/", views.coord_parse, name="coord-parse"),
     path("coords/project/", views.coord_project, name="coord-project"),

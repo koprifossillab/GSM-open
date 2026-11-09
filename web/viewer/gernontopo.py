@@ -29,7 +29,7 @@ MAX_ZOOM = 3
 AGES = tuple(range(100, 33, -2))
 #: 카탈로그의 레이어 하나 — 연대는 화면의 연대 막대가 고른다
 LAYER = f"{UPSTREAM}:paleotopo"
-#: 3D 는 연대 막대를 따르지 않는다 — 이 연대 하나로 (wetherilli 439)
+#: 카탈로그 이름(`gernontopo:paleotopo`)으로 부를 때의 연대. 3D 는 연대마다의 판(`warp/gernontopo/<연대>/`)을 부른다 (wetherilli 441)
 AGE_3D = 34
 ATTRIBUTION = ('Gernon et al. (2026, <a href="https://doi.org/10.1126/science.adz6758" target="_blank" rel="noopener">Science</a>; '
                '<a href="https://doi.org/10.5281/zenodo.19205651" target="_blank" rel="noopener">Zenodo</a>, CC BY 4.0) — '

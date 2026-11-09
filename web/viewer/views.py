@@ -670,6 +670,8 @@ def map3d_view(request):
         "custom_layers": _script_json(custom),
         # 점묶음 요약 — 2D 와 같은 것이다. 모양은 `pointsets/<번호>/geojson/` 으로 받는다 (P02)
         "pointsets": _script_json(_pointset_list()),
+        # 동남극 고지형의 연대 — 옛것부터. 3D 의 땅과 연대 막대가 쓴다 (wetherilli 441)
+        "gernon_ages": _script_json(list(gernontopo.AGES)),
         "vworld_key": settings.VWORLD_KEY,
         "base": request.path.rsplit("3d", 1)[0],
         "version": VERSION,
@@ -7031,13 +7033,15 @@ def pointset_elevation(request, pk):
 
 
 @require_GET
-def dem_tile(request, z, x, y, kind="ice"):
+def dem_tile(request, z, x, y, kind="ice", age=None):
     """3D 의 촘촘한 지형 — Terrarium 꼴 표고 타일 (`dem/<z>/<x>/<y>.png`, `dem/bed/…`).
 
     남위 50° 남쪽은 IBCSO v2 수치 격자(500 m, 051)이고, 그 가운데 남위 60° 너머 줌 11 부터는 PGC
     REMA(2 m, 032)다 — REMA 의 구멍(바다)은 IBCSO 가 메운다. `bed` 는 얼음을 걷어 낸 IBCSO 해저·빙저라
     REMA(얼음 윗면)로 넘어가지 않는다. 북위 60° 너머는 PGC ArcticDEM, 일본은 국토지리원(10 m, 031).
-    그 밖이거나 못 만들면 AWS 로 넘긴다(302). 3D 는 이 자리들의 타일만 여기로 부른다."""
+    그 밖이거나 못 만들면 AWS 로 넘긴다(302). 3D 는 이 자리들의 타일만 여기로 부른다.
+
+    `dem/gernon/<연대>/…` 는 Gernon 외 2026 의 그 연대 고지형이다 — 격자 밖은 `bed` 와 같다 (wetherilli 441)."""
     z, x, y = int(z), int(x), int(y)
     if not (0 <= x < 2 ** z and 0 <= y < 2 ** z) or z > elevation.POLAR_MAX_ZOOM:
         return JsonResponse({"error": i18n.t(msg("그런 타일은 없다"), i18n.lang_of(request))}, status=404)
@@ -7046,16 +7050,23 @@ def dem_tile(request, z, x, y, kind="ice"):
     lat = math.degrees(math.atan(math.sinh(math.pi * (1 - 2 * (y + 0.5) / n))))
     png = None
     try:
-        if lat <= elevation.IBCSO_NORTH:
-            if kind == "ice" and lat <= -elevation.POLAR_LAT and z >= elevation.POLAR_MIN_ZOOM:
-                png = elevation.polar_terrarium(z, x, y)
-            if png is None:
-                png = elevation.ibcso_terrarium(kind, z, x, y)
-        elif abs(lat) >= elevation.POLAR_LAT:
-            if z >= elevation.POLAR_MIN_ZOOM:
-                png = elevation.polar_terrarium(z, x, y)
-        elif z <= elevation.GSI_ZOOM and elevation.in_japan(lat, lon):
-            png = elevation.japan_terrarium(z, x, y)
+        if age is not None:
+            if int(age) not in gernontopo.AGES:
+                return JsonResponse({"error": i18n.t(msg("그런 타일은 없다"), i18n.lang_of(request))}, status=404)
+            if lat <= elevation.IBCSO_NORTH:
+                png = elevation.gernon_terrarium(int(age), z, x, y)
+            kind = "bed"
+        if png is None:
+            if lat <= elevation.IBCSO_NORTH:
+                if kind == "ice" and lat <= -elevation.POLAR_LAT and z >= elevation.POLAR_MIN_ZOOM:
+                    png = elevation.polar_terrarium(z, x, y)
+                if png is None:
+                    png = elevation.ibcso_terrarium(kind, z, x, y)
+            elif abs(lat) >= elevation.POLAR_LAT:
+                if z >= elevation.POLAR_MIN_ZOOM:
+                    png = elevation.polar_terrarium(z, x, y)
+            elif z <= elevation.GSI_ZOOM and elevation.in_japan(lat, lon):
+                png = elevation.japan_terrarium(z, x, y)
     except (elevation.ElevationError, OSError, ValueError) as exc:
         log.info("표고 타일을 못 만들어 AWS 로 넘긴다 (%s/%s/%s): %s", z, x, y, exc)
         png = None

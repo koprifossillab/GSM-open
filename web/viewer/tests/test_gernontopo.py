@@ -1,4 +1,5 @@
-"""동남극 고지형 Gernon 2026 — GeoTIFF 읽기·칠하기·굽기·누른 자리 (wetherilli 436), 레이어 하나와 연대 34 장 (439). 작은 TIFF 를 지어 굽는다."""
+"""동남극 고지형 Gernon 2026 — GeoTIFF 읽기·칠하기·굽기·누른 자리 (wetherilli 436), 레이어 하나와 연대 34 장 (439),
+3D 의 땅 (441). 작은 TIFF 를 지어 굽는다."""
 import importlib
 import io
 import json
@@ -8,10 +9,12 @@ import zipfile
 from pathlib import Path
 
 from django.core.management import call_command
+from unittest import mock
+
 from django.test import SimpleTestCase, TestCase, override_settings
 from PIL import Image, TiffImagePlugin
 
-from viewer import gernontopo, views
+from viewer import elevation, gernontopo, views
 
 N, RES = 41, 150000.0
 LEFT, TOP = -(N / 2) * RES, (N / 2) * RES                      # 왼쪽 위 모서리 — 가운데 칸이 극
@@ -97,6 +100,40 @@ class Bake(TestCase):
         group = next(g for g in views._catalog("ko") if any(l["name"] == gernontopo.LAYER for l in g["layers"]))
         self.assertEqual({l["name"] for l in group["layers"]},
                          {gernontopo.LAYER, "antpapers:gernon_contours", "antpapers:gernon_ice"})
+
+    def test_3d_의_땅(self):
+        """`dem/gernon/<연대>/` — 그 연대의 고지형을 Terrarium 으로. 남위 50° 북쪽·없는 연대는 받지 않는다 (wetherilli 441)"""
+        with tempfile.TemporaryDirectory() as tmp, override_settings(GERNON_PALEOTOPO_DIR=tmp, TILE_CACHE_DIR=tmp + "/tc"), \
+                mock.patch.object(elevation, "GERNON_FEATHER", 1), \
+                mock.patch.object(elevation, "terrarium_tile", lambda z, x, y: None), \
+                mock.patch.object(elevation, "ibcso_terrarium", lambda kind, z, x, y: None):
+            src = Path(tmp) / "GIS_files.zip"
+            with zipfile.ZipFile(src, "w") as z:
+                z.writestr("GIS_files/COB160BestFitModel100Ma.tif", tif())
+                z.writestr("GIS_files/COB160BestFitModel098Ma.tif", tif(north=900.0))
+            call_command("build_gernon_paleotopo", str(src), stdout=io.StringIO(), stderr=io.StringIO())
+            elevation._gernon_cache.clear()
+
+            def heights(path):
+                r = self.client.get(path)
+                self.assertEqual((r.status_code, r["Content-Type"]), (200, "image/png"), path)
+                v = elevation._terrarium_values(b"".join(r.streaming_content) if r.streaming else r.content)
+                return sorted(v.getdata())
+            # 경도 −90…0° — 3031 의 y > 0 이라 위쪽 절반(north m), −180…−90° 는 아래쪽(south m)
+            east = heights("/GSM/dem/gernon/100/2/1/3.png")
+            self.assertAlmostEqual(east[len(east) // 2], 1800, delta=2)
+            self.assertAlmostEqual(heights("/GSM/dem/gernon/98/2/1/3.png")[len(east) // 2], 900, delta=2)
+            west = heights("/GSM/dem/gernon/100/2/0/3.png")
+            self.assertAlmostEqual(west[len(west) // 2], -3000, delta=2)
+            self.assertEqual(self.client.get("/GSM/dem/gernon/100/2/1/1.png").status_code, 302)    # 남위 50° 북쪽은 AWS
+            self.assertEqual(self.client.get("/GSM/dem/gernon/35/2/1/3.png").status_code, 404)
+        elevation._gernon_cache.clear()
+
+    def test_3d_화면에_연대(self):
+        html = self.client.get("/GSM/3d/?region=antarctica").content.decode()
+        self.assertIn('id="paleo3d"', html)
+        self.assertIn('id="agebar"', html)
+        self.assertIn(json.dumps(list(gernontopo.AGES)), html)
 
     def test_3d_는_한_연대(self):
         self.assertEqual(gernontopo.SETS[gernontopo.LAYER].name, f"gernontopo:{gernontopo.AGE_3D}")

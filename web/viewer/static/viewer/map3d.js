@@ -143,6 +143,24 @@
     }
   }
 
+  // 동남극 고지형(Gernon 2026) — 연대를 따르는 땅과 색 (wetherilli 441). 연대는 2D 의 연대 막대와 같은 기억(`gsm.paleoage`)이라
+  // 2D 에서 고른 연대로 3D 가 열린다. 땅을 고지형으로 세울지는 3D 만의 기억(`gsm.3d.paleo`)이다
+  var GERNON_AGES = JSON.parse((document.getElementById("gernon-ages") || {}).textContent || "[]");
+  var GERNON_LAYER = "gernontopo:paleotopo";
+  var AGE_KEY = "gsm.paleoage", PALEO_KEY = "gsm.3d.paleo";
+  var paleoAge = GERNON_AGES[GERNON_AGES.length - 1], paleoOn = false;
+  if (REGION === "antarctica" && GERNON_AGES.length) {
+    try {
+      var savedAge = +localStorage.getItem(AGE_KEY);
+      if (GERNON_AGES.indexOf(savedAge) >= 0) paleoAge = savedAge;
+      paleoOn = localStorage.getItem(PALEO_KEY) === "1";
+    } catch (e) { /* 사생활 모드 */ }
+  }
+  /** `warp/` 아래의 길 — 고지형 레이어는 고른 연대의 판(`gernontopo/<연대>`)이다 */
+  function warpPath(name) {
+    return name === GERNON_LAYER ? "gernontopo/" + paleoAge : name.replace(":", "/");
+  }
+
   /** "지질 레이어" 의 소스. 대개 `wms/` 의 3857 타일이고, 남극 GeoMAP 은 우리가 굽는 3031 타일을
    *  서버가 3857 로 다시 편 것(`warp/geomap/`, 040)이다. GeoMAP 은 남위 60° 남쪽만 덮고, 대륙을
    *  한눈에 볼 줌 3 부터 받는다. 출처는 목록이 적은 것(`data-attribution`)을 쓴다 */
@@ -162,7 +180,7 @@
     if (opt && (name === "ibcso:tid" || name === "admap:anomaly" || /^(antgg|ghfgrid|gernontopo):/.test(name))) {
       return { type: "raster", tileSize: 512, minzoom: 2, maxzoom: 17,
                bounds: [-180, -85.06, 180, name === "ibcso:tid" ? -50 : -60],
-               tiles: [BASE + "warp/" + name.replace(":", "/") + "/{z}/{x}/{y}@2x.png"], attribution: attribution };
+               tiles: [BASE + "warp/" + warpPath(name) + "/{z}/{x}/{y}@2x.png"], attribution: attribution };
     }
     var src = { type: "raster", tiles: wmsTiles(name), tileSize: 512, attribution: attribution };
     var tiles = opt && opt.getAttribute("data-tiles");
@@ -240,7 +258,11 @@
   }
   // 지형의 판 — 빙저를 고르면 표고 타일 주소에 `?bed` 를 달아 `demRequest` 가 `dem/bed/` 로 돌린다.
   // 주소가 바뀌어야 MapLibre 가 받아 둔 타일을 버리고 새로 받는다
-  function demTiles() { return [DEM + (ibcsoKind === "bed" ? "?bed" : "")]; }
+  // 고지형을 켜면 `?gernon=<연대>` 를 달아 `dem/gernon/<연대>/` 로 돌린다 — 격자 밖은 빙저와 같다 (wetherilli 441)
+  function demTiles() {
+    if (paleoOn) return [DEM + "?gernon=" + paleoAge];
+    return [DEM + (ibcsoKind === "bed" ? "?bed" : "")];
+  }
   sources.dem.tiles = sources.shade.tiles = demTiles();
   layers.push({ id: "shade", type: "hillshade", source: "shade",
                 paint: { "hillshade-exaggeration": 0.5, "hillshade-shadow-color": "#3f2712" } });
@@ -265,21 +287,23 @@
   }
   var IBCSO_NORTH = -50;      // 서버의 `elevation.IBCSO_NORTH`
   function demRequest(url) {
-    var m = /\/terrarium\/(\d+)\/(\d+)\/(\d+)\.png(\?bed)?$/.exec(url);
+    var m = /\/terrarium\/(\d+)\/(\d+)\/(\d+)\.png(\?bed|\?gernon=(\d+))?$/.exec(url);
     if (!m) return undefined;
-    var z = +m[1], x = +m[2], y = +m[3], n = Math.pow(2, z), bed = !!m[4];
+    var z = +m[1], x = +m[2], y = +m[3], n = Math.pow(2, z), bed = !!m[4], age = m[5];
     var lon = (x + 0.5) / n * 360 - 180;
     var lat = Math.atan(Math.sinh(Math.PI * (1 - 2 * (y + 0.5) / n))) * 180 / Math.PI;
     var path = z + "/" + x + "/" + y + ".png";
     // 남위 50° 남쪽은 줌과 상관없이 서버다 — IBCSO 500 m 해저(051), 가까이서는 REMA 2 m(032). AWS 는
     // 남빙양이 옛 GEBCO 라 해저가 뭉개지고, 빙붕 밑을 모른다
-    if (lat <= IBCSO_NORTH) return { url: location.origin + BASE + "dem/" + (bed ? "bed/" : "") + path };
+    if (lat <= IBCSO_NORTH) {
+      return { url: location.origin + BASE + "dem/" + (age ? "gernon/" + age + "/" : bed ? "bed/" : "") + path };
+    }
     // 위도 60° 너머는 PGC ArcticDEM 2 m 를 서버가 옮겨 준다(032). AWS 는 여기서 이음매가
     // 계단처럼 드러나고 결이 뭉개진다
     var ours = (lat >= POLAR_LAT && z >= POLAR_MIN_ZOOM) || (z <= GSI_MAX_ZOOM && inJapan(lat, lon));
     if (ours) return { url: location.origin + BASE + "dem/" + path };
     // 빙저를 골랐어도 남극 밖은 AWS 그대로다 — 붙여 둔 `?bed` 를 떼고 보낸다
-    return bed ? { url: url.replace(/\?bed$/, "") } : undefined;
+    return bed ? { url: url.replace(/\?(bed|gernon=\d+)$/, "") } : undefined;
   }
 
   var map = new maplibregl.Map({
@@ -360,6 +384,105 @@
     baseSel.addEventListener("change", function () { setIbcso(baseSel.value); });
     document.getElementById("base3d-hint").hidden = ibcsoKind !== "bed";
   }
+  // ── 고지형의 연대 (wetherilli 441) ──
+  // 땅(`dem`·`shade`)과 고지형 색(`kigam` 이 고지형일 때)을 같은 연대로 바꾼다. 재생은 2D 처럼 일정한 박자가 아니라
+  // **땅이 다 서고(idle) 나서** 다음 칸으로 간다 — 표고 타일은 처음 받을 때 한 장에 수십 ms 라 박자를 맞추면 반쯤 선 땅이 지나간다
+  var paleoBox = document.getElementById("paleo3d");
+  var AGE_PAUSE_MS = 700;
+  var agePlaying = false, ageTimer = null;
+  function ageBarWanted() {
+    return REGION === "antarctica" && GERNON_AGES.length > 0 && (paleoOn || select.value === GERNON_LAYER);
+  }
+  function refreshAgebar() {
+    var bar = document.getElementById("agebar");
+    if (!bar) return;
+    bar.hidden = !ageBarWanted();
+    if (bar.hidden) { stopAgePlay(); return; }
+    var at = GERNON_AGES.indexOf(paleoAge);
+    var range = document.getElementById("agebar-range");
+    range.max = GERNON_AGES.length - 1;
+    range.value = at;
+    range.setAttribute("aria-valuetext", paleoAge + " Ma");
+    document.getElementById("agebar-age").textContent = T("{age} Ma", { age: paleoAge });
+    document.getElementById("agebar-older").disabled = at === 0;
+    document.getElementById("agebar-younger").disabled = at === GERNON_AGES.length - 1;
+  }
+  function setPaleoAge(age) {
+    if (age === paleoAge) return;
+    paleoAge = age;
+    try { localStorage.setItem(AGE_KEY, String(age)); } catch (e) { /* 사생활 모드 */ }
+    if (paleoOn) {
+      map.getSource("dem").setTiles(demTiles());
+      map.getSource("shade").setTiles(demTiles());
+    }
+    if (select.value === GERNON_LAYER && map.getSource("kigam")) map.getSource("kigam").setTiles(geologySource(GERNON_LAYER).tiles);
+    refreshAgebar();
+  }
+  function stepAge(delta) {
+    var at = Math.max(0, Math.min(GERNON_AGES.length - 1, GERNON_AGES.indexOf(paleoAge) + delta));
+    setPaleoAge(GERNON_AGES[at]);
+    return at;
+  }
+  function stopAgePlay() {
+    agePlaying = false;
+    if (ageTimer) clearTimeout(ageTimer);
+    ageTimer = null;
+    var play = document.getElementById("agebar-play");
+    if (play) {
+      play.textContent = "▶";
+      play.title = T("재생 — 옛날에서 오늘 쪽으로 저절로 넘긴다");
+      play.setAttribute("aria-pressed", "false");
+    }
+  }
+  // 땅이 다 서면(idle) — 이미 다 서 있으면 `idle` 이 다시 오지 않으니 늘 연대를 바꾼 뒤에만 부르고, 그래도 8 초면 넘어간다
+  function whenIdle(then) {
+    var done = false, guard = null;
+    function go() { if (done) return; done = true; clearTimeout(guard); then(); }
+    map.once("idle", go);
+    guard = setTimeout(go, 8000);
+  }
+  function playStep() {
+    if (!agePlaying) return;
+    if (stepAge(1) >= GERNON_AGES.length - 1) { stopAgePlay(); return; }
+    whenIdle(function () { if (agePlaying) ageTimer = setTimeout(playStep, AGE_PAUSE_MS); });
+  }
+  function setPaleo(on) {
+    paleoOn = on;
+    try { localStorage.setItem(PALEO_KEY, on ? "1" : "0"); } catch (e) { /* 사생활 모드 */ }
+    document.getElementById("paleo3d-hint").hidden = !on;
+    map.getSource("dem").setTiles(demTiles());
+    map.getSource("shade").setTiles(demTiles());
+    // 땅만 옛것이고 색이 오늘의 것이면 읽기 어렵다 — 켤 때 고지형 색을 함께 얹는다(고를 수 있을 때)
+    if (on && select.value !== GERNON_LAYER && select.querySelector('option[value="' + GERNON_LAYER + '"]')) {
+      select.value = GERNON_LAYER;
+      select.dispatchEvent(new Event("change"));
+    }
+    refreshAgebar();
+  }
+  if (paleoBox && document.getElementById("agebar")) {
+    paleoBox.checked = paleoOn;
+    document.getElementById("paleo3d-hint").hidden = !paleoOn;
+    paleoBox.addEventListener("change", function () { stopAgePlay(); setPaleo(paleoBox.checked); });
+    select.addEventListener("change", refreshAgebar);
+    document.getElementById("agebar-older").addEventListener("click", function () { stopAgePlay(); stepAge(-1); });
+    document.getElementById("agebar-younger").addEventListener("click", function () { stopAgePlay(); stepAge(1); });
+    document.getElementById("agebar-range").addEventListener("input", function () {
+      stopAgePlay();
+      if (GERNON_AGES[+this.value] != null) setPaleoAge(GERNON_AGES[+this.value]);
+    });
+    document.getElementById("agebar-play").addEventListener("click", function () {
+      if (agePlaying) { stopAgePlay(); return; }
+      if (GERNON_AGES.indexOf(paleoAge) >= GERNON_AGES.length - 1) setPaleoAge(GERNON_AGES[0]);
+      agePlaying = true;
+      this.textContent = "❚❚";
+      this.title = T("멈춘다");
+      this.setAttribute("aria-pressed", "true");
+      ageTimer = setTimeout(playStep, AGE_PAUSE_MS);
+    });
+    stopAgePlay();
+    refreshAgebar();
+  }
+
   document.getElementById("exag3d").addEventListener("input", function () {
     var x = this.value / 10;
     map.setTerrain({ source: "dem", exaggeration: x });

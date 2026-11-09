@@ -37,6 +37,8 @@
   .fold3d::after { content: "▴"; }
   .panel3d.folded .fold3d::after { content: "▾"; }
   .panel3d.folded #p3-body { display: none; }
+  .agebar.ab3d { position: fixed; bottom: 40px; }
+  .panel3d label input[type=checkbox] { margin: 0 4px 0 0; vertical-align: -2px; }
   #p3-body { margin-top: 2px; }
   @media (max-width: 760px) {
     .panel3d { top: 8px; left: 8px; width: auto; right: 56px; max-height: calc(100dvh - 90px); overflow-y: auto;
@@ -102,6 +104,9 @@
     </select>
   </label>
   <p id="base3d-hint" class="hint antarctica-only" hidden>{% t "빙저 지형을 고르면 3D 의 땅도 얼음을 걷어 낸 기반암이 된다." %}</p>
+  {% comment %}남극만 — Gernon 2026 의 고지형으로 땅을 세운다. 연대는 지도 밑의 막대가 고른다 (wetherilli 441){% endcomment %}
+  <label class="antarctica-only"><input type="checkbox" id="paleo3d"> {% t "땅을 그 연대의 고지형으로 (Gernon 2026)" %}</label>
+  <p id="paleo3d-hint" class="hint antarctica-only" hidden>{% t "FastScape 모형 재구성(5 km)이고 판을 돌리지 않은 오늘의 자리다. 격자(동남극 3 000 km 네모) 밖은 오늘의 빙저 지형이다." %}</p>
   <label>{% t "투명도" %} <span id="op-num">70%</span>
     <input type="range" id="opacity3d" min="0" max="100" value="70">
   </label>
@@ -123,6 +128,16 @@
   <p class="hint"><a id="back2d" href="{{ base }}map/">{% t "2D 로 돌아간다" %}</a></p>
   </div>
 </aside>
+{% comment %}연대 막대 — 2D(map.html, wetherilli 439)와 같은 꼴·같은 글. 고지형을 땅이나 지질 레이어로 쓸 때만 뜬다 (wetherilli 441){% endcomment %}
+<div id="agebar" class="agebar ab3d" role="group" aria-labelledby="agebar-cap" hidden>
+  <span class="ab-cap" id="agebar-cap">{% t "연대" %}</span>
+  <button type="button" class="ab-play" id="agebar-play" aria-pressed="false">&#9654;</button>
+  <button type="button" class="ab-step" id="agebar-older" title="{% t "더 옛날로 — 한 칸" %}" aria-label="{% t "더 옛날로" %}">&lsaquo;</button>
+  <input type="range" class="ab-range" id="agebar-range" min="0" max="0" step="1" value="0" aria-labelledby="agebar-cap">
+  <button type="button" class="ab-step" id="agebar-younger" title="{% t "오늘 쪽으로 — 한 칸" %}" aria-label="{% t "오늘 쪽으로" %}">&rsaquo;</button>
+  <output class="ab-age" id="agebar-age" aria-live="polite"></output>
+</div>
+<script id="gernon-ages" type="application/json">{{ gernon_ages|safe }}</script>
 <script id="vworld-key" type="application/json">"{{ vworld_key|escapejs }}"</script>
 <script id="i18n-data" type="application/json">{{ i18n_json|safe }}</script>
 <script id="pointset-data" type="application/json">{{ pointsets|safe }}</script>
