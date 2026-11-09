@@ -501,6 +501,9 @@
 | wetherilli 432 | 2026-10-29 | [남극 지열류 모형 셋 — 측정 점과 같은 색으로, 셋을 따로](20261029_wetherilli_432_antarctic_heatflow_grids.md) |
 | wetherilli 433 | 2026-10-29 | [ITS_LIVE 빙하 유속 120 m — COG 에서 필요한 몫만 Range 로](20261029_wetherilli_433_its_live_velocity.md) |
 | wetherilli 434 | 2026-10-29 | [극지 묶음의 소스 둘 — 세종에 킹조지섬 KGIS 덩이, 다산에 NPI 스발바르 배경](20261029_wetherilli_434_offline_polar_sources.md) |
+| wetherilli 435 | 2026-11-09 | [남극 논문 두 편의 벡터 레이어 — 개인 레이어에서 남극 탭의 카탈로그로](20261109_wetherilli_435_antarctic_papers.md) |
+| wetherilli 436 | 2026-11-09 | [동남극 고지형 Gernon 2026 — 열 연대를 고도 단계로 칠한 남극 탭 레이어](20261109_wetherilli_436_gernon_paleotopo.md) |
+| wetherilli 437 | 2026-11-09 | [EAFBP Fig. 2a 의 Fan·Fau 해석선을 PDF 벡터에서 땄다](20261109_wetherilli_437_eafbp_fig2a_digitize.md) |
 | koprifossillab P01 | 2026-09-30 | [백업 — WegenersDream 의 틀로, 바뀌는 빠르기에 따라 넷으로 (계획)](20260930_koprifossillab_P01_backup_plan.md) |
 | koprifossillab 001 | 2026-09-30 | [매주 월요일 새벽: 운영 자료 백업과 KPDC 목록 갱신](20260930_koprifossillab_001_weekly_backup.md) |
 | koprifossillab 002 | 2026-09-30 | [`/healthz/` — 판·DB·백업 상태를 한 장으로](20260930_koprifossillab_002_healthz.md) |

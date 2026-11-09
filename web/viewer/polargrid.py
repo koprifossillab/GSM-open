@@ -46,6 +46,7 @@ class Set:
     palette: tuple            # 칸 번호 0…255 → RGB 768 개 (0 은 빈 곳)
     prop: str                 # 누른 자리 속성의 이름 — 영어는 `i18n.PROP_EN`
     attribution: str
+    extra: tuple = ()         # 누른 자리에 함께 낼 고정 속성 ((이름, 값), …) — 고지형의 연대 (wetherilli 436)
 
     def root(self) -> Path:
         return Path(getattr(settings, self.where)) / self.sub

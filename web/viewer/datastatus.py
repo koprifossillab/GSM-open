@@ -54,6 +54,7 @@ ITEMS = [
     Item("admap2/meta.json", "ADMAP_DIR", "meta.json", msg("남극 자력 이상 ADMAP-2"), "build_admap"),
     Item("antgg/bouguer/meta.json", "ANTGG_DIR", "bouguer/meta.json", msg("남극 중력 AntGG2021"), "build_antgg"),
     Item("antarctic_ghf/stal/meta.json", "ANTARCTIC_GHF_DIR", "stal/meta.json", msg("남극 지열류 모형"), "build_antarctic_ghf"),
+    Item("gernon_paleotopo/100/meta.json", "GERNON_PALEOTOPO_DIR", "100/meta.json", msg("동남극 고지형 (Gernon 2026)"), "build_gernon_paleotopo"),
     Item("itslive/antarctica/meta.json", "ITSLIVE_DIR", "antarctica/meta.json", msg("빙하 유속 ITS_LIVE (남극)"), "build_itslive"),
     Item("itslive/greenland/meta.json", "ITSLIVE_DIR", "greenland/meta.json", msg("빙하 유속 ITS_LIVE (그린란드)"), "build_itslive"),
     Item("itslive/svalbard/meta.json", "ITSLIVE_DIR", "svalbard/meta.json", msg("빙하 유속 ITS_LIVE (스발바르)"), "build_itslive"),

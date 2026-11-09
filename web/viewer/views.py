@@ -41,10 +41,11 @@ from gsmweb.version import VERSION
 from . import (china4m, coords, gravmag, crs, datastatus, geo3al, geomap, geus, grportal, gsj, gsmma, i18n, ibcso, janmayen, kigam, kopri, npolar, ntgeo,
                patchnotes, elevation, moonmap, peninsula, phyloserver, pointsets, tilecache, tiles, trek, vworld, warp,
                fetchlog, marscraters, marsmap, mercurymap, sources, zhurong)
-from . import admap, antgg, ghfgrid, arcpoints, kmag, caribmap, geonames, crust, glaciers, impacts, faults, minerals, stress, tectonics, seafloor, glim, heatflow, fossils, gvp, icemargins, kigam50k, macrostrat, mantle, metatile, naturalearth, neotoma, paleo, paleoeco, paleocoast, pbdb, quakes, recentquakes, verifylog, spamap, ocean, paleodem, usgs, volcanoes, wind
+from . import admap, antgg, gernontopo, ghfgrid, arcpoints, kmag, caribmap, geonames, crust, glaciers, impacts, faults, minerals, stress, tectonics, seafloor, glim, heatflow, fossils, gvp, icemargins, kigam50k, macrostrat, mantle, metatile, naturalearth, neotoma, paleo, paleoeco, paleocoast, pbdb, quakes, recentquakes, verifylog, spamap, ocean, paleodem, usgs, volcanoes, wind
 from . import ags, austates, bas, basemaps, bcgs, bgr, bgs, brgm, calgs, cgs, dinamige, dmr, dov, egdi, emodnet, esdm, ga, georep, geosphere, gns, gsi, gsiindia, gtk, igme, iige, ineter, ingemmet, ispra, jmg, linked, lneg, mgb, mrdata, mris, natt, ngu, nrcan, nsgs, ogs, pig, segemar, sgb, sgc, sgm, sgs, sgu, sigeom, skgs, spw, stri, swisstopo, tno, twopen, usage, usgscarib, usstates, vmme, ygs
 from . import gmrt  # 극지 수심 (wetherilli 428)
 from . import accfronts  # 남극순환류 전선 (wetherilli 429)
+from . import antpapers  # 남극 논문 두 편의 벡터 레이어 (wetherilli 435)
 from . import aadc, doors, earthpoints, gtnp, itslive, kgis, offlinereq, orda, pangaea, petrochron, pointvalues, polargrid, profileband, raised, scar, static_tables, tilegrid, timescale, visits
 from .i18n import msg
 from .models import Layer, LayerGroup, Point, PointSet, PointSetDeletion, Shape
@@ -3074,7 +3075,7 @@ def _catalog(lang="ko"):
             "bbox": l.bbox,
             "queryable": l.queryable,
             # 대조할 상류가 없는 것(우리가 그리는 GeoMAP)은 "대조 안 함" 표를 달지 않는다
-            "verified": bool(l.verified_at) or l.upstream in ("geomap", "janmayen", "geo3al", "peninsula", "china4m", "kopri", "pangaea", "usgscarib", "stri", "sim3534", "vmme", "ntgs", "gtnp", "petrochron", "orda", "raised", "kgis")
+            "verified": bool(l.verified_at) or l.upstream in ("geomap", "janmayen", "geo3al", "peninsula", "china4m", "kopri", "pangaea", "usgscarib", "stri", "sim3534", "vmme", "ntgs", "gtnp", "petrochron", "orda", "raised", "kgis", "antpapers")
                         or twopen.knows(l.name),
             # 영어판은 설명의 영어(`i18n.ABSTRACT_EN`, wetherilli 333) — 없으면 한국어가 든 설명을 숨긴다
             "abstract": _abstract_en(l) if en else l.abstract,
@@ -3195,6 +3196,13 @@ def _point_fields(layer) -> dict:
         return {"kind": "points", "queryable": False, "style": "class", "source": orda.SOURCE_URL,
                 "sourceLabel": str(msg("원본 자료 — Livingstone 외 2022 빙저호 목록 (셰필드대 ORDA), CC BY 4.0")),
                 "attribution": orda.CREDIT, "version": orda.version()}
+    if layer.upstream == "antpapers" and antpapers.knows(layer.name):
+        # 남극 논문 두 편(wetherilli 435) — 저장소의 파일을 레이어마다 한 덩이로. 갈래(`class`)의 색은 서버의 표
+        return {"kind": "points", "queryable": False, "style": "class", "source": antpapers.ARMADILLO_DATA
+                if layer.name.startswith("antpapers:eafbp") else antpapers.GERNON_DATA,
+                "sourceLabel": str(msg("원본 자료 — Armadillo 외 2026 (figshare)") if layer.name.startswith("antpapers:eafbp")
+                                   else msg("원본 자료 — Gernon 외 2026 (Zenodo)")),
+                "attribution": antpapers.CREDIT, "version": antpapers.version()}
     if layer.upstream == "acc" and accfronts.knows(layer.name):
         # 남극순환류 전선(wetherilli 429) — 저장소의 파일을 선 한 덩이로. 전선이 갈래(`class`)이고 색은 서버의 표
         return {"kind": "points", "queryable": False, "style": "class", "source": accfronts.DOI,
@@ -4294,12 +4302,12 @@ def admap_info(request):
     return JsonResponse({"features": [{"props": i18n.props_en(props) if lang == "en" else props}]})
 
 
-#: 칠해 잘라 둔 남극 격자 — 레이어 이름 → `polargrid.Set` (중력 wetherilli 431, 지열류 모형 432)
-POLAR_SETS = {**antgg.SETS, **ghfgrid.SETS}
+#: 칠해 잘라 둔 남극 격자 — 레이어 이름 → `polargrid.Set` (중력 wetherilli 431, 지열류 모형 432, 동남극 고지형 436)
+POLAR_SETS = {**antgg.SETS, **ghfgrid.SETS, **gernontopo.SETS}
 
 
 def _polar_legend(name, lang):
-    return (ghfgrid if name in ghfgrid.SETS else antgg).legend(name, lang)
+    return next(m for m in (ghfgrid, gernontopo, antgg) if name in m.SETS).legend(name, lang)
 
 
 def _polar_notice(spec):
@@ -4335,7 +4343,7 @@ def polargrid_info(request):
     value = polargrid.value_at(spec, *ll)
     if value is None:
         return JsonResponse({"features": []})
-    props = {spec.prop: f"{value:+,.1f}".replace("-", "−") if spec.scale != 1 else value}
+    props = {spec.prop: f"{value:+,.1f}".replace("-", "−") if spec.scale != 1 else value, **dict(spec.extra)}
     return JsonResponse({"features": [{"props": i18n.props_en(props) if lang == "en" else props, "unit": spec.unit}]})
 
 
@@ -6051,6 +6059,8 @@ def point_layer(request):
         return _glacio_layer(request, name, lang)
     if accfronts.knows(name):
         return _acc_fronts_layer(request, lang)
+    if antpapers.knows(name):
+        return _antpapers_layer(request, name, lang)
     if aadc.knows(name):
         return _aspa_layer(name, lang)
     if kigam50k.knows_file(name):
@@ -6397,6 +6407,18 @@ def _glacio_layer(request, name, lang):
     if settings.TILE_CACHE_SECONDS > 0:
         response["Cache-Control"] = f"public, max-age={settings.TILE_CACHE_SECONDS}"
     return _immutable(request, response, module.version())
+
+
+def _antpapers_layer(request, name, lang):
+    """남극 논문 두 편(wetherilli 435) — 저장소의 `data/antarctic_papers.json`. 없으면 503 으로 까닭을 말한다"""
+    try:
+        content = antpapers.body(name, lang)
+    except FileNotFoundError:
+        return JsonResponse({"error": i18n.t(msg("남극 논문 자료 파일이 없다 (build_antarctic_papers)"), lang)}, status=503)
+    response = HttpResponse(content, content_type="application/geo+json")
+    if settings.TILE_CACHE_SECONDS > 0:
+        response["Cache-Control"] = f"public, max-age={settings.TILE_CACHE_SECONDS}"
+    return _immutable(request, response, antpapers.version())
 
 
 def _acc_fronts_layer(request, lang):

@@ -392,7 +392,8 @@ WMS·z/x/y·우리가 굽는 것) 계획을 따로 둔다 (029).
   018), 얀마옌 지질도(`GSM_NPOLAR_DIR`, 기본 `<DB 옆>/npolar`, 022), 중국 USGS geo3al
   (`GSM_USGS_DIR`, 기본 `<DB 옆>/usgs`, 025), 한반도 지질도 음영판·민판(`GSM_PENINSULA_DIR`,
   기본 `<DB 옆>/peninsula`, 027·028 — PDF·PNG 를 `manage.py build_peninsula` 로 잘라 둔다), 남극 해저·빙저 지형
-  IBCSO v2(`GSM_IBCSO_DIR`, 기본 `<DB 옆>/ibcso`, 047 — 칠한 GeoTIFF 둘을 `manage.py build_ibcso` 로 3031 에 잘라 둔다), 남극 자력 이상 ADMAP-2(`GSM_ADMAP_DIR`, 기본 `<DB 옆>/admap2`, wetherilli 262 — `manage.py build_admap <grid.zip>`), 화성 크레이터
+  IBCSO v2(`GSM_IBCSO_DIR`, 기본 `<DB 옆>/ibcso`, 047 — 칠한 GeoTIFF 둘을 `manage.py build_ibcso` 로 3031 에 잘라 둔다), 남극 자력 이상 ADMAP-2(`GSM_ADMAP_DIR`, 기본 `<DB 옆>/admap2`, wetherilli 262 — `manage.py build_admap <grid.zip>`), 동남극 고지형 Gernon 외 2026
+  (`GSM_GERNON_PALEOTOPO_DIR`, 기본 `<DB 옆>/gernon_paleotopo`, wetherilli 436 — `manage.py build_gernon_paleotopo <zip>`, FastScape 모형이지 관측이 아니다, 판을 돌리지 않았다), 화성 크레이터
   목록 Robbins 2012(`GSM_MARS_DIR`, 기본 `<DB 옆>/mars`, 067 — `manage.py build_mars_craters <zip>` 이 sqlite 한 장으로 굽고 타일은 그때그때 그린다), 화성 옛 지질도·지역도 — I-1802·SIM 2888·I-2650·MTM(같은 자리, 068·wetherilli 079 —
   `manage.py build_mars_originals <zip…>`, 달 원도의 틀을 빌렸다), 수성 지질도 — USGS 1:500만 도폭 합본(`GSM_MERCURY_DIR`, 기본
   `<DB 옆>/mercury`, wetherilli 144 — `manage.py build_mercury_geology <zip>`), 온 지구의 옛 해안선(`GSM_EARTH_DIR`, 기본 `<DB 옆>/earth`,
@@ -602,6 +603,7 @@ web/viewer/       뷰어 앱 하나뿐이다. 앱을 더 가르지 않는다
   polargrid.py    남극 격자를 칠해 3031 타일로 — Grid(위에서 아래로)·흩어진 점 채우기·굽기·누른 자리. admap 의 틀을 뗐다(wetherilli 431). 문이 아니다
   antgg.py        남극 중력 AntGG2021 — 부게·프리에어 5 km. 원본이 NetCDF-4 라 굽기만 호스트(h5py, `run.sh build_antgg`). 문이 아니다
   ghfgrid.py      남극 지열류 모형 셋(Stål·Lösing·Martos) — 글 파일을 polargrid 로, 색은 IHFC 측정 점(heatflow.CLASSES) 그대로. 모형이지 측정이 아니다(wetherilli 432). 문이 아니다
+  gernontopo.py   동남극 고지형 Gernon 외 2026 — FastScape 모형 재구성 GeoTIFF(Pillow, numpy 없이) 열 연대를 polargrid 로, 오늘의 좌표 그대로. 1 500 m(빙모 문턱)부터 녹슨 빛(wetherilli 436). 문이 아니다
   ntgeo.py        노던테리토리 1:250만 지질도·단층 — 열린자료 셰이프 ZIP(CC BY)을 위경도 GeoJSON 한 덩이로, 색은 ICS(원생누대는 기까지). 지도 서비스가 없다. 문이 아니다
   sarad.py        남호주 방사능 농도 격자 K·Th·U(SARIG 2024, CC BY 4.0) — ER Mapper 격자를 네 칸에 하나(320 m) int16 로 골라 적고 누른 자리의 값. 타일은 SARIG 영상 WMS 의 것. 문이 아니다
   kmag.py         다누리 자기장 측정기 KMAG Calibrated 하루치 CSV -> 32 초마다 한 점(R*Tree sqlite) -> 달 궤적·누른 자리의 |B|. 문이 아니다
@@ -630,6 +632,7 @@ web/viewer/       뷰어 앱 하나뿐이다. 앱을 더 가르지 않는다
   glim.py         세계 암상 GLiM 0.5° 격자(data/glim_05deg.json) -> 경위도 타일·누른 자리의 갈래. 문이 아니다
   heatflow.py     IHFC 세계 지열류 2024 글 파일 -> sqlite(R*Tree) -> 경위도 점 타일·누른 자리. 문이 아니다
   accfronts.py    남극순환류 전선 다섯 Park & Durand 2019(SEANOE, CC BY 4.0) — NetCDF-3 를 numpy 없이 data/acc_fronts.json 으로(`build_acc_fronts`) -> 남극 탭 선·온 지구 경위도 타일. 문이 아니다(wetherilli 429)
+  antpapers.py    남극 논문 두 편 — Armadillo 2026 부채꼴 분지(빙저 선구조·분지 가장자리·전단대·틀·오일러 극·Fig. 2a 해석선)와 Gernon 2026 고지형 등고선 열 연대. 자료 zip(CC BY 4.0) 둘을 numpy 없이 data/antarctic_papers.json 으로(`build_antarctic_papers`) -> 남극 탭 선·점. 해석·모형이고 좌표는 오늘의 자리. 문이 아니다(wetherilli 435)
   seafloor.py     해양 지각 연대 Seton 2020(NetCDF-3)·해저 퇴적층 두께 GlobSed v3(글 격자) — numpy 없이 -> <EARTH_DIR> 의 칠한 PNG·int16 값 -> 경위도 타일·누른 자리. 문이 아니다
   sources.py      받아 두는 데이터소스의 명세(`GSM.db` 의 `DataSource` — admin 에서 고치고 `DataSourceChange` 에 이력, jikhanjung P03) — 읽기·검사·씨앗 덧붙이기, 파일 시절의 `<DB 옆>/sources.json` 을 한 번 옮기기(`sources_import`). 씨앗은 data/sources.seed.json, 새 fetch_*·build_* 를 더하면 거기 한 줄 (jikhanjung P02). 문이 아니다
   fetchlog.py     받은 차례의 기록(`GSM.db` 의 `FetchRun`, P03 에서 store.sqlite 의 fetch_log 를 옮겼다) — fetch_*·build_* 가 끝날 때 한 줄(apps.py 가 BaseCommand.execute 를 감싼다), 명령은 fetchlog.note() 로 보탠다. 호스트(GSM_RUN_PLACE=host)는 읽기만 한다 — hourly_status.json·fetch_log_host/<날짜>.jsonl 을 컨테이너가 옮겨 적고 다 들인 지난 날의 파일은 지운다(jikhanjung P02·023). 매시 일도 jsonl 에 `note()` 값까지 남기고 같은 차례의 hourly_status.json 줄은 버린다 — 그것은 시간을 넘겨 죽었을 때의 예비(jikhanjung 024). 받은 판의 정보는 원본 폴더의 manifest.json(`rawstore`). 문이 아니다
@@ -677,7 +680,7 @@ devlog/           왜 그렇게 했는지 — 색인은 devlog/README.md
 KIGAM `/openapi/wms`·VWorld WMTS 를 부른다. GSM 자신은 이것을 쓰지 않는다. 패키지는 `requests` 없이 표준 라이브러리(`gsmpack/net.py`)로 부르고,
 키는 환경변수로만 받아 묶음·parts·오류 문구에 적지 않는다(wetherilli 407). `linked.py` 만은 주소를 우리가 정하지 않는다 — 개인 레이어를 남의 API 에
 이을 때 브라우저가 곧장 못 받으면 거친다(wetherilli P09·122). 사설망은 `GSM_LINKED_ALLOW` 에 적은 호스트만, 밖에 열면 닫는다. 뷰가 직접 부르지 않는다. 상류가 바뀌거나 주소가
-닫힐 때 고칠 자리를 하나로 묶어두려는 것이다. `geomap.py`·`janmayen.py`·`geo3al.py`·`peninsula.py`·`china4m.py`·`moonmap.py`·`caribmap.py`·`ibcso.py`·`admap.py`·`polargrid.py`·`antgg.py`·`ghfgrid.py`·`accfronts.py`·`ntgeo.py`·`sarad.py`·`kigam50k.py`·`kigamdata.py`·`twopen.py`·`zhurong.py`·`marscraters.py`·`marsmap.py`·`mercurymap.py`·`spamap.py`·`paleo.py`·`paleocoast.py`·`fossils.py`·`volcanoes.py`·`quakes.py`·`paleoeco.py`·`crust.py`·`glaciers.py`·`impacts.py`·`faults.py`·`minerals.py`·`stress.py`·`tectonics.py`·`seafloor.py`·`glim.py`·`heatflow.py`·`naturalearth.py`·`geonames.py`·`icemargins.py`·`mantle.py`·`earthpoints.py`·`pointvalues.py`·`sources.py`·`fetchlog.py`·`rawstore.py`·`raised.py` 는
+닫힐 때 고칠 자리를 하나로 묶어두려는 것이다. `geomap.py`·`janmayen.py`·`geo3al.py`·`peninsula.py`·`china4m.py`·`moonmap.py`·`caribmap.py`·`ibcso.py`·`admap.py`·`polargrid.py`·`antgg.py`·`ghfgrid.py`·`gernontopo.py`·`accfronts.py`·`antpapers.py`·`ntgeo.py`·`sarad.py`·`kigam50k.py`·`kigamdata.py`·`twopen.py`·`zhurong.py`·`marscraters.py`·`marsmap.py`·`mercurymap.py`·`spamap.py`·`paleo.py`·`paleocoast.py`·`fossils.py`·`volcanoes.py`·`quakes.py`·`paleoeco.py`·`crust.py`·`glaciers.py`·`impacts.py`·`faults.py`·`minerals.py`·`stress.py`·`tectonics.py`·`seafloor.py`·`glim.py`·`heatflow.py`·`naturalearth.py`·`geonames.py`·`icemargins.py`·`mantle.py`·`earthpoints.py`·`pointvalues.py`·`sources.py`·`fetchlog.py`·`rawstore.py`·`raised.py` 는
 상류가 아니라 우리 디스크의 파일을 읽으므로 문이 아니다. `warp.py` 도 문이 아니다 — 원본은 부르는 쪽이 넘긴다. 문은 서로를 타지 않는다 —
 주소 검색은 KIGAM 을 거치지 않고, KIGAM 인증키도 쓰지 않는다.
 

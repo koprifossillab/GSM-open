@@ -1203,6 +1203,7 @@
     petrochron: { source: null, info: null }, // 남극 암석 화학·연대 — 받아 구운 PetroChron 한 덩이 (wetherilli 419)
     orda: { source: null, info: null },       // 빙저호 — 받아 둔 Livingstone 2022 목록 한 덩이 (wetherilli 420)
     raised: { source: null, info: null },     // RAISED 접지선 — 연대마다 선 한 덩이 (wetherilli 420)
+    antpapers: { source: null, info: null },  // 남극 논문 두 편 — 저장소의 선·점 레이어마다 한 덩이 (wetherilli 435)
     acc: { source: null, info: null },        // 남극순환류 전선 — 저장소의 선 한 덩이 (wetherilli 429)
     kgis: { source: null, info: null },       // 킹조지섬 지형 SCAR KGIS — 받아 둔 셰이프를 한 덩이씩 (wetherilli 424)
     aadc: { source: null, info: null },       // 남극 특별보호구역 ASPA — 받아 둔 AADC 파일의 면·점 한 덩이 (wetherilli 423)
@@ -1243,6 +1244,8 @@
     antgg: { source: geomapSource, info: polargridInfoUrl },
     // 남극 지열류 모형 셋(wetherilli 432) — 같은 틀. 색은 IHFC 측정 점과 같다
     ghfgrid: { source: geomapSource, info: polargridInfoUrl },
+    // 동남극 고지형 Gernon 2026(wetherilli 436) — 같은 틀. 연대마다 한 레이어
+    gernontopo: { source: geomapSource, info: polargridInfoUrl },
     // 자력 이상·부게 중력 이상(wetherilli 391) — 우리가 칠한 경위도 타일을 옮겨 그린다
     gravmag: { source: lonlatSource, info: gravmagInfoUrl },
   };
@@ -4659,6 +4662,8 @@
             // 링크로 그릴 열. 서버(`arcpoints.links`)가 적어 준다 — 옛 서버면 `link` 하나
             layer.set("gsmLinks", data.links || ["link"]);
             layer.set("gsmLegend", data.legend || null);
+            // 선 위에 적을 이름의 열 — 남극 논문의 분지 이름 (wetherilli 435)
+            layer.set("gsmLabelBy", data.labelBy || null);
             // 연속값 레이어(지화학, wetherilli 159) — 고를 수 있는 원소와 처음의 원소
             if (data.values) { layer.set("gsmValues", data.values); layer.set("gsmDefault", data.default || ""); }
             if (data.slice) { layer.set("gsmSlice", data.slice); layer.set("gsmTotal", data.total || 0); }
@@ -5187,12 +5192,24 @@
   // 범례가 같은 표를 읽는다 — 둘이 어긋날 수 없다. 면의 색은 feature 의 `color`
   // (자료의 `rgb` 열)다.
   var LEGEND_STYLED = { unit: true, line: true, vent: true, "class": true };
+  var CLASS_LABEL_ZOOM = 4;
 
   function legendStyle(kind, getLayer) {
     var cache = {};
     return function (feature, resolution) {
       var code = feature.get("code");
-      if (kind === "class") return classStyle(feature, resolution, getLayer, cache);
+      if (kind === "class") {
+        var styled = classStyle(feature, resolution, getLayer, cache);
+        // 서버가 `labelBy` 를 준 레이어(남극 논문의 분지, wetherilli 435)는 가까이서 선 위에 이름을 적는다
+        var by = getLayer().get("gsmLabelBy"), text = by && feature.get(by);
+        if (!styled || !text || mercZoom(resolution) < CLASS_LABEL_ZOOM) return styled;
+        var spec = {};
+        (getLayer().get("gsmLegend") || []).forEach(function (r) { if (r.code === code) spec = r; });
+        return [].concat(styled, new ol.style.Style({ text: new ol.style.Text({
+          text: String(text), font: "11px sans-serif", placement: "line",
+          fill: new ol.style.Fill({ color: spec.color || "#333" }),
+          stroke: new ol.style.Stroke({ color: "rgba(255,255,255,0.9)", width: 3 }) }) }));
+      }
       if (cache[code]) return cache[code];
       var table = {};
       (getLayer().get("gsmLegend") || []).forEach(function (r) { table[r.code] = r; });

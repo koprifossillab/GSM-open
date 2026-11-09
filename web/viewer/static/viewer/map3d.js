@@ -158,8 +158,8 @@
                tiles: [BASE + "warp/geomap/" + name + "/{z}/{x}/{y}@2x.png"], attribution: attribution };
     }
     // IBCSO 자료 출처·ADMAP 자력 이상 — 우리가 자른 3031 판을 서버가 3857 로 편 것 (wetherilli 335)
-    // 중력 AntGG2021·지열류 모형도 같은 길 (wetherilli 431·432)
-    if (opt && (name === "ibcso:tid" || name === "admap:anomaly" || /^(antgg|ghfgrid):/.test(name))) {
+    // 중력 AntGG2021·지열류 모형·동남극 고지형도 같은 길 (wetherilli 431·432·436)
+    if (opt && (name === "ibcso:tid" || name === "admap:anomaly" || /^(antgg|ghfgrid|gernontopo):/.test(name))) {
       return { type: "raster", tileSize: 512, minzoom: 2, maxzoom: 17,
                bounds: [-180, -85.06, 180, name === "ibcso:tid" ? -50 : -60],
                tiles: [BASE + "warp/" + name.replace(":", "/") + "/{z}/{x}/{y}@2x.png"], attribution: attribution };

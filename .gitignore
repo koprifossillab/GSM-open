@@ -73,3 +73,5 @@ geo3al.dbf
 
 # ../kopri-devdocs/guides 로 가는 심볼릭 링크 — kopri-devdocs 는 private 이라 커밋하지 않는다 (CLAUDE.md "공통 규약")
 .guides
+# 동남극 고지형 Gernon 2026 을 구운 것 — 기본 자리 <DB 옆>/gernon_paleotopo/. 원본은 NAS 의 sources/antarctic_papers/ (wetherilli 436)
+/gernon_paleotopo/

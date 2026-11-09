@@ -785,6 +785,28 @@
    ]
   },
   {
+   "id": "gernon_paleotopo",
+   "name": {
+    "ko": "동남극 고지형 (Gernon 2026)",
+    "en": "East Antarctic palaeotopography (Gernon 2026)"
+   },
+   "org": "Zenodo 19205651",
+   "kind": "build",
+   "commands": [
+    "build_gernon_paleotopo"
+   ],
+   "runs_on": "person",
+   "schedule": "manual",
+   "license": "CC BY 4.0",
+   "flags": [],
+   "outputs": [
+    "gernon_paleotopo/100/meta.json"
+   ],
+   "docs": [
+    "wetherilli 436"
+   ]
+  },
+  {
    "id": "geomap",
    "name": {
     "ko": "남극 GeoMAP",
@@ -1579,6 +1601,28 @@
    ],
    "docs": [
     "wetherilli 429"
+   ]
+  },
+  {
+   "id": "antarctic_papers",
+   "name": {
+    "ko": "남극 논문 자료 (Armadillo·Gernon 2026)",
+    "en": "Antarctic paper data (Armadillo · Gernon 2026)"
+   },
+   "org": "figshare 25450219 · Zenodo 19205651",
+   "kind": "build",
+   "commands": [
+    "build_antarctic_papers"
+   ],
+   "runs_on": "person",
+   "schedule": "manual",
+   "license": "CC BY 4.0",
+   "flags": [],
+   "outputs": [
+    "data/antarctic_papers.json (저장소)"
+   ],
+   "docs": [
+    "wetherilli 435"
    ]
   }
  ]

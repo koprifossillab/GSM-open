@@ -199,7 +199,7 @@ urlpatterns = [
     path("ibcso/info/", views.ibcso_info, name="ibcso-info"),
     path("ibcso/depth/", views.ibcso_depth, name="ibcso-depth"),
     # 3D 가 쓰는 것 — 평면 격자(5179·5181·3031) 타일을 3857 로 다시 편다 (warp.py, 040)
-    re_path(r"^warp/(?P<upstream>peninsula|phyloserver|geomap|ibcso|admap|antgg|ghfgrid)/(?P<layer>[\w-]+)/(?P<z>\d{1,2})/(?P<x>\d{1,6})/(?P<y>\d{1,6})(?P<retina>@2x)?\.png$",
+    re_path(r"^warp/(?P<upstream>peninsula|phyloserver|geomap|ibcso|admap|antgg|ghfgrid|gernontopo)/(?P<layer>[\w-]+)/(?P<z>\d{1,2})/(?P<x>\d{1,6})/(?P<y>\d{1,6})(?P<retina>@2x)?\.png$",
             views.warp_tile, name="warp-tile"),
     # 한반도 지질도 — phyloserver 의 카카오 격자 타일 (phyloserver.py, devlog 026)
     re_path(r"^phyloserver/(?P<layer>[\w-]+)/(?P<level>\d{1,2})/(?P<x>\d{1,5})_(?P<y>\d{1,5})\.png$",

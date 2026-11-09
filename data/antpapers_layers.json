@@ -1,0 +1,206 @@
+{
+ "_주석": "남극 논문 두 편(Armadillo 외 2026 · Gernon 외 2026)의 벡터 레이어 씨앗이다 — 남극 탭. 사람이 발표에서 논문 그림을 GSM 위에서 설명하려고 개인 레이어 대신 카탈로그에 늘 보이게 했다. 원본 zip 을 manage.py build_antarctic_papers 가 data/antarctic_papers.json 으로 굽고 저장소에 둔다 (wetherilli 435).",
+ "_뽑은날": "2026-11-09",
+ "_출처": "https://doi.org/10.6084/m9.figshare.25450219",
+ "_지역": "antarctica",
+ "_상류": "antpapers",
+ "_레이어군차례": 18,
+ "레이어군순서": [
+  "동남극 부채꼴 분지 (Armadillo 2026)",
+  "동남극 고지형 등고선 (Gernon 2026)"
+ ],
+ "레이어": [
+  {
+   "name": "antpapers:eafbp_faults",
+   "title": "EAFBP 빙저 선구조",
+   "group": "동남극 부채꼴 분지 (Armadillo 2026)",
+   "abstract": "등압 보정한 빙저 지형(BedMachine v3)을 비선형 필터로 다듬어 자동으로 찾은 선구조 289 — 논문 Fig. 1a 의 회색 선. Armadillo 외 2026(Nature Geoscience 19:715–722, doi:10.1038/s41561-026-01991-6). 자료 figshare 25450219, CC BY 4.0. 해석이지 관측이 아니다. 좌표는 오늘의 자리다 — 판을 돌리지 않았다",
+   "bbox": [
+    40.3,
+    -90,
+    162.9,
+    -65.7
+   ]
+  },
+  {
+   "name": "antpapers:eafbp_basins",
+   "title": "EAFBP 분지 가장자리·이등분선",
+   "group": "동남극 부채꼴 분지 (Armadillo 2026)",
+   "abstract": "저자가 오일러 극을 추정하려고 대원에 맞춘 분지의 긴 가장자리와 삼각형 분지의 이등분선 68. 분지 이름은 자료 파일 그대로다 — Extended Data Table 1 의 약자와 꼭 같지 않다(ST01a↔ST1, PCK↔PEA?). Armadillo 외 2026(Nature Geoscience 19:715–722, doi:10.1038/s41561-026-01991-6). 자료 figshare 25450219, CC BY 4.0. 해석이지 관측이 아니다. 좌표는 오늘의 자리다 — 판을 돌리지 않았다",
+   "bbox": [
+    40.3,
+    -90,
+    160.4,
+    -66.4
+   ]
+  },
+  {
+   "name": "antpapers:eafbp_tscb",
+   "title": "EAFBP 횡단 전단대 구조 (TSCB)",
+   "group": "동남극 부채꼴 분지 (Armadillo 2026)",
+   "abstract": "남·북 횡단 주향이동 전단대(TSCB)를 소원으로 맞출 때 쓴 선 11 — 논문 Fig. 1a 의 자홍·청록 선. Armadillo 외 2026(Nature Geoscience 19:715–722, doi:10.1038/s41561-026-01991-6). 자료 figshare 25450219, CC BY 4.0. 해석이지 관측이 아니다. 좌표는 오늘의 자리다 — 판을 돌리지 않았다",
+   "bbox": [
+    77.8,
+    -80.6,
+    162.4,
+    -73.2
+   ]
+  },
+  {
+   "name": "antpapers:eafbp_frame",
+   "title": "EAFBP 틀 — 전단대·해안 소원, 벨지카 이등분선",
+   "group": "동남극 부채꼴 분지 (Armadillo 2026)",
+   "abstract": "논문 Fig. 1b 의 원형 띠와 벨지카 이등분선을 우리가 다시 그린 것 — 본문의 극 자리에서 선 자료(전단대 선·해안선)까지 거리의 중앙값을 반지름으로 했다(남 TSCB 720 km, 북 1 042 km, 해안 1 725 km). 논문 그림과 조금 다를 수 있다. Armadillo 외 2026(Nature Geoscience 19:715–722, doi:10.1038/s41561-026-01991-6). 자료 figshare 25450219, CC BY 4.0. 해석이지 관측이 아니다. 좌표는 오늘의 자리다 — 판을 돌리지 않았다",
+   "bbox": [
+    72.4,
+    -90,
+    172.1,
+    -65.5
+   ]
+  },
+  {
+   "name": "antpapers:eafbp_poles",
+   "title": "EAFBP 오일러 극",
+   "group": "동남극 부채꼴 분지 (Armadillo 2026)",
+   "abstract": "논문 본문에 적힌 극의 자리 넷(분지 가장자리의 극 86.4°S 129.9°E 와 소원 셋의 극). 수치를 옮긴 것이고 오차 타원은 넣지 않았다. Armadillo 외 2026(Nature Geoscience 19:715–722, doi:10.1038/s41561-026-01991-6). 자료 figshare 25450219, CC BY 4.0. 해석이지 관측이 아니다. 좌표는 오늘의 자리다 — 판을 돌리지 않았다",
+   "bbox": [
+    114.6,
+    -90,
+    131.3,
+    -81.2
+   ]
+  },
+  {
+   "name": "antpapers:eafbp_fig2a",
+   "title": "EAFBP Fig. 2a 해석선 (Fan·Fau)",
+   "group": "동남극 부채꼴 분지 (Armadillo 2026)",
+   "abstract": "논문 Fig. 2a 의 부채꼴 구조(Fan1D–8S)와 단층(Fau) 19 — 자료가 없어 그림에서 땄다(PDF 벡터, 맞춤 잔차 ±3 km). 흰 단열대 선은 남의 자료라 따지 않았다. Armadillo 외 2026(Nature Geoscience 19:715–722, doi:10.1038/s41561-026-01991-6), CC BY 4.0. 해석이지 관측이 아니다. 좌표는 오늘의 자리다 — 판을 돌리지 않았다",
+   "bbox": [
+    71.0,
+    -72.2,
+    172.6,
+    -32.8
+   ]
+  },
+  {
+   "name": "antpapers:gernon_100ma",
+   "title": "동남극 고지형 100 Ma (Gernon 2026)",
+   "group": "동남극 고지형 등고선 (Gernon 2026)",
+   "abstract": "Gernon 외 2026(Science 392:eadz6758, doi:10.1126/science.adz6758)의 FastScape 모형이 되살린 100 Ma 의 퀸모드랜드–감부르체프 일대 고도(5 km 격자, 34 Ma 바탕은 Paxman 외 2019)를 우리가 등고 0·1 000·1 500·2 000 m 로 뽑았다. 1 500 m 가 본문이 말하는 빙모가 생기는 문턱이다. 자료 Zenodo 19205651, CC BY 4.0(그림은 아니다). 모형이지 관측이 아니다. 좌표는 오늘의 자리다 — 판을 돌리지 않았다",
+   "bbox": [
+    -180,
+    -90,
+    180,
+    -65.9
+   ]
+  },
+  {
+   "name": "antpapers:gernon_90ma",
+   "title": "동남극 고지형 90 Ma (Gernon 2026)",
+   "group": "동남극 고지형 등고선 (Gernon 2026)",
+   "abstract": "Gernon 외 2026(Science 392:eadz6758, doi:10.1126/science.adz6758)의 FastScape 모형이 되살린 90 Ma 의 퀸모드랜드–감부르체프 일대 고도(5 km 격자, 34 Ma 바탕은 Paxman 외 2019)를 우리가 등고 0·1 000·1 500·2 000 m 로 뽑았다. 1 500 m 가 본문이 말하는 빙모가 생기는 문턱이다. 자료 Zenodo 19205651, CC BY 4.0(그림은 아니다). 모형이지 관측이 아니다. 좌표는 오늘의 자리다 — 판을 돌리지 않았다",
+   "bbox": [
+    -180,
+    -90,
+    180,
+    -65.9
+   ]
+  },
+  {
+   "name": "antpapers:gernon_80ma",
+   "title": "동남극 고지형 80 Ma (Gernon 2026)",
+   "group": "동남극 고지형 등고선 (Gernon 2026)",
+   "abstract": "Gernon 외 2026(Science 392:eadz6758, doi:10.1126/science.adz6758)의 FastScape 모형이 되살린 80 Ma 의 퀸모드랜드–감부르체프 일대 고도(5 km 격자, 34 Ma 바탕은 Paxman 외 2019)를 우리가 등고 0·1 000·1 500·2 000 m 로 뽑았다. 1 500 m 가 본문이 말하는 빙모가 생기는 문턱이다. 자료 Zenodo 19205651, CC BY 4.0(그림은 아니다). 모형이지 관측이 아니다. 좌표는 오늘의 자리다 — 판을 돌리지 않았다",
+   "bbox": [
+    -180,
+    -90,
+    180,
+    -65.9
+   ]
+  },
+  {
+   "name": "antpapers:gernon_70ma",
+   "title": "동남극 고지형 70 Ma (Gernon 2026)",
+   "group": "동남극 고지형 등고선 (Gernon 2026)",
+   "abstract": "Gernon 외 2026(Science 392:eadz6758, doi:10.1126/science.adz6758)의 FastScape 모형이 되살린 70 Ma 의 퀸모드랜드–감부르체프 일대 고도(5 km 격자, 34 Ma 바탕은 Paxman 외 2019)를 우리가 등고 0·1 000·1 500·2 000 m 로 뽑았다. 1 500 m 가 본문이 말하는 빙모가 생기는 문턱이다. 자료 Zenodo 19205651, CC BY 4.0(그림은 아니다). 모형이지 관측이 아니다. 좌표는 오늘의 자리다 — 판을 돌리지 않았다",
+   "bbox": [
+    -180,
+    -90,
+    180,
+    -65.9
+   ]
+  },
+  {
+   "name": "antpapers:gernon_60ma",
+   "title": "동남극 고지형 60 Ma (Gernon 2026)",
+   "group": "동남극 고지형 등고선 (Gernon 2026)",
+   "abstract": "Gernon 외 2026(Science 392:eadz6758, doi:10.1126/science.adz6758)의 FastScape 모형이 되살린 60 Ma 의 퀸모드랜드–감부르체프 일대 고도(5 km 격자, 34 Ma 바탕은 Paxman 외 2019)를 우리가 등고 0·1 000·1 500·2 000 m 로 뽑았다. 1 500 m 가 본문이 말하는 빙모가 생기는 문턱이다. 자료 Zenodo 19205651, CC BY 4.0(그림은 아니다). 모형이지 관측이 아니다. 좌표는 오늘의 자리다 — 판을 돌리지 않았다",
+   "bbox": [
+    -180,
+    -90,
+    180,
+    -65.9
+   ]
+  },
+  {
+   "name": "antpapers:gernon_50ma",
+   "title": "동남극 고지형 50 Ma (Gernon 2026)",
+   "group": "동남극 고지형 등고선 (Gernon 2026)",
+   "abstract": "Gernon 외 2026(Science 392:eadz6758, doi:10.1126/science.adz6758)의 FastScape 모형이 되살린 50 Ma 의 퀸모드랜드–감부르체프 일대 고도(5 km 격자, 34 Ma 바탕은 Paxman 외 2019)를 우리가 등고 0·1 000·1 500·2 000 m 로 뽑았다. 1 500 m 가 본문이 말하는 빙모가 생기는 문턱이다. 자료 Zenodo 19205651, CC BY 4.0(그림은 아니다). 모형이지 관측이 아니다. 좌표는 오늘의 자리다 — 판을 돌리지 않았다",
+   "bbox": [
+    -180,
+    -90,
+    180,
+    -65.9
+   ]
+  },
+  {
+   "name": "antpapers:gernon_44ma",
+   "title": "동남극 고지형 44 Ma (Gernon 2026)",
+   "group": "동남극 고지형 등고선 (Gernon 2026)",
+   "abstract": "Gernon 외 2026(Science 392:eadz6758, doi:10.1126/science.adz6758)의 FastScape 모형이 되살린 44 Ma 의 퀸모드랜드–감부르체프 일대 고도(5 km 격자, 34 Ma 바탕은 Paxman 외 2019)를 우리가 등고 0·1 000·1 500·2 000 m 로 뽑았다. 1 500 m 가 본문이 말하는 빙모가 생기는 문턱이다. 자료 Zenodo 19205651, CC BY 4.0(그림은 아니다). 모형이지 관측이 아니다. 좌표는 오늘의 자리다 — 판을 돌리지 않았다",
+   "bbox": [
+    -180,
+    -90,
+    180,
+    -65.9
+   ]
+  },
+  {
+   "name": "antpapers:gernon_40ma",
+   "title": "동남극 고지형 40 Ma (Gernon 2026)",
+   "group": "동남극 고지형 등고선 (Gernon 2026)",
+   "abstract": "Gernon 외 2026(Science 392:eadz6758, doi:10.1126/science.adz6758)의 FastScape 모형이 되살린 40 Ma 의 퀸모드랜드–감부르체프 일대 고도(5 km 격자, 34 Ma 바탕은 Paxman 외 2019)를 우리가 등고 0·1 000·1 500·2 000 m 로 뽑았다. 1 500 m 가 본문이 말하는 빙모가 생기는 문턱이다. 자료 Zenodo 19205651, CC BY 4.0(그림은 아니다). 모형이지 관측이 아니다. 좌표는 오늘의 자리다 — 판을 돌리지 않았다",
+   "bbox": [
+    -180,
+    -90,
+    180,
+    -65.9
+   ]
+  },
+  {
+   "name": "antpapers:gernon_36ma",
+   "title": "동남극 고지형 36 Ma (Gernon 2026)",
+   "group": "동남극 고지형 등고선 (Gernon 2026)",
+   "abstract": "Gernon 외 2026(Science 392:eadz6758, doi:10.1126/science.adz6758)의 FastScape 모형이 되살린 36 Ma 의 퀸모드랜드–감부르체프 일대 고도(5 km 격자, 34 Ma 바탕은 Paxman 외 2019)를 우리가 등고 0·1 000·1 500·2 000 m 로 뽑았다. 1 500 m 가 본문이 말하는 빙모가 생기는 문턱이다. 자료 Zenodo 19205651, CC BY 4.0(그림은 아니다). 모형이지 관측이 아니다. 좌표는 오늘의 자리다 — 판을 돌리지 않았다",
+   "bbox": [
+    -180,
+    -90,
+    180,
+    -65.9
+   ]
+  },
+  {
+   "name": "antpapers:gernon_34ma",
+   "title": "동남극 고지형 34 Ma (Gernon 2026)",
+   "group": "동남극 고지형 등고선 (Gernon 2026)",
+   "abstract": "Gernon 외 2026(Science 392:eadz6758, doi:10.1126/science.adz6758)의 FastScape 모형이 되살린 34 Ma 의 퀸모드랜드–감부르체프 일대 고도(5 km 격자, 34 Ma 바탕은 Paxman 외 2019)를 우리가 등고 0·1 000·1 500·2 000 m 로 뽑았다. 1 500 m 가 본문이 말하는 빙모가 생기는 문턱이다. 자료 Zenodo 19205651, CC BY 4.0(그림은 아니다). 모형이지 관측이 아니다. 좌표는 오늘의 자리다 — 판을 돌리지 않았다",
+   "bbox": [
+    -180,
+    -90,
+    180,
+    -65.9
+   ]
+  }
+ ]
+}

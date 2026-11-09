@@ -168,6 +168,7 @@ devlog 까지 적는다). "(사람) 읽을 것" 은 조건을 아직 읽지 않�
 | `admap` | ADMAP-2 (파일) | CC BY 3.0 |  |
 | `antgg` | 남극 중력 AntGG2021 — PANGAEA.971238 의 netCDF 를 칠해 잘라 둔 것(`build_antgg`) | CC BY 4.0 (Scheinert 외 2024) |  |
 | `ghfgrid` | 남극 지열류 모형 셋 — Stål 2021(PANGAEA.924857)·Lösing & Ebbing 2021(.930237)·Martos 2017(.882503)을 칠해 잘라 둔 것(`build_antarctic_ghf`) | CC BY 4.0·4.0·3.0 |  |
+| `gernontopo` | 동남극 고지형 — Gernon 외 2026(Science, doi:10.1126/science.adz6758)의 FastScape 모형 재구성 열 연대(Zenodo 19205651)를 칠해 잘라 둔 것(`build_gernon_paleotopo`). 34 Ma 바탕은 Paxman 외 2019 | CC BY 4.0 |  |
 | `itslive` | NASA ITS_LIVE v2 빙하 유속 — AWS 의 COG 를 칠해 잘라 둔 것(`build_itslive`), 남극·그린란드·스발바르 | CC0 (AWS 공개 자료 등록부) |  |
 | `gmrt` | GMRT 극지 수심 — WMS 를 그때그때(남극 3031·북극 3995) | CC BY 4.0, "not for navigation" |  |
 | `scar` | SCAR 남극 통합 지명사전 — AADC WFS 를 받아 둔 파일(`fetch_scar_gazetteer`), 남극 탭의 찾기·이름표 | CC BY (인용 — Secretariat SCAR, Composite Gazetteer of Antarctica) |  |

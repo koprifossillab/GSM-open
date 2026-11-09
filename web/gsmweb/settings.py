@@ -352,6 +352,8 @@ OFFLINE_BOXES_FILE = BASE_DIR.parent / "data" / "offline_boxes.json"
 FAULTS_FILE = env("GSM_FAULTS_FILE") or str(Path(EARTH_DIR) / "earth_faults.json")
 #: 남극순환류 전선 — 작아서 저장소에 둔다(`build_acc_fronts`, wetherilli 429)
 ACC_FRONTS_FILE = REPO_DIR / "data" / "acc_fronts.json"
+#: 남극 논문 두 편(Armadillo·Gernon 2026)의 벡터 레이어 — 1 MB 안팎이라 저장소에 둔다(`build_antarctic_papers`, wetherilli 435)
+ANTARCTIC_PAPERS_FILE = REPO_DIR / "data" / "antarctic_papers.json"
 #: 바람 — 구워 둔 u·v 텍스처 (`viewer/wind.py`, koprifossillab P02). 지금의 바람(GFS)은 호스트 cron 이 `fetch_gfs_wind` 로,
 #: 지난 바람(ERA5)은 사람이 `build_era5_wind` 로 굽는다. 우리 디스크의 파일이다. 없으면 바람 레이어 자리에 안내가 뜬다
 WIND_DIR = env("GSM_WIND_DIR") or str(_data_dir() / "wind")
@@ -400,6 +402,8 @@ ADMAP_DIR = env("GSM_ADMAP_DIR") or str(_data_dir() / "admap2")
 ANTGG_DIR = env("GSM_ANTGG_DIR") or str(_data_dir() / "antgg")
 #: 남극 지열류 모형 셋(Stål·Lösing·Martos)을 칠해 잘라 둔 것 — 판마다 하위 폴더 (wetherilli 432). 원본은 NAS `sources/antarctic_ghf/`
 ANTARCTIC_GHF_DIR = env("GSM_ANTARCTIC_GHF_DIR") or str(_data_dir() / "antarctic_ghf")
+#: 동남극 고지형 Gernon 외 2026 을 칠해 잘라 둔 것 — 연대마다 하위 폴더 (wetherilli 436). 원본은 NAS `sources/antarctic_papers/`
+GERNON_PALEOTOPO_DIR = env("GSM_GERNON_PALEOTOPO_DIR") or str(_data_dir() / "gernon_paleotopo")
 #: ITS_LIVE 빙하 유속을 칠해 잘라 둔 것 — 지역마다 하위 폴더 (wetherilli 433). 호스트의 `run.sh build_itslive` 가 쓴다
 ITSLIVE_DIR = env("GSM_ITSLIVE_DIR") or str(_data_dir() / "itslive")
 #: SCAR 남극 통합 지명사전을 지형마다 묶어 적은 것 — `manage.py fetch_scar_gazetteer` 가 쓴다 (wetherilli 412)
@@ -727,10 +731,13 @@ IBCSO_CATALOG_SEED = REPO_DIR / "data" / "ibcso_layers.json"
 ADMAP_CATALOG_SEED = REPO_DIR / "data" / "admap_layers.json"
 ANTGG_CATALOG_SEED = REPO_DIR / "data" / "antgg_layers.json"
 ANTARCTIC_GHF_CATALOG_SEED = REPO_DIR / "data" / "ghfgrid_layers.json"
+GERNON_PALEOTOPO_CATALOG_SEED = REPO_DIR / "data" / "gernontopo_layers.json"
 #: GMRT 극지 수심 — 남극·북극해 탭 (wetherilli 428)
 GMRT_CATALOG_SEEDS = [REPO_DIR / "data" / "gmrt_antarctica_layers.json", REPO_DIR / "data" / "gmrt_arctic_ocean_layers.json"]
 #: 남극순환류 전선 — 남극 탭 (wetherilli 429)
 ACC_CATALOG_SEED = REPO_DIR / "data" / "acc_layers.json"
+#: 남극 논문 두 편의 벡터 레이어 — 남극 탭 (wetherilli 435)
+ANTPAPERS_CATALOG_SEED = REPO_DIR / "data" / "antpapers_layers.json"
 SCAR_CATALOG_SEED = REPO_DIR / "data" / "scar_layers.json"
 #: GTN-P 영구동토 시추공 — 북극해·남극 탭 (wetherilli 422)
 GTNP_CATALOG_SEEDS = [REPO_DIR / "data" / "gtnp_arctic_ocean_layers.json", REPO_DIR / "data" / "gtnp_antarctica_layers.json"]
