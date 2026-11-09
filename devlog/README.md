@@ -449,6 +449,7 @@
 | wetherilli P15 | 2026-10-20 | [CI 를 서버의 자체 러너로 — 시험·휴대폰 화면은 우리 서버, 이미지는 GitHub (계획)](20261020_wetherilli_P15_self_hosted_runner.md) |
 | wetherilli P16 | 2026-10-21 | [오프라인 묶음 굽기를 저장소 안의 독립 패키지로 — GSM 없이도 굽고, GSM 에서는 요청한다 (계획)](20261021_wetherilli_P16_gsmpack_package.md) |
 | wetherilli P17 | 2026-10-21 | [남극 오프라인 묶음 — 세종·장보고 기지 둘레 (계획)](20261021_wetherilli_P17_antarctic_packs.md) |
+| wetherilli P18 | 2026-11-09 | [Gernon 2026 의 PISM 빙모를 GSM 에 다시 돌려 얹는다면 (계획 — 보류)](20261109_wetherilli_P18_pism_ice_caps.md) |
 | wetherilli 386 | 2026-10-16 | [중국 지질도 1:400만 — 경위선으로 좌표를 붙이고 중국 땅 마스크를 굽는다](20261016_wetherilli_386_china_4m_georeference.md) |
 | wetherilli 387 | 2026-10-16 | [중국 지질도 1:400만 — 3857 타일로 잘라 중국 탭에 올린다](20261016_wetherilli_387_china_4m_tiles.md) |
 | wetherilli 388 | 2026-10-16 | [중국 지질도 1:400만 — 범례 173 칸을 옮기고, 색으로 누른 자리의 시기·암상을 읽는다](20261016_wetherilli_388_china_4m_legend_attributes.md) |
@@ -504,6 +505,7 @@
 | wetherilli 435 | 2026-11-09 | [남극 논문 두 편의 벡터 레이어 — 개인 레이어에서 남극 탭의 카탈로그로](20261109_wetherilli_435_antarctic_papers.md) |
 | wetherilli 436 | 2026-11-09 | [동남극 고지형 Gernon 2026 — 열 연대를 고도 단계로 칠한 남극 탭 레이어](20261109_wetherilli_436_gernon_paleotopo.md) |
 | wetherilli 437 | 2026-11-09 | [EAFBP Fig. 2a 의 Fan·Fau 해석선을 PDF 벡터에서 땄다](20261109_wetherilli_437_eafbp_fig2a_digitize.md) |
+| wetherilli 438 | 2026-11-09 | [고지형 등고선의 색을 고도마다 갈랐다](20261109_wetherilli_438_contour_colors.md) |
 | koprifossillab P01 | 2026-09-30 | [백업 — WegenersDream 의 틀로, 바뀌는 빠르기에 따라 넷으로 (계획)](20260930_koprifossillab_P01_backup_plan.md) |
 | koprifossillab 001 | 2026-09-30 | [매주 월요일 새벽: 운영 자료 백업과 KPDC 목록 갱신](20260930_koprifossillab_001_weekly_backup.md) |
 | koprifossillab 002 | 2026-09-30 | [`/healthz/` — 판·DB·백업 상태를 한 장으로](20260930_koprifossillab_002_healthz.md) |

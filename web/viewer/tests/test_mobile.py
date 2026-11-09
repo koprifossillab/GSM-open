@@ -725,6 +725,21 @@ class RegionCompare(PhoneBase):
                 self.assertEqual(errors, [])
                 page.context.close()
 
+    def test_나란히_보기의_오른쪽에_선_레이어(self):
+        """오른쪽 고르개에 점·선 레이어(`points`)도 든다 — 고지형 래스터와 등고선을 나란히 견준다 (wetherilli 438)"""
+        call_command("seed_catalog", stdout=open(os.devnull, "w"))
+        page, errors = self.open("map/?region=antarctica")
+        page.evaluate("document.querySelector('[data-cmp=\"split\"]').click()")
+        page.wait_for_timeout(800)
+        names = page.evaluate("[...document.querySelectorAll('#compare-pick option')].map(o => o.value)")
+        self.assertIn("antpapers:gernon_50ma", names)
+        page.evaluate("const p = document.querySelector('#compare-pick'); p.value = 'antpapers:gernon_50ma'; "
+                      "p.dispatchEvent(new Event('change'))")   # 휴대폰에서는 패널이 접혀 고르개가 안 보인다
+        page.wait_for_timeout(1500)
+        self.assertIn("50", page.locator("#split-right").inner_text())
+        self.assertEqual(errors, [])
+        page.context.close()
+
 
 class Phone3D(PhoneBase):
     """3D(MapLibre)를 손가락으로 — 점묶음의 점을 누르면 팝업이 화면 안에 선다. 최대 폭 320 px 이면 390 px 화면에서

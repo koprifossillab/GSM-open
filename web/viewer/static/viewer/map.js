@@ -7774,11 +7774,12 @@
           : inRegion("L_250K_Geology_Map") ? "L_250K_Geology_Map"
           : (here[0] && here[0].layers[0] ? here[0].layers[0].name : null);
       }
+      // 오른쪽에도 선·점 레이어를 그린다 — `makeLayer` 가 둘 다 만들고, 오른쪽 지도는 같은 보기(투영)를 쓴다.
+      // 019 에서 뺀 것은 그때 `makeLayer` 가 점을 못 만들어서였다. 고지형 래스터와 등고선을 나란히 보려고 풀었다 (wetherilli 438)
       here.forEach(function (group) {
         var og = document.createElement("optgroup");
         og.label = group.name;
         group.layers.forEach(function (l) {
-          if (l.kind === "vector" || l.kind === "points") return;   // 나란히 보기의 오른쪽은 타일만 그린다
           var o = document.createElement("option");
           o.value = l.name; o.textContent = l.title;
           og.appendChild(o);

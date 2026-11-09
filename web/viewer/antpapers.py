@@ -58,10 +58,12 @@ CLASSES = {
                               ("fz", msg("대륙 주변부 단열대"), "#8c564b", _S(1.6, [6, 4])),
                               ("other", msg("그 밖의 해석선"), "#7f7f7f", _S(1.4))],
 }
-LEVELS = [("0", msg("해안선 (0 m)"), "#1f77b4", _S(1.2)),
-          ("1000", msg("1 000 m"), "#8c6d31", _S(1.2)),
-          ("1500", msg("1 500 m — 빙모가 생기는 문턱"), "#d62728", _S(2.8)),
-          ("2000", msg("2 000 m"), "#5b3a29", _S(1.2))]
+#: 등고마다 색상을 갈라 겹쳐도 읽히게 — 바다 쪽 파랑에서 높을수록 초록·빨강·보라. 고지형 래스터(갈색 계열) 위에서도 갈려 보인다.
+#: 1 500 m 는 본문의 빙모 문턱이라 굵게 (wetherilli 438)
+LEVELS = [("0", msg("해안선 (0 m)"), "#2166ac", _S(1.4)),
+          ("1000", msg("1 000 m"), "#1a9850", _S(1.6)),
+          ("1500", msg("1 500 m — 빙모가 생기는 문턱"), "#d73027", _S(3.0)),
+          ("2000", msg("2 000 m"), "#7b3294", _S(1.8))]
 for _age in AGES:
     CLASSES[f"antpapers:gernon_{_age}ma"] = LEVELS
 #: 본문의 극 자리 (위도, 경도) — 오차 타원은 MATLAB 을 돌려야 해서 넣지 않았다
@@ -379,12 +381,16 @@ def build(eafbp: bytes, gernon: bytes, fig2a: bytes = None, out=None) -> dict:
 
 # ── 내주기 ───────────────────────────────────────────────────────────
 
+#: 그리는 법(색·굵기)의 판 — 고치면 올린다. 내준 덩이는 브라우저에 1 년 두므로 파일이 그대로여도 주소가 바뀌어야 한다 (wetherilli 438)
+RENDERER = 2
+
+
 def version() -> str:
     try:
         st = path().stat()
     except FileNotFoundError:
         return ""
-    return f"{st.st_mtime_ns}-{st.st_size}"
+    return f"r{RENDERER}-{st.st_mtime_ns}-{st.st_size}"
 
 
 @functools.lru_cache(maxsize=2)
