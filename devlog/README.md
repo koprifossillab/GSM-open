@@ -511,6 +511,7 @@
 | wetherilli 441 | 2026-11-09 | [3D 의 땅을 Gernon 고지형으로 — 연대 막대로 100→34 Ma](20261109_wetherilli_441_gernon_3d_terrain.md) |
 | wetherilli 442 | 2026-11-09 | [3D 의 고지형 위에 등고선·빙상 범위 — 같은 연대를 따른다](20261109_wetherilli_442_gernon_3d_overlays.md) |
 | wetherilli 443 | 2026-11-10 | [남극 고지형 3D 를 Cesium 으로 — 남극점까지 선다](20261110_wetherilli_443_paleo3d_cesium.md) |
+| wetherilli 444 | 2026-11-10 | [남극 고지형 3D 의 시점 도구를 온 지구·달·화성과 같게](20261110_wetherilli_444_paleo3d_pose_tools.md) |
 | koprifossillab P01 | 2026-09-30 | [백업 — WegenersDream 의 틀로, 바뀌는 빠르기에 따라 넷으로 (계획)](20260930_koprifossillab_P01_backup_plan.md) |
 | koprifossillab 001 | 2026-09-30 | [매주 월요일 새벽: 운영 자료 백업과 KPDC 목록 갱신](20260930_koprifossillab_001_weekly_backup.md) |
 | koprifossillab 002 | 2026-09-30 | [`/healthz/` — 판·DB·백업 상태를 한 장으로](20260930_koprifossillab_002_healthz.md) |

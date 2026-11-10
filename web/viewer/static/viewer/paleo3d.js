@@ -218,23 +218,179 @@
   }
   function loadOverlays() { OVERLAYS.forEach(loadOverlay); }
 
-  // ── 시점 — 남극점을 곧장 내려다보기(2D 의 3031 처럼 0° 가 위)와 동남극을 바다 쪽에서 비스듬히 ──
-  function viewTop(fly) {
-    var opts = { destination: Cesium.Cartesian3.fromDegrees(0, -89.9, 6.2e6),
-                 orientation: { heading: 0, pitch: -Math.PI / 2, roll: 0 } };
-    if (fly) viewer.camera.flyTo(Object.assign({ duration: 1.5 }, opts)); else viewer.camera.setView(opts);
+  // ══ 시점 — 온 지구·달·화성 화면의 "자세" 묶음과 같은 손·같은 단추 (wetherilli 444) ═══════════
+  //
+  // 손 — 왼쪽으로 끌면 구를 돌리고, 오른쪽 단추(또는 Ctrl·가운데 단추·두 손가락)로 끌면 기울이고 돈다. 휠은 당기고 민다.
+  // 돌고 기울이는 중심은 **화면 한가운데 아래의 지형 점**이다(`earth.js` 와 같다).
+  // 방위는 그 점의 수평면에서 지구의 북쪽이 0°, 시계 방향. **위도 89.5° 너머는 경도 0° 쪽이 0°** 다 — 남극점 위에서는
+  // 2D 남극 탭(3031)처럼 경도 0° 가 위로 온다
+  var ELL = Cesium.Ellipsoid.WGS84;
+  var cam = scene.screenSpaceCameraController;
+  cam.tiltEventTypes = [Cesium.CameraEventType.MIDDLE_DRAG, Cesium.CameraEventType.PINCH,
+                        Cesium.CameraEventType.RIGHT_DRAG,
+                        { eventType: Cesium.CameraEventType.LEFT_DRAG, modifier: Cesium.KeyboardEventModifier.CTRL }];
+  cam.zoomEventTypes = [Cesium.CameraEventType.WHEEL, Cesium.CameraEventType.PINCH];
+  var X_AXIS = new Cesium.Cartesian3(1, 0, 0), Z_AXIS = new Cesium.Cartesian3(0, 0, 1);
+
+  function cameraLL() {
+    var c = ELL.cartesianToCartographic(viewer.camera.positionWC);
+    return c ? { lon: Cesium.Math.toDegrees(c.longitude), lat: Cesium.Math.toDegrees(c.latitude), h: c.height } : null;
   }
-  function viewTilt(fly) {
-    // 격자 가운데(3031 의 500·1 000 km — 남위 80°, 동경 27°)를 북쪽 바다에서 남쪽으로 본다
+  function flyGlobe(lon, lat, h, duration) {
+    var dest = Cesium.Cartesian3.fromDegrees(lon, lat, h, ELL);
+    var orient = { heading: 0, pitch: -Math.PI / 2, roll: 0 };
+    if (duration) viewer.camera.flyTo({ destination: dest, orientation: orient, duration: duration });
+    else viewer.camera.setView({ destination: dest, orientation: orient });
+  }
+  /** 화면 한가운데 아래의 점과 거기까지의 거리. `terrain` 이면 지형을, 아니면 타원체를 짚는다(가볍다). */
+  function pivot(terrain) {
+    var cv = scene.canvas, mid = new Cesium.Cartesian2(cv.clientWidth / 2, cv.clientHeight / 2);
+    var pos = null;
+    if (terrain) {
+      var ray = viewer.camera.getPickRay(mid);
+      pos = ray && scene.globe.pick(ray, scene);
+    }
+    if (!pos) pos = viewer.camera.pickEllipsoid(mid, ELL);
+    return pos ? { pos: pos, range: Cesium.Cartesian3.distance(viewer.camera.positionWC, pos) } : null;
+  }
+  /** 점 `pos` 의 수평면에서 본 카메라의 방위·기울기(도). `cesium` 이면 Cesium 의 동-북-위(`lookAt` 에 넘길 값),
+   *  아니면 위의 기준(극 가까이는 경도 0° 쪽)이다. */
+  function anglesAt(pos, cesium) {
+    var up = ELL.geodeticSurfaceNormal(pos, new Cesium.Cartesian3());
+    var north, east;
+    if (cesium) {
+      var m = Cesium.Transforms.eastNorthUpToFixedFrame(pos, ELL);
+      east = Cesium.Matrix4.getColumn(m, 0, new Cesium.Cartesian4());
+      north = Cesium.Matrix4.getColumn(m, 1, new Cesium.Cartesian4());
+      east = new Cesium.Cartesian3(east.x, east.y, east.z);
+      north = new Cesium.Cartesian3(north.x, north.y, north.z);
+    } else {
+      var lat = Cesium.Math.toDegrees(ELL.cartesianToCartographic(pos).latitude);
+      var ref = Math.abs(lat) > 89.5 ? X_AXIS : Z_AXIS;
+      north = Cesium.Cartesian3.subtract(ref, Cesium.Cartesian3.multiplyByScalar(up, Cesium.Cartesian3.dot(ref, up),
+                                                                                   new Cesium.Cartesian3()), new Cesium.Cartesian3());
+      Cesium.Cartesian3.normalize(north, north);
+      east = Cesium.Cartesian3.cross(north, up, new Cesium.Cartesian3());
+    }
+    var d = viewer.camera.directionWC;
+    // 곧장 내려다보면 시선이 수평면에 그림자를 남기지 않는다 — 그때는 화면의 위쪽(카메라 up)이 향한 쪽이 방위다
+    var f = Math.abs(Cesium.Cartesian3.dot(d, up)) > 0.999 ? viewer.camera.upWC : d;
+    var heading = Cesium.Math.toDegrees(Math.atan2(Cesium.Cartesian3.dot(f, east), Cesium.Cartesian3.dot(f, north)));
+    return { heading: (heading + 360) % 360,
+             pitch: Cesium.Math.toDegrees(Math.asin(Math.max(-1, Math.min(1, Cesium.Cartesian3.dot(d, up))))) };
+  }
+  /** 가운데 점 둘레로 돈다 — 방위(위의 기준)·기울기(수평면 기준, −90 이 곧장 내려다봄)·거리는 그대로. */
+  function orbit(p, heading, pitch, duration) {
+    var shift = anglesAt(p.pos, true).heading - anglesAt(p.pos, false).heading;
+    var hpr = new Cesium.HeadingPitchRange(Cesium.Math.toRadians(heading + shift), Cesium.Math.toRadians(pitch), p.range);
+    if (duration) {
+      viewer.camera.flyToBoundingSphere(new Cesium.BoundingSphere(p.pos, 0), { offset: hpr, duration: duration });
+    } else {
+      viewer.camera.lookAt(p.pos, hpr);
+      viewer.camera.lookAtTransform(Cesium.Matrix4.IDENTITY);
+    }
+  }
+
+  // 처음 자리 — 격자 가운데(3031 의 500·1 000 km — 남위 80°, 동경 27°)를 북쪽 바다에서 남쪽으로 비스듬히 본다
+  function viewHome(fly) {
     var target = new Cesium.BoundingSphere(Cesium.Cartesian3.fromDegrees(27, -81, 0), 1);
     var offset = new Cesium.HeadingPitchRange(Math.PI, Cesium.Math.toRadians(-30), 2.7e6);
     if (fly) viewer.camera.flyToBoundingSphere(target, { offset: offset, duration: 1.5 });
-    else viewer.camera.viewBoundingSphere(target, offset);
-    viewer.camera.lookAtTransform(Cesium.Matrix4.IDENTITY);
+    else { viewer.camera.viewBoundingSphere(target, offset); viewer.camera.lookAtTransform(Cesium.Matrix4.IDENTITY); }
   }
-  viewTilt(false);
-  $("view-top").addEventListener("click", function () { viewTop(true); });
-  $("view-tilt").addEventListener("click", function () { viewTilt(true); });
+  viewHome(false);
+  $("tool-home").addEventListener("click", function () { viewHome(true); });
+  // 남극점 — 극 위에서 곧장 내려다본다. 경도 0° 가 위(2D 의 3031 과 같은 방향)
+  $("tool-pole").addEventListener("click", function () { flyGlobe(0, -89.9, 6.2e6, 1.5); });
+  // 북쪽 위 — 가운데 점 위로 올라가 곧장 내려다본다
+  $("tool-top").addEventListener("click", function () {
+    var p = pivot(true);
+    if (p) { orbit(p, 0, -90, 0.8); return; }
+    var c = cameraLL();
+    if (c) flyGlobe(c.lon, c.lat, c.h, 0.8);
+  });
+  // 평면 — 2D 남극 탭으로. 연대는 열쇠(`gsm.paleoage`)가 넘긴다
+  $("tool-mode").addEventListener("click", function () {
+    save("gsm.region", "antarctica");
+    location.href = $("to2d").href;
+  });
+
+  // 방위 단추(나침반) — 바늘이 지구의 북쪽을 가리킨다. 누르면 기울기는 두고 북쪽을 위로 돌린다
+  var needle = $("compass-needle"), poseOut = $("pose"), topBtn = $("tool-top"), compassBtn = $("tool-compass");
+  compassBtn.addEventListener("click", function () {
+    var p = pivot(true);
+    if (!p) return;
+    orbit(p, 0, anglesAt(p.pos, false).pitch, 0.6);
+  });
+
+  // 자전축 — 지구 고정 좌표의 Z 축. 지구 속 토막은 흐린 끊은 선으로 비친다. 가까이 가면(카메라 4 800 km 밑) 치운다
+  // 끝의 이름은 온 지구와 달리 구에 가린다 — 남극점 위에서 곧장 내려다보면 뒤쪽 "북극점" 이 "남극점" 에 겹쳤다
+  var AXIS_OUT = 6371008.8 * 1.45, AXIS_NEAR = 4800000, WHITE_A = Cesium.Color.WHITE;
+  var axisOn = saved("gsm.paleo3d.axis", "on") !== "off", axisFar = true;
+  var axisEntities = [
+    viewer.entities.add({
+      polyline: { positions: [new Cesium.Cartesian3(0, 0, -AXIS_OUT), new Cesium.Cartesian3(0, 0, AXIS_OUT)],
+                  arcType: Cesium.ArcType.NONE, width: 2.5, material: WHITE_A.withAlpha(0.95),
+                  depthFailMaterial: new Cesium.PolylineDashMaterialProperty({ color: WHITE_A.withAlpha(0.5), dashLength: 12 }) },
+    }),
+    viewer.entities.add({
+      position: Cesium.Cartesian3.ZERO,
+      point: { pixelSize: 6, color: WHITE_A.withAlpha(0.7), outlineColor: Cesium.Color.BLACK, outlineWidth: 1,
+               disableDepthTestDistance: Number.POSITIVE_INFINITY },
+    }),
+  ].concat([[1, T("북극점")], [-1, T("남극점")]].reduce(function (all, end) {
+    all.push(viewer.entities.add({
+      position: new Cesium.Cartesian3(0, 0, end[0] * ELL.minimumRadius),
+      point: { pixelSize: 8, color: WHITE_A, outlineColor: Cesium.Color.BLACK, outlineWidth: 2 },
+    }));
+    all.push(viewer.entities.add({
+      position: new Cesium.Cartesian3(0, 0, end[0] * AXIS_OUT),
+      label: { text: end[1], font: "600 12px system-ui, sans-serif", fillColor: WHITE_A,
+               outlineColor: Cesium.Color.BLACK, outlineWidth: 3, style: Cesium.LabelStyle.FILL_AND_OUTLINE,
+               verticalOrigin: end[0] > 0 ? Cesium.VerticalOrigin.BOTTOM : Cesium.VerticalOrigin.TOP,
+               pixelOffset: new Cesium.Cartesian2(0, end[0] > 0 ? -4 : 4) },
+    }));
+    return all;
+  }, []));
+  function applyAxis() {
+    axisEntities.forEach(function (e) { e.show = axisOn && axisFar; });
+    $("tool-axis").classList.toggle("on", axisOn);
+    $("tool-axis").setAttribute("aria-pressed", axisOn ? "true" : "false");
+  }
+  $("tool-axis").addEventListener("click", function () {
+    axisOn = !axisOn;
+    save("gsm.paleo3d.axis", axisOn ? "on" : "off");
+    applyAxis();
+  });
+  applyAxis();
+
+  // 시점이 바뀔 때마다 — 바늘·기울기·방위 읽기, 할 일이 없는 단추는 흐리게, 자전축은 가까우면 치운다
+  var lastView = new Cesium.Matrix4();
+  scene.postRender.addEventListener(function () {
+    if (Cesium.Matrix4.equalsEpsilon(lastView, viewer.camera.viewMatrix, 1e-9)) return;
+    Cesium.Matrix4.clone(viewer.camera.viewMatrix, lastView);
+    var c = cameraLL(), far = !c || c.h > AXIS_NEAR;
+    if (far !== axisFar) { axisFar = far; applyAxis(); }
+    var p = pivot(false);
+    if (!p) { poseOut.textContent = ""; topBtn.disabled = compassBtn.disabled = false; return; }
+    var a = anglesAt(p.pos, false);
+    needle.setAttribute("transform", "rotate(" + (-a.heading).toFixed(1) + " 12 12)");
+    var north = Math.min(a.heading, 360 - a.heading) < 0.5;
+    compassBtn.disabled = north;
+    topBtn.disabled = north && 90 + a.pitch < 0.5;
+    poseOut.textContent = T("기울기 {tilt}° · 방위 {heading}°", { tilt: Math.round(90 + a.pitch), heading: Math.round(a.heading) % 360 });
+  });
+
+  // 좌표 — 손 밑의 위경도
+  var readout = $("readout");
+  new Cesium.ScreenSpaceEventHandler(scene.canvas).setInputAction(function (movement) {
+    var ray = viewer.camera.getPickRay(movement.endPosition);
+    var at = (ray && scene.globe.pick(ray, scene)) || viewer.camera.pickEllipsoid(movement.endPosition, ELL);
+    if (!at) { readout.textContent = ""; return; }
+    var ll = ELL.cartesianToCartographic(at);
+    readout.textContent = T("위도 {lat}° · 경도 {lon}°", { lat: Cesium.Math.toDegrees(ll.latitude).toFixed(4),
+                                                         lon: Cesium.Math.toDegrees(ll.longitude).toFixed(4) });
+  }, Cesium.ScreenSpaceEventType.MOUSE_MOVE);
 
   // ── 땅이 다 서면 — 이미 서 있으면 곧장, 길어야 10 초 ──
   function whenLoaded(then) {

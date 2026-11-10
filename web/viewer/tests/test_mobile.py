@@ -822,6 +822,16 @@ class PhonePaleo3D(PhoneBase):
         bar = page.locator("#agebar").bounding_box()
         self.assertLessEqual(bar["x"] + bar["width"], 391)
 
+        # 시점 도구 — 온 지구·달·화성의 "자세" 묶음과 같은 꼴. 판과 겹치지 않고, 남극점 위로 가면 "북쪽 위" 가 흐려진다 (wetherilli 444)
+        tools, panel = page.locator("#toolbar").bounding_box(), page.locator("#panel3d").bounding_box()
+        self.assertLessEqual(tools["x"] + tools["width"], 391)
+        self.assertLessEqual(panel["x"] + panel["width"], tools["x"], "판이 시점 도구를 덮는다")
+        page.tap("#tool-pole")
+        page.wait_for_function("document.getElementById('tool-top').disabled", timeout=15000)
+        self.assertEqual(page.locator("#pose").text_content(), "기울기 0° · 방위 0°")
+        page.tap("#tool-home")
+        page.wait_for_function("!document.getElementById('tool-compass').disabled", timeout=15000)
+
         asked.clear()
         page.tap("#agebar-younger")
         self.assertEqual(page.locator("#agebar-age").inner_text(), "58 Ma")
