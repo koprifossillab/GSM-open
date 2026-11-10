@@ -48,8 +48,9 @@ class Grid:
     fetch(l, x, y)  타일 한 장(그림 바이트). 없으면(바다) None
     """
 
-    def __init__(self, levels, res, origin, project, fetch, size=256, valid=None):
+    def __init__(self, levels, res, origin, project, fetch, size=256, valid=None, north=None):
         self.levels, self.res, self.origin = list(levels), res, origin
+        self.north = north     # 자료가 이 위도 남쪽뿐이다 — 경위도 격자의 넓은 줌에서 모서리를 접는다
         self.project, self.fetch, self.size = project, fetch, size
         self.valid = valid or (lambda level, x, y: True)
 
@@ -74,7 +75,52 @@ def south_of(z: int, y: int) -> float:
     return _lonlat(z, 0, y, 0, TILE)[1]
 
 
-def _plan(grid: Grid, z: int, x: int, y: int, size: int):
+# ── 타일 격자 둘 — 3857 과 Cesium 의 경위도 격자 (wetherilli 443) ──
+#
+# 남극 고지형 3D(Cesium)는 3857 이 아니라 Cesium 의 `GeographicTilingScheme` 으로 받는다 — 줌 0 이 180° 네모 두 장(서·동)이고
+# 위도 ±90° 까지 간다. 메르카토르는 남위 85° 너머를 못 그려 남극점 둘레가 빈다.
+# 높이 격자(Cesium 의 65×65)는 **가장자리에 표본이 선다** — 픽셀 i 가 타일 너비의 i/(n−1) 자리다. 색 타일은 픽셀 가운데다.
+
+def geo_lonlat(z: int, x: int, y: int, px: float, py: float, size: int = TILE) -> tuple:
+    """경위도 격자(Cesium, 줌 0 이 2×1) 타일 안의 픽셀 (px, py) → (경도, 위도)"""
+    step = 180.0 / 2 ** z
+    return -180.0 + (x + px / size) * step, 90.0 - (y + py / size) * step
+
+
+def geo_south_of(z: int, y: int) -> float:
+    """경위도 격자 타일 줄 y 의 남쪽 끝 위도"""
+    return 90.0 - (y + 1) * 180.0 / 2 ** z
+
+
+def _merc_meters(z: int, lat: float, size: int) -> float:
+    return tilegrid.resolution(z) * 512 / size * math.cos(math.radians(lat))   # tilegrid 는 512 px 기준
+
+
+def _geo_meters(z: int, lat: float, size: int) -> float:
+    # 위도 쪽 간격 — 경도 쪽은 극으로 갈수록 0 이 되어, 그것으로 고르면 극의 타일이 원본을 수백 장 모은다
+    return 180.0 / 2 ** z / size * 111320.0
+
+
+class Scheme:
+    """타일 격자 하나 — 픽셀 → 경위도와 땅 해상도"""
+
+    def __init__(self, lonlat, meters, edges=False):
+        self.meters, self.edges = meters, edges
+        if edges:
+            # 픽셀 가운데(p + 0.5)가 타일의 i/(n−1) 자리에 오게 — MESH 는 픽셀 가운데를 옮긴다
+            self.lonlat = lambda z, x, y, px, py, size: lonlat(
+                z, x, y, (px - 0.5) * size / (size - 1), (py - 0.5) * size / (size - 1), size)
+        else:
+            self.lonlat = lonlat
+
+
+MERCATOR = Scheme(_lonlat, _merc_meters)
+GEOGRAPHIC = Scheme(geo_lonlat, _geo_meters)
+#: Cesium 의 높이 격자 — 가장자리에 표본
+GEOGRAPHIC_HEIGHTS = Scheme(geo_lonlat, _geo_meters, edges=True)
+
+
+def _plan(grid: Grid, z: int, x: int, y: int, size: int, scheme: Scheme = MERCATOR):
     """3857 타일 한 장을 펴는 채비 — (단계, 원본 타일 네모, 칸마다의 원본 픽셀 네모). 너무 멀면 None."""
     # 칸의 꼭짓점을 원본 좌표로
     cells = max(1, size // MESH_PX)
@@ -82,11 +128,13 @@ def _plan(grid: Grid, z: int, x: int, y: int, size: int):
     corners = {}
     for i in range(cells + 1):
         for j in range(cells + 1):
-            lon, lat = _lonlat(z, x, y, i * step, j * step, size)
-            corners[i, j] = grid.project(lat, lon)
+            lon, lat = scheme.lonlat(z, x, y, i * step, j * step, size)
+            if scheme is not MERCATOR and grid.north is not None:
+                lat = min(lat, grid.north)        # 경위도 줌 0·1 은 반구를 덮는다 — 자료 북쪽은 끝줄로 접는다
+            corners[i, j] = grid.project(max(-89.9999, min(89.9999, lat)), lon)
     # 땅 해상도 — 타일 가운데 위도에서
-    _, mid_lat = _lonlat(z, x, y, size / 2, size / 2, size)
-    meters = tilegrid.resolution(z) * 512 / size * math.cos(math.radians(mid_lat))   # tilegrid 는 512 px 기준
+    _, mid_lat = scheme.lonlat(z, x, y, size / 2, size / 2, size)
+    meters = scheme.meters(z, mid_lat, size)
     level = grid.pick(meters)
     res, (ox, oy), span = grid.res(level), grid.origin(level), grid.size * grid.res(level)
 
@@ -113,9 +161,10 @@ def _plan(grid: Grid, z: int, x: int, y: int, size: int):
     return level, (tx0, tx1, ty0, ty1), mesh
 
 
-def render(grid: Grid, z: int, x: int, y: int, size: int = TILE):
-    """3857 타일 한 장(PNG 바이트, 한 변 `size` px). 원본이 하나도 걸리지 않으면 None."""
-    plan = _plan(grid, z, x, y, size)
+def render(grid: Grid, z: int, x: int, y: int, size: int = TILE, scheme: Scheme = MERCATOR):
+    """3857 타일 한 장(PNG 바이트, 한 변 `size` px). 원본이 하나도 걸리지 않으면 None.
+    `scheme=GEOGRAPHIC` 이면 Cesium 의 경위도 타일이다 (wetherilli 443)"""
+    plan = _plan(grid, z, x, y, size, scheme)
     if plan is None:
         return None
     level, (tx0, tx1, ty0, ty1), mesh = plan
@@ -141,13 +190,13 @@ def render(grid: Grid, z: int, x: int, y: int, size: int = TILE):
     return buf.getvalue()
 
 
-def render_values(grid: Grid, z: int, x: int, y: int, decode, size: int = TILE):
+def render_values(grid: Grid, z: int, x: int, y: int, decode, size: int = TILE, scheme: Scheme = MERCATOR):
     """수치 격자를 3857 로 편다 — (값 F, 채움 F) 한 벌. 원본이 하나도 걸리지 않으면 None.
 
     `decode(바이트)` 가 원본 타일 한 장을 (값, 채움)으로 푼다. **섞는 것은 값이다** — 색 타일처럼
     Terrarium 을 띠마다 섞으면 값이 튄다. 빈 곳이 섞인 픽셀은 채움이 1 보다 작아 부르는 쪽이
     가려 쓴다(051)."""
-    plan = _plan(grid, z, x, y, size)
+    plan = _plan(grid, z, x, y, size, scheme)
     if plan is None:
         return None
     level, (tx0, tx1, ty0, ty1), mesh = plan
@@ -209,7 +258,7 @@ def geomap_grid(fetch_tile) -> Grid:
     return Grid(levels=range(geomap.MAX_ZOOM + 1), res=geomap.resolution,
                 origin=lambda level: (geomap.ORIGIN_X, geomap.ORIGIN_Y),
                 project=lambda lat, lon: geomap.lonlat_to_3031(lon, lat),
-                fetch=fetch_tile, size=geomap.TILE, valid=geomap.valid_tile)
+                fetch=fetch_tile, size=geomap.TILE, valid=geomap.valid_tile, north=-48.0)
 
 
 def polar_grid(fetch_tile, max_zoom: int, valid) -> Grid:
@@ -218,7 +267,7 @@ def polar_grid(fetch_tile, max_zoom: int, valid) -> Grid:
     return Grid(levels=range(max_zoom + 1), res=geomap.resolution,
                 origin=lambda level: (geomap.ORIGIN_X, geomap.ORIGIN_Y),
                 project=lambda lat, lon: geomap.lonlat_to_3031(lon, lat),
-                fetch=fetch_tile, size=geomap.TILE, valid=valid)
+                fetch=fetch_tile, size=geomap.TILE, valid=valid, north=-48.0)
 
 
 def ibcso_grid(sheet) -> Grid:
@@ -227,7 +276,7 @@ def ibcso_grid(sheet) -> Grid:
     half = ibcso.SOURCE_HALF
     return Grid(levels=range(ibcso.DEM_MAX_LEVEL + 1), res=ibcso.dem_res,
                 origin=lambda level: (-half, half), project=ibcso.to_9354,
-                fetch=sheet.read_wide, size=ibcso.TILE, valid=ibcso.dem_valid)
+                fetch=sheet.read_wide, size=ibcso.TILE, valid=ibcso.dem_valid, north=-48.0)
 
 
 def ibcso_dem_grid(sheet) -> Grid:
@@ -236,4 +285,4 @@ def ibcso_dem_grid(sheet) -> Grid:
     half = ibcso.SOURCE_HALF
     return Grid(levels=range(ibcso.DEM_MAX_LEVEL + 1), res=ibcso.dem_res,
                 origin=lambda level: (-half, half), project=ibcso.to_9354,
-                fetch=sheet.read_tile, size=ibcso.TILE, valid=ibcso.dem_valid)
+                fetch=sheet.read_tile, size=ibcso.TILE, valid=ibcso.dem_valid, north=-48.0)

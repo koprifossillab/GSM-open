@@ -129,6 +129,53 @@ class Bake(TestCase):
             self.assertEqual(self.client.get("/GSM/dem/gernon/35/2/1/3.png").status_code, 404)
         elevation._gernon_cache.clear()
 
+    def test_남극_고지형_3D(self):
+        """`paleo3d/dem/` — Cesium 의 경위도 격자 65×65 높이, `geo/gernontopo/` — 칠한 3031 타일을 경위도로 (wetherilli 443)"""
+        with tempfile.TemporaryDirectory() as tmp, override_settings(GERNON_PALEOTOPO_DIR=tmp, TILE_CACHE_DIR=tmp + "/tc"), \
+                mock.patch.object(elevation, "GERNON_FEATHER", 1), \
+                mock.patch.object(elevation, "_ibcso_values", lambda *a: None):
+            src = Path(tmp) / "GIS_files.zip"
+            with zipfile.ZipFile(src, "w") as z:
+                z.writestr("GIS_files/COB160BestFitModel100Ma.tif", tif())
+                z.writestr("GIS_files/COB160BestFitModel098Ma.tif", tif(north=900.0))
+            call_command("build_gernon_paleotopo", str(src), stdout=io.StringIO(), stderr=io.StringIO())
+            elevation._gernon_cache.clear()
+
+            def heights(path):
+                r = self.client.get(path)
+                self.assertEqual((r.status_code, r["Content-Type"]), (200, "image/png"), path)
+                v = elevation._terrarium_values(b"".join(r.streaming_content) if r.streaming else r.content)
+                self.assertEqual(v.size, (65, 65))
+                return sorted(v.getdata())
+            # 줌 2 는 8×4 장 — x=3 은 경도 −45…0°(3031 의 y > 0, north m), x=1 은 −135…−90°(south m). y=3 이 남위 45–90°
+            east = heights("/GSM/paleo3d/dem/100/2/3/3.png")
+            self.assertAlmostEqual(east[len(east) // 2], 1800, delta=2)
+            self.assertAlmostEqual(heights("/GSM/paleo3d/dem/98/2/3/3.png")[len(east) // 2], 900, delta=2)
+            west = heights("/GSM/paleo3d/dem/100/2/1/3.png")
+            self.assertAlmostEqual(west[len(west) // 2], -3000, delta=2)
+            self.assertEqual(max(heights("/GSM/paleo3d/dem/today/2/3/3.png")), 0)    # 빙저가 없으면 해수면
+            self.assertEqual(max(heights("/GSM/paleo3d/dem/100/2/3/1.png")), 0)      # 남위 50° 북쪽
+            for bad in ("100/1/4/0", "35/2/3/3", "100/10/0/0"):
+                self.assertEqual(self.client.get(f"/GSM/paleo3d/dem/{bad}.png").status_code, 404, bad)
+
+            r = self.client.get("/GSM/geo/gernontopo/100/2/3/3.png")
+            self.assertEqual(r.status_code, 200)
+            image = Image.open(io.BytesIO(b"".join(r.streaming_content) if r.streaming else r.content)).convert("RGBA")
+            self.assertEqual(image.size, (256, 256))
+            self.assertIsNotNone(image.getbbox())
+            # 맨 밑 줄은 남극점이다 — 메르카토르와 달리 비지 않는다
+            self.assertGreater(image.getpixel((128, 255))[3], 0)
+            self.assertEqual(self.client.get("/GSM/geo/gernontopo/100/2/8/3.png").status_code, 404)
+            self.assertEqual(self.client.get("/GSM/geo/gernontopo/100/13/0/0.png").status_code, 404)
+        elevation._gernon_cache.clear()
+
+    def test_남극_고지형_3D_화면(self):
+        html = self.client.get("/GSM/paleo3d/").content.decode()
+        self.assertIn('id="agebar"', html)
+        self.assertIn("Cesium.js", html)
+        self.assertIn(json.dumps(list(gernontopo.AGES)), html)
+        self.assertIn('href="/GSM/paleo3d/"', self.client.get("/GSM/3d/?region=antarctica").content.decode())
+
     def test_3d_화면에_연대(self):
         html = self.client.get("/GSM/3d/?region=antarctica").content.decode()
         self.assertIn('id="paleo3d"', html)

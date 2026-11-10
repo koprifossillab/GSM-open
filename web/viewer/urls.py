@@ -22,6 +22,8 @@ urlpatterns = [
     path("offline/request/<int:pk>/decide/", views.offline_decide, name="offline-decide"),
     re_path(r"^offline/(?P<name>[a-z0-9_-]{1,64}-\d{8}\.gsmpack)$", views.offline_file, name="offline-file"),
     path("3d/", views.map3d_view, name="map3d"),
+    # 남극 고지형 3D — Cesium 의 둥근 지구라 남극점까지 선다 (wetherilli 443)
+    path("paleo3d/", views.paleo3d_view, name="paleo3d"),
     path("moon/", views.moon_view, name="moon"),
     re_path(r"^moon/tiles/(?P<layer>[a-z-]+)/(?P<z>\d{1,2})/(?P<x>\d{1,5})/(?P<y>\d{1,5})\.png$",
             views.moon_tile, name="moon-tile"),
@@ -288,6 +290,11 @@ urlpatterns = [
     # 3D 의 동남극 고지형 — 연대마다의 땅 (wetherilli 441)
     re_path(r"^dem/gernon/(?P<age>\d{2,3})/(?P<z>\d{1,2})/(?P<x>\d{1,6})/(?P<y>\d{1,6})\.png$", views.dem_tile,
             name="dem-gernon-tile"),
+    # 남극 고지형 3D(Cesium) — 경위도 격자의 65×65 높이와 극지 격자를 경위도로 편 색 (wetherilli 443)
+    re_path(r"^paleo3d/dem/(?:(?P<age>\d{2,3})|today)/(?P<z>\d{1,2})/(?P<x>\d{1,6})/(?P<y>\d{1,6})\.png$",
+            views.paleo3d_dem, name="paleo3d-dem"),
+    re_path(r"^geo/(?P<upstream>ibcso|gernontopo)/(?P<layer>[\w-]+)/(?P<z>\d{1,2})/(?P<x>\d{1,6})/(?P<y>\d{1,6})\.png$",
+            views.warp_tile, {"scheme": "4326"}, name="geo-tile"),
 
     path("coords/parse/", views.coord_parse, name="coord-parse"),
     path("coords/project/", views.coord_project, name="coord-project"),

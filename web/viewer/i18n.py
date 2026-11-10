@@ -1031,6 +1031,18 @@ EN = {
     # 3D 의 동남극 고지형 (wetherilli 441)
     "땅을 그 연대의 고지형으로 (Gernon 2026)": "Terrain from that age's palaeotopography (Gernon 2026)",
     "고지형 등고선 (0·1 000·1 500·2 000 m)": "Palaeotopography contours (0, 1,000, 1,500, 2,000 m)",
+    # 남극 고지형 3D — Cesium (wetherilli 443)
+    "남극 고지형 3D": "Antarctic palaeotopography 3D",
+    "남극점 중심으로 보기 — 둥근 지구 (Cesium)": "View centred on the South Pole — round globe (Cesium)",
+    "땅": "Ground",
+    "그 연대의 고지형 (Gernon 2026)": "Palaeotopography of that age (Gernon 2026)",
+    "오늘의 빙저 지형 (IBCSO v2)": "Today's bed topography (IBCSO v2)",
+    "고지형 색 (1 500 m 부터 녹슨 빛)": "Palaeotopography colours (rust from 1,500 m)",
+    "남극점 위에서": "From above the Pole",
+    "비스듬히": "Oblique",
+    "3D 로": "To 3D",
+    "땅을 세우는 중…": "Raising the ground…",
+    "그리기가 멈췄다 — 새로고침하면 다시 그린다": "Rendering stopped — reload the page to draw again",
     "빙상 범위 (Fig. 4A, PISM 모형)": "Ice-sheet extent (Fig. 4A, PISM model)",
     "FastScape 모형 재구성(5 km)이고 판을 돌리지 않은 오늘의 자리다. 격자(동남극 3 000 km 네모) 밖은 오늘의 빙저 지형이다.":
         "A FastScape model reconstruction (5 km) on today's positions, without plate rotation. Outside the grid "
@@ -1351,6 +1363,7 @@ EN = {
     "경도": "Longitude",
     "도분초": "DMS",
     "접기": "Collapse",
+    "펴기": "Expand",
     "모두 표시 ({n})": "Show all ({n})",
     "닫는다": "Close",
 

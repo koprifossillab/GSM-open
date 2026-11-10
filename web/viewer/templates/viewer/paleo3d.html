@@ -1,0 +1,106 @@
+{% load static gsm_i18n %}<!DOCTYPE html>
+<html lang="{{ lang }}" data-region="antarctica">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{% t "대돌여지도" %} · {% t "남극 고지형 3D" %}</title>
+<link rel="icon" type="image/svg+xml" href="{% static 'viewer/emblem.svg' %}?v={{ stamp|default:version }}">
+<link rel="stylesheet" href="{% static 'viewer/vendor/cesium/Widgets/widgets.css' %}?v={{ stamp|default:version }}">
+<link rel="stylesheet" href="{% static 'viewer/map.css' %}?v={{ stamp|default:version }}">
+{% comment %}남극 고지형 3D (wetherilli 443) — 3D(MapLibre)는 메르카토르라 남극점 둘레가 빈다. Cesium 의 둥근 지구로 극까지 세운다.
+테마는 2D 와 같고 지역 색은 늘 남극이다.{% endcomment %}
+<script>
+(function () {
+  var root = document.documentElement;
+  function saved(key, fallback) {
+    try { return localStorage.getItem(key) || fallback; } catch (e) { return fallback; }
+  }
+  root.setAttribute("data-theme", saved("gsm.theme", "brown"));
+  root.setAttribute("data-font", saved("gsm.font", "sans"));
+  root.setAttribute("data-size", saved("gsm.size", "m"));
+})();
+</script>
+<style>
+  body { margin: 0; }
+  #globe { position: fixed; inset: 0; background: #05070c; }
+  #globe .cesium-viewer-bottom { right: 8px; left: auto; }
+  .panel3d { position: fixed; top: 12px; left: 12px; z-index: 5; width: 290px; padding: 12px 14px;
+             color: var(--ink); background: var(--panel); border: 1px solid var(--line);
+             border-radius: var(--radius); box-shadow: var(--shadow); font-size: 12.5px; }
+  .p3-head { display: flex; align-items: center; gap: 8px; }
+  .p3-head h1 { flex: 1; margin: 0; font-size: 16px; color: var(--hi-ink); }
+  .fold3d { width: 28px; height: 24px; padding: 0; font: 600 13px/1 ui-monospace, Menlo, monospace;
+            color: var(--hi-ink); background: var(--panel-tint); border: 1px solid var(--line);
+            border-radius: var(--radius); cursor: pointer; }
+  .fold3d::after { content: "▴"; }
+  .panel3d.folded .fold3d::after { content: "▾"; }
+  .panel3d.folded #p3-body { display: none; }
+  .panel3d label { display: block; margin-top: 10px; color: var(--ink-soft); }
+  .panel3d label.sub { margin-top: 4px; }
+  .panel3d label input[type=checkbox] { margin: 0 4px 0 0; vertical-align: -2px; }
+  .panel3d select, .panel3d input[type=range] { width: 100%; margin-top: 4px; }
+  .panel3d select { padding: 5px 6px; font: inherit; color: var(--ink); background: var(--panel-tint);
+                    border: 1px solid var(--line); border-radius: var(--radius); }
+  .panel3d .views { display: flex; gap: 6px; margin-top: 10px; }
+  .panel3d .views button { flex: 1; padding: 5px 6px; font: inherit; color: var(--ink); background: var(--panel-tint);
+                           border: 1px solid var(--line); border-radius: var(--radius); cursor: pointer; }
+  .panel3d .hint { margin: 10px 0 0; }
+  .panel3d .credit { margin: 10px 0 0; font-size: 11px; color: var(--ink-soft); }
+  .panel3d a { color: var(--hi-ink); }
+  .agebar.ab3d { position: fixed; bottom: 40px; }
+  #p3-status { margin: 8px 0 0; font-size: 11.5px; color: var(--ink-soft); min-height: 1em; }
+  @media (max-width: 760px) {
+    .panel3d { top: 8px; left: 8px; width: auto; right: 8px; max-height: calc(100dvh - 120px); overflow-y: auto;
+               padding: 10px 12px; }
+  }
+</style>
+</head>
+<body>
+<div id="globe"></div>
+
+<aside class="panel3d" id="panel3d">
+  <div class="p3-head">
+    <h1>{% t "남극 고지형 3D" %}</h1>
+    <button type="button" class="fold3d" id="fold3d" title="{% t "접기" %}" aria-label="{% t "접기" %}" aria-expanded="true"></button>
+  </div>
+  <div id="p3-body">
+    <label>{% t "땅" %}
+      <select id="ground">
+        <option value="paleo">{% t "그 연대의 고지형 (Gernon 2026)" %}</option>
+        <option value="today">{% t "오늘의 빙저 지형 (IBCSO v2)" %}</option>
+      </select>
+    </label>
+    <label class="sub"><input type="checkbox" id="drape" checked> {% t "고지형 색 (1 500 m 부터 녹슨 빛)" %}</label>
+    <label class="sub"><input type="checkbox" id="contours"> {% t "고지형 등고선 (0·1 000·1 500·2 000 m)" %}</label>
+    <label class="sub"><input type="checkbox" id="ice"> {% t "빙상 범위 (Fig. 4A, PISM 모형)" %}</label>
+    <label>{% t "지형 과장" %} <span id="ex-num">×3.0</span>
+      <input type="range" id="exag" min="10" max="100" step="5" value="30">
+    </label>
+    <div class="views">
+      <button type="button" id="view-top">{% t "남극점 위에서" %}</button>
+      <button type="button" id="view-tilt">{% t "비스듬히" %}</button>
+    </div>
+    <p id="p3-status" role="status" aria-live="polite"></p>
+    <p class="hint">{% t "FastScape 모형 재구성(5 km)이고 판을 돌리지 않은 오늘의 자리다. 격자(동남극 3 000 km 네모) 밖은 오늘의 빙저 지형이다." %}</p>
+    <p class="credit">{{ gernon_attribution|safe }} · {{ ibcso_attribution|safe }}</p>
+    <p class="hint"><a id="to3d" href="{{ base }}3d/?region=antarctica">{% t "3D 로" %}</a> · <a id="to2d" href="{{ base }}map/">{% t "2D 로 돌아간다" %}</a></p>
+  </div>
+</aside>
+
+<div id="agebar" class="agebar ab3d" role="group" aria-labelledby="agebar-cap">
+  <span class="ab-cap" id="agebar-cap">{% t "연대" %}</span>
+  <button type="button" class="ab-play" id="agebar-play" aria-pressed="false">&#9654;</button>
+  <button type="button" class="ab-step" id="agebar-older" title="{% t "더 옛날로 — 한 칸" %}" aria-label="{% t "더 옛날로" %}">&lsaquo;</button>
+  <input type="range" class="ab-range" id="agebar-range" min="0" max="0" step="1" value="0" aria-labelledby="agebar-cap">
+  <button type="button" class="ab-step" id="agebar-younger" title="{% t "오늘 쪽으로 — 한 칸" %}" aria-label="{% t "오늘 쪽으로" %}">&rsaquo;</button>
+  <output class="ab-age" id="agebar-age" aria-live="polite"></output>
+</div>
+
+<script id="i18n-data" type="application/json">{{ i18n_json|safe }}</script>
+<script id="gernon-ages" type="application/json">{{ gernon_ages|safe }}</script>
+<script id="dem-max" type="application/json">{{ dem_max }}</script>
+<script>window.CESIUM_BASE_URL = "{% static 'viewer/vendor/cesium/' %}";</script>
+<script src="{% static 'viewer/vendor/cesium/Cesium.js' %}?v={{ stamp|default:version }}"></script>
+<script src="{% static 'viewer/paleo3d.js' %}?v={{ stamp|default:version }}"></script>
+</body>
+</html>

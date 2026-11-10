@@ -174,3 +174,21 @@ class PgcMercator(TestCase):
         self.assertEqual((get.call_args[1]["params"]["bboxSR"], get.call_args[1]["params"]["imageSR"]), (3857, 3857))
         with self.assertRaises(elevation.ElevationError):
             elevation.get_map({"layers": "pgc:greenland_slope", "crs": "EPSG:4326", "bbox": "0,0,1,1", "width": "256", "height": "256"})
+
+
+class Geographic(SimpleTestCase):
+    """Cesium 의 경위도 격자 — 줌 0 이 180° 두 장, 높이 격자는 가장자리에 표본 (wetherilli 443)"""
+
+    def test_픽셀의_경위도(self):
+        self.assertEqual(warp.geo_lonlat(0, 1, 0, 256, 256), (180.0, -90.0))
+        self.assertEqual(warp.geo_lonlat(2, 3, 3, 0, 0), (-45.0, -45.0))
+        self.assertEqual(warp.geo_south_of(2, 3), -90.0)
+
+    def test_높이_격자는_가장자리에_표본(self):
+        lonlat = warp.GEOGRAPHIC_HEIGHTS.lonlat
+        self.assertEqual(lonlat(2, 3, 3, 0.5, 0.5, 65), (-45.0, -45.0))
+        self.assertEqual(lonlat(2, 3, 3, 64.5, 64.5, 65), (0.0, -90.0))
+
+    def test_극의_해상도는_위도_쪽(self):
+        # 경도 쪽(cos 위도)으로 재면 극의 타일이 원본을 수백 장 모은다
+        self.assertAlmostEqual(warp.GEOGRAPHIC.meters(3, -89.0, 256), 180 / 8 / 256 * 111320.0)

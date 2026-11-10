@@ -17,9 +17,9 @@ KOREAN = re.compile(r"[가-힣]")
 
 def used_keys():
     js = "".join((HERE / "static/viewer" / n).read_text(encoding="utf-8")
-                 for n in ("map.js", "map3d.js", "moon.js", "mars.js", "mercury.js", "earth.js", "personal.js", "manage.js", "offline.js"))
+                 for n in ("map.js", "map3d.js", "moon.js", "mars.js", "mercury.js", "earth.js", "personal.js", "manage.js", "offline.js", "paleo3d.js"))
     html = "".join((HERE / "templates/viewer" / n).read_text(encoding="utf-8")
-                   for n in ("map.html", "map3d.html", "moon.html", "mars.html", "mercury.html", "earth.html", "intro.html", "manage.html"))
+                   for n in ("map.html", "map3d.html", "moon.html", "mars.html", "mercury.html", "earth.html", "intro.html", "manage.html", "paleo3d.html"))
     keys = set(re.findall(r'\bT\("((?:[^"\\]|\\.)*)"', js))
     keys |= set(re.findall(r'\{% t "((?:[^"\\]|\\.)*)"(?: [^%]*)? %\}', html))      # 자리표 값이 붙은 꼴도 (wetherilli 314)
     for name in ("views.py", "pointsets.py", "linked.py"):

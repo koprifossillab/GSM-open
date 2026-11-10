@@ -578,6 +578,26 @@ def _terrarium_values(png):
                                  r=r, g=g, b=b)
 
 
+def _gernon_mesh(meta, z, x, y, size, scheme):
+    """타일 한 장을 고지형 격자(601×601)의 픽셀로 되짚는 MESH — 16 px 칸마다 네 모서리"""
+    from . import geomap
+    res, left, top = meta["res"], meta["x0"] - meta["res"] / 2, meta["ytop"] + meta["res"] / 2
+    cells = max(1, size // 16)
+    step = size / cells
+
+    def src(i, j):
+        lon, lat = scheme.lonlat(z, x, y, i * step, j * step, size)
+        e, n = geomap.lonlat_to_3031(lon, max(-89.9999, min(lat, -1.0)))
+        return (e - left) / res, (top - n) / res
+    corners = {(i, j): src(i, j) for i in range(cells + 1) for j in range(cells + 1)}
+    mesh = []
+    for i in range(cells):
+        for j in range(cells):
+            box = (round(i * step), round(j * step), round((i + 1) * step), round((j + 1) * step))
+            mesh.append((box, corners[i, j] + corners[i, j + 1] + corners[i + 1, j + 1] + corners[i + 1, j]))
+    return mesh
+
+
 def gernon_terrarium(age: int, z: int, x: int, y: int, size: int = 256):
     """고지형 `age` Ma 를 편 3857 Terrarium 타일(PNG). 격자에 하나도 걸리지 않거나 구운 것이 없으면 None(→ 빙저)"""
     from PIL import ImageMath
@@ -590,20 +610,7 @@ def gernon_terrarium(age: int, z: int, x: int, y: int, size: int = 256):
     hit = tilecache.get(key)
     if hit is not None:
         return None if hit == _NONE else hit
-    res, left, top = meta["res"], meta["x0"] - meta["res"] / 2, meta["ytop"] + meta["res"] / 2
-    cells = max(1, size // 16)
-    step = size / cells
-
-    def src(i, j):
-        lon, lat = warp._lonlat(z, x, y, i * step, j * step, size)
-        e, n = geomap.lonlat_to_3031(lon, max(lat, -89.9999))
-        return (e - left) / res, (top - n) / res
-    corners = {(i, j): src(i, j) for i in range(cells + 1) for j in range(cells + 1)}
-    mesh = []
-    for i in range(cells):
-        for j in range(cells):
-            box = (round(i * step), round(j * step), round((i + 1) * step), round((j + 1) * step))
-            mesh.append((box, corners[i, j] + corners[i, j + 1] + corners[i + 1, j + 1] + corners[i + 1, j]))
+    mesh = _gernon_mesh(meta, z, x, y, size, warp.MERCATOR)
     w = weight.transform((size, size), Image.MESH, mesh, resample=Image.BILINEAR)
     png = None
     if w.getextrema()[1] > 0:
@@ -617,6 +624,63 @@ def gernon_terrarium(age: int, z: int, x: int, y: int, size: int = 256):
         terrarium_encode(vw).save(buf, "PNG")
         png = buf.getvalue()
     tilecache.put(key, png or _NONE)
+    return png
+
+
+# ── 남극 고지형 3D (Cesium) 의 높이 격자 (wetherilli 443) ─────────────
+#
+# MapLibre 의 3D 는 메르카토르라 남위 85° 너머(남극점 둘레 550 km)를 못 그리고 동남극을 동서로 늘린다. 남극 고지형 3D 는
+# Cesium 의 경위도 격자(줌 0 이 180° 두 장)로 극까지 세운다. 한 장은 Cesium 의 높이 격자 그대로 65×65 이고 **가장자리에
+# 표본이 선다**(`warp.GEOGRAPHIC_HEIGHTS`). 고지형 격자 밖은 오늘의 IBCSO 빙저, 그것도 없으면 해수면(0 m)이다 — AWS 는
+# 메르카토르라 극을 못 채운다. 연대가 없으면(`age=None`) 오늘의 빙저만이다 — 견주어 보려고.
+
+PALEO3D_DEM_SIZE = 65
+PALEO3D_DEM_VERSION = 1
+#: 서버가 주는 가장 깊은 줌 — 줌 9 의 한 장이 0.35° 라 65 칸이면 600 m 남짓, IBCSO(500 m)와 맞먹는다
+PALEO3D_DEM_MAX_ZOOM = 9
+
+
+def _ibcso_values(kind, z, x, y, size, scheme):
+    """IBCSO 수치 격자를 `scheme` 타일 한 장의 값(F)으로. 빈 곳은 0 m. 하나도 걸리지 않으면 None"""
+    from PIL import ImageMath
+    from . import ibcso, warp
+    sheet = ibcso.DEMS[kind]
+    if not sheet.available():
+        return None
+    got = warp.render_values(warp.ibcso_dem_grid(sheet), z, x, y, ibcso.decode_dem, size, scheme)
+    if got is None or got[1].getextrema()[1] <= 0:
+        return None
+    value, fill = got
+    return ImageMath.lambda_eval(lambda a: a["v"] * a["float"](a["f"] >= 0.999), v=value, f=fill)
+
+
+def paleo3d_heights(age, z: int, x: int, y: int):
+    """남극 고지형 3D 의 높이 한 장 — 경위도 격자 (z, x, y) 의 65×65 Terrarium PNG. `age` 가 None 이면 오늘의 빙저"""
+    from PIL import ImageMath
+    from . import warp
+    size, scheme = PALEO3D_DEM_SIZE, warp.GEOGRAPHIC_HEIGHTS
+    grid = _gernon_grid(age) if age is not None else None
+    stamp = grid[0] if grid else "-"
+    key = tilecache.key_text("elev", f"paleo3d-heights/v{PALEO3D_DEM_VERSION}/i{IBCSO_TERRAIN_VERSION}/{age}/{stamp}/{z}/{x}/{y}")
+    hit = tilecache.get(key)
+    if hit is not None:
+        return hit
+    if warp.geo_south_of(z, y) > IBCSO_NORTH:
+        under, grid = None, None                      # 남위 50° 북쪽 — 빙저도 고지형도 없다
+    else:
+        under = _ibcso_values("bed", z, x, y, size, scheme)
+    value = under if under is not None else Image.new("F", (size, size), 0.0)
+    if grid is not None:
+        _, weighted, weight, meta = grid
+        mesh = _gernon_mesh(meta, z, x, y, size, scheme)
+        w = weight.transform((size, size), Image.MESH, mesh, resample=Image.BILINEAR)
+        if w.getextrema()[1] > 0:
+            vw = weighted.transform((size, size), Image.MESH, mesh, resample=Image.BILINEAR)
+            value = ImageMath.lambda_eval(lambda a: a["vw"] + (1 - a["w"]) * a["u"], vw=vw, w=w, u=value)
+    buf = io.BytesIO()
+    terrarium_encode(value).save(buf, "PNG")
+    png = buf.getvalue()
+    tilecache.put(key, png)
     return png
 
 

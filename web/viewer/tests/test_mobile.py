@@ -795,6 +795,49 @@ class RegionAgebar(PhoneBase):
         self.assertEqual(errors, [])
 
 
+class PhonePaleo3D(PhoneBase):
+    """남극 고지형 3D(Cesium) — 남극점까지 서는 둥근 지구. 연대 막대로 땅·색의 연대가 바뀐다 (wetherilli 443)"""
+
+    def test_남극_고지형_3D(self):
+        page, errors = self.open("paleo3d/", settle=500)
+        page.evaluate("localStorage.setItem('gsm.paleoage', '60'); localStorage.setItem('gsm.paleo3d.ground', 'paleo')")
+        asked = []
+        page.on("request", lambda r: asked.append(r.url))
+        page.reload(wait_until="load")
+
+        def until(part):    # 구는 소프트웨어 WebGL 이라 첫 타일이 늦다 — 나갈 때까지(15 초)
+            for _ in range(60):
+                if any(part in u for u in asked):
+                    return True
+                page.wait_for_timeout(250)
+            return False
+        self.assertTrue(until("/paleo3d/dem/60/"), asked[:8])
+        self.assertTrue(until("/geo/gernontopo/60/"), asked[:8])
+        self.assertTrue(until("/geo/ibcso/bed/"), asked[:8])
+        self.assertEqual(errors, [], "페이지 오류")
+        self.assertTrue(page.locator("#agebar").is_visible())
+        self.assertEqual(page.locator("#agebar-age").inner_text(), "60 Ma")
+        self.assertLessEqual(page.evaluate("document.documentElement.scrollWidth"), 390)
+        self.assertIn("folded", page.get_attribute("#panel3d", "class"), "휴대폰은 판이 접힌 채로 연다")
+        bar = page.locator("#agebar").bounding_box()
+        self.assertLessEqual(bar["x"] + bar["width"], 391)
+
+        asked.clear()
+        page.tap("#agebar-younger")
+        self.assertEqual(page.locator("#agebar-age").inner_text(), "58 Ma")
+        self.assertTrue(until("/paleo3d/dem/58/"), asked[:8])
+        self.assertTrue(until("/geo/gernontopo/58/"), asked[:8])
+        self.assertEqual(page.evaluate("localStorage.getItem('gsm.paleoage')"), "58")
+
+        # 오늘의 빙저로 — 연대 막대가 걷히고 땅은 `today`
+        page.tap("#fold3d")
+        page.select_option("#ground", "today")
+        self.assertTrue(until("/paleo3d/dem/today/"), asked[:8])
+        self.assertFalse(page.locator("#agebar").is_visible())
+        self.assertEqual(errors, [], "페이지 오류")
+        page.context.close()
+
+
 class Phone3D(PhoneBase):
     """3D(MapLibre)를 손가락으로 — 점묶음의 점을 누르면 팝업이 화면 안에 선다. 최대 폭 320 px 이면 390 px 화면에서
     MapLibre 가 어느 쪽에 붙여도 넘쳤다(오른쪽으로 85 px, wetherilli 362)"""

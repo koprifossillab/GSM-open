@@ -680,6 +680,26 @@ def map3d_view(request):
 
 
 @require_GET
+def paleo3d_view(request):
+    """남극 고지형 3D (wetherilli 443). Gernon 외 2026 의 100–34 Ma 고지형을 Cesium 의 둥근 지구에 세운다.
+
+    3D(MapLibre)는 메르카토르라 남위 85° 너머가 비고 동남극이 동서로 늘어난다. 여기는 남극점을 내려다보며 연다.
+    땅은 `paleo3d/dem/`, 색은 `geo/` 가 극지 격자를 경위도로 편 것, 등고선·빙상 범위는 2D 와 같은 덩이(`points/`)다."""
+    lang = i18n.lang_of(request)
+    return render(request, "viewer/paleo3d.html", {
+        "lang": lang,
+        "i18n_json": json.dumps(i18n.client_table(lang), ensure_ascii=False),
+        "gernon_ages": _script_json(list(gernontopo.AGES)),
+        "dem_max": elevation.PALEO3D_DEM_MAX_ZOOM,
+        "gernon_attribution": gernontopo.ATTRIBUTION,
+        "ibcso_attribution": ibcso.ATTRIBUTION,
+        "base": request.path.rsplit("paleo3d", 1)[0],
+        "version": VERSION,
+        "stamp": "" if settings.DEBUG else asset_stamp(),
+    })
+
+
+@require_GET
 def moon_view(request):
     """달 (devlog 036, P05). CesiumJS 의 둥근 달에 USGS 달 통합 지질도와 LOLA 지형을 얹는다.
 
@@ -4454,8 +4474,12 @@ GEOMAP_NORTH = -60.0
 IBCSO_WARP_ZOOMS = (2, 17)
 
 
+#: 남극 고지형 3D(Cesium)의 경위도 타일 줌 — 줌 0 이 반구다 (wetherilli 443)
+GEO_WARP_ZOOMS = (0, 12)
+
+
 @require_GET
-def warp_tile(request, upstream, layer, z, x, y, retina=None):
+def warp_tile(request, upstream, layer, z, x, y, retina=None, scheme="3857"):
     """평면 격자 타일을 3857 로 다시 편 것 — `warp/<상류>/<레이어>/<z>/<x>/<y>.png` (3D 가 쓴다).
     `@2x` 면 512 px — 3D 의 "지질 레이어" 는 512 px 타일로 받는다.
 
@@ -4469,8 +4493,16 @@ def warp_tile(request, upstream, layer, z, x, y, retina=None):
     lang = i18n.lang_of(request)
     zooms = {"geomap": GEOMAP_WARP_ZOOMS, "ibcso": IBCSO_WARP_ZOOMS, "admap": IBCSO_WARP_ZOOMS}.get(
         upstream, IBCSO_WARP_ZOOMS if name in POLAR_SETS else WARP_ZOOMS)
-    if _lab_only(name) or not (zooms[0] <= z <= zooms[1]) or not (0 <= x < 2 ** z and 0 <= y < 2 ** z):
+    # `geo/` 는 같은 원본을 Cesium 의 경위도 격자로 편다 — 남극 고지형 3D 가 쓴다. 극지 격자(3031·9354)만 (wetherilli 443)
+    geo = scheme == "4326"
+    columns = 2 ** (z + 1) if geo else 2 ** z
+    if geo:
+        zooms = GEO_WARP_ZOOMS
+        if name in peninsula.SHEETS or phyloserver.knows_scan(name):
+            return JsonResponse({"error": i18n.t(msg("그런 타일은 없다"), lang)}, status=404)
+    if _lab_only(name) or not (zooms[0] <= z <= zooms[1]) or not (0 <= x < columns and 0 <= y < 2 ** z):
         return JsonResponse({"error": i18n.t(msg("그런 타일은 없다"), lang)}, status=404)
+    south = warp.geo_south_of(z, y) if geo else warp.south_of(z, y)
     if name in peninsula.SHEETS:
         sheet = peninsula.SHEETS[name]
         if not sheet.available():
@@ -4480,21 +4512,21 @@ def warp_tile(request, upstream, layer, z, x, y, retina=None):
         grid = warp.kakao_grid(phyloserver.SCAN_LEVELS, phyloserver.SCAN_ORIGIN, phyloserver.SCAN_TOP,
                                lambda level, tx, ty: phyloserver.get_scan_tile(name, level, tx, ty))
     elif upstream == "geomap" and name in geomap.LAYERS:
-        if warp.south_of(z, y) > GEOMAP_NORTH:
+        if south > GEOMAP_NORTH:
             return _tile(tiles.blank_tile(size, size))
         if not geomap.available():
             return _tile(tiles.notice_tile(size, size, tiles.NO_DATA), store=False)
         grid = warp.geomap_grid(lambda level, tx, ty: _geomap_png(name, level, tx, ty)[0])
     elif name == "ibcso:tid":
         # IBCSO 자료 출처(071) — 2D 의 타일(GeoMAP 격자) 그대로 편다 (wetherilli 335)
-        if warp.south_of(z, y) > elevation.IBCSO_NORTH:
+        if south > elevation.IBCSO_NORTH:
             return _tile(tiles.blank_tile(size, size))
         if not ibcso.tid_available():
             return _tile(tiles.notice_tile(size, size, tiles.NO_IBCSO), store=False)
         grid = warp.polar_grid(ibcso.read_tid_tile, ibcso.MAX_ZOOM, ibcso.valid_tile)
     elif name == admap.NAME:
         # ADMAP-2 자력 이상(wetherilli 262) — 남위 60° 남쪽, 줌 4 까지 잘라 둔 WebP (wetherilli 335)
-        if warp.south_of(z, y) > GEOMAP_NORTH:
+        if south > GEOMAP_NORTH:
             return _tile(tiles.blank_tile(size, size))
         if not admap.available():
             return _tile(tiles.notice_tile(size, size, msg("자력 이상 자료(ADMAP-2)가 서버에 없다")), store=False)
@@ -4502,13 +4534,13 @@ def warp_tile(request, upstream, layer, z, x, y, retina=None):
     elif name in POLAR_SETS:
         # 칠해 잘라 둔 남극 격자(wetherilli 431) — ADMAP 과 같은 길
         spec = POLAR_SETS[name]
-        if warp.south_of(z, y) > GEOMAP_NORTH:
+        if south > GEOMAP_NORTH:
             return _tile(tiles.blank_tile(size, size))
         if not spec.available():
             return _tile(tiles.notice_tile(size, size, _polar_notice(spec)), store=False)
         grid = warp.polar_grid(spec.read_tile, spec.max_zoom, spec.valid_tile)
     elif upstream == "ibcso" and name in ibcso.SHEETS:
-        if warp.south_of(z, y) > elevation.IBCSO_NORTH:
+        if south > elevation.IBCSO_NORTH:
             return _tile(tiles.blank_tile(size, size))
         sheet = ibcso.SHEETS[name]
         if not sheet.wide_available():
@@ -4518,13 +4550,13 @@ def warp_tile(request, upstream, layer, z, x, y, retina=None):
         return JsonResponse({"error": i18n.t(msg("그런 타일은 없다"), lang)}, status=404)
     # 편 것을 담는다 — 원본의 판이 열쇠에 든다(음영판·IBCSO 는 잘라 둔 폴더의 때, GeoMAP 은 자료의 판과 RENDERER).
     # 스캔판(phyloserver)은 담지 않는다 — 원본을 하루만 믿는 같은 서버의 연구실 자료라(026) 편 것만 오래 남으면 어긋난다
-    key = _warp_key(name, upstream, z, x, y, size)
+    key = _warp_key(name, upstream, z, x, y, size, scheme)
     if key:
         hit = tilecache.get(key)
         if hit is not None:
             return _tile(hit, cached=True)
     try:
-        png = warp.render(grid, z, x, y, size)
+        png = warp.render(grid, z, x, y, size, warp.GEOGRAPHIC if geo else warp.MERCATOR)
     except (phyloserver.PhyloserverError, geomap.GeomapError, OSError, ValueError) as exc:
         log.warning("다시 펴지 못했다 (%s %s/%s/%s): %s", name, z, x, y, exc)
         return _tile(tiles.notice_tile(size, size, tiles.SLOW if metatile.slow(exc) else tiles.NO_MAP), store=False)
@@ -4538,7 +4570,7 @@ def warp_tile(request, upstream, layer, z, x, y, retina=None):
 WARP_RENDERER = "1"
 
 
-def _warp_key(name, upstream, z, x, y, size):
+def _warp_key(name, upstream, z, x, y, size, scheme="3857"):
     """편 타일의 캐시 열쇠. 원본의 판을 모르면(스캔판, 파일 없음) None — 담지 않는다."""
     if name in peninsula.SHEETS:
         version = _dir_version(peninsula.SHEETS[name].tiles_dir())
@@ -4556,7 +4588,8 @@ def _warp_key(name, upstream, z, x, y, size):
         return None
     if not version:
         return None
-    return tilecache.key_text("warp", f"{name}/{version}/r{WARP_RENDERER}/{z}/{x}/{y}/{size}")
+    grid = "" if scheme == "3857" else f"g{scheme}/"
+    return tilecache.key_text("warp", f"{grid}{name}/{version}/r{WARP_RENDERER}/{z}/{x}/{y}/{size}")
 
 
 def _float(value):
@@ -7077,6 +7110,23 @@ def dem_tile(request, z, x, y, kind="ice", age=None):
         if settings.TILE_CACHE_SECONDS > 0:
             response["Cache-Control"] = f"public, max-age={settings.TILE_CACHE_SECONDS}"
         return response
+    return _tile(png)
+
+
+@require_GET
+def paleo3d_dem(request, z, x, y, age=None):
+    """남극 고지형 3D 의 높이 — `paleo3d/dem/<연대>/<z>/<x>/<y>.png`(65×65 Terrarium, Cesium 의 경위도 격자).
+    `paleo3d/dem/today/…` 는 오늘의 IBCSO 빙저다 (wetherilli 443)"""
+    z, x, y = int(z), int(x), int(y)
+    lang = i18n.lang_of(request)
+    if (age is not None and int(age) not in gernontopo.AGES) or z > elevation.PALEO3D_DEM_MAX_ZOOM \
+            or not (0 <= x < 2 ** (z + 1) and 0 <= y < 2 ** z):
+        return JsonResponse({"error": i18n.t(msg("그런 타일은 없다"), lang)}, status=404)
+    try:
+        png = elevation.paleo3d_heights(int(age) if age is not None else None, z, x, y)
+    except (elevation.ElevationError, OSError, ValueError) as exc:
+        log.warning("고지형 높이를 못 만들었다 (%s %s/%s/%s): %s", age, z, x, y, exc)
+        return JsonResponse({"error": i18n.t(msg("표고를 받지 못했다"), lang)}, status=503)
     return _tile(png)
 
 

@@ -110,6 +110,7 @@
   {% comment %}2D 의 등고선·빙상 범위 레이어를 땅 위에 — 같은 연대를 따른다 (wetherilli 442){% endcomment %}
   <label class="antarctica-only paleo3d-sub"><input type="checkbox" id="paleo3d-contours"> {% t "고지형 등고선 (0·1 000·1 500·2 000 m)" %}</label>
   <label class="antarctica-only paleo3d-sub"><input type="checkbox" id="paleo3d-ice"> {% t "빙상 범위 (Fig. 4A, PISM 모형)" %}</label>
+  <p class="hint antarctica-only"><a id="to-paleo3d" href="{{ base }}paleo3d/">{% t "남극점 중심으로 보기 — 둥근 지구 (Cesium)" %}</a></p>
   <p id="paleo3d-hint" class="hint antarctica-only" hidden>{% t "FastScape 모형 재구성(5 km)이고 판을 돌리지 않은 오늘의 자리다. 격자(동남극 3 000 km 네모) 밖은 오늘의 빙저 지형이다." %}</p>
   <label>{% t "투명도" %} <span id="op-num">70%</span>
     <input type="range" id="opacity3d" min="0" max="100" value="70">
