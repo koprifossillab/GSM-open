@@ -147,6 +147,23 @@ class Seams(TestCase):
         self.assertLess(own, mine)
         self.assertLess(html.index("viewer/map.css"), html.index("fake_addon/map.css"))
 
+    def test_점_레이어가_카탈로그와_덩이로_선다(self):
+        """덧붙이의 문이 `POINTS`·`points()` 를 두면 GSM 의 길(`points/`)이 덩이를 낸다 — 담지 않는다 (wetherilli 449)"""
+        call_command("seed_catalog", stdout=open(os.devnull, "w"))
+        name = "fakeaddon:cores"
+        self.assertEqual(set(doors.addon_points()), {name})
+        with mock.patch.dict(views.ADDON_POINTS, doors.addon_points()):
+            row = next(l for g in views._catalog() for l in g["layers"] if l["name"] == name)
+            self.assertEqual((row["kind"], row["hand"], row["style"], row["attribution"]), ("points", "points", "class", "Fake addon"))
+            r = self.client.get(f"/GSM/points/?layer={name}")
+            self.assertEqual((r.status_code, r["Cache-Control"]), (200, "no-store"))
+            got = r.json()
+            self.assertEqual(got["features"][0]["properties"]["name"], "FAKE-GC01")
+            self.assertEqual(got["legend"][0]["label"], "가짜 코어")
+        self.assertEqual(self.client.get(f"/GSM/points/?layer={name}").status_code, 404)     # 덧붙이가 없으면 모르는 레이어다
+        js = (Path(views.__file__).parent / "static/viewer/map.js").read_text(encoding="utf-8")
+        self.assertIn("points: { source: null, info: null },", js)
+
     def test_화면의_손_표에_polargrid_가_있다(self):
         js = (Path(views.__file__).parent / "static/viewer/map.js").read_text(encoding="utf-8")
         self.assertIn("polargrid: { source: geomapSource, info: polargridInfoUrl }", js)
@@ -257,6 +274,27 @@ class ScreenSeam(PhoneBase):
         self.assertEqual(len(page.evaluate("window.fakeAddon.lines")), 2)
         self.assertGreater(page.evaluate("window.fakeAddon.clears"), clears)
         self.assertTrue(page.evaluate("document.getElementById('profile').hidden"))
+        self.assertEqual(errors, [])
+        page.context.close()
+
+    def test_잡은_범위가_넘어오고_팝업에_줄이_붙는다(self):
+        """`GSMScreen.onBox` — 덧붙이가 돌려준 요소가 범위 팝업 끝에 선다 (wetherilli 448)"""
+        page, errors = self.open("map/?region=antarctica")
+        page.wait_for_function("() => !document.getElementById('splash')", timeout=15000)
+        page.evaluate("document.querySelector('.tool[data-mode=box]').click()")
+        box = page.locator("#map").bounding_box()
+        cx, cy = box["x"] + box["width"] / 2, box["y"] + box["height"] / 2
+        page.mouse.move(cx - 70, cy + 60)
+        page.mouse.down()
+        page.mouse.move(cx - 40, cy + 90, steps=4)
+        page.mouse.move(cx - 10, cy + 120, steps=4)
+        page.mouse.up()
+        page.wait_for_function("() => document.querySelector('#popup-body #fake-box')", timeout=6000)
+        got = page.evaluate("window.fakeAddon.box")
+        self.assertEqual(sorted(got), ["e", "n", "no", "s", "w"])
+        self.assertLess(got["s"], got["n"])
+        self.assertLess(got["n"], -60)                                    # 남극 탭의 가운데 둘레다
+        self.assertEqual(page.locator("#popup-body > *").last.get_attribute("id"), "fake-box")
         self.assertEqual(errors, [])
         page.context.close()
 

@@ -17,6 +17,20 @@ def legend(name: str, lang: str = "ko") -> dict:
             "attribution": ATTRIBUTION}
 
 
+#: 점 레이어 — 이름 -> 카탈로그 행에 얹을 것. 덩이는 `points()` 가 짓는다 (wetherilli 449)
+POINTS_LAYER = f"{UPSTREAM}:cores"
+POINTS = {POINTS_LAYER: {"attribution": ATTRIBUTION}}
+
+
+def points(name: str, lang: str = "ko", request=None):
+    if name != POINTS_LAYER:
+        return None
+    return {"type": "FeatureCollection", "style": "class", "labels": {"name": "이름"}, "links": [],
+            "legend": [{"code": 0, "label": "가짜 코어", "color": "#3366cc", "shape": "dot", "count": 1}],
+            "features": [{"type": "Feature", "id": "c1", "geometry": {"type": "Point", "coordinates": [10.0, -75.0]},
+                          "properties": {"name": "FAKE-GC01", "code": 0}}]}
+
+
 REGISTRY = [
     {"upstream": UPSTREAM, "tag": "FAKE", "title": "Fake addon", "local": True},
 ]

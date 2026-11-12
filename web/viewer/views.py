@@ -3762,6 +3762,9 @@ def _layer_extra_base(layer, lang: str = "ko") -> dict:
                 "tiles": _versioned_url(f"polargrid/{gernontopo.UPSTREAM}/{{age}}/{{z}}/{{x}}/{{y}}.webp",
                                         _gernon_version()),
                 "ages": list(gernontopo.AGES), "classLegend": _polar_legend(layer.name, lang)}
+    if layer.name in ADDON_POINTS:
+        # 덧붙이의 점 레이어(wetherilli 449) — 덩이는 그 문의 `points()` 가 짓는다. 행에 얹을 것(출처 따위)은 문의 `POINTS` 가 준다
+        return {"kind": "points", "queryable": False, "style": "class", **ADDON_POINTS[layer.name].POINTS[layer.name], "hand": "points"}
     if layer.name in POLAR_SETS:
         # 남극 중력 AntGG2021(wetherilli 431)·지열류 모형(432) — ADMAP 처럼 우리가 칠해 잘라 둔 3031 타일(`polargrid.py`). 범례는 갈래 표
         spec = POLAR_SETS[layer.name]
@@ -4352,6 +4355,8 @@ def admap_info(request):
 #: 칠해 잘라 둔 남극 격자 — 레이어 이름 → `polargrid.Set` (중력 wetherilli 431, 지열류 모형 432, 동남극 고지형 436)
 #: 덧붙이의 문이 실은 격자(`SETS`)도 같은 길로 낸다 — 타일·누른 자리·카탈로그 행·3D 까지 (`doors.polar_sets`, wetherilli P19·446)
 POLAR_SETS = {**antgg.SETS, **ghfgrid.SETS, **gernontopo.SETS, **doors.polar_sets()}
+#: 덧붙이의 점 레이어 — 레이어 이름 → 그 문의 모듈(`POINTS`·`points()`). GSM 의 것은 `point_layer` 가 손으로 적는다 (wetherilli 449)
+ADDON_POINTS = doors.addon_points()
 
 
 def _polar_legend(name, lang):
@@ -6102,6 +6107,15 @@ def point_layer(request):
     name = request.GET.get("layer", "")
     if _lab_only(name):
         return JsonResponse({"error": i18n.t(msg("그런 점 레이어가 없다"), lang)}, status=404)
+    if name in ADDON_POINTS:
+        # 덧붙이의 점 레이어(wetherilli 449) — 덩이의 꼴은 GSM 의 것과 같다(`features`·`labels`·`links`·`legend`). 보는 사람마다 다를 수 있어 담지 않는다
+        body = ADDON_POINTS[name].points(name, lang, request)
+        if body is None:
+            return JsonResponse({"error": i18n.t(msg("그런 점 레이어가 없다"), lang)}, status=404)
+        response = JsonResponse(body, json_dumps_params={"ensure_ascii": False, "separators": (",", ":")},
+                                content_type="application/geo+json")
+        response["Cache-Control"] = "no-store"
+        return response
     if janmayen.knows(name):
         return _janmayen_layer(name, lang)
     if ntgeo.knows(name):

@@ -1214,6 +1214,8 @@
     acc: { source: null, info: null },        // 남극순환류 전선 — 저장소의 선 한 덩이 (wetherilli 429)
     kgis: { source: null, info: null },       // 킹조지섬 지형 SCAR KGIS — 받아 둔 셰이프를 한 덩이씩 (wetherilli 424)
     aadc: { source: null, info: null },       // 남극 특별보호구역 ASPA — 받아 둔 AADC 파일의 면·점 한 덩이 (wetherilli 423)
+    // 덧붙이의 점 레이어 — 카탈로그 행이 `hand: "points"` 로 가리킨다. 덩이는 `points/` 가 덧붙이의 문에서 받아 준다 (wetherilli 449)
+    points: { source: null, info: null },
     npolar: { source: npolarSource, info: wmsInfoUrl },
     // 극지연구소 KPDC 지도 서버(057) — NPI 처럼 3031 로 곧장 받는다
     kopri: { source: npolarSource, info: wmsInfoUrl },
@@ -4055,6 +4057,13 @@
               [{ title: T("범위 {n}", { n: feature.get("no") }), props: rangeRows(facts) }], "",
               { rose: attitudeLayersOn() ? "bbox=" + [r.w, r.s, r.e, r.n].map(function (v) { return v.toFixed(5); }).join(",") : "" });
     offlineRequestLink(r);
+    // 덧붙이가 그 범위로 할 일(내려받기 따위)을 팝업 끝에 보탠다 — `GSMScreen.onBox` (wetherilli 448)
+    addonHooks.box.forEach(function (fn) {
+      try {
+        var node = fn({ w: r.w, s: r.s, e: r.e, n: r.n, no: feature.get("no") });
+        if (node && node.nodeType === 1) document.getElementById("popup-body").appendChild(node);
+      } catch (e) { console.error(e); }
+    });
   }
 
   /** 범위 팝업 끝의 "오프라인 묶음 요청" (wetherilli P16·408) — 연구소 판의 한국·동아시아 탭에서만(소스가 KIGAM·VWorld 뿐이다).
@@ -4480,7 +4489,7 @@
   // ── 덧붙이의 손 (wetherilli P19·447) ─────────────────────────────
   //
   // 다른 저장소의 덧붙이(`viewer/addons.py`)가 제 `static/<이름>/map.js` 에서 부른다 — 그 파일은 이 파일 뒤에 실린다.
-  // **연 것은 셋뿐이다** — 도구 줄의 단추, 다 잰 선, 지도 위의 표시 하나. 쓰는 것이 생길 때 하나씩 더한다(연 것은 약속이 된다).
+  // **연 것은 넷뿐이다** — 도구 줄의 단추, 다 잰 선, 잡은 범위, 지도 위의 표시 하나. 쓰는 것이 생길 때 하나씩 더한다(연 것은 약속이 된다).
   // 덧붙이가 없으면 아무도 부르지 않고 화면은 한 글자도 다르지 않다. 계약 시험은 `tests/test_addons.py` 의 가짜 덧붙이다.
   //
   //   GSMScreen.tool({ id, label, title, icon, toggle, onClick })  → 도구 줄에 단추. `icon` 은 24×24 SVG 의 안쪽 글. `toggle` 이면
@@ -4488,10 +4497,11 @@
   //   GSMScreen.onLine(fn)       → 거리를 다 재면 fn({ coords: [[경도, 위도]…], line: "경도,위도;…", length: m }).
   //                                 true 를 돌려주면 GSM 의 높이 그래프를 띄우지 않는다
   //   GSMScreen.onLineClear(fn)  → 잰 선이 지워지거나 새로 재기 시작할 때
+  //   GSMScreen.onBox(fn)        → 범위를 잡으면(팝업이 뜰 때마다) fn({ w, s, e, n, no }) — 경위도 네모. 요소를 돌려주면 팝업 끝에 붙인다 (wetherilli 448)
   //   GSMScreen.mark([경도, 위도] | null)  → 그래프를 훑는 자리를 지도에 찍는다 / 지운다
   //   GSMScreen.base · T · region() · asLength(m)  → 주소의 앞머리, 번역, 지금 지역, 길이 적기
   // 판의 모양은 높이 그래프의 것(`.profile-dock`·`.profile-svg` 의 `.grid`·`.tick`·`.line`·`.area`·`.cursor`)을 빌려 쓸 수 있다.
-  var addonHooks = { line: [], clear: [] };
+  var addonHooks = { line: [], clear: [], box: [] };
   function addonLine(coords) {
     if (!addonHooks.line.length) return false;
     var got = {
@@ -4534,6 +4544,7 @@
     tool: addonTool,
     onLine: function (fn) { addonHooks.line.push(fn); },
     onLineClear: function (fn) { addonHooks.clear.push(fn); },
+    onBox: function (fn) { addonHooks.box.push(fn); },
     mark: function (ll) { profileMark(ll || null); },
   };
   var profileSeq = 0, profileData = null, profileSource = null, profileBand = null;

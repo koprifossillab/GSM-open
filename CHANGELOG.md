@@ -5,6 +5,12 @@
 - **왜 그렇게 했는지**는 `devlog/` — 괄호 안의 번호가 그 문서다
 - 날짜는 그 판을 붙인 날이다
 
+## v1.6.2 — 2026-11-12 · 덧붙이의 이음매 둘 — 잡은 범위와 점 레이어 (wetherilli 448·449)
+
+- **잡은 범위** — `GSMScreen.onBox` — 범위 팝업이 뜰 때 덧붙이가 그 경위도 네모를 받고, 돌려준 요소가 팝업 끝에 붙는다 (wetherilli 448)
+- **점 레이어** — 덧붙이의 문이 `POINTS`·`points(name, lang, request)` 를 두면 카탈로그 행(`kind: points`)과 `points/` 의 덩이가 선다. 덩이는 보는 사람마다 다를 수 있어 담지 않는다(`no-store`) (wetherilli 449)
+- 덧붙이가 없으면 화면·응답은 전과 같다
+
 ## v1.6.1 — 2026-11-12 · 덧붙이의 화면 이음매 — 도구 줄의 단추와 다 잰 선 (wetherilli 447)
 
 - **화면의 손** — 덧붙이의 `static/<이름>/map.js`·`map.css` 를 지역 지도가 제 것 뒤에 싣고, `map.js` 가 `window.GSMScreen` 을 낸다 — 도구 줄의 단추(`tool`), 다 잰 선(`onLine` — 손이 `true` 를 돌려주면 높이 그래프를 띄우지 않는다, `onLineClear`), 지도 위의 표시(`mark`). 덧붙이가 없으면 화면은 전과 같다 (wetherilli 447)

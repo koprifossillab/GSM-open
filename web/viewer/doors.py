@@ -97,6 +97,17 @@ def polar_sets() -> dict:
     return out
 
 
+def addon_points() -> dict:
+    """덧붙이의 문이 실은 점 레이어(`POINTS` — 레이어 이름 -> 카탈로그 행에 얹을 것). 값은 그 문의 모듈이다 —
+    `points/` 가 그 모듈의 `points(name, lang, request)` 를 부른다 (wetherilli 449). GSM 의 점 레이어는 `views.point_layer` 가 손으로 적는다."""
+    out = {}
+    for module in sorted({spec.module for spec in specs().values()}, key=lambda m: m.__name__):
+        if not _own(module):
+            for name in getattr(module, "POINTS", None) or {}:
+                out[name] = module
+    return out
+
+
 def _own(module) -> bool:
     """GSM 의 문인가 — `viewer/` 바로 밑의 파일이면 그렇다. 덧붙이의 문은 다른 패키지에 있다"""
     return module.__name__.rsplit(".", 1)[0] == __package__

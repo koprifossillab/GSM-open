@@ -12,5 +12,12 @@
     return document.getElementById("tool-x-fake").getAttribute("aria-pressed") === "true";
   });
   S.onLineClear(function () { window.fakeAddon.clears += 1; });
+  S.onBox(function (box) {
+    window.fakeAddon.box = box;
+    var p = document.createElement("p");
+    p.id = "fake-box";
+    p.textContent = "가짜 덧붙이의 줄";
+    return p;
+  });
   window.fakeAddon.ready = { base: S.base, region: S.region(), length: S.asLength(1500), text: S.T("가짜 덧붙이의 문장") };
 })();

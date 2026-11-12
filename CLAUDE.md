@@ -701,11 +701,11 @@ VWorld 배경지도(WMTS)만은 문을 거치지 않고 브라우저가 곧장 �
 
 **GSM 은 덧붙이가 무엇인지 모른다**(wetherilli P19·446). 다른 저장소가 `FROM koprifossillab/gsm:<판>` 위에 Django 앱 하나를 얹고
 환경변수로 이름을 적으면, `viewer/addons.py` 가 그 패키지에서 **정해 둔 이름의 것**을 찾아 싣는다 — 표는 그 파일 머리에 있다
-(`urls.py` → `<접두사>x/<이름>/`, `REGISTRY` 가 든 문, `SETS`·`legend()` 의 남극 격자, `data/*_layers.json` 씨앗 — `_지역`·`_상류` 를 꼭,
+(`urls.py` → `<접두사>x/<이름>/`, `REGISTRY` 가 든 문, `SETS`·`legend()` 의 남극 격자, `POINTS`·`points()` 의 점 레이어 — 덩이는 담지 않는다(wetherilli 449), `data/*_layers.json` 씨앗 — `_지역`·`_상류` 를 꼭,
 `i18n.py` 의 표 — 같은 열쇠는 GSM 것이 이긴다, `datastatus.py` 의 `ITEMS`, `static/<이름>/map.js`·`map.css` — 지역 지도가 제 것 뒤에 싣는다). GSM 코드를 덧붙이 쪽에 옮겨 적지 않는다.
 
 **화면의 손은 `window.GSMScreen` 하나다**(`map.js`, wetherilli 447) — 도구 줄의 단추(`tool`), 다 잰 선(`onLine` — 손이 `true` 를 돌려주면 높이 그래프를 띄우지 않는다,
-`onLineClear`), 지도 위의 표시(`mark`), 읽기만 하는 `base`·`T`·`region()`·`asLength`. **연 것은 이것뿐이다** — `map.js` 안의 다른 것에 덧붙이가 기대지 않는다.
+`onLineClear`), 잡은 범위(`onBox` — 요소를 돌려주면 범위 팝업 끝에 붙인다, wetherilli 448), 지도 위의 표시(`mark`), 읽기만 하는 `base`·`T`·`region()`·`asLength`. **연 것은 이것뿐이다** — `map.js` 안의 다른 것에 덧붙이가 기대지 않는다.
 격자의 누른 자리에 다른 판의 값을 같이 내려면 `polargrid.Set.along` 에 그 레이어 이름을 적는다.
 
 | 환경변수 | 뜻 |
