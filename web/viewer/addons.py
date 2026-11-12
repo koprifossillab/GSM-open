@@ -11,6 +11,8 @@ GSM 은 덧붙이가 무엇인지 모른다. `GSM_ADDONS` 에 적힌 패키지�
 | `data/*_layers.json` | 카탈로그 씨앗 — `_지역`·`_상류` 를 꼭 적는다 | `seed_catalog` |
 | `i18n.py` 의 `EN`·`PROP_EN`·`LAYER_EN`·`GROUP_EN`·`ABSTRACT_EN` | GSM 의 표에 합친다 — 같은 열쇠는 GSM 것이 이긴다 | `apps.ready` |
 | `datastatus.py` 의 `ITEMS` | 구운 자료의 표에 덧붙인다 | `apps.ready` |
+| `static/<이름>/map.js`·`map.css` | 지역 지도(`map.html`)가 제 `map.js`·`map.css` 뒤에 싣는다 — 손은 `window.GSMScreen`(`map.js`, wetherilli 447) | `context.profile` |
+| 문 파일 `SETS` 의 `Set.along` | 누른 자리에 함께 낼 다른 판의 이름들 | `views.polargrid_info` |
 
 모델·migration·관리 명령·템플릿·정적 파일은 `INSTALLED_APPS` 에 들면 Django 가 스스로 다룬다 — 여기서 하지 않는다.
 이름은 패키지 이름의 마지막 마디다(`asm` · `viewer.tests.fake_addon` → `fake_addon`).
@@ -91,3 +93,16 @@ def merge() -> None:
             if item.key not in have:
                 datastatus.ITEMS.append(item)
                 have.add(item.key)
+
+
+def screen_assets() -> dict:
+    """지역 지도에 실을 덧붙이의 정적 파일 — `{"scripts": ["<이름>/map.js"…], "styles": ["<이름>/map.css"…]}` (wetherilli 447).
+    이름은 정해 두었다(`static/<이름>/map.js`·`map.css`) — 있으면 싣고 없으면 건너뛴다. 덧붙이가 없으면 둘 다 빈 목록이다."""
+    out = {"scripts": [], "styles": []}
+    for package in names():
+        base = folder(package) / "static" / short(package)
+        if (base / "map.js").is_file():
+            out["scripts"].append(f"{short(package)}/map.js")
+        if (base / "map.css").is_file():
+            out["styles"].append(f"{short(package)}/map.css")
+    return out

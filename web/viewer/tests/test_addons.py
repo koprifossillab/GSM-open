@@ -9,6 +9,7 @@ import re
 from pathlib import Path
 from unittest import mock
 
+from django.conf import settings
 from django.core.management import call_command
 from django.test import SimpleTestCase, TestCase, override_settings
 from django.urls import Resolver404
@@ -35,7 +36,8 @@ class WithoutAddons(SimpleTestCase):
     def test_가짜_덧붙이는_표의_줄마다_하나씩_갖는다(self):
         """`addons.py` 머리의 표에 줄이 늘면 가짜 덧붙이에도 하나 둔다 — 시험하지 않는 이음매가 생기지 않게"""
         here = Path(__file__).parent / "fake_addon"
-        for name in ("urls.py", "fakedoor.py", "i18n.py", "datastatus.py", "data/fake_layers.json"):
+        for name in ("urls.py", "fakedoor.py", "i18n.py", "datastatus.py", "data/fake_layers.json",
+                     "static/fake_addon/map.js", "static/fake_addon/map.css"):
             self.assertTrue((here / name).exists(), name)
 
 
@@ -124,6 +126,27 @@ class Seams(TestCase):
             self.assertEqual(self.client.get("/GSM/polargrid/fakeaddon/bed/3/0/0.webp").status_code, 404)
             self.assertEqual(self.client.get(f"/GSM/polargrid/info/?layer={LAYER}&lat=-75&lon=0").json(), {"features": []})
 
+    def test_함께_낼_판은_누른_자리에_같이_뜬다(self):
+        """`Set.along` — 바닥을 누르면 두께도. 값이 없는 판은 그 줄만 빠진다 (wetherilli 447)"""
+        import dataclasses
+        from viewer import polargrid
+        bed = doors.polar_sets()[LAYER]
+        ice = dataclasses.replace(bed, name="fakeaddon:ice", sub="fake_addon/ice", prop="가짜 얼음 두께 (m)")
+        gone = dataclasses.replace(bed, name="fakeaddon:gone", sub="fake_addon/gone", prop="없는 판")
+        both = dataclasses.replace(bed, along=("fakeaddon:ice", "fakeaddon:gone", "fakeaddon:unknown"))
+        values = {LAYER: -120, "fakeaddon:ice": 2500, "fakeaddon:gone": None}
+        with mock.patch.dict(views.POLAR_SETS, {LAYER: both, "fakeaddon:ice": ice, "fakeaddon:gone": gone}), \
+                mock.patch.object(polargrid, "value_at", lambda spec, lat, lon: values[spec.name]):
+            got = self.client.get(f"/GSM/polargrid/info/?layer={LAYER}&lat=-75&lon=0").json()
+        self.assertEqual(got["features"][0]["props"], {"가짜 바닥 높이 (m)": -120, "가짜 얼음 두께 (m)": 2500})
+
+    def test_화면_파일을_지도가_제_것_뒤에_싣는다(self):
+        self.assertEqual(addons.screen_assets(), {"scripts": ["fake_addon/map.js"], "styles": ["fake_addon/map.css"]})
+        html = self.client.get("/GSM/map/").content.decode()
+        own, mine = html.index("viewer/map.js"), html.index("fake_addon/map.js")
+        self.assertLess(own, mine)
+        self.assertLess(html.index("viewer/map.css"), html.index("fake_addon/map.css"))
+
     def test_화면의_손_표에_polargrid_가_있다(self):
         js = (Path(views.__file__).parent / "static/viewer/map.js").read_text(encoding="utf-8")
         self.assertIn("polargrid: { source: geomapSource, info: polargridInfoUrl }", js)
@@ -135,6 +158,8 @@ class Profile(TestCase):
 
     def test_기본은_아무것도_싣지_않는다(self):
         html = self.client.get("/GSM/map/").content.decode()
+        self.assertEqual(addons.screen_assets(), {"scripts": [], "styles": []})
+        self.assertNotIn("fake_addon/", html)
         self.assertNotIn("profile-config", html)
         self.assertNotIn("sibling-link", html)
         for screen in ("earth", "moon", "mars", "mercury"):
@@ -183,3 +208,55 @@ class ProfileScreen(PhoneBase):
         tabs = page.eval_on_selector_all("#regions .region-tab.on", "els => els.map(e => e.dataset.region)")
         self.assertEqual(tabs, ["antarctica"])
         page.context.close()
+
+
+@override_settings(ADDONS=(FAKE,), STATICFILES_DIRS=[*settings.STATICFILES_DIRS, Path(__file__).parent / "fake_addon" / "static"])
+class ScreenSeam(PhoneBase):
+    """화면 이음매 — 덧붙이의 `map.js` 가 `GSMScreen` 으로 단추를 달고 다 잰 선을 받는다 (wetherilli 447).
+    `map.js` 를 고치다 이 손을 깨면 여기서 먼저 안다 — 진짜 덧붙이(다른 저장소)의 화면은 GSM 의 CI 가 보지 못한다"""
+
+    def draw_line(self, page):
+        """지도 한가운데 둘레에 두 점 — 끝은 마지막 점을 다시 누른다(OpenLayers 의 Draw)"""
+        # 대기 화면이 걷히기 전에 누르면 그 위를 누른다. 도구는 다시 누르면 꺼지므로 꺼져 있을 때만 누른다
+        page.wait_for_function("() => !document.getElementById('splash')", timeout=15000)
+        page.evaluate("""() => { const tool = document.querySelector('.tool[data-mode=line]');
+                                 if (!tool.classList.contains('on')) tool.click(); }""")
+        box = page.locator("#map").bounding_box()
+        cx, cy = box["x"] + box["width"] / 2, box["y"] + box["height"] / 2
+        for x, y in ((cx - 40, cy - 60), (cx + 40, cy + 20), (cx + 40, cy + 20)):
+            page.mouse.click(x, y)
+            page.wait_for_timeout(450)
+        page.wait_for_timeout(400)
+
+    def test_단추가_도구_줄에_서고_잰_선이_넘어온다(self):
+        page, errors = self.open("map/?region=antarctica")
+        self.assertEqual(errors, [])
+        ready = page.evaluate("window.fakeAddon.ready")
+        self.assertEqual((ready["base"], ready["region"], ready["length"]), ("/GSM/", "antarctica", "1.50 km"))
+        # 단추는 GSM 의 도구 뒤, "지우기" 의 가름줄 앞
+        order = page.eval_on_selector_all("#toolbar .tool-col:first-child > *", "els => els.map(e => e.id || e.className)")
+        self.assertLess(order.index("tool-x-fake"), order.index("tool-sep"))
+        self.assertEqual(page.locator("#tool-x-fake span").inner_text(), "가짜")
+        self.assertFits(self.measure(page), "덧붙이의 단추가 선 도구 줄")
+
+        # 단추가 꺼져 있으면 선은 넘어오되 GSM 의 높이 그래프가 그대로 뜬다
+        self.draw_line(page)
+        got = page.evaluate("window.fakeAddon.lines")
+        self.assertEqual(len(got), 1)
+        self.assertEqual(len(got[0]["coords"]), 2)
+        self.assertEqual(got[0]["line"].count(";"), 1)
+        self.assertGreater(got[0]["length"], 1000)
+        self.assertFalse(page.evaluate("document.getElementById('profile').hidden"))
+
+        # 켜면 덧붙이가 그 선을 가져가고 높이 그래프는 뜨지 않는다. 새로 재기 시작하면 지움을 알린다
+        page.evaluate("document.getElementById('tool-x-fake').click()")
+        self.assertEqual(page.evaluate("window.fakeAddon.clicks"), [True])
+        self.assertEqual(page.get_attribute("#tool-x-fake", "aria-pressed"), "true")
+        clears = page.evaluate("window.fakeAddon.clears")
+        self.draw_line(page)
+        self.assertEqual(len(page.evaluate("window.fakeAddon.lines")), 2)
+        self.assertGreater(page.evaluate("window.fakeAddon.clears"), clears)
+        self.assertTrue(page.evaluate("document.getElementById('profile').hidden"))
+        self.assertEqual(errors, [])
+        page.context.close()
+

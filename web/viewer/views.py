@@ -4401,7 +4401,15 @@ def polargrid_info(request):
     value = polargrid.value_at(spec, *ll)
     if value is None:
         return JsonResponse({"features": []})
-    props = {spec.prop: f"{value:+,.1f}".replace("-", "−") if spec.scale != 1 else value, **dict(spec.extra)}
+    def shown(one, v):
+        return f"{v:+,.1f}".replace("-", "−") if one.scale != 1 else v
+    props = {spec.prop: shown(spec, value)}
+    # 함께 낼 판(`Set.along`) — 같은 자리의 다른 값. 구운 것이 없거나 빈 자리면 그 줄만 빠진다 (wetherilli 447)
+    for other in (POLAR_SETS.get(n) for n in spec.along):
+        more = polargrid.value_at(other, *ll) if other is not None else None
+        if more is not None:
+            props[other.prop] = shown(other, more)
+    props.update(dict(spec.extra))
     return JsonResponse({"features": [{"props": i18n.props_en(props) if lang == "en" else props, "unit": spec.unit}]})
 
 

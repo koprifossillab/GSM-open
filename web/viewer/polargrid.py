@@ -47,6 +47,7 @@ class Set:
     prop: str                 # 누른 자리 속성의 이름 — 영어는 `i18n.PROP_EN`
     attribution: str
     extra: tuple = ()         # 누른 자리에 함께 낼 고정 속성 ((이름, 값), …) — 고지형의 연대 (wetherilli 436)
+    along: tuple = ()         # 누른 자리에 함께 낼 다른 판의 레이어 이름들 — 바닥을 누르면 두께·윗면도 (wetherilli 447)
 
     def root(self) -> Path:
         return Path(getattr(settings, self.where)) / self.sub

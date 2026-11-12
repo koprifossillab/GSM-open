@@ -5,6 +5,12 @@
 - **왜 그렇게 했는지**는 `devlog/` — 괄호 안의 번호가 그 문서다
 - 날짜는 그 판을 붙인 날이다
 
+## v1.6.1 — 2026-11-12 · 덧붙이의 화면 이음매 — 도구 줄의 단추와 다 잰 선 (wetherilli 447)
+
+- **화면의 손** — 덧붙이의 `static/<이름>/map.js`·`map.css` 를 지역 지도가 제 것 뒤에 싣고, `map.js` 가 `window.GSMScreen` 을 낸다 — 도구 줄의 단추(`tool`), 다 잰 선(`onLine` — 손이 `true` 를 돌려주면 높이 그래프를 띄우지 않는다, `onLineClear`), 지도 위의 표시(`mark`). 덧붙이가 없으면 화면은 전과 같다 (wetherilli 447)
+- **함께 낼 판** — 남극 격자(`polargrid.Set`)에 `along` — 누른 자리에 다른 판의 값을 같이 낸다 (wetherilli 447)
+- **이음매의 시험** — 가짜 덧붙이의 화면 파일을 브라우저로 한 번 지나간다 (wetherilli 447)
+
 ## v1.6.0 — 2026-11-12 · 덧붙이의 이음매 — 다른 저장소의 앱을 얹을 자리와 차림 (wetherilli P19·446)
 
 - **덧붙이** — 다른 저장소의 Django 앱을 GSM 이미지 위에 얹는 이음매(`viewer/addons.py`). `GSM_ADDONS` 에 적힌 패키지의 `urls.py`(`x/<이름>/` 에 건다)·문(`REGISTRY`)·남극 격자(`SETS`)·카탈로그 씨앗(`data/*_layers.json`)·번역표·구운 자료 표를 싣는다. 비워 두면 GSM 은 전과 같다 — 운영 GSM 은 비워 둔다. 남극 덧붙이 ASM(비공개 저장소)이 첫 손님이다 (wetherilli 446)

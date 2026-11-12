@@ -514,6 +514,7 @@
 | wetherilli 443 | 2026-11-10 | [남극 고지형 3D 를 Cesium 으로 — 남극점까지 선다](20261110_wetherilli_443_paleo3d_cesium.md) |
 | wetherilli 444 | 2026-11-10 | [남극 고지형 3D 의 시점 도구를 온 지구·달·화성과 같게](20261110_wetherilli_444_paleo3d_pose_tools.md) |
 | wetherilli 446 | 2026-11-12 | [덧붙이의 이음매 — 다른 저장소의 앱을 얹을 자리, 차림, 형제 화면의 입구 (P19 1 단계)](20261112_wetherilli_446_addon_seams.md) |
+| wetherilli 447 | 2026-11-12 | [덧붙이의 화면 이음매 — 단추·다 잰 선·표시, 함께 낼 판](20261112_wetherilli_447_addon_screen_seam.md) |
 | koprifossillab P01 | 2026-09-30 | [백업 — WegenersDream 의 틀로, 바뀌는 빠르기에 따라 넷으로 (계획)](20260930_koprifossillab_P01_backup_plan.md) |
 | koprifossillab 001 | 2026-09-30 | [매주 월요일 새벽: 운영 자료 백업과 KPDC 목록 갱신](20260930_koprifossillab_001_weekly_backup.md) |
 | koprifossillab 002 | 2026-09-30 | [`/healthz/` — 판·DB·백업 상태를 한 장으로](20260930_koprifossillab_002_healthz.md) |

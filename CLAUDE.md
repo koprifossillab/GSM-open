@@ -702,7 +702,11 @@ VWorld 배경지도(WMTS)만은 문을 거치지 않고 브라우저가 곧장 �
 **GSM 은 덧붙이가 무엇인지 모른다**(wetherilli P19·446). 다른 저장소가 `FROM koprifossillab/gsm:<판>` 위에 Django 앱 하나를 얹고
 환경변수로 이름을 적으면, `viewer/addons.py` 가 그 패키지에서 **정해 둔 이름의 것**을 찾아 싣는다 — 표는 그 파일 머리에 있다
 (`urls.py` → `<접두사>x/<이름>/`, `REGISTRY` 가 든 문, `SETS`·`legend()` 의 남극 격자, `data/*_layers.json` 씨앗 — `_지역`·`_상류` 를 꼭,
-`i18n.py` 의 표 — 같은 열쇠는 GSM 것이 이긴다, `datastatus.py` 의 `ITEMS`). GSM 코드를 덧붙이 쪽에 옮겨 적지 않는다.
+`i18n.py` 의 표 — 같은 열쇠는 GSM 것이 이긴다, `datastatus.py` 의 `ITEMS`, `static/<이름>/map.js`·`map.css` — 지역 지도가 제 것 뒤에 싣는다). GSM 코드를 덧붙이 쪽에 옮겨 적지 않는다.
+
+**화면의 손은 `window.GSMScreen` 하나다**(`map.js`, wetherilli 447) — 도구 줄의 단추(`tool`), 다 잰 선(`onLine` — 손이 `true` 를 돌려주면 높이 그래프를 띄우지 않는다,
+`onLineClear`), 지도 위의 표시(`mark`), 읽기만 하는 `base`·`T`·`region()`·`asLength`. **연 것은 이것뿐이다** — `map.js` 안의 다른 것에 덧붙이가 기대지 않는다.
+격자의 누른 자리에 다른 판의 값을 같이 내려면 `polargrid.Set.along` 에 그 레이어 이름을 적는다.
 
 | 환경변수 | 뜻 |
 |---|---|
@@ -713,7 +717,7 @@ VWorld 배경지도(WMTS)만은 문을 거치지 않고 브라우저가 곧장 �
 | `GSM_SIBLINGS` | 형제 화면의 입구(`ASM=/ASM/`) — 아이콘의 숨은 차림에. `GSM_PUBLIC` 이면 세우지 않는다 |
 
 - **다 비우면 GSM 은 전과 한 글자도 다르지 않다.** 운영 GSM 은 비워 둔다(입구가 필요하면 `GSM_SIBLINGS` 만)
-- **연 것은 약속이다** — 덧붙이가 기대는 것은 `addons.py` 의 표와 `doors.py`·`polargrid.py` 의 꼴뿐이다. 이음매를 고치면
+- **연 것은 약속이다** — 덧붙이가 기대는 것은 `addons.py` 의 표와 `doors.py`·`polargrid.py` 의 꼴, 화면의 `GSMScreen` 뿐이다. 이음매를 고치면
   `viewer/tests/test_addons.py`(가짜 덧붙이 `tests/fake_addon`)가 먼저 깨져야 하고, 꼴을 바꾸는 판은 CHANGELOG 에 적어 덧붙이가 따라오게 한다
 - 덧붙이만의 기능을 위해 GSM 에 갈림(`if asm`)을 두지 않는다 — 이음매를 하나 더 낸다
 - 첫 손님은 남극 덧붙이 **ASM**(`koprifossillab/ASM`, 비공개, 로그인 뒤) — GSM 저장소에는 그 자료도 코드도 두지 않는다

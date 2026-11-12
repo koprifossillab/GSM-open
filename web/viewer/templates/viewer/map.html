@@ -20,7 +20,8 @@
 </style>
 <link rel="stylesheet" href="{% static 'viewer/vendor/ol.css' %}?v={{ stamp|default:version }}">
 <link rel="stylesheet" href="{% static 'viewer/map.css' %}?v={{ stamp|default:version }}">
-</head>
+{% if not static_site %}{% for sheet in addon_assets.styles %}<link rel="stylesheet" href="{% static sheet %}?v={{ stamp|default:version }}">
+{% endfor %}{% endif %}</head>
 <body data-linked-proxy="{{ linked_proxy|yesno:"1,0" }}" data-offline-request="{{ offline_request|yesno:"1,0" }}">
 
 <div id="splash" role="status" aria-live="polite">
@@ -480,5 +481,7 @@
 {% if not static_site %}<script src="{% static 'viewer/profile-band.js' %}?v={{ stamp|default:version }}"></script>{% endif %}
 <script src="{% static 'viewer/share.js' %}?v={{ stamp|default:version }}"></script>
 <script src="{% static 'viewer/map.js' %}?v={{ stamp|default:version }}"></script>
+{% if not static_site %}{% comment %}덧붙이의 화면 파일 — map.js 가 낸 손(`GSMScreen`)을 부른다 (wetherilli 447){% endcomment %}{% for script in addon_assets.scripts %}<script src="{% static script %}?v={{ stamp|default:version }}"></script>
+{% endfor %}{% endif %}
 </body>
 </html>

@@ -3896,7 +3896,11 @@
       evt.feature.set("label", got.text);
       showMeasure(got, true);
       // 거리를 다 재면 그 선의 높이 그래프 (wetherilli 109)
-      if (next === "line") showProfile(evt.feature.getGeometry().getCoordinates().map(toLL));
+      // 덧붙이가 그 선을 제가 그리겠다고 하면(`GSMScreen.onLine` 의 손이 true) 높이 그래프는 띄우지 않는다 (wetherilli 447)
+      if (next === "line") {
+        var lineLL = evt.feature.getGeometry().getCoordinates().map(toLL);
+        if (!addonLine(lineLL)) showProfile(lineLL);
+      }
     });
     map.addInteraction(drawInteraction);
   }
@@ -4472,6 +4476,66 @@
   // 아래 가운데 판에 그린다. 표고는 타일로만 읽는다 — 일본은 국토지리원, 나머지(극지도)는 AWS Terrarium. 점 사이에 맞춘 줌이라
   // 긴 선은 거칠다. 그래프 위를 훑으면 그 자리를 지도에 찍는다
   var PROFILE = { W: 640, H: 170, L: 50, R: 10, T: 10, B: 22 };
+
+  // ── 덧붙이의 손 (wetherilli P19·447) ─────────────────────────────
+  //
+  // 다른 저장소의 덧붙이(`viewer/addons.py`)가 제 `static/<이름>/map.js` 에서 부른다 — 그 파일은 이 파일 뒤에 실린다.
+  // **연 것은 셋뿐이다** — 도구 줄의 단추, 다 잰 선, 지도 위의 표시 하나. 쓰는 것이 생길 때 하나씩 더한다(연 것은 약속이 된다).
+  // 덧붙이가 없으면 아무도 부르지 않고 화면은 한 글자도 다르지 않다. 계약 시험은 `tests/test_addons.py` 의 가짜 덧붙이다.
+  //
+  //   GSMScreen.tool({ id, label, title, icon, toggle, onClick })  → 도구 줄에 단추. `icon` 은 24×24 SVG 의 안쪽 글. `toggle` 이면
+  //                                                                 누를 때마다 aria-pressed 가 바뀌고 onClick(켜졌나, 단추)
+  //   GSMScreen.onLine(fn)       → 거리를 다 재면 fn({ coords: [[경도, 위도]…], line: "경도,위도;…", length: m }).
+  //                                 true 를 돌려주면 GSM 의 높이 그래프를 띄우지 않는다
+  //   GSMScreen.onLineClear(fn)  → 잰 선이 지워지거나 새로 재기 시작할 때
+  //   GSMScreen.mark([경도, 위도] | null)  → 그래프를 훑는 자리를 지도에 찍는다 / 지운다
+  //   GSMScreen.base · T · region() · asLength(m)  → 주소의 앞머리, 번역, 지금 지역, 길이 적기
+  // 판의 모양은 높이 그래프의 것(`.profile-dock`·`.profile-svg` 의 `.grid`·`.tick`·`.line`·`.area`·`.cursor`)을 빌려 쓸 수 있다.
+  var addonHooks = { line: [], clear: [] };
+  function addonLine(coords) {
+    if (!addonHooks.line.length) return false;
+    var got = {
+      coords: coords,
+      line: coords.map(function (c) { return c[0].toFixed(5) + "," + c[1].toFixed(5); }).join(";"),
+      length: ol.sphere.getLength(new ol.geom.LineString(coords), { projection: "EPSG:4326" }),
+    };
+    var taken = false;
+    addonHooks.line.forEach(function (fn) {
+      try { if (fn(got) === true) taken = true; } catch (e) { console.error(e); }
+    });
+    return taken;
+  }
+  function addonTool(spec) {
+    var col = document.querySelector("#toolbar .tool-col"), b = document.createElement("button");
+    b.type = "button";
+    b.className = "tool addon-tool";
+    b.id = "tool-x-" + spec.id;
+    if (spec.title) b.title = spec.title;
+    if (spec.toggle) b.setAttribute("aria-pressed", "false");
+    b.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true">' + (spec.icon || '<circle class="stroke" cx="12" cy="12" r="7"/>') +
+                  "</svg><span></span>";
+    b.querySelector("span").textContent = spec.label || spec.id;
+    b.addEventListener("click", function () {
+      var on = true;
+      if (spec.toggle) {
+        on = b.getAttribute("aria-pressed") !== "true";
+        b.setAttribute("aria-pressed", String(on));
+        b.classList.toggle("on", on);
+      }
+      if (spec.onClick) spec.onClick(on, b);
+    });
+    // "지우기" 위의 가름줄 앞에 — GSM 의 도구 뒤, 지우기 앞
+    col.insertBefore(b, col.querySelector(".tool-sep"));
+    return b;
+  }
+  window.GSMScreen = {
+    base: BASE, T: T, asLength: asLength,
+    region: function () { return region; },
+    tool: addonTool,
+    onLine: function (fn) { addonHooks.line.push(fn); },
+    onLineClear: function (fn) { addonHooks.clear.push(fn); },
+    mark: function (ll) { profileMark(ll || null); },
+  };
   var profileSeq = 0, profileData = null, profileSource = null, profileBand = null;
   // 지질 띠 (wetherilli 180) — 켠 레이어 가운데 맨 위의, 우리 파일로 그리는 것(`band`)만. 상류뿐인 곳은 띠가 없다
   function bandLayer() {
@@ -4490,6 +4554,7 @@
     if (ll) profileSource.addFeature(new ol.Feature(new ol.geom.Point(fromLL(ll))));
   }
   function hideProfile() {
+    addonHooks.clear.forEach(function (fn) { try { fn(); } catch (e) { console.error(e); } });
     profileSeq += 1;
     profileData = null;
     var box = document.getElementById("profile");
