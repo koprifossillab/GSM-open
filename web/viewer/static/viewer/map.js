@@ -572,20 +572,26 @@
                        base: ["ineter:geology", "stri:geology", "igme:sgnrd:0", "mrdata:pr:geol", "usgscarib:geology", "sim3534:units"],
                        first: ["usgscarib:geology", "ineter:geology", "igme:sgnrd:0", "mrdata:pr:geol"] },
   };
-  if (STATIC) {
-    // 정적 판이 싣지 않은 지역은 탭에서 뺀다. 묶음은 품은 지역 가운데 실린 것만 남기고, 하나도 없으면 뺀다
+  // 차림(`GSM_REGIONS`, wetherilli P19·446) — 서버가 세울 지역을 적어 주면 그것만 남긴다. 정적 판의 줄이기와 같은 손이다
+  var PROFILE = JSON.parse((document.getElementById("profile-config") || {}).textContent || "null");
+  var ONLY = STATIC ? STATIC.regions : (PROFILE && PROFILE.regions && PROFILE.regions.length ? PROFILE.regions : null);
+  if (ONLY) {
+    // 싣지 않은 지역은 탭에서 뺀다. 묶음은 품은 지역 가운데 실린 것만 남기고, 하나도 없으면 뺀다
     Object.keys(REGIONS).forEach(function (key) {
       var spec = REGIONS[key];
       if (spec.includes) {
-        spec.includes = spec.includes.filter(function (k) { return STATIC.regions.indexOf(k) >= 0; });
+        spec.includes = spec.includes.filter(function (k) { return ONLY.indexOf(k) >= 0; });
         if (!spec.includes.length) delete REGIONS[key];
-      } else if (STATIC.regions.indexOf(key) < 0) {
+      } else if (ONLY.indexOf(key) < 0) {
         delete REGIONS[key];
       }
     });
   }
+  /** 늘 서는 첫 탭 — 한국이 기본이고, 차림이 한국을 뺐으면 적힌 차례의 첫 지역이다 */
+  var HOME = REGIONS.korea ? "korea"
+    : (ONLY || []).filter(function (k) { return REGIONS[k]; })[0] || Object.keys(REGIONS)[0];
   // 정적 판은 남극으로 연다 — 키 없이 다 보이는 지역이다. 키는 한국 지질도·VWorld 에만 든다(사용자 결정, 2026-10-08)
-  var region = STATIC && REGIONS.antarctica ? "antarctica" : "korea";
+  var region = STATIC && REGIONS.antarctica ? "antarctica" : HOME;
 
   //: 남극 GeoMAP 타일의 격자. **우리 서버(`geomap/`)가 이 격자로 굽는다** —
   //  한 글자라도 다르면 타일이 어긋난다. 원점은 왼쪽 위, 256 픽셀, 줌 0 의
@@ -671,7 +677,7 @@
     var lat = Math.min(Math.abs(toLL(view.getCenter())[1]), 80);
     return Math.log2(MERC_RES0 * Math.cos(lat * Math.PI / 180) / resolution);
   }
-  var addedRegions = ["korea"];
+  var addedRegions = [HOME];
   /** 탭 줄에 늘 서는 지역 — 나머지는 "그 외" 로 접는다 (wetherilli 214) */
   var PINNED = ["korea", "arctic", "antarctica"];
   /** "그 외" 차림의 대륙 머리 (wetherilli 268) — 탭이 쉰을 넘어 차림이 길어졌다. 머리마다 맨 위의 지역(묶음이나 어느 묶음에도 들지 않는
@@ -1249,6 +1255,8 @@
     gernontopo: { source: geomapSource, info: polargridInfoUrl },
     // 자력 이상·부게 중력 이상(wetherilli 391) — 우리가 칠한 경위도 타일을 옮겨 그린다
     gravmag: { source: lonlatSource, info: gravmagInfoUrl },
+    // 칠해 잘라 둔 남극 격자의 틀 그 자체 — 카탈로그 행의 `hand` 가 가리킨다. 표가 모르는 상류(덧붙이)의 격자가 이 손으로 선다 (wetherilli P19·446)
+    polargrid: { source: geomapSource, info: polargridInfoUrl },
   };
 
   function layerKind(name) {
@@ -1268,6 +1276,7 @@
       if (kinds[up]) return kinds[up];
     }
     if (LAYER_KINDS[up]) return LAYER_KINDS[up];
+    if (row && row.hand && LAYER_KINDS[row.hand]) return LAYER_KINDS[row.hand];
     return (UPSTREAMS[up] || [])[2] ? { source: npolarSource, info: wmsInfoUrl } : LAYER_KINDS.kigam;
   }
 
@@ -7414,7 +7423,7 @@
     try {
       var added = JSON.parse(stored("gsm.regions") || "null");
       if (Array.isArray(added)) {
-        addedRegions = ["korea"].concat(added.filter(function (r) { return REGIONS[r] && r !== "korea"; }));
+        addedRegions = [HOME].concat(added.filter(function (r) { return REGIONS[r] && r !== HOME; }));
       }
       var saved = stored("gsm.region");
       if (saved && REGIONS[saved] && (addedRegions.indexOf(saved) >= 0 || PINNED.indexOf(saved) >= 0)) region = saved;
@@ -7491,7 +7500,7 @@
       x.addEventListener("click", function (e) {
         e.stopPropagation();
         addedRegions = addedRegions.filter(function (r) { return r !== key; });
-        if (region === key) switchRegion("korea"); else { saveRegions(); renderRegions(); }
+        if (region === key) switchRegion(HOME); else { saveRegions(); renderRegions(); }
       });
       li.appendChild(x);
       menu.appendChild(li);

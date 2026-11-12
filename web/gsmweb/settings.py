@@ -568,6 +568,26 @@ def _public() -> bool:
 
 PUBLIC = _public()
 
+
+def _names(key: str) -> tuple:
+    return tuple(part.strip() for part in env(key).split(",") if part.strip())
+
+
+#: 덧붙이 — 다른 저장소의 Django 앱을 얹는다(`viewer/addons.py`, wetherilli P19·446). 쉼표로 가른 패키지 이름.
+#: 비면(기본) GSM 은 전과 같이 돈다
+ADDONS = _names("GSM_ADDONS")
+#: 덧붙이가 구운 자료를 두는 자리 — `polargrid.Set(where="ADDON_DIR", sub="<이름>/…")`. GSM 의 구운 자료와 섞이지 않게 따로
+ADDON_DIR = env("GSM_ADDON_DIR") or str(_data_dir() / "addons")
+#: 차림 — 지역 탭을 이것만 세운다(`GSM_REGIONS=antarctica`). 비면 전부. 묶음(북극·동아시아)은 품은 지역 가운데 적힌 것만 남는다.
+#: 카탈로그는 줄이지 않는다 — 다른 지역에 둔 레이어를 빌리는 탭이 있다(`REGIONS.<지역>.borrow`)
+ONLY_REGIONS = _names("GSM_REGIONS")
+#: 차림 — 숨길 따로 화면(`GSM_HIDE_SCREENS=moon,mars,mercury`). 차림의 링크가 빠지고 그 주소는 404 다
+HIDDEN_SCREENS = tuple(n for n in _names("GSM_HIDE_SCREENS") if n in ("earth", "moon", "mars", "mercury"))
+#: 형제 화면으로 가는 입구 — `GSM_SIBLINGS="ASM=/ASM/"`. 아이콘의 숨은 차림에 선다. 밖에 연 판에는 세우지 않는다
+SIBLINGS = () if PUBLIC else tuple(
+    {"name": name.strip(), "url": url.strip()}
+    for name, _, url in (part.partition("=") for part in _names("GSM_SIBLINGS")) if name.strip() and url.strip())
+
 #: 연결 레이어(wetherilli P09·122)가 서버를 거쳐 부를 때 **사설망이어도 부를 수 있는 호스트**.
 #: 기본은 비었다 — 서버는 공인 주소만 부른다(연구실 망·NAS·DB 를 남의 주소로 두드리지 않게, `linked.py`).
 #: 연구실 안의 API(예: phyloserver 의 paleolab)를 잇고 싶으면 여기 적는다. 환경변수 `GSM_LINKED_ALLOW`
@@ -816,6 +836,7 @@ INSTALLED_APPS = [
     "django.contrib.messages",
     "django.contrib.staticfiles",
     "viewer",
+    *ADDONS,
 ]
 
 MIDDLEWARE = [
@@ -848,6 +869,7 @@ TEMPLATES = [{
         "django.template.context_processors.request",
         "django.contrib.auth.context_processors.auth",
         "django.contrib.messages.context_processors.messages",
+        "viewer.context.profile",
     ]},
 }]
 

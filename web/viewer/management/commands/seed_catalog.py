@@ -13,7 +13,7 @@ from django.conf import settings
 from django.core.management.base import BaseCommand, CommandError
 from django.db import transaction
 
-from viewer import catalog, kigam
+from viewer import addons, catalog, kigam
 from viewer.models import Layer, LayerGroup
 
 
@@ -241,6 +241,17 @@ class Command(BaseCommand):
             made, touched = self._apply(extra["레이어"], extra["레이어군순서"], options["reset_titles"],
                                         region=extra.get("_지역", region),
                                         upstream=extra.get("_상류", upstream),
+                                        first=extra.get("_레이어군차례", 0))
+            self.stdout.write(self.style.SUCCESS(
+                f"{label} {len(extra['레이어'])}개 — 새로 생긴 것 {made}, 손본 것 {touched}"))
+
+        # 덧붙이의 씨앗 — 지역과 상류는 씨앗이 스스로 적는다 (addons.py, wetherilli P19)
+        for path, label in addons.seeds():
+            extra = json.loads(path.read_text(encoding="utf-8"))
+            if not extra.get("_지역") or not extra.get("_상류"):
+                raise CommandError(f"덧붙이 씨앗에 _지역·_상류 가 없다: {path}")
+            made, touched = self._apply(extra["레이어"], extra.get("레이어군순서") or [], options["reset_titles"],
+                                        region=extra["_지역"], upstream=extra["_상류"],
                                         first=extra.get("_레이어군차례", 0))
             self.stdout.write(self.style.SUCCESS(
                 f"{label} {len(extra['레이어'])}개 — 새로 생긴 것 {made}, 손본 것 {touched}"))

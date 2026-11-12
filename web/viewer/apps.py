@@ -11,6 +11,9 @@ class ViewerConfig(AppConfig):
         # 연구소 망이 다시 서명한 잎을 파이썬 3.13+ 가 거절하지 않게 — 한 자리에서 (wetherilli 426)
         from . import tls
         tls.install()
+        # 덧붙이의 번역표·구운 자료 표를 합친다 (addons.py, wetherilli P19)
+        from . import addons
+        addons.merge()
 
 
 def _record_fetch_commands():

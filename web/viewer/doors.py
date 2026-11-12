@@ -47,6 +47,9 @@ def _modules():
         if "\nREGISTRY = " not in path.read_text(encoding="utf-8"):
             continue
         yield importlib.import_module(f".{path.stem}", __package__)
+    # 덧붙이의 문 — 같은 꼴의 `REGISTRY` 를 제 패키지에 둔다 (addons.py, wetherilli P19)
+    from . import addons
+    yield from addons.door_modules()
 
 
 @functools.lru_cache(maxsize=None)
@@ -83,6 +86,28 @@ def errors() -> tuple:
 def names(flag: str) -> tuple:
     """`projected`·`globe` 따위가 선 상류 이름."""
     return tuple(sorted(name for name, spec in specs().items() if getattr(spec, flag)))
+
+
+def polar_sets() -> dict:
+    """덧붙이의 문이 실은 남극 격자(`SETS` — 이름 -> `polargrid.Set`). GSM 의 것은 `views.POLAR_SETS` 가 손으로 적는다."""
+    out = {}
+    for module in sorted({spec.module for spec in specs().values()}, key=lambda m: m.__name__):
+        if not _own(module):
+            out.update(getattr(module, "SETS", None) or {})
+    return out
+
+
+def _own(module) -> bool:
+    """GSM 의 문인가 — `viewer/` 바로 밑의 파일이면 그렇다. 덧붙이의 문은 다른 패키지에 있다"""
+    return module.__name__.rsplit(".", 1)[0] == __package__
+
+
+def polar_legend(name: str, lang: str = "ko"):
+    """덧붙이 격자의 범례 — 그 문의 `legend(name, lang)`. 없으면 None."""
+    for module in {spec.module for spec in specs().values()}:
+        if not _own(module) and name in (getattr(module, "SETS", None) or {}):
+            return module.legend(name, lang) if hasattr(module, "legend") else None
+    return None
 
 
 def client(lang: str = "ko") -> dict:

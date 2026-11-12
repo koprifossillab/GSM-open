@@ -2142,6 +2142,8 @@ a.tool { text-decoration: none; }                /* 3D 단추는 링크다 */
 /* 소개 화면(뿌리)으로 — 몸이 아니라 금 테두리만 둔 빈 동그라미 (wetherilli 113) */
 .hidden-menu .intro-link { border-top: 1px solid var(--line); margin-top: 2px; }
 .hidden-menu .moon-dot.intro-dot { background: none; border: 2px solid var(--gold-bright); box-sizing: border-box; }
+/* 형제 화면의 입구 — 둥근 몸이 아니라 모난 점 (wetherilli P19·446) */
+.hidden-menu .moon-dot.sibling-dot { border-radius: 3px; background: var(--gold-bright); }
 .moon-credit { margin: 4px 2px 0; line-height: 1.5; }
 /* 지구·달·화성 — 2D 의 지역 탭 자리. 달·화성은 지역이 아니라 몸이다 */
 .body-tabs { margin: 0 16px 12px; }

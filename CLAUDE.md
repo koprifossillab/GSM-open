@@ -642,6 +642,8 @@ web/viewer/       뷰어 앱 하나뿐이다. 앱을 더 가르지 않는다
   fetchlog.py     받은 차례의 기록(`GSM.db` 의 `FetchRun`, P03 에서 store.sqlite 의 fetch_log 를 옮겼다) — fetch_*·build_* 가 끝날 때 한 줄(apps.py 가 BaseCommand.execute 를 감싼다), 명령은 fetchlog.note() 로 보탠다. 호스트(GSM_RUN_PLACE=host)는 읽기만 한다 — hourly_status.json·fetch_log_host/<날짜>.jsonl 을 컨테이너가 옮겨 적고 다 들인 지난 날의 파일은 지운다(jikhanjung P02·023). 매시 일도 jsonl 에 `note()` 값까지 남기고 같은 차례의 hourly_status.json 줄은 버린다 — 그것은 시간을 넘겨 죽었을 때의 예비(jikhanjung 024). 받은 판의 정보는 원본 폴더의 manifest.json(`rawstore`). 문이 아니다
   rawstore.py     받은 원본을 날짜 폴더(`<자리>/<YYYYMMDD>/` + manifest)에 — 바뀐 판만(sha256 이 같으면 확인한 때만), 지우기는 사람이 부르는 `prune_raw`(최근 3 벌, `--dry-run` 먼저). kigam50k 의 틀을 뽑았다(jikhanjung P02 4 단계). 문이 아니다
   datastatus.py   구운 자료의 나이 — <DB 옆> 의 파일마다 있는지·크기·고친 날·원본 판(`ITEMS` 한 표). data_status·healthz·관리 화면의 "데이터소스" 탭(산출물 칸, jikhanjung 013)이 읽는다. 문이 아니다
+  addons.py      덧붙이 — 다른 저장소의 Django 앱을 얹는 이음매(주소·문·남극 격자·씨앗·번역표·구운 자료 표). 아래 "덧붙이". 문이 아니다
+  context.py     차림(숨길 화면·형제 화면의 입구)을 템플릿에 — context processor. 문이 아니다
   earthpoints.py  지역 탭의 화석 산지·홀로세 화산·지진·고생태 산지 — 온 지구의 모아 둔 sqlite·JSON 에서 지역의 네모만 점 GeoJSON 으로. 문이 아니다
   pointvalues.py  점묶음 CSV 에 붙일 값 — 점마다 GeoMAP 단위·지각 두께·가까운 PBDB 산지, 달·화성·수성은 그 지질도 단위. 우리 파일만. 문이 아니다
   profileband.py  높이 그래프 밑의 지질 띠 — 잰 선의 점마다 GeoMAP·geo3al·달·화성·수성 파일의 단위, 온 지구는 지각 두께 칸. 상류뿐인 레이어는 띠가 없다. 문이 아니다
@@ -694,6 +696,27 @@ VWorld 배경지도(WMTS)만은 문을 거치지 않고 브라우저가 곧장 �
 브라우저가 한 장을 받아 보고 끊기면 `vworld/…` 로 돌린다. 캐시에 담지 않는다 (033).
 **VWorld 의 WMS·WFS 는 문을 거친다** — 속성·WFS 가 CORS 로 막히고, 도메인 없이도
 돌아 열쇠가 나가면 안 된다 (020).
+
+## 덧붙이 — 다른 저장소의 앱을 얹는 자리
+
+**GSM 은 덧붙이가 무엇인지 모른다**(wetherilli P19·446). 다른 저장소가 `FROM koprifossillab/gsm:<판>` 위에 Django 앱 하나를 얹고
+환경변수로 이름을 적으면, `viewer/addons.py` 가 그 패키지에서 **정해 둔 이름의 것**을 찾아 싣는다 — 표는 그 파일 머리에 있다
+(`urls.py` → `<접두사>x/<이름>/`, `REGISTRY` 가 든 문, `SETS`·`legend()` 의 남극 격자, `data/*_layers.json` 씨앗 — `_지역`·`_상류` 를 꼭,
+`i18n.py` 의 표 — 같은 열쇠는 GSM 것이 이긴다, `datastatus.py` 의 `ITEMS`). GSM 코드를 덧붙이 쪽에 옮겨 적지 않는다.
+
+| 환경변수 | 뜻 |
+|---|---|
+| `GSM_ADDONS` | 얹을 패키지(쉼표로). `INSTALLED_APPS` 에도 든다 |
+| `GSM_ADDON_DIR` | 덧붙이가 구운 자료의 자리(기본 `<DB 옆>/addons`) |
+| `GSM_REGIONS` | 차림 — 세울 지역 탭만. 한국이 빠지면 첫 지역이 처음 화면이다 |
+| `GSM_HIDE_SCREENS` | 차림 — 숨길 따로 화면(`earth`·`moon`·`mars`·`mercury`). 링크가 빠지고 주소는 404 |
+| `GSM_SIBLINGS` | 형제 화면의 입구(`ASM=/ASM/`) — 아이콘의 숨은 차림에. `GSM_PUBLIC` 이면 세우지 않는다 |
+
+- **다 비우면 GSM 은 전과 한 글자도 다르지 않다.** 운영 GSM 은 비워 둔다(입구가 필요하면 `GSM_SIBLINGS` 만)
+- **연 것은 약속이다** — 덧붙이가 기대는 것은 `addons.py` 의 표와 `doors.py`·`polargrid.py` 의 꼴뿐이다. 이음매를 고치면
+  `viewer/tests/test_addons.py`(가짜 덧붙이 `tests/fake_addon`)가 먼저 깨져야 하고, 꼴을 바꾸는 판은 CHANGELOG 에 적어 덧붙이가 따라오게 한다
+- 덧붙이만의 기능을 위해 GSM 에 갈림(`if asm`)을 두지 않는다 — 이음매를 하나 더 낸다
+- 첫 손님은 남극 덧붙이 **ASM**(`koprifossillab/ASM`, 비공개, 로그인 뒤) — GSM 저장소에는 그 자료도 코드도 두지 않는다
 
 ## 공통 규약 (kopri-devdocs guides)
 

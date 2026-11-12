@@ -3,11 +3,11 @@
 이 문서는 **지금 어디까지 왔고 다음이 무엇인지** 한 곳에서 답한다.
 왜 그렇게 했는지는 `devlog/`, 무엇이 언제 붙었는지는 `CHANGELOG.md`.
 
-마지막으로 손본 날: **2026-10-24**
+마지막으로 손본 날: **2026-11-12**
 
 ## 작업 방식 (2026-09-30 부터)
 
-**브랜치** `main` = `1.5.7`(2026-11-10 배포). 코드 작업은 각자 자기 계정에서 `feature/<기능 이름>` 브랜치를 `main` 에서 만들고, 끝나면 **브랜치만 push 한다 — PR 은 만들지 않는다**(초안도 CI 가 돈다).
+**브랜치** `main` = `1.6.0`(2026-11-12). 코드 작업은 각자 자기 계정에서 `feature/<기능 이름>` 브랜치를 `main` 에서 만들고, 끝나면 **브랜치만 push 한다 — PR 은 만들지 않는다**(초안도 CI 가 돈다).
 **판 세션(`pan`)이 넘겨받은 브랜치를 `release/v<판>` 하나에 합쳐 PR 하나로 내고, 판 올리기·배포를 한다** — 다른 세션은 브랜치 이름·devlog 번호·로컬 시험 결과를 판 세션에 SendMessage 로 알린다. `main` 병합은 사람이 정한다 (CLAUDE.md "커밋과 PR", 2026-10-20, wetherilli 397).
 **개발 저장소 `koprifossillab/GSM` 은 비공개다**(2026-10-20) — Actions 가 월 할당량에 걸린다. 밖에서 볼 소스는 판마다 미는 `koprifossillab/GSM-open`.
 **CI 는 자체 러너에서 돈다** — 저장소 변수 `GSM_RUNNER` 가 있으면 뷰어 시험·휴대폰 화면이 paleo-server 에서, 이미지 굽기는 GitHub 러너. 서버가 내려가면 변수를 지운다 — `deploy/host/runner.md` (wetherilli P15·398).
@@ -35,6 +35,7 @@
 - **상류로 나가는 문 일흔여섯** — 목록은 CLAUDE.md "구조" 의 끝. 문이 아닌 것(우리 디스크의 파일을 굽거나 읽는다)도 거기 있다
 - **정적 판** — 연구소 밖 `https://koprifossillab.github.io/GSM-open/`. 보는 사람이 KIGAM·VWorld 키를 각자 넣는다. 판 세션이 판마다
   `deploy/publish_pages.sh` 로 굽고, 소스는 `deploy/publish_open.sh` 로 GSM-open 에 민다 (wetherilli P11·149·162·174)
+- **덧붙이의 이음매** — 다른 저장소의 앱을 얹는 자리(`addons.py`)와 차림(`GSM_REGIONS`·`GSM_HIDE_SCREENS`·`GSM_SIBLINGS`). 운영 GSM 은 비워 둔다. 첫 손님은 남극 덧붙이 ASM(`koprifossillab/ASM`, 비공개) — 계획과 단계는 wetherilli P19, 1 단계가 446
 - **공유 링크** — 지역 탭·온 지구·달·화성·수성의 "링크" 단추. 주소의 해시에 자리·레이어·배경을 담고, 받은 쪽의 기억은 덮지 않는다 (wetherilli 189)
 - **달·화성·수성** — 아이콘의 숨은 차림에서 `/GSM/moon/`·`/GSM/mars/`·`/GSM/mercury/`. 둥근 몸(Cesium)과 평면(OpenLayers)을 오가고,
   위도 65° 너머는 극 평면이다 (036·038·052·058·065). Trek 판 목록은 씨앗 `data/<몸>_trek_layers.json` (060).

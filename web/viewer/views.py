@@ -625,6 +625,8 @@ def map_view(request):
         # 브라우저가 직접 VWorld 를 부른다. 까닭은 settings.VWORLD_KEY.
         "vworld_key": settings.VWORLD_KEY,
         "base": request.path.rsplit("map", 1)[0],
+        # 차림 — 세울 지역 탭 (`GSM_REGIONS`, wetherilli P19·446). 비면 싣지 않고 화면은 전과 같다
+        "profile": _script_json({"regions": list(settings.ONLY_REGIONS)}) if settings.ONLY_REGIONS else "",
         "linked_proxy": not settings.PUBLIC,
         "offline_request": not settings.PUBLIC,          # 범위 팝업의 "오프라인 묶음 요청" (wetherilli 408)
         "version": VERSION,
@@ -699,12 +701,19 @@ def paleo3d_view(request):
     })
 
 
+def _shown(screen: str) -> None:
+    """차림이 숨긴 따로 화면이면 없는 주소로 — `GSM_HIDE_SCREENS` (wetherilli P19·446)"""
+    if screen in settings.HIDDEN_SCREENS:
+        raise Http404
+
+
 @require_GET
 def moon_view(request):
     """달 (devlog 036, P05). CesiumJS 의 둥근 달에 USGS 달 통합 지질도와 LOLA 지형을 얹는다.
 
     지역 탭이 아니라 대돌여지도 아이콘의 숨은 차림에서 들어온다. 지질도·표고·속성·범례는
     `moon/…` 이 `trek.py` 로 받고, 영상 배경만 브라우저가 Trek 을 곧장 부른다."""
+    _shown("moon")
     lang = i18n.lang_of(request)
     return render(request, "viewer/moon.html", {
         "lang": lang,
@@ -1361,6 +1370,7 @@ def mars_view(request):
     """화성 (devlog 058). 달 화면의 틀에 USGS 화성 지질도(SIM 3292)와 MOLA–HRSC 지형을 얹는다.
 
     달처럼 대돌여지도 아이콘의 숨은 차림에서 들어온다."""
+    _shown("mars")
     lang = i18n.lang_of(request)
     return render(request, "viewer/mars.html", {
         "lang": lang,
@@ -1663,6 +1673,7 @@ def mercury_view(request):
     """수성 (wetherilli P10). 화성 화면의 틀에 MESSENGER 영상과 표고를 얹는다.
 
     달·화성처럼 대돌여지도 아이콘의 숨은 차림에서 들어온다."""
+    _shown("mercury")
     lang = i18n.lang_of(request)
     return render(request, "viewer/mercury.html", {
         "lang": lang,
@@ -1778,6 +1789,7 @@ def earth_view(request):
     """온 지구 (wetherilli P06). 지역 탭과 따로, 달·화성처럼 둥근 지구로 본다.
 
     대돌여지도 아이콘의 숨은 차림에서 들어온다. 점묶음은 지역 화면과 같은 `earth` 의 것이다."""
+    _shown("earth")
     lang = i18n.lang_of(request)
     return render(request, "viewer/earth.html", {
         "lang": lang,
@@ -3098,7 +3110,9 @@ def _catalog(lang="ko"):
             "queryable": l.queryable,
             # 대조할 상류가 없는 것(우리가 그리는 GeoMAP)은 "대조 안 함" 표를 달지 않는다
             "verified": bool(l.verified_at) or l.upstream in ("geomap", "janmayen", "geo3al", "peninsula", "china4m", "kopri", "pangaea", "usgscarib", "stri", "sim3534", "vmme", "ntgs", "gtnp", "petrochron", "orda", "raised", "kgis", "antpapers")
-                        or twopen.knows(l.name),
+                        or twopen.knows(l.name)
+                        # 덧붙이가 제 디스크의 파일로 내는 것도 대조할 상류가 없다 (`REGISTRY` 의 `local`)
+                        or bool((spec := doors.specs().get(l.upstream)) and spec.local),
             # 영어판은 설명의 영어(`i18n.ABSTRACT_EN`, wetherilli 333) — 없으면 한국어가 든 설명을 숨긴다
             "abstract": _abstract_en(l) if en else l.abstract,
             # 어느 상류인지 — 화면이 출처(`attributions`)를 붙인다. vector 면
@@ -3754,7 +3768,9 @@ def _layer_extra_base(layer, lang: str = "ko") -> dict:
         return {"attribution": spec.attribution, "projection": "EPSG:3031", "maxZoom": spec.max_zoom,
                 "tiles": _versioned_url(f"polargrid/{layer.name.replace(':', '/')}/{{z}}/{{x}}/{{y}}.webp",
                                         _dir_version(spec.tiles_dir())),
-                "classLegend": _polar_legend(layer.name, lang)}
+                "classLegend": _polar_legend(layer.name, lang),
+                # 그리는 손 — 화면의 표(`LAYER_KINDS`)가 모르는 상류(덧붙이)도 이 틀로 그린다 (wetherilli P19·446)
+                "hand": "polargrid"}
     if layer.upstream == "ibcso" and layer.name == ibcso.TID_LAYER:
         # IBCSO 자료 출처(071) — 우리가 잘라 둔 3031 타일. 격자는 GeoMAP 의 것이고 줌 6 까지다.
         # 범례는 갈래 표를 그대로 보낸다(그림이 아니라 — 컨테이너에 한글 글꼴이 없다)
@@ -4334,11 +4350,13 @@ def admap_info(request):
 
 
 #: 칠해 잘라 둔 남극 격자 — 레이어 이름 → `polargrid.Set` (중력 wetherilli 431, 지열류 모형 432, 동남극 고지형 436)
-POLAR_SETS = {**antgg.SETS, **ghfgrid.SETS, **gernontopo.SETS}
+#: 덧붙이의 문이 실은 격자(`SETS`)도 같은 길로 낸다 — 타일·누른 자리·카탈로그 행·3D 까지 (`doors.polar_sets`, wetherilli P19·446)
+POLAR_SETS = {**antgg.SETS, **ghfgrid.SETS, **gernontopo.SETS, **doors.polar_sets()}
 
 
 def _polar_legend(name, lang):
-    return next(m for m in (ghfgrid, gernontopo, antgg) if name in m.SETS).legend(name, lang)
+    own = next((m for m in (ghfgrid, gernontopo, antgg) if name in m.SETS), None)
+    return own.legend(name, lang) if own else doors.polar_legend(name, lang)
 
 
 def _gernon_version():

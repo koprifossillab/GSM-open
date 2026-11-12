@@ -450,6 +450,7 @@
 | wetherilli P16 | 2026-10-21 | [오프라인 묶음 굽기를 저장소 안의 독립 패키지로 — GSM 없이도 굽고, GSM 에서는 요청한다 (계획)](20261021_wetherilli_P16_gsmpack_package.md) |
 | wetherilli P17 | 2026-10-21 | [남극 오프라인 묶음 — 세종·장보고 기지 둘레 (계획)](20261021_wetherilli_P17_antarctic_packs.md) |
 | wetherilli P18 | 2026-11-09 | [Gernon 2026 의 PISM 빙모를 GSM 에 다시 돌려 얹는다면 (계획 — 보류)](20261109_wetherilli_P18_pism_ice_caps.md) |
+| wetherilli P19 | 2026-11-12 | [ASM — GSM 위에 얹는 남극 덧붙이를 따로 저장소로 (계획)](20261112_wetherilli_P19_antarctic_addon.md) |
 | wetherilli 386 | 2026-10-16 | [중국 지질도 1:400만 — 경위선으로 좌표를 붙이고 중국 땅 마스크를 굽는다](20261016_wetherilli_386_china_4m_georeference.md) |
 | wetherilli 387 | 2026-10-16 | [중국 지질도 1:400만 — 3857 타일로 잘라 중국 탭에 올린다](20261016_wetherilli_387_china_4m_tiles.md) |
 | wetherilli 388 | 2026-10-16 | [중국 지질도 1:400만 — 범례 173 칸을 옮기고, 색으로 누른 자리의 시기·암상을 읽는다](20261016_wetherilli_388_china_4m_legend_attributes.md) |
@@ -512,6 +513,7 @@
 | wetherilli 442 | 2026-11-09 | [3D 의 고지형 위에 등고선·빙상 범위 — 같은 연대를 따른다](20261109_wetherilli_442_gernon_3d_overlays.md) |
 | wetherilli 443 | 2026-11-10 | [남극 고지형 3D 를 Cesium 으로 — 남극점까지 선다](20261110_wetherilli_443_paleo3d_cesium.md) |
 | wetherilli 444 | 2026-11-10 | [남극 고지형 3D 의 시점 도구를 온 지구·달·화성과 같게](20261110_wetherilli_444_paleo3d_pose_tools.md) |
+| wetherilli 446 | 2026-11-12 | [덧붙이의 이음매 — 다른 저장소의 앱을 얹을 자리, 차림, 형제 화면의 입구 (P19 1 단계)](20261112_wetherilli_446_addon_seams.md) |
 | koprifossillab P01 | 2026-09-30 | [백업 — WegenersDream 의 틀로, 바뀌는 빠르기에 따라 넷으로 (계획)](20260930_koprifossillab_P01_backup_plan.md) |
 | koprifossillab 001 | 2026-09-30 | [매주 월요일 새벽: 운영 자료 백업과 KPDC 목록 갱신](20260930_koprifossillab_001_weekly_backup.md) |
 | koprifossillab 002 | 2026-09-30 | [`/healthz/` — 판·DB·백업 상태를 한 장으로](20260930_koprifossillab_002_healthz.md) |

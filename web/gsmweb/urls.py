@@ -7,6 +7,8 @@ from django.conf import settings
 from django.contrib import admin
 from django.urls import include, path
 
+from viewer import addons
+
 prefix = settings.URL_PREFIX
 
 urlpatterns = [
@@ -16,3 +18,5 @@ urlpatterns = [
 # 오가는데 아직 평문 HTTP 다 — HTTPS 는 나중에(사람, 2026-10-07)
 if not settings.PUBLIC:
     urlpatterns.append(path(f"{prefix}admin/", admin.site.urls))
+# 덧붙이의 주소는 `x/<이름>/` 밑에 (viewer/addons.py, wetherilli P19)
+urlpatterns += addons.urlpatterns(prefix)

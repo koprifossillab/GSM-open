@@ -1,0 +1,9 @@
+{
+ "_지역": "antarctica",
+ "_상류": "fakeaddon",
+ "_레이어군차례": 90,
+ "레이어군순서": ["가짜 레이어군"],
+ "레이어": [
+  {"name": "fakeaddon:bed", "title": "가짜 바닥", "group": "가짜 레이어군", "abstract": ""}
+ ]
+}

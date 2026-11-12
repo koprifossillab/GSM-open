@@ -403,10 +403,10 @@ try { if (localStorage.getItem("gsm.intro.skip") === "1" && !/[?&]intro=/.test(l
           <img loading="lazy" src="{% static shots|add:'thumb/korea3d.webp' %}" alt="">
           <b>3D</b><span>{% t "지형 위의 지질도" %}</span>
         </a>
-        <a class="door" href="{{ base }}earth/">
+        {% if not hide.earth %}<a class="door" href="{{ base }}earth/">
           <img loading="lazy" src="{% static shots|add:'thumb/earth.webp' %}" alt="">
           <b><img class="door-icon" src="{% static 'viewer/emblem-earth.png' %}?v={{ stamp|default:version }}" alt="" width="22" height="22">{% t "온 지구" %}</b><span>{% t "Macrostrat 지질도와 판의 옛 자리" %}</span>
-        </a>{% endif %}
+        </a>{% endif %}{% endif %}
       </div>
     </div>
 
@@ -427,6 +427,7 @@ try { if (localStorage.getItem("gsm.intro.skip") === "1" && !/[?&]intro=/.test(l
 
   {% if not static_site %}
   <div class="cats-space">
+    {% if not hide.moon %}
     <div class="cat moon">
       <h3><img src="{% static 'viewer/emblem-moon.png' %}?v={{ stamp|default:version }}" alt="" width="40" height="40">{% t "달" %}</h3>
       <a class="door" href="{{ base }}moon/">
@@ -434,6 +435,8 @@ try { if (localStorage.getItem("gsm.intro.skip") === "1" && !/[?&]intro=/.test(l
         <b>{% t "달" %}</b><span>{% t "USGS 달 통합 지질도 · LOLA 지형 · 원도 여섯 장 · 아폴로 착륙지" %}</span>
       </a>
     </div>
+    {% endif %}
+    {% if not hide.mars %}
     <div class="cat mars">
       <h3><img src="{% static 'viewer/emblem-mars.png' %}?v={{ stamp|default:version }}" alt="" width="40" height="40">{% t "화성" %}</h3>
       <a class="door" href="{{ base }}mars/">
@@ -441,6 +444,8 @@ try { if (localStorage.getItem("gsm.intro.skip") === "1" && !/[?&]intro=/.test(l
         <b>{% t "화성" %}</b><span>{% t "USGS 화성 지질도 · MOLA–HRSC 지형 · 크레이터 38만 개" %}</span>
       </a>
     </div>
+    {% endif %}
+    {% if not hide.mercury %}
     <div class="cat mercury">
       <h3><img src="{% static 'viewer/emblem-mercury.png' %}?v={{ stamp|default:version }}" alt="" width="40" height="40">{% t "수성" %}</h3>
       <a class="door" href="{{ base }}mercury/">
@@ -448,6 +453,7 @@ try { if (localStorage.getItem("gsm.intro.skip") === "1" && !/[?&]intro=/.test(l
         <b>{% t "수성" %}</b><span>{% t "USGS 1:500만 지질도 · MESSENGER 영상·지형" %}</span>
       </a>
     </div>
+    {% endif %}
   </div>
 
   {% endif %}

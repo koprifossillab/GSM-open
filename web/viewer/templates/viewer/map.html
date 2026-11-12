@@ -56,11 +56,13 @@
       <img class="emblem" src="{% static 'viewer/emblem.svg' %}?v={{ stamp|default:version }}" alt="" width="46" height="46">
     </button>
     <nav class="hidden-menu" id="hidden-menu" role="menu" hidden>
-      <a role="menuitem" class="server-only" href="{{ base }}earth/"><span class="moon-dot whole-dot" aria-hidden="true"></span>{% t "온 지구" %}</a>
-      <a role="menuitem" class="server-only" href="{{ base }}moon/"><span class="moon-dot" aria-hidden="true"></span>{% t "달" %}</a>
-      <a role="menuitem" class="server-only" href="{{ base }}mars/"><span class="moon-dot mars-dot" aria-hidden="true"></span>{% t "화성" %}</a>
-      <a role="menuitem" class="server-only" href="{{ base }}mercury/"><span class="moon-dot mercury-dot" aria-hidden="true"></span>{% t "수성" %}</a>
-      <a role="menuitem" class="intro-link" href="{{ base }}?intro=1"><span class="moon-dot intro-dot" aria-hidden="true"></span>{% t "대돌여지도 소개" %}</a>
+      {% if not hide.earth %}<a role="menuitem" class="server-only" href="{{ base }}earth/"><span class="moon-dot whole-dot" aria-hidden="true"></span>{% t "온 지구" %}</a>{% endif %}
+      {% if not hide.moon %}<a role="menuitem" class="server-only" href="{{ base }}moon/"><span class="moon-dot" aria-hidden="true"></span>{% t "달" %}</a>{% endif %}
+      {% if not hide.mars %}<a role="menuitem" class="server-only" href="{{ base }}mars/"><span class="moon-dot mars-dot" aria-hidden="true"></span>{% t "화성" %}</a>{% endif %}
+      {% if not hide.mercury %}<a role="menuitem" class="server-only" href="{{ base }}mercury/"><span class="moon-dot mercury-dot" aria-hidden="true"></span>{% t "수성" %}</a>{% endif %}
+      {% comment %}형제 화면의 입구 — 설정에 적혀 있을 때만 (`GSM_SIBLINGS`, wetherilli P19·446){% endcomment %}
+      {% for s in siblings %}<a role="menuitem" class="server-only sibling-link" href="{{ s.url }}"><span class="moon-dot sibling-dot" aria-hidden="true"></span>{{ s.name }}</a>
+      {% endfor %}      <a role="menuitem" class="intro-link" href="{{ base }}?intro=1"><span class="moon-dot intro-dot" aria-hidden="true"></span>{% t "대돌여지도 소개" %}</a>
     </nav>
     <div>
       <h1>{% t "대돌여지도" %} <span class="ver">v{{ version }}</span></h1>
@@ -464,7 +466,8 @@
 <script id="upstreams" type="application/json">{{ upstreams|safe }}</script>
 <script id="vworld-key" type="application/json">"{{ vworld_key|escapejs }}"</script>
 <script id="catalog-data" type="application/json">{{ catalog|safe }}</script>
-{% if static_site %}<script id="static-config" type="application/json">{{ static_site|safe }}</script>
+{% if profile %}<script id="profile-config" type="application/json">{{ profile|safe }}</script>
+{% endif %}{% if static_site %}<script id="static-config" type="application/json">{{ static_site|safe }}</script>
 <script id="static-tables" type="application/json">{{ static_tables|safe }}</script>{% endif %}
 <script id="pointset-data" type="application/json">{{ pointsets|safe }}</script>
 <script src="{% static 'viewer/vendor/ol.js' %}?v={{ stamp|default:version }}"></script>

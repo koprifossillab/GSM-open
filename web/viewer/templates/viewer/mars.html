@@ -47,9 +47,9 @@
     </button>
     <nav class="hidden-menu" id="hidden-menu" role="menu" hidden>
       <a role="menuitem" href="{{ base }}map/"><span class="moon-dot earth-dot" aria-hidden="true"></span>{% t "지구" %}</a>
-      <a role="menuitem" href="{{ base }}earth/"><span class="moon-dot whole-dot" aria-hidden="true"></span>{% t "온 지구" %}</a>
-      <a role="menuitem" href="{{ base }}moon/"><span class="moon-dot" aria-hidden="true"></span>{% t "달" %}</a>
-      <a role="menuitem" href="{{ base }}mercury/"><span class="moon-dot mercury-dot" aria-hidden="true"></span>{% t "수성" %}</a>
+      {% if not hide.earth %}<a role="menuitem" href="{{ base }}earth/"><span class="moon-dot whole-dot" aria-hidden="true"></span>{% t "온 지구" %}</a>{% endif %}
+      {% if not hide.moon %}<a role="menuitem" href="{{ base }}moon/"><span class="moon-dot" aria-hidden="true"></span>{% t "달" %}</a>{% endif %}
+      {% if not hide.mercury %}<a role="menuitem" href="{{ base }}mercury/"><span class="moon-dot mercury-dot" aria-hidden="true"></span>{% t "수성" %}</a>{% endif %}
     </nav>
     <div>
       <h1>{% t "대돌여지도" %} <span class="ver">v{{ version }}</span></h1>
@@ -58,10 +58,10 @@
   </header>
   <nav class="regions body-tabs" aria-label="{% t "지역" %}">
     <a class="region-tab" href="{{ base }}map/">{% t "지구" %}</a>
-    <a class="region-tab" href="{{ base }}earth/">{% t "온 지구" %}</a>
-    <a class="region-tab" href="{{ base }}moon/">{% t "달" %}</a>
+    {% if not hide.earth %}<a class="region-tab" href="{{ base }}earth/">{% t "온 지구" %}</a>{% endif %}
+    {% if not hide.moon %}<a class="region-tab" href="{{ base }}moon/">{% t "달" %}</a>{% endif %}
     <span class="region-tab on" aria-current="page">{% t "화성" %}</span>
-    <a class="region-tab" href="{{ base }}mercury/">{% t "수성" %}</a>
+    {% if not hide.mercury %}<a class="region-tab" href="{{ base }}mercury/">{% t "수성" %}</a>{% endif %}
   </nav>
 
   <div id="panel-body">
