@@ -3,10 +3,10 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>{% t "대돌여지도" %}</title>
+<title>{{ brand.name }}</title>
 <meta name="theme-color" content="#2b1d10">
 {% include "viewer/_app_head.html" %}
-<link rel="icon" id="favicon" type="image/svg+xml" href="{% static 'viewer/emblem.svg' %}?v={{ stamp|default:version }}">
+<link rel="icon" id="favicon" href="{% static brand.emblem %}?v={{ stamp|default:version }}">
 {% comment %}대기 화면은 CSS 파일보다 먼저 그려져야 해서 여기 둔다. 바탕색은 gif 의
 바탕(#2b1d10)과 같아야 가장자리가 안 보인다.{% endcomment %}
 <style>
@@ -27,8 +27,8 @@
 <div id="splash" role="status" aria-live="polite">
   {% comment %}그림은 아래 스크립트가 고른다 — 극지면 극지 대기 화면. 주소를 처음부터 적으면 브라우저가 먼저 받아 극지에서 둘을 받는다.
   같은 화소의 WebP(무손실, 30–65% 작다)를 먼저, 못 읽으면 GIF (wetherilli 345){% endcomment %}
-  <picture><source type="image/webp" id="splash-webp"><img id="splash-img" alt="{% t "대돌여지도" %}"></picture>
-  <noscript><img src="{% static 'viewer/splash.gif' %}?v={{ stamp|default:version }}" alt=""></noscript>
+  <picture><source type="image/webp" id="splash-webp"><img id="splash-img" alt="{{ brand.name }}"></picture>
+  <noscript><img src="{% static brand.splash_gif %}?v={{ stamp|default:version }}" alt=""></noscript>
   <p>{% t "불러오는 중" %}</p>
   <p class="splash-ver">v{{ version }}</p>
 </div>
@@ -41,10 +41,10 @@
   try { if (!r) r = localStorage.getItem("gsm.region"); } catch (e) { /* 사생활 모드 */ }
   var polar = POLAR.indexOf(r) >= 0;
   if (polar) document.getElementById("splash").className = "polar";
-  document.getElementById("splash-webp").srcset = polar ? "{% static 'viewer/splash-polar.webp' %}?v={{ stamp|default:version }}"
-                                                        : "{% static 'viewer/splash.webp' %}?v={{ stamp|default:version }}";
-  document.getElementById("splash-img").src = polar ? "{% static 'viewer/splash-polar.gif' %}?v={{ stamp|default:version }}"
-                                                    : "{% static 'viewer/splash.gif' %}?v={{ stamp|default:version }}";
+  document.getElementById("splash-webp").srcset = polar ? "{% static brand.splash_polar_webp %}?v={{ stamp|default:version }}"
+                                                        : "{% static brand.splash_webp %}?v={{ stamp|default:version }}";
+  document.getElementById("splash-img").src = polar ? "{% static brand.splash_polar_gif %}?v={{ stamp|default:version }}"
+                                                    : "{% static brand.splash_gif %}?v={{ stamp|default:version }}";
 })();
 </script>
 
@@ -52,9 +52,9 @@
   <header class="brand">
     {% comment %}숨은 차림 — 아이콘을 누르면 뜬다. 지역 탭에 두지 않을 곳(달, P05)으로 가는 문이다{% endcomment %}
     <button type="button" class="emblem-btn" id="emblem-btn" aria-haspopup="menu" aria-expanded="false"
-            data-emblem="{% static 'viewer/emblem.svg' %}?v={{ stamp|default:version }}" data-emblem-polar="{% static 'viewer/emblem-polar.png' %}?v={{ stamp|default:version }}"
-            aria-controls="hidden-menu" title="{% t "대돌여지도" %}">
-      <img class="emblem" src="{% static 'viewer/emblem.svg' %}?v={{ stamp|default:version }}" alt="" width="46" height="46">
+            data-emblem="{% static brand.emblem %}?v={{ stamp|default:version }}" data-emblem-polar="{% static brand.emblem_polar %}?v={{ stamp|default:version }}"
+            aria-controls="hidden-menu" title="{{ brand.name }}">
+      <img class="emblem" src="{% static brand.emblem %}?v={{ stamp|default:version }}" alt="" width="46" height="46">
     </button>
     <nav class="hidden-menu" id="hidden-menu" role="menu" hidden>
       {% if not hide.earth %}<a role="menuitem" class="server-only" href="{{ base }}earth/"><span class="moon-dot whole-dot" aria-hidden="true"></span>{% t "온 지구" %}</a>{% endif %}
@@ -66,8 +66,8 @@
       {% endfor %}      <a role="menuitem" class="intro-link" href="{{ base }}?intro=1"><span class="moon-dot intro-dot" aria-hidden="true"></span>{% t "대돌여지도 소개" %}</a>
     </nav>
     <div>
-      <h1>{% t "대돌여지도" %} <span class="ver">v{{ version }}</span></h1>
-      <p class="tagline">{% if lang == "en" %}대돌여지도{% else %}GREAT STONE MAP{% endif %}</p>
+      <h1>{{ brand.name }} <span class="ver">v{{ version }}</span></h1>
+      <p class="tagline">{{ brand.tagline }}</p>
     </div>
   </header>
   <nav class="regions" id="regions" aria-label="{% t "지역" %}"></nav>
@@ -238,7 +238,7 @@
   <div class="sheet-box" role="dialog" aria-modal="true" aria-labelledby="settings-title">
     <header class="sheet-head">
       <div>
-        <h2 id="settings-title"><img class="emblem sm" src="{% static 'viewer/emblem.svg' %}?v={{ stamp|default:version }}" alt="" width="26" height="26"> {% t "대돌여지도" %} <span class="ver">v{{ version }}</span></h2>
+        <h2 id="settings-title"><img class="emblem sm" src="{% static brand.emblem %}?v={{ stamp|default:version }}" alt="" width="26" height="26"> {{ brand.name }} <span class="ver">v{{ version }}</span></h2>
         <p class="hint">{% t "GSM — 여러 나라 지질조사기관의 지질도를 겹쳐 보는 지도뷰어. 한국지질자원연구원 오픈API 에서 시작했다" %}</p>
       </div>
       <button type="button" id="settings-close" class="icon-btn" title="{% t "닫는다" %}">

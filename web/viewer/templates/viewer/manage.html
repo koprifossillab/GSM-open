@@ -17,7 +17,7 @@
   <a class="mg-brand" href="{{ base }}map/" title="{% t "지도로 돌아간다" %}">
     <img class="emblem" src="{% static 'viewer/emblem.svg' %}?v={{ stamp|default:version }}" alt="" width="36" height="36">
     <span>
-      <b>{% t "대돌여지도" %}</b> <span class="ver">v{{ version }}</span>
+      <b>{{ brand.name }}</b> <span class="ver">v{{ version }}</span>
       <small>{% t "관리" %}</small>
     </span>
   </a>

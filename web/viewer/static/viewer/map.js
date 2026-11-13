@@ -7749,7 +7749,8 @@
     document.querySelectorAll("img.emblem").forEach(function (img) { if (img.getAttribute("src") !== src) img.src = src; });
     var icon = document.getElementById("favicon");
     if (icon && icon.getAttribute("href") !== src) {
-      icon.setAttribute("type", polar ? "image/png" : "image/svg+xml");
+      // 꼴은 파일의 끝 글자로 — 덧붙이의 차림이 PNG 아이콘 하나를 두 자리에 쓸 수 있다 (wetherilli 453)
+      icon.setAttribute("type", /\.svg(\?|$)/.test(src) ? "image/svg+xml" : "image/png");
       icon.setAttribute("href", src);
     }
   }

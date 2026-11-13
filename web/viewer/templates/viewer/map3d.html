@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>{% t "대돌여지도" %} 3D</title>
+<title>{{ brand.name }} 3D</title>
 <link rel="icon" type="image/svg+xml" href="{% static 'viewer/emblem.svg' %}?v={{ stamp|default:version }}">
 <link rel="stylesheet" href="{% static 'viewer/vendor/maplibre/maplibre-gl.css' %}?v={{ stamp|default:version }}">
 <link rel="stylesheet" href="{% static 'viewer/map.css' %}?v={{ stamp|default:version }}">
@@ -84,7 +84,7 @@
 <aside class="panel3d" id="panel3d">
   {% comment %}판은 접힌다 — 휴대폰에서는 판이 지형을 다 덮어 접힌 채로 연다 (wetherilli 128){% endcomment %}
   <header class="p3-head">
-    <h1>{% t "대돌여지도" %} 3D</h1>
+    <h1>{{ brand.name }} 3D</h1>
     <button type="button" id="fold3d" class="fold3d" aria-controls="p3-body" aria-expanded="true"
             title="{% t "패널을 접는다" %}"></button>
   </header>

@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>{% t "대돌여지도" %} · {% t "온 지구" %}</title>
+<title>{{ brand.name }} · {% t "온 지구" %}</title>
 <meta name="theme-color" content="#08131f">
 <link rel="icon" type="image/png" href="{% static 'viewer/emblem-earth.png' %}?v={{ stamp|default:version }}">
 {% comment %}온 지구 (wetherilli P06) — 화성 화면(mars.html)을 옮겨 왔다. 같은 틀·같은 설정(테마·글꼴·크기)으로 뜨고
@@ -34,7 +34,7 @@
 <body>
 
 <div id="splash" role="status" aria-live="polite">
-  <picture><source type="image/webp" srcset="{% static 'viewer/splash-earth.webp' %}?v={{ stamp|default:version }}"><img src="{% static 'viewer/splash-earth.gif' %}?v={{ stamp|default:version }}" alt="{% t "대돌여지도" %} · {% t "온 지구" %}"></picture>
+  <picture><source type="image/webp" srcset="{% static 'viewer/splash-earth.webp' %}?v={{ stamp|default:version }}"><img src="{% static 'viewer/splash-earth.gif' %}?v={{ stamp|default:version }}" alt="{{ brand.name }} · {% t "온 지구" %}"></picture>
   <p>{% t "불러오는 중" %}</p>
   <p class="splash-ver">v{{ version }}</p>
 </div>
@@ -42,7 +42,7 @@
 <aside id="panel">
   <header class="brand">
     <button type="button" class="emblem-btn" id="emblem-btn" aria-haspopup="menu" aria-expanded="false"
-            aria-controls="hidden-menu" title="{% t "대돌여지도" %}">
+            aria-controls="hidden-menu" title="{{ brand.name }}">
       <img class="emblem" src="{% static 'viewer/emblem-earth.png' %}?v={{ stamp|default:version }}" alt="" width="46" height="46">
     </button>
     <nav class="hidden-menu" id="hidden-menu" role="menu" hidden>
@@ -52,8 +52,8 @@
       {% if not hide.mercury %}<a role="menuitem" href="{{ base }}mercury/"><span class="moon-dot mercury-dot" aria-hidden="true"></span>{% t "수성" %}</a>{% endif %}
     </nav>
     <div>
-      <h1>{% t "대돌여지도" %} <span class="ver">v{{ version }}</span></h1>
-      <p class="tagline">{% if lang == "en" %}대돌여지도 · 온 지구{% else %}GREAT STONE MAP · WHOLE EARTH{% endif %}</p>
+      <h1>{{ brand.name }} <span class="ver">v{{ version }}</span></h1>
+      <p class="tagline">{{ brand.tagline }} · {% if lang == "en" %}온 지구{% else %}WHOLE EARTH{% endif %}</p>
     </div>
   </header>
   <nav class="regions body-tabs" aria-label="{% t "지역" %}">

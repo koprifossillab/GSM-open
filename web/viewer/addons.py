@@ -14,6 +14,7 @@ GSM 은 덧붙이가 무엇인지 모른다. `GSM_ADDONS` 에 적힌 패키지�
 | `static/<이름>/map.js`·`map.css` | 지역 지도(`map.html`)가 제 `map.js`·`map.css` 뒤에 싣는다 — 손은 `window.GSMScreen`(`map.js`, wetherilli 447·448) | `context.profile` |
 | 문 파일 `SETS` 의 `Set.along` | 누른 자리에 함께 낼 다른 판의 이름들 | `views.polargrid_info` |
 | 문 파일의 `POINTS`·`points(name, lang, request)` | 점 레이어 — 카탈로그 행(`kind: points`)과 `points/` 의 덩이. 덩이는 담지 않는다(no-store) | `views.ADDON_POINTS` |
+| `brand.py` 의 `BRAND` | 차림의 얼굴 — 이름·한 줄 소개(`{"ko", "en"}`)·아이콘·대기 화면의 정적 파일. 지역 지도·온 지구·3D·관리 화면의 이름과, 지역 지도의 아이콘·대기 화면 (wetherilli 453) | `context.profile` |
 
 모델·migration·관리 명령·템플릿·정적 파일은 `INSTALLED_APPS` 에 들면 Django 가 스스로 다룬다 — 여기서 하지 않는다.
 이름은 패키지 이름의 마지막 마디다(`asm` · `viewer.tests.fake_addon` → `fake_addon`).
@@ -94,6 +95,33 @@ def merge() -> None:
             if item.key not in have:
                 datastatus.ITEMS.append(item)
                 have.add(item.key)
+
+
+#: 차림의 얼굴 — 이름·아이콘·대기 화면. 덧붙이의 `brand.py` 가 `BRAND` 에 같은 열쇠를 두면 그 값으로 바뀐다 (wetherilli 453)
+BRAND = {
+    "name": {"ko": "대돌여지도", "en": "Great Stone Map"},
+    "tagline": {"ko": "GREAT STONE MAP", "en": "대돌여지도"},
+    "emblem": "viewer/emblem.svg",                    # 정적 파일의 길 — 숨은 차림 단추·설정 제목·브라우저 탭
+    "emblem_polar": "viewer/emblem-polar.png",        # 극지(평사도법으로 보는 지역)에서
+    "splash_webp": "viewer/splash.webp", "splash_gif": "viewer/splash.gif",
+    "splash_polar_webp": "viewer/splash-polar.webp", "splash_polar_gif": "viewer/splash-polar.gif",
+}
+
+
+def brand(lang: str = "ko") -> dict:
+    """템플릿에 넘길 얼굴 — 이름·한 줄 소개는 그 언어의 것으로 고른다. 덧붙이가 없거나 `brand.py` 가 없으면 GSM 의 것 그대로다.
+    덧붙이가 모르는 열쇠를 두면 터뜨린다(오타로 얼굴이 반만 바뀌지 않게)"""
+    out = dict(BRAND)
+    for package in names():
+        part = _part(package, "brand")
+        given = getattr(part, "BRAND", None) if part else None
+        if given:
+            unknown = set(given) - set(BRAND)
+            if unknown:
+                raise ValueError(f"덧붙이 {package} 의 BRAND 에 모르는 열쇠가 있다: {sorted(unknown)}")
+            out.update(given)
+    pick = "en" if lang == "en" else "ko"
+    return {**out, "name": out["name"][pick], "tagline": out["tagline"][pick]}
 
 
 def screen_assets() -> dict:

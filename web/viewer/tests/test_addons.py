@@ -32,12 +32,16 @@ class WithoutAddons(SimpleTestCase):
         before = (dict(i18n.EN), list(datastatus.ITEMS))
         addons.merge()
         self.assertEqual((i18n.EN, datastatus.ITEMS), before)
+        # 얼굴은 GSM 의 것 그대로 — 이름은 언어를 따른다 (wetherilli 453)
+        self.assertEqual((addons.brand("ko")["name"], addons.brand("ko")["tagline"]), ("대돌여지도", "GREAT STONE MAP"))
+        self.assertEqual((addons.brand("en")["name"], addons.brand("en")["tagline"]), ("Great Stone Map", "대돌여지도"))
+        self.assertEqual(addons.brand()["emblem"], "viewer/emblem.svg")
 
     def test_가짜_덧붙이는_표의_줄마다_하나씩_갖는다(self):
         """`addons.py` 머리의 표에 줄이 늘면 가짜 덧붙이에도 하나 둔다 — 시험하지 않는 이음매가 생기지 않게"""
         here = Path(__file__).parent / "fake_addon"
         for name in ("urls.py", "fakedoor.py", "i18n.py", "datastatus.py", "data/fake_layers.json",
-                     "static/fake_addon/map.js", "static/fake_addon/map.css"):
+                     "static/fake_addon/map.js", "static/fake_addon/map.css", "brand.py"):
             self.assertTrue((here / name).exists(), name)
 
 
@@ -146,6 +150,29 @@ class Seams(TestCase):
         own, mine = html.index("viewer/map.js"), html.index("fake_addon/map.js")
         self.assertLess(own, mine)
         self.assertLess(html.index("viewer/map.css"), html.index("fake_addon/map.css"))
+
+    def test_차림의_얼굴이_이름과_아이콘과_대기_화면을_바꾼다(self):
+        """덧붙이의 `brand.py` — 적은 열쇠만 바뀌고 나머지는 GSM 의 것이 남는다 (wetherilli 453)"""
+        got = addons.brand("ko")
+        self.assertEqual((got["name"], got["tagline"], got["emblem_polar"], got["emblem"]),
+                         ("가짜지도", "FAKE MAP", "fake_addon/emblem.png", "viewer/emblem.svg"))
+        html = self.client.get("/GSM/map/").content.decode()
+        self.assertIn("<title>가짜지도</title>", html)
+        self.assertIn("<h1>가짜지도 <span", html)
+        self.assertIn('<p class="tagline">FAKE MAP</p>', html)
+        self.assertIn('data-emblem-polar="/GSM/static/fake_addon/emblem.png', html)
+        self.assertIn('"/GSM/static/fake_addon/splash.webp', html)                     # 극지의 대기 화면
+        self.assertIn('"/GSM/static/viewer/splash.webp', html)                         # 적지 않은 것은 GSM 의 것
+        self.assertNotIn("<h1>대돌여지도", html)
+        for path, want in (("/GSM/earth/", "가짜지도 · "), ("/GSM/map/3d/", "가짜지도 3D")):
+            page = self.client.get(path)
+            if page.status_code == 200:
+                self.assertIn(want, page.content.decode(), path)
+        # 모르는 열쇠는 터뜨린다 — 오타로 얼굴이 반만 바뀌지 않게
+        from viewer.tests.fake_addon import brand as fake
+        with mock.patch.dict(fake.BRAND, {"emblm": "x"}):
+            with self.assertRaises(ValueError):
+                addons.brand()
 
     def test_점_레이어가_카탈로그와_덩이로_선다(self):
         """덧붙이의 문이 `POINTS`·`points()` 를 두면 GSM 의 길(`points/`)이 덩이를 낸다 — 담지 않는다 (wetherilli 449)"""
