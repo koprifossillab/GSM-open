@@ -826,6 +826,7 @@
   var tempSource, tempLayer, measureSource, measureLayer, foundSource, foundLayer;
   var rangeSource, rangeLayer, rangeSeq = 0;
   var mode = "info", drawInteraction = null, tempSeq = 0, lastMeasure = "";
+  var sketch = null;         // 그리는 중인 선·면의 모양 — 없으면 재는 중이 아니다 (wetherilli 450)
   var active = [];        // 켠 레이어. 앞이 위다 (화면에서 앞에 그려진다)
   var byName = {};        // 레이어명 -> 카탈로그 행
   var pointLayers = {};   // 점묶음 id -> ol 레이어
@@ -3862,6 +3863,8 @@
       map.removeInteraction(drawInteraction);
       drawInteraction = null;
     }
+    sketch = null;
+    updateDrawActs();
     document.querySelectorAll(".tool[data-mode]").forEach(function (b) {
       b.classList.toggle("on", b.dataset.mode === next);
     });
@@ -3887,13 +3890,19 @@
       measureSource.clear();
       hideProfile();
       var geometry = evt.feature.getGeometry();
+      sketch = geometry;
+      updateDrawActs();
       geometry.on("change", function () {
         var got = measureOf(geometry);
         evt.feature.set("label", got.text);
         showMeasure(got);
+        updateDrawActs();
       });
     });
+    drawInteraction.on("drawabort", function () { sketch = null; updateDrawActs(); });
     drawInteraction.on("drawend", function (evt) {
+      sketch = null;
+      updateDrawActs();
       var got = measureOf(evt.feature.getGeometry());
       evt.feature.set("label", got.text);
       showMeasure(got, true);
@@ -3906,6 +3915,59 @@
     });
     map.addInteraction(drawInteraction);
   }
+
+  // ── 재는 것을 끝내는 손 ──────────────────────────────────────────
+  //
+  // 두 번 누르기는 눈에 보이지 않는다 — 안내는 처음 잴 때만 뜨고, 터치에서는 두 번 누르기가 잘 안 먹는다.
+  // 재는 동안 알림 밑에 단추 셋을 세운다(끝내기·한 점 무르기·취소). 글쇠로는 Enter·Backspace·Esc.
+  // 두 번 누르기는 그대로 둔다 (wetherilli 450)
+
+  /** 찍어 둔 점의 수 — 그리는 중의 모양에는 손끝을 따라다니는 점이 하나 더 있다(면은 닫는 점까지 둘). */
+  function sketchPoints() {
+    if (!sketch) return 0;
+    var c = sketch.getCoordinates();
+    return sketch instanceof ol.geom.Polygon ? (c[0] || []).length - 2 : c.length - 1;
+  }
+  function updateDrawActs() {
+    var acts = document.getElementById("draw-acts");
+    if (!acts) return;
+    acts.hidden = !sketch;
+    showToolNote();
+    if (!sketch) return;
+    var n = sketchPoints();
+    document.getElementById("draw-done").disabled = n < (mode === "area" ? 3 : 2);
+    document.getElementById("draw-undo").disabled = n < 2;
+  }
+  function drawAct(what) {
+    if (!sketch || !drawInteraction) return;
+    if (what === "done") {
+      if (!document.getElementById("draw-done").disabled) drawInteraction.finishDrawing();
+    } else if (what === "undo") {
+      if (sketchPoints() >= 2) drawInteraction.removeLastPoint();
+    } else {
+      drawInteraction.abortDrawing();
+      sketch = null;
+      lastMeasure = "";
+      var out = document.getElementById("measure-out");
+      out.textContent = T("아직 잰 것이 없다");
+      out.classList.remove("done");
+      updateDrawActs();
+      updateToolOut();
+    }
+  }
+  ["done", "undo", "cancel"].forEach(function (what) {
+    var b = document.getElementById("draw-" + what);
+    if (b) b.addEventListener("click", function () { drawAct(what); });
+  });
+  document.addEventListener("keydown", function (e) {
+    if (!sketch) return;
+    var t = e.target;
+    if (t && (t.isContentEditable || /^(INPUT|TEXTAREA|SELECT|BUTTON)$/.test(t.tagName))) return;
+    var what = { Enter: "done", Backspace: "undo", Escape: "cancel" }[e.key];
+    if (!what) return;
+    e.preventDefault();
+    drawAct(what);
+  });
 
   // ── 범위잡기 ─────────────────────────────────────────────────────
   //
@@ -4109,6 +4171,12 @@
     if (hereNote) bits.push(hereNote);
     out.textContent = bits.join("  ·  ");
     out.hidden = !bits.length;
+    showToolNote();
+  }
+  /** 알림과 단추를 묶은 칸 — 둘 다 없으면 칸째 감춘다. 빈 칸이 좁은 화면의 도구 묶음을 밑으로 민다 (wetherilli 450) */
+  function showToolNote() {
+    var note = document.getElementById("tool-note"), acts = document.getElementById("draw-acts");
+    if (note) note.hidden = document.getElementById("tool-out").hidden && (!acts || acts.hidden);
   }
 
   function addTempPoint(coordinate) {

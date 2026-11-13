@@ -289,7 +289,15 @@ MESSENGER 강조색의 청회색·황갈이다(map.css 의 `data-region="mercury
         <span>{% t "자전축" %}</span>
       </button>
     </div>
-    <output id="tool-out" class="tool-out" hidden></output>
+    <div id="tool-note" class="tool-note" hidden>
+      <output id="tool-out" class="tool-out" hidden></output>
+      {% comment %}재는 선·면을 끝내는 단추 — 지역 지도와 같다 (wetherilli 450·451){% endcomment %}
+      <div id="draw-acts" class="draw-acts" hidden>
+        <button type="button" id="draw-done" class="draw-act primary" title="{% t "여기까지로 끝낸다 (Enter)" %}">{% t "끝내기" %}</button>
+        <button type="button" id="draw-undo" class="draw-act" title="{% t "마지막에 찍은 점을 무른다 (Backspace)" %}">{% t "한 점 무르기" %}</button>
+        <button type="button" id="draw-cancel" class="draw-act" title="{% t "재던 것을 버린다 (Esc)" %}">{% t "취소" %}</button>
+      </div>
+    </div>
   </div>
 
   <!-- 높이 그래프 — 거리를 다 재면 뜬다 (달의 wetherilli 100, wetherilli 148) -->

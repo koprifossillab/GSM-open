@@ -1352,6 +1352,12 @@ EN = {
     "점 {n}개": "{n} points",
     "지도를 눌러 점을 찍는다": "Click the map to drop a point",
     "눌러 가며 잇는다 · 두 번 누르면 끝": "Click to draw · double-click to finish",
+    "끝내기": "Finish",
+    "취소": "Cancel",
+    "한 점 무르기": "Undo point",
+    "여기까지로 끝낸다 (Enter)": "Finish here (Enter)",
+    "마지막에 찍은 점을 무른다 (Backspace)": "Remove the last point (Backspace)",
+    "재던 것을 버린다 (Esc)": "Discard this measurement (Esc)",
     "눌러 가며 두른다 · 두 번 누르면 끝": "Click to outline · double-click to finish",
 
     # 팝업

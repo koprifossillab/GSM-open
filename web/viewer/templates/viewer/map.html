@@ -428,7 +428,15 @@
         <span>{% t "세종" %}</span>
       </button>
     </div>
-    <output id="tool-out" class="tool-out" hidden></output>
+    <div id="tool-note" class="tool-note" hidden>
+      <output id="tool-out" class="tool-out" hidden></output>
+      {% comment %}재는 선·면을 끝내는 단추 — 두 번 누르기는 눈에 보이지 않고, 한 번 재고 나면 안내도 사라진다 (wetherilli 450){% endcomment %}
+      <div id="draw-acts" class="draw-acts" hidden>
+        <button type="button" id="draw-done" class="draw-act primary" title="{% t "여기까지로 끝낸다 (Enter)" %}">{% t "끝내기" %}</button>
+        <button type="button" id="draw-undo" class="draw-act" title="{% t "마지막에 찍은 점을 무른다 (Backspace)" %}">{% t "한 점 무르기" %}</button>
+        <button type="button" id="draw-cancel" class="draw-act" title="{% t "재던 것을 버린다 (Esc)" %}">{% t "취소" %}</button>
+      </div>
+    </div>
   </div>
 
   <output id="edge-n" class="edge n" title="{% t "보이는 지도의 북쪽 끝" %}"></output>

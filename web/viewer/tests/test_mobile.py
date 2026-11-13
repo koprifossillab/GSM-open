@@ -269,6 +269,49 @@ class PhoneScreenTests(PhoneBase):
         self.assertFalse(page.locator("#popup.on").count(), "팝업이 닫히지 않는다")
         self.assertTrue(page.locator("#toolbar").is_visible(), "팝업을 닫으면 도구 묶음이 돌아온다")
 
+    def test_재는_것을_단추로_끝낸다(self):
+        """거리·넓이를 재는 동안 끝내기·한 점 무르기·취소 단추가 서고, 끝내기가 두 번 누르기를 대신한다 (wetherilli 450)"""
+        page, errors = self.open("map/", settle=2500)
+        page.wait_for_function("() => !document.getElementById('splash')", timeout=15000)
+        box = page.locator("#map").bounding_box()
+        cx, cy = box["x"] + box["width"] / 2, box["y"] + box["height"] / 2
+        hidden = "document.getElementById('draw-acts').hidden"
+        off = "document.getElementById('draw-done').disabled"
+
+        def tap(dx, dy):
+            page.touchscreen.tap(cx + dx, cy + dy)
+            page.wait_for_timeout(450)
+
+        page.tap(".tool[data-mode=line]")
+        self.assertTrue(page.evaluate(hidden), "재기 전에는 단추가 없다")
+        tap(-60, 40)
+        self.assertFalse(page.evaluate(hidden), "첫 점을 찍으면 단추가 선다")
+        self.assertTrue(page.evaluate(off), "한 점으로는 끝낼 수 없다")
+        tap(0, 80)
+        tap(60, 120)
+        self.assertFalse(page.evaluate(off))
+        self.assertFits(page.evaluate(MEASURE, PARTS + ["#draw-done", "#draw-undo", "#draw-cancel"]), "map/ (재는 동안의 단추)")
+        page.tap("#draw-undo")
+        page.tap("#draw-done")
+        page.wait_for_timeout(300)
+        self.assertTrue(page.evaluate(hidden), "끝내면 단추가 걷힌다")
+        self.assertTrue(page.evaluate("document.getElementById('measure-out').classList.contains('done')"))
+        self.assertIn("km", page.locator("#measure-out").inner_text())
+        self.assertFalse(page.evaluate("document.getElementById('profile').hidden"), "단추로 끝내도 높이 그래프가 뜬다")
+
+        # 넓이 — 세 점부터 끝낼 수 있다. 취소하면 잰 것이 남지 않는다
+        page.tap(".tool[data-mode=area]")
+        tap(-60, 40)
+        tap(0, 80)
+        self.assertTrue(page.evaluate(off), "두 점으로는 면이 아니다")
+        tap(60, 40)
+        self.assertFalse(page.evaluate(off))
+        page.tap("#draw-cancel")
+        self.assertTrue(page.evaluate(hidden))
+        self.assertFalse(page.evaluate("document.getElementById('measure-out').classList.contains('done')"))
+        self.assertEqual(errors, [])
+        page.context.close()
+
     def test_공유_링크로_연다(self):
         """링크로 열면 그 지역·레이어로 서고, 띠가 화면 안에 뜨고, 그 사람의 기억은 그대로다 (wetherilli 189)"""
         page, errors = self.open("map/#r=antarctica&c=0,-90&z=2&p=3031&l=geomap_simple_geology*80&b=")
@@ -544,6 +587,69 @@ class PlanetFlows(PhoneBase):
         self.assertApart(notice, self.box(page, "#scalebar"), "링크 알림과 축척 막대")
         self.assertApart(notice, self.box(page, "#legend-dock"), "링크 알림과 범례")
         self.assertEqual(errors, [])
+
+
+class PlanetMeasureGlobe(PhoneBase):
+    """구 화면에서도 재는 동안 끝내기·한 점 무르기·취소 단추가 서고, 끝내기가 두 번 누르기를 대신한다 (wetherilli 451).
+    지역 지도의 `test_재는_것을_단추로_끝낸다` 와 같은 것을 본다. 네 화면 × 구·평면이라 반 둘로 나눠 나란히 돈다"""
+
+    flat = False
+
+    def run_bodies(self):
+        hidden = "document.getElementById('draw-acts').hidden"
+        off = "document.getElementById('draw-done').disabled"
+        for body in ("earth", "moon", "mars", "mercury"):
+            with self.subTest(body=body, flat=self.flat):
+                page, errors = self.open(f"{body}/", settle=4000)
+                if self.flat:
+                    page.tap("#tool-mode")
+                    page.wait_for_timeout(1500)
+
+                def tap(x, y):
+                    page.touchscreen.tap(x, y)
+                    page.wait_for_timeout(450)
+
+                page.tap('[data-draw="line"]')
+                page.wait_for_timeout(300)
+                self.assertTrue(page.evaluate(hidden), f"{body}: 재기 전에는 단추가 없다")
+                tap(120, 430)
+                self.assertFalse(page.evaluate(hidden), f"{body}: 첫 점을 찍으면 단추가 선다")
+                self.assertTrue(page.evaluate(off), f"{body}: 한 점으로는 끝낼 수 없다")
+                tap(200, 500)
+                tap(270, 560)
+                self.assertFalse(page.evaluate(off))
+                self.assertFits(page.evaluate(MEASURE, PARTS + ["#draw-done", "#draw-undo", "#draw-cancel"]), f"{body} (재는 동안의 단추)")
+                page.tap("#draw-undo")
+                page.wait_for_timeout(200)
+                self.assertFalse(page.evaluate(off), f"{body}: 두 점이 남는다")
+                page.tap("#draw-done")
+                page.wait_for_timeout(1000)
+                self.assertTrue(page.evaluate(hidden), f"{body}: 끝내면 단추가 걷힌다")
+                self.assertTrue(page.evaluate("document.getElementById('measure-out').classList.contains('done')"), body)
+                self.assertIn("km", page.locator("#tool-out").inner_text())
+                self.assertFalse(page.evaluate("document.getElementById('profile').hidden"), f"{body}: 단추로 끝내도 높이 그래프가 뜬다")
+
+                # 넓이 — 세 점부터 끝낼 수 있다. 취소하면 잰 것이 남지 않는다
+                page.tap('[data-draw="area"]')
+                page.wait_for_timeout(300)
+                tap(120, 430)
+                tap(200, 500)
+                self.assertTrue(page.evaluate(off), f"{body}: 두 점으로는 면이 아니다")
+                tap(270, 430)
+                self.assertFalse(page.evaluate(off))
+                page.tap("#draw-cancel")
+                page.wait_for_timeout(200)
+                self.assertTrue(page.evaluate(hidden))
+                self.assertFalse(page.evaluate("document.getElementById('measure-out').classList.contains('done')"))
+                self.assertEqual(errors, [])
+                page.context.close()
+
+    def test_재는_것을_단추로_끝낸다(self):
+        self.run_bodies()
+
+
+class PlanetMeasureFlat(PlanetMeasureGlobe):
+    flat = True
 
 
 class RegionTabs(PhoneBase):

@@ -1030,6 +1030,24 @@ body.panel-folded #panel { display: none; }
 }
 .tool-out[hidden] { display: none; }
 
+/* 재는 동안의 단추 — 끝내기·한 점 무르기·취소 (wetherilli 450) */
+.tool-note { display: flex; flex-direction: column; align-items: flex-end; gap: 6px; }
+.draw-acts { display: flex; gap: 4px; }
+.tool-note[hidden], .draw-acts[hidden] { display: none; }
+.draw-act {
+  padding: 7px 11px;
+  font: inherit;
+  font-size: 12.5px;
+  color: var(--gold-bright);
+  background: var(--glass);
+  border: 1px solid var(--glass-line);
+  border-radius: 9px;
+  box-shadow: var(--shadow);
+  cursor: pointer;
+}
+.draw-act.primary { color: #2a1a0c; background: var(--gold-bright); border-color: var(--gold-bright); font-weight: 600; }
+.draw-act:disabled { opacity: .45; cursor: default; }
+
 /* ── 좌표 막대 ── */
 #coordbar {
   position: absolute;
@@ -1485,6 +1503,9 @@ button.proplink { font-family: inherit; line-height: inherit; cursor: pointer; }
   .tool-out { max-width: calc(100vw - 80px); font-size: 11.5px; }
   /* 패널 손잡이(위 가운데, 22 px) 밑으로 — 툴바의 맨 위에 서면 손잡이에 앞 글자가 가린다 (wetherilli 342) */
   .tool-out { margin-top: 22px; }
+  .tool-note { margin-top: 22px; }
+  .tool-note .tool-out { margin-top: 0; }
+  .draw-act { min-height: 40px; padding: 8px 12px; }
   .ol-zoom { top: 8px !important; left: 8px !important; }
 
   #coordbar { gap: 6px; padding: 6px 8px; }

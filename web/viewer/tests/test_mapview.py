@@ -152,7 +152,7 @@ class AntarcticStations(TestCase):
 
     def test_두_기지_단추가_남극에서만_선다(self):
         html = self.client.get(reverse("viewer:map")).content.decode()
-        group = re.search(r'<div class="tool-col" role="group" aria-label="자세">(.*?)</div>\s*<output id="tool-out"', html, re.S)
+        group = re.search(r'<div class="tool-col" role="group" aria-label="자세">(.*?)</div>\s*<div id="tool-note"', html, re.S)
         self.assertIsNotNone(group)
         for name in ("jangbogo", "sejong"):
             button = re.search(r'<button [^>]*data-goto="%s"[^>]*>' % name, group.group(1)).group(0)
@@ -164,7 +164,7 @@ class MapCompass(TestCase):
 
     def test_방위_단추는_모든_탭의_자세_묶음에(self):
         html = self.client.get(reverse("viewer:map")).content.decode()
-        group = re.search(r'<div class="tool-col" role="group" aria-label="자세">(.*?)</div>\s*<output id="tool-out"', html, re.S)
+        group = re.search(r'<div class="tool-col" role="group" aria-label="자세">(.*?)</div>\s*<div id="tool-note"', html, re.S)
         button = re.search(r'<button [^>]*id="tool-compass"[^>]*>', group.group(1)).group(0)
         self.assertNotIn("antarctica-only", button)
         self.assertIn('id="compass-needle"', group.group(1))

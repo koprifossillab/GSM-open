@@ -2015,6 +2015,7 @@
   var tempSeq = 0, rangeSeq = 0, lastMeasure = "";
   var sketch = [], hover = null, boxFrom = null, boxTo = null;   // 구에서 그리는 중인 것
   var flatSketching = false;
+  var flatSketch = null;                   // 평면에서 그리는 중인 선·면의 모양 (wetherilli 451)
 
   function rad(d) { return d * Math.PI / 180; }
   function arc(a, b) {
@@ -2142,6 +2143,7 @@
   function installFlat() {
     if (flatInteraction) { flat.removeInteraction(flatInteraction); flatInteraction = null; }
     flatSketching = false;
+    flatSketch = null;
     sketchSource.clear();
     if (tool === "box") {
       // 끄는 동안에도 경위도 네모를 그린다 — 극 평면에서는 화면의 네모가 경위도 네모가 아니다.
@@ -2166,7 +2168,12 @@
       var kind = tool;
       flatInteraction.on("drawstart", function (evt) {
         flatSketching = true;
+        // 구에서처럼 새로 재기 시작하면 앞서 잰 것을 걷는다 — 취소하면 잰 것이 남지 않는다 (wetherilli 451)
+        if (measured) { measured = null; renderDrawn(); }
+        hideProfile();
         var geometry = evt.feature.getGeometry();
+        flatSketch = geometry;
+        updateDrawActs();
         geometry.on("change", function () {
           var coords = kind === "area" ? geometry.getCoordinates()[0] : geometry.getCoordinates();
           var got = measureOf({ kind: kind, coords: coords.map(toLL) });
@@ -2178,10 +2185,11 @@
         var g = evt.feature.getGeometry();
         var coords = (kind === "area" ? g.getCoordinates()[0].slice(0, -1) : g.getCoordinates()).map(toLL);
         flatSketching = false;
+        flatSketch = null;
         setTimeout(function () { sketchSource.clear(); });    // Draw 가 제 것을 넣은 뒤에 치운다
         finishMeasure(kind, coords);
       });
-      flatInteraction.on("drawabort", function () { flatSketching = false; });
+      flatInteraction.on("drawabort", function () { flatSketching = false; flatSketch = null; updateDrawActs(); });
     }
     if (flatInteraction) flat.addInteraction(flatInteraction);
   }
@@ -2315,6 +2323,7 @@
     else if (tool === "line" || tool === "area") {
       if (!sketch.length) { measured = null; lastMeasure = ""; renderDrawn(); hideProfile(); }
       sketch.push(unwrap(sketch[sketch.length - 1], ll));
+      showSketch();
     }
     return true;
   }
@@ -2329,10 +2338,66 @@
     sketch = []; hover = null; boxFrom = boxTo = null; sketchBox.show = false;
     if (flatInteraction && flatInteraction.abortDrawing) flatInteraction.abortDrawing();
     flatSketching = false;
+    flatSketch = null;
     updateToolOut();
   }
   /** 무엇이든 그리는 중인가 — 그동안은 구와 평면을 저절로 넘지 않는다. */
   function drawing() { return sketch.length > 0 || !!boxFrom || flatSketching; }
+
+  // ── 재는 것을 끝내는 손 (wetherilli 451) ──
+  // 지역 지도(450)와 같은 단추 셋(끝내기·한 점 무르기·취소)·같은 글쇠(Enter·Backspace·Esc)다. 구는 누른 꼭짓점(`sketch`)을,
+  // 평면은 OpenLayers Draw 의 모양(`flatSketch`)을 센다. 두 번 누르기와 마지막 점을 다시 누르기는 그대로 둔다
+  function sketchOn() { return (tool === "line" || tool === "area") && (sketch.length > 0 || !!flatSketch); }
+  /** 찍어 둔 점의 수. 평면의 모양에는 손끝 점이 하나 더(면은 닫는 점까지 둘), 구는 두 번 누른 자리가 겹쳐 든다. */
+  function sketchPoints() {
+    if (flatSketch) {
+      var c = flatSketch.getCoordinates();
+      return flatSketch instanceof ol.geom.Polygon ? (c[0] || []).length - 2 : c.length - 1;
+    }
+    return sketch.filter(function (p, i) { return !i || arc(sketch[i - 1], p) > 1; }).length;
+  }
+  /** 구에서 그리는 중의 수 — 누르개 자리까지. 터치에는 누르개가 없어 찍은 점만 잰다. */
+  function showSketch() {
+    var pts = sketch.slice();
+    if (hover && pts.length) pts.push(unwrap(pts[pts.length - 1], hover));
+    if (pts.length > 1) showMeasure(measureOf({ kind: tool, coords: pts }));
+    else updateToolOut();
+  }
+  function updateDrawActs() {
+    var acts = $("draw-acts");
+    if (!acts) return;
+    var on = sketchOn();
+    acts.hidden = !on;
+    // 알림과 단추를 묶은 칸 — 둘 다 없으면 칸째 감춘다. 빈 칸이 좁은 화면의 도구 묶음을 밑으로 민다
+    $("tool-note").hidden = $("tool-out").hidden && !on;
+    if (!on) return;
+    var n = sketchPoints();
+    $("draw-done").disabled = n < (tool === "area" ? 3 : 2);
+    $("draw-undo").disabled = n < 2;
+  }
+  function drawAct(what) {
+    if (!sketchOn()) return;
+    lastTap = null;                        // 단추 뒤에 지도를 누른 것은 "마지막 점을 다시" 가 아니다
+    if (what === "done") {
+      if ($("draw-done").disabled) return;
+      if (flatSketch) flatInteraction.finishDrawing(); else finishGlobeSketch();
+    } else if (what === "undo") {
+      var n = sketchPoints();
+      if (n < 2) return;
+      if (flatSketch) flatInteraction.removeLastPoint();
+      else { while (sketch.length && sketchPoints() === n) sketch.pop(); showSketch(); }
+    } else {
+      cancelSketch();
+      lastMeasure = "";
+      var out = $("measure-out");
+      out.textContent = T("아직 잰 것이 없다");
+      out.classList.remove("done");
+      updateToolOut();
+    }
+  }
+  ["done", "undo", "cancel"].forEach(function (what) {
+    $("draw-" + what).addEventListener("click", function () { drawAct(what); });
+  });
 
   // ── 찍고 잰 것 ──
   // 재는 것은 한 번에 하나만 둔다 — 여럿이 겹치면 어느 수가 어느 선의 것인지 모른다. 범위는 여럿을 둔다
@@ -2521,6 +2586,7 @@
     if (tool === "box" && !ranges.length) bits.push(T("누른 채 끌어 네모를 그린다"));
     out.textContent = bits.join("  ·  ");
     out.hidden = !bits.length;
+    updateDrawActs();
   }
   // 복사 — 운영이 http 로 열리는 자리가 있어 clipboard API 가 없으면 옛 길(textarea)로 (2D 와 같다)
   function copyText(text) {
@@ -2691,9 +2757,19 @@
   $("clear-temp").addEventListener("click", clearDrawn);
   $("save-temp").addEventListener("click", saveTemp);
   document.addEventListener("keydown", function (e) {
-    if (e.key !== "Escape" || /INPUT|TEXTAREA|SELECT/.test(document.activeElement.tagName)) return;
-    if (drawing()) cancelSketch();
-    else if (tool) setTool("");
+    var t = document.activeElement;
+    if (t && (t.isContentEditable || /INPUT|TEXTAREA|SELECT/.test(t.tagName))) return;
+    if (e.key === "Escape") {
+      if (sketchOn()) drawAct("cancel");
+      else if (drawing()) cancelSketch();
+      else if (tool) setTool("");
+      return;
+    }
+    // 재는 동안 Enter 는 끝내기, Backspace 는 한 점 무르기 — 단추에 손이 있으면 단추의 것이다 (지역 지도와 같다, wetherilli 451)
+    var what = { Enter: "done", Backspace: "undo" }[e.key];
+    if (!what || !sketchOn() || (t && t.tagName === "BUTTON")) return;
+    e.preventDefault();
+    drawAct(what);
   });
   renderTemp();
 
