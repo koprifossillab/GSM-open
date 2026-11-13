@@ -364,6 +364,9 @@ OCEAN_DIR = env("GSM_OCEAN_DIR") or str(_data_dir() / "ocean")
 BACKUP_STATUS_FILE = env("GSM_BACKUP_STATUS") or str(_data_dir() / "backup_status.json")
 #: 매시 받기(`deploy/scripts/hourly.sh`)가 일마다 적는 결과. `/healthz/` 가 읽는다 (koprifossillab 013)
 HOURLY_STATUS_FILE = env("GSM_HOURLY_STATUS") or str(_data_dir() / "hourly_status.json")
+#: 이 인스턴스가 매시 받기(`hourly.sh`)를 돌리는가 — 다른 인스턴스가 받아 둔 것을 읽기만 하는 차림(덧붙이 ASM)은 `GSM_NO_HOURLY=1` 로 끈다.
+#: 끄면 healthz 가 제 것이 아닌 cron 의 기록을 찾지 않는다. 받아 둔 것의 나이는 그대로 본다 — 읽는 쪽에도 낡은 것은 낡은 것이다 (wetherilli 452)
+HOURLY_HERE = env("GSM_NO_HOURLY") not in ("1", "true", "yes")
 #: 화성 옛 지질도(068)의 단위 색·구조선 모양 — 저장소에 담는다
 MARS_ORIGINAL_STYLES_FILE = BASE_DIR.parent / "data" / "mars_original_styles.json"
 #: 연구실의 phyloserver — 암맥 기록 (`viewer/phyloserver.py`, devlog 026). 열쇠가 없다.

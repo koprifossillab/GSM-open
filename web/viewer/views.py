@@ -200,7 +200,8 @@ def _hourly_notes() -> tuple:
     """매시 받기의 기록과 받아 둔 것의 나이를 읽어 (그 내용, 걸리는 것들) 을 낸다. 읽기만 한다."""
     notes, info = [], {}
     try:
-        status = json.loads(Path(settings.HOURLY_STATUS_FILE).read_text(encoding="utf-8"))
+        # 매시 받기를 돌리지 않는 인스턴스(`GSM_NO_HOURLY`)는 그 기록을 찾지 않는다 — 없는 것이 고장이 아니다 (wetherilli 452)
+        status = json.loads(Path(settings.HOURLY_STATUS_FILE).read_text(encoding="utf-8")) if settings.HOURLY_HERE else None
     except FileNotFoundError:
         status = None
         notes.append("매시 받기의 기록이 없다 — hourly.sh 가 아직 돌지 않았다")

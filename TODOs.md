@@ -139,7 +139,6 @@
 
 ## 지켜볼 것·막힌 것
 
-- [ ] 휴대폰 화면 시험 `test_소개는_휴대폰에서도_언어를_바꾼다` 가 가끔 깨진다 — 언어 단추를 누른 뒤 페이지가 넘어가는 순간에 `page.evaluate` 를 불러 "Execution context was destroyed". v1.6.2 의 태그 CI 에서 한 번(PR·main 은 통과, 그 job 만 다시 돌려 통과). 넘어가기를 기다린 뒤 읽게 고친다 (2026-11-12)
 되살아나거나 바뀌면 그때 한다.
 
 - [ ] **(사람) 운영 compose 에 한 줄** — `/srv/GSM/docker-compose.yml` 의 `extra_hosts` 에 `- "rock.kopri.re.kr:203.250.179.26"` 를 더하고 `docker compose up -d web`.

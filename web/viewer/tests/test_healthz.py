@@ -124,6 +124,17 @@ class 헬스(TestCase):
         self.assertEqual(body["status"], "degraded")
         self.assertTrue(any("hourly.sh" in n for n in body["notes"]))
 
+    def test_매시_받기를_돌리지_않는_차림은_그_기록을_찾지_않는다(self):
+        """`GSM_NO_HOURLY` — 다른 인스턴스가 받아 둔 것을 읽기만 하는 차림(덧붙이). 기록이 없는 것이 고장이 아니다. 받아 둔 것의 나이는 그대로 본다 (wetherilli 452)"""
+        self._layer()
+        _record(self.status)
+        self.hourly.unlink()
+        with override_settings(HOURLY_HERE=False):
+            _, body = self.get()
+        self.assertEqual(body["status"], "ok", body["notes"])
+        self.assertNotIn("at", body["hourly"])
+        self.assertIn("fresh", body["hourly"])
+
     def test_매시_받기가_멈추면_degraded(self):
         self._layer()
         _record(self.status)

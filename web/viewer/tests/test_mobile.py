@@ -433,10 +433,11 @@ class PhoneScreenTests(PhoneBase):
         other = page.locator('.langs button[data-lang="en"]:visible')
         self.assertEqual(other.count(), 1, "휴대폰에서 언어를 바꿀 단추가 보이지 않는다")
         other.scroll_into_view_if_needed()
-        other.tap()
-        page.wait_for_load_state("load")
-        page.wait_for_timeout(500)
-        self.assertEqual(page.evaluate("document.documentElement.lang"), "en")
+        # 누르면 페이지가 다시 실린다. `wait_for_load_state("load")` 는 넘어가기가 **시작되기 전**의 옛 페이지에서 곧장 돌아와, 그 뒤의 `evaluate` 가
+        # 넘어가는 순간에 걸려 "Execution context was destroyed" 로 가끔 깨졌다 — 넘어가기를 기다리고, 새 페이지의 언어를 기다린다 (wetherilli 452)
+        with page.expect_navigation(wait_until="load"):
+            other.tap()
+        page.wait_for_function("document.documentElement.lang === 'en'", timeout=10000)
         self.assertEqual(page.locator('.langs button[data-lang="ko"]:visible').count(), 1, "영어판에서 한국어로 돌아올 단추가 없다")
         self.assertFits(self.measure(page), "intro en")
         self.assertEqual(errors, [])

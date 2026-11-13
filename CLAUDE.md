@@ -715,6 +715,7 @@ VWorld 배경지도(WMTS)만은 문을 거치지 않고 브라우저가 곧장 �
 | `GSM_REGIONS` | 차림 — 세울 지역 탭만. 한국이 빠지면 첫 지역이 처음 화면이다 |
 | `GSM_HIDE_SCREENS` | 차림 — 숨길 따로 화면(`earth`·`moon`·`mars`·`mercury`). 링크가 빠지고 주소는 404 |
 | `GSM_SIBLINGS` | 형제 화면의 입구(`ASM=/ASM/`) — 아이콘의 숨은 차림에. `GSM_PUBLIC` 이면 세우지 않는다 |
+| `GSM_NO_HOURLY` | 이 인스턴스는 매시 받기(`hourly.sh`)를 돌리지 않는다 — healthz 가 그 기록을 찾지 않는다. 받아 둔 것의 나이는 그대로 본다 (wetherilli 452) |
 
 - **다 비우면 GSM 은 전과 한 글자도 다르지 않다.** 운영 GSM 은 비워 둔다(입구가 필요하면 `GSM_SIBLINGS` 만)
 - **연 것은 약속이다** — 덧붙이가 기대는 것은 `addons.py` 의 표와 `doors.py`·`polargrid.py` 의 꼴, 화면의 `GSMScreen` 뿐이다. 이음매를 고치면
