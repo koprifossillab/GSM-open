@@ -49,9 +49,18 @@ def load():
         return None
 
 
+@functools.lru_cache(maxsize=1)
+def _ages(mtime) -> list:
+    """시점만 뽑고 고리는 버린다 — 화면이 시간 축을 그리려고 물을 때 9 MB 의 고리를 붙들지 않게 (wetherilli 458). 타일을 그릴 때는 `load()` 가 읽는다"""
+    with open(path(), encoding="utf-8") as fh:
+        return sorted(float(k) for k in json.load(fh)["rings"])
+
+
 def ages() -> list:
-    data = load()
-    return data["ages"] if data else []
+    try:
+        return _ages(path().stat().st_mtime)
+    except FileNotFoundError:
+        return []
 
 
 def stop(age: float):

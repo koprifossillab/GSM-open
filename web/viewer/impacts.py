@@ -17,6 +17,7 @@
 그리는 법을 고치면 `RENDERER` 를 올린다.
 """
 import functools
+import os
 import io
 import json
 import math
@@ -149,7 +150,8 @@ def data():
 
 
 def available() -> bool:
-    return data() is not None
+    """파일이 있는가 — **읽지 않고** 본다. 화면(온 지구)이 레이어를 세울지 물을 때마다 자료를 통째로 올리지 않게 (wetherilli 458)"""
+    return os.path.isfile(settings.IMPACTS_FILE)
 
 
 def _hex(value: str, alpha: int = 255) -> tuple:

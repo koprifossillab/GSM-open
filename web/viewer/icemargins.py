@@ -8,6 +8,7 @@
 - 연대 측정을 모아 그린 복원이다. 두 묶음은 최소·최대 가장자리도 주지만 한 선만 그린다 — 그 폭은 devlog 104 에 적었다
 """
 import functools
+import os
 import io
 import json
 
@@ -31,10 +32,24 @@ def data():
         return None
 
 
+@functools.lru_cache(maxsize=1)
+def _stops(stamp) -> dict:
+    """연대만 뽑고 조각은 버린다 — 화면이 띠를 그리려고 물을 때 6 MB 의 조각을 붙들지 않게 (wetherilli 458). 타일을 그릴 때는 `data()` 가 읽는다"""
+    try:
+        with open(settings.ICE_MARGINS_FILE, encoding="utf-8") as fh:
+            d = json.load(fh)
+    except FileNotFoundError:
+        d = {}
+    return {k: sorted(float(a) for a in d.get(k, {})) for k in ("nadi", "dated")}
+
+
 def stops() -> dict:
     """묶음마다 조각의 연대(ka) — 화면의 띠·캡션이 쓴다."""
-    d = data() or {}
-    return {k: sorted(float(a) for a in d.get(k, {})) for k in ("nadi", "dated")}
+    try:
+        stamp = os.stat(settings.ICE_MARGINS_FILE).st_mtime
+    except OSError:
+        stamp = None
+    return _stops(stamp)
 
 
 def pick(ka: float) -> dict:
