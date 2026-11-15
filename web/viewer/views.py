@@ -3342,7 +3342,7 @@ def _geo_tiles(layer) -> str | None:
         return f"geo/{gernontopo.UPSTREAM}/{{age}}/{{z}}/{{x}}/{{y}}.png"
     if layer.upstream == "geomap" and name in geomap.LAYERS:
         path = f"geomap/{name}"
-    elif name in (ibcso.TID_LAYER, admap.NAME) or name in POLAR_SETS:
+    elif name in (ibcso.TID_LAYER, admap.NAME, ITSLIVE_SOUTH) or name in POLAR_SETS:
         path = name.replace(":", "/")
     else:
         return None
@@ -4526,6 +4526,10 @@ GEOMAP_NORTH = -60.0
 IBCSO_WARP_ZOOMS = (2, 17)
 
 
+#: 펼 수 있는 빙하 유속 — 남극 판(3031)뿐이다 (wetherilli 457)
+ITSLIVE_SOUTH = "itslive:antarctica"
+
+
 #: 남극 고지형 3D(Cesium)의 경위도 타일 줌 — 줌 0 이 반구다 (wetherilli 443)
 GEO_WARP_ZOOMS = (0, 12)
 
@@ -4591,6 +4595,13 @@ def warp_tile(request, upstream, layer, z, x, y, retina=None, scheme="3857"):
         if not spec.available():
             return _tile(tiles.notice_tile(size, size, _polar_notice(spec)), store=False)
         grid = warp.polar_grid(spec.read_tile, spec.max_zoom, spec.valid_tile)
+    elif name == ITSLIVE_SOUTH:
+        # 남극 빙하 유속 ITS_LIVE(wetherilli 433) — 칠해 둔 3031 타일(GIBS 극지 격자)을 편다. 북반구 판(3413)은 펴지 않는다 (wetherilli 457)
+        if south > GEOMAP_NORTH:
+            return _tile(tiles.blank_tile(size, size))
+        if not itslive.available("antarctica"):
+            return _tile(tiles.notice_tile(size, size, tiles.NO_DATA), store=False)
+        grid = warp.itslive_grid("antarctica")
     elif upstream == "ibcso" and name in ibcso.SHEETS:
         if south > elevation.IBCSO_NORTH:
             return _tile(tiles.blank_tile(size, size))
@@ -4636,6 +4647,8 @@ def _warp_key(name, upstream, z, x, y, size, scheme="3857"):
         version = _dir_version(admap.tiles_dir())
     elif name in POLAR_SETS:
         version = _dir_version(POLAR_SETS[name].tiles_dir())
+    elif name == ITSLIVE_SOUTH:
+        version = _dir_version(itslive.tiles_dir("antarctica"))
     else:
         return None
     if not version:

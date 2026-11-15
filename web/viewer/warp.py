@@ -270,6 +270,16 @@ def polar_grid(fetch_tile, max_zoom: int, valid) -> Grid:
                 fetch=fetch_tile, size=geomap.TILE, valid=valid, north=-48.0)
 
 
+def itslive_grid(region: str) -> Grid:
+    """남극 빙하 유속 ITS_LIVE(wetherilli 433) — 우리가 칠해 둔 3031 타일. 격자는 GIBS 극지 격자(512 px, 줌 0 이 2×2 장)다 (wetherilli 457)"""
+    from . import itslive
+    return Grid(levels=range(itslive.MAX_ZOOM + 1), res=itslive.resolution,
+                origin=lambda level: (-itslive.ORIGIN, itslive.ORIGIN),
+                project=lambda lat, lon: geomap.lonlat_to_3031(lon, lat),
+                fetch=lambda level, x, y: itslive.read_tile(region, level, x, y), size=itslive.TILE,
+                valid=lambda level, x, y: itslive.valid_tile(level, x, y), north=-48.0)
+
+
 def ibcso_grid(sheet) -> Grid:
     """남극 해저·빙저 지형 IBCSO(047·051) 의 3D 배경 — 원본의 9354 격자 그대로 잘라 둔 WebP."""
     from . import ibcso

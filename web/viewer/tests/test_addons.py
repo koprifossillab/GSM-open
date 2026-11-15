@@ -131,6 +131,8 @@ class Seams(TestCase):
             self.assertEqual(rows["geomap_simple_geology"]["geo"], "geo/geomap/geomap_simple_geology/{z}/{x}/{y}.png")
             self.assertNotIn("geo", rows["L_250K_Geology_Map"])
             self.assertEqual(rows["gernontopo:paleotopo"]["geo"], "geo/gernontopo/{age}/{z}/{x}/{y}.png")
+            self.assertEqual(rows["itslive:antarctica"]["geo"], "geo/itslive/antarctica/{z}/{x}/{y}.png")
+            self.assertNotIn("geo", rows["itslive:greenland"])
             # 구운 것이 없으면 안내 타일 — 404 가 아니다
             self.assertEqual(self.client.get("/GSM/polargrid/fakeaddon/bed/0/0/0.webp").status_code, 200)
             self.assertEqual(self.client.get("/GSM/polargrid/fakeaddon/bed/3/0/0.webp").status_code, 404)
@@ -142,6 +144,21 @@ class Seams(TestCase):
             self.assertEqual(self.client.get("/GSM/geo/fakeaddon/bed/2/3/3.png").status_code, 200)      # 구운 것이 없으면 안내 타일
             self.assertEqual(self.client.get("/GSM/warp/fakeaddon/bed/5/16/27.png").status_code, 200)
             self.assertEqual(self.client.get("/GSM/geo/fakeaddon/bed/2/3/0.png").status_code, 200)      # 남위 60° 북쪽 — 빈 타일
+        # 남극 빙하 유속(GIBS 극지 격자, 512 px)도 구의 격자로 편다 — 북반구 판은 펴지 않는다 (wetherilli 457)
+        import io
+        from PIL import Image
+        from viewer import itslive
+        red = io.BytesIO()
+        Image.new("RGBA", (512, 512), (255, 0, 0, 255)).save(red, "WEBP")
+        with mock.patch.object(itslive, "available", return_value=True), \
+                mock.patch.object(itslive, "read_tile", return_value=red.getvalue()), \
+                mock.patch.object(views, "_dir_version", return_value=""):
+            got = self.client.get("/GSM/geo/itslive/antarctica/3/5/7.png")
+            self.assertEqual(got.status_code, 200)
+            r, g, b, a = Image.open(io.BytesIO(got.content)).convert("RGBA").getpixel((128, 200))
+            self.assertGreater(r, 200)
+            self.assertGreater(a, 200)
+        self.assertEqual(self.client.get("/GSM/geo/itslive/greenland/3/5/1.png").status_code, 404)
         # 모르는 상류는 없는 주소다 — 길을 넓혔다고 아무 이름이나 받지 않는다
         self.assertEqual(self.client.get("/GSM/geo/nosuch/bed/2/3/3.png").status_code, 404)
         self.assertEqual(self.client.get("/GSM/warp/nosuch/bed/5/16/27.png").status_code, 404)
