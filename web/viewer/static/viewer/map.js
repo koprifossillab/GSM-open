@@ -704,7 +704,19 @@
   // 기억하지 않는다 — 어제 고른 날이 내일도 남아 있으면 "어제" 가 아니다
   var gibsDay = SHARED && /^\d{4}-\d{2}-\d{2}$/.test(SHARED.d || "") ? SHARED.d : null;
   // 다른 화면에 담긴 지도(wetherilli 395)는 링크가 없어도 덧층에만 쓴다 — 감싼 쪽이 지도를 옮길 때마다 그 사람의 자리·레이어 기억을 덮는다
+  // **넘겨받은 자리**(`&keep=1`, wetherilli 456) — 같은 사이트의 다른 보기(덧붙이의 입체 화면 따위)가 보던 자리·레이어를 넘기며 돌아온 것이다.
+  // 공유 링크가 아니라 그 사람이 하던 일의 이어짐이라 기억에 적고 띠를 띄우지 않는다. **같은 사이트에서 건너온 것만** 그렇게 받는다 —
+  // 남이 보낸 링크에 `keep` 이 붙어 있어도 그 사람의 기억을 덮지 못한다(바깥에서 열면 여느 공유 링크다)
+  if (SHARED && SHARED.keep === "1" && window.parent === window && cameFromHere()) {
+    var handed = sharedSeed(SHARED);
+    Object.keys(handed).forEach(function (k) { try { localStorage.setItem(k, handed[k]); } catch (e) { /* 사생활 모드 */ } });
+    SHARED = null;
+  }
   var STATE = window.GSMShare ? GSMShare.store((SHARED && sharedSeed(SHARED)) || (window.parent !== window ? {} : null)) : null;
+  /** 이 화면을 연 앞 화면이 같은 사이트인가 — 넘겨받은 자리를 믿을지 가른다 */
+  function cameFromHere() {
+    try { return !!document.referrer && new URL(document.referrer).origin === location.origin; } catch (e) { return false; }
+  }
   /** 넘겨받은 임시 레이어의 주소와 이름 (wetherilli 392). 같은 nginx 아래의 형제 앱(Cropobite 따위)이 `#ext=/앱/….geojson&extname=앱`
    *  으로 제 점을 넘긴다. **같은 사이트의 경로만** 받는다 — 남의 주소(`//`·`http:`)를 받으면 아무 자료나 이 지도에 얹힌다.
    *  정적 판(Pages)에는 같은 사이트의 앱이 없어 받지 않는다 */
@@ -739,6 +751,8 @@
     }
     seed[key("gsm.layers")] = JSON.stringify(GSMShare.layers(q.l));
     if (q.b) seed[key("gsm.basemap")] = q.b;
+    // 연대 막대의 연대(`a`, wetherilli 456) — 우리 "링크" 단추는 싣지 않지만(439), 다른 보기가 넘기면 받는다
+    if (isFinite(+q.a) && +q.a > 0) seed["gsm.paleoage"] = String(+q.a);
     return seed;
   }
   function stored(key) {
@@ -4631,6 +4645,8 @@
     view: function () {
       var view = map.getView(), ll = toLL(view.getCenter());
       return { lon: ll[0], lat: ll[1], zoom: view.getZoom(), mercZoom: mercZoom(view.getResolution()),
+               // 연대 막대가 떠 있을 때만 그 연대 — 아니면 null (wetherilli 456)
+               age: timedAges().length ? paleoAgeNow() : null,
                layers: active.filter(function (e) { return e.layer.getVisible(); })
                              .map(function (e) { return { name: e.name, opacity: e.layer.getOpacity() }; }) };
     },

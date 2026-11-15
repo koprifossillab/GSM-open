@@ -125,6 +125,12 @@ class Seams(TestCase):
             self.assertTrue(row["tiles"].startswith("polargrid/fakeaddon/bed/{z}/{x}/{y}.webp"))
             self.assertEqual((row["projection"], row["maxZoom"], row["verified"]), ("EPSG:3031", 2, True))
             self.assertEqual(row["classLegend"]["attribution"], "Fake addon")
+            # 구의 격자로 펼 수 있는 레이어는 행이 그 주소를 적는다 — 입체 화면이 상류 이름으로 짐작하지 않는다 (wetherilli 456)
+            self.assertEqual(row["geo"], "geo/fakeaddon/bed/{z}/{x}/{y}.png")
+            rows = {l["name"]: l for g in views._catalog() for l in g["layers"]}
+            self.assertEqual(rows["geomap_simple_geology"]["geo"], "geo/geomap/geomap_simple_geology/{z}/{x}/{y}.png")
+            self.assertNotIn("geo", rows["L_250K_Geology_Map"])
+            self.assertEqual(rows["gernontopo:paleotopo"]["geo"], "geo/gernontopo/{age}/{z}/{x}/{y}.png")
             # 구운 것이 없으면 안내 타일 — 404 가 아니다
             self.assertEqual(self.client.get("/GSM/polargrid/fakeaddon/bed/0/0/0.webp").status_code, 200)
             self.assertEqual(self.client.get("/GSM/polargrid/fakeaddon/bed/3/0/0.webp").status_code, 404)
@@ -288,6 +294,27 @@ class ViewSwitch(PhoneBase):
         page.dispatch_event("#regions a.view-tab", "pointerdown")
         self.assertRegex(page.get_attribute("#regions a.view-tab", "href"), r"^/GSM/x/fake_addon/\?lat=-\d+\.\d\d&layers=\d+$")
         self.assertIsNone(page.query_selector("#tool-3d"))                     # 평면 3D 는 보관했다
+        page.context.close()
+
+    def test_넘겨받은_자리는_기억에_적고_띠를_띄우지_않는다(self):
+        """`&keep=1` — 같은 사이트의 다른 보기에서 돌아온 것이다 (wetherilli 456). 바깥에서 곧장 열면 여느 공유 링크다"""
+        call_command("seed_catalog", stdout=open(os.devnull, "w"))
+        hash_ = "#r=antarctica&c=60.00000,-75.00000&z=3.00&p=3031&l=gernontopo:paleotopo*100&a=60&keep=1"
+        page, errors = self.open("map/" + hash_, 1500, None)                   # 앞 화면이 없다 — 남이 보낸 링크와 같다
+        self.assertEqual(errors, [])
+        self.assertIsNotNone(page.query_selector(".share-notice"))
+        self.assertNotIn("-75", page.evaluate("localStorage.getItem('gsm.view.antarctica') || ''"))
+        # 같은 사이트의 화면에서 건너오면 받는다
+        page.goto(self.live_server_url + "/GSM/?intro=1", wait_until="load")
+        page.evaluate("href => { location.href = href; }", "/GSM/map/" + hash_)
+        page.wait_for_function("() => window.GSMScreen && !document.getElementById('splash')", timeout=15000)
+        self.assertIsNone(page.query_selector(".share-notice"))
+        view = json.loads(page.evaluate("localStorage.getItem('gsm.view.antarctica')"))
+        self.assertEqual((round(view["lon"]), round(view["lat"])), (60, -75))
+        self.assertEqual(page.evaluate("location.hash"), "")
+        # 넘겨받은 연대도 기억에 적고, 연대 막대가 떠 있으면 `view()` 가 그 연대를 낸다
+        self.assertEqual(page.evaluate("localStorage.getItem('gsm.paleoage')"), "60")
+        self.assertEqual(page.evaluate("window.GSMScreen.view().age"), 60)
         page.context.close()
 
     def test_극지에서_가운데를_투영_범위_끝까지_끈다(self):

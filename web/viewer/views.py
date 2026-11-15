@@ -3332,8 +3332,28 @@ SLOW_FLOOR = {
 }
 
 
+def _geo_tiles(layer) -> str | None:
+    """이 레이어를 Cesium 의 경위도 격자로 편 타일의 주소(`geo/…`), 펼 수 없으면 None. 표는 `warp_tile` 의 갈래와 같다 —
+    극지 격자로 우리가 굽는 것(GeoMAP·IBCSO 자료 출처·ADMAP·`polargrid` 의 판, 덧붙이의 것까지). 구 화면(덧붙이의 입체 화면 따위)이
+    상류 이름으로 짐작하지 않게 행에 적는다 (wetherilli 456)"""
+    name = layer.name
+    if name == gernontopo.LAYER:
+        # 연대를 고르는 고지형 — 타일 주소(`tiles`)처럼 `{age}` 를 화면이 바꿔 끼운다
+        return f"geo/{gernontopo.UPSTREAM}/{{age}}/{{z}}/{{x}}/{{y}}.png"
+    if layer.upstream == "geomap" and name in geomap.LAYERS:
+        path = f"geomap/{name}"
+    elif name in (ibcso.TID_LAYER, admap.NAME) or name in POLAR_SETS:
+        path = name.replace(":", "/")
+    else:
+        return None
+    return None if _lab_only(name) else f"geo/{path}/{{z}}/{{x}}/{{y}}.png"
+
+
 def _layer_extra(layer, lang: str = "ko") -> dict:
     extra = _layer_extra_base(layer, lang)
+    geo = _geo_tiles(layer)
+    if geo:
+        extra = dict(extra, geo=geo)
     floor = max(SCALE_FLOOR.get(layer.name) or 0, SLOW_FLOOR.get(layer.name) or 0) or None
     if floor and (extra.get("minZoom") or 0) < floor:
         extra = dict(extra, minZoom=floor)
