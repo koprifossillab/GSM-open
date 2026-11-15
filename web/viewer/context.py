@@ -8,4 +8,5 @@ from . import addons
 def profile(request) -> dict:
     from . import i18n
     return {"hide": {name: True for name in settings.HIDDEN_SCREENS}, "siblings": settings.SIBLINGS,
+            "shelved": {name: True for name in settings.SHELVED_SCREENS},
             "addon_assets": addons.screen_assets(), "brand": addons.brand(i18n.lang_of(request))}

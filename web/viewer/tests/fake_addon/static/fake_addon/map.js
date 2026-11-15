@@ -19,5 +19,9 @@
     p.textContent = "가짜 덧붙이의 줄";
     return p;
   });
+  // 보기 전환 (wetherilli 455) — 지역이 하나뿐인 차림에서만 선다. 둘째는 누르는 순간의 자리를 싣는다
+  window.fakeAddon.views = S.views([{ label: "가짜 평면", on: true },
+                                    { label: "가짜 입체", href: function (v) {
+                                        return S.base + "x/fake_addon/?lat=" + v.lat.toFixed(2) + "&layers=" + v.layers.length; } }]);
   window.fakeAddon.ready = { base: S.base, region: S.region(), length: S.asLength(1500), text: S.T("가짜 덧붙이의 문장") };
 })();

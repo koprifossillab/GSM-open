@@ -1588,6 +1588,8 @@ button.proplink { font-family: inherit; line-height: inherit; cursor: pointer; }
 
 /* ── 지역 탭 ── */
 .regions { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin: 0 16px 10px; }
+/* 덧붙이의 보기 전환(`GSMScreen.views`, wetherilli 455) — 지역 탭과 같은 꼴, 링크인 것만 밑줄을 뗀다 */
+a.region-tab.view-tab { text-decoration: none; display: inline-flex; align-items: center; }
 .region-tab { position: relative; padding: 5px 12px; font: inherit; font-size: 12.5px; color: var(--ink-soft);
               background: var(--panel-tint); border: 1px solid var(--line); border-radius: 999px; cursor: pointer; }
 .region-tab.on { color: var(--on-hi); background: var(--hi); border-color: var(--hi); font-weight: 600; }

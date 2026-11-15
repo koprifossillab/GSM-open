@@ -130,6 +130,16 @@ class Seams(TestCase):
             self.assertEqual(self.client.get("/GSM/polargrid/fakeaddon/bed/3/0/0.webp").status_code, 404)
             self.assertEqual(self.client.get(f"/GSM/polargrid/info/?layer={LAYER}&lat=-75&lon=0").json(), {"features": []})
 
+    def test_격자를_3D_와_구의_격자로도_편다(self):
+        """덧붙이의 `SETS` 는 `warp/`(3857)·`geo/`(Cesium 의 경위도 격자)로도 펴진다 — 덧붙이가 제 입체 화면에 제 격자를 입힌다 (wetherilli 455)"""
+        with mock.patch.dict(views.POLAR_SETS, doors.polar_sets()):
+            self.assertEqual(self.client.get("/GSM/geo/fakeaddon/bed/2/3/3.png").status_code, 200)      # 구운 것이 없으면 안내 타일
+            self.assertEqual(self.client.get("/GSM/warp/fakeaddon/bed/5/16/27.png").status_code, 200)
+            self.assertEqual(self.client.get("/GSM/geo/fakeaddon/bed/2/3/0.png").status_code, 200)      # 남위 60° 북쪽 — 빈 타일
+        # 모르는 상류는 없는 주소다 — 길을 넓혔다고 아무 이름이나 받지 않는다
+        self.assertEqual(self.client.get("/GSM/geo/nosuch/bed/2/3/3.png").status_code, 404)
+        self.assertEqual(self.client.get("/GSM/warp/nosuch/bed/5/16/27.png").status_code, 404)
+
     def test_함께_낼_판은_누른_자리에_같이_뜬다(self):
         """`Set.along` — 바닥을 누르면 두께도. 값이 없는 판은 그 줄만 빠진다 (wetherilli 447)"""
         import dataclasses
@@ -226,6 +236,14 @@ class Profile(TestCase):
         self.assertEqual(self.client.get("/GSM/mercury/").status_code, 404)
         self.assertEqual(self.client.get("/GSM/earth/").status_code, 200)
 
+    @override_settings(SHELVED_SCREENS=("flat3d",))
+    def test_보관한_화면은_링크만_빠지고_주소는_산다(self):
+        self.assertNotIn('id="tool-3d"', self.client.get("/GSM/map/").content.decode())
+        self.assertEqual(self.client.get("/GSM/3d/").status_code, 200)
+
+    def test_보관하지_않으면_3D_단추가_있다(self):
+        self.assertIn('id="tool-3d"', self.client.get("/GSM/map/").content.decode())
+
     @override_settings(SIBLINGS=({"name": "ASM", "url": "/ASM/"},))
     def test_형제_화면의_입구가_숨은_차림에_선다(self):
         html = self.client.get("/GSM/map/").content.decode()
@@ -254,6 +272,45 @@ class ProfileScreen(PhoneBase):
         page.context.close()
 
 
+@override_settings(ADDONS=(FAKE,), ONLY_REGIONS=("antarctica",), SHELVED_SCREENS=("flat3d",),
+                   STATICFILES_DIRS=[*settings.STATICFILES_DIRS, Path(__file__).parent / "fake_addon" / "static"])
+class ViewSwitch(PhoneBase):
+    """보기 전환 — 지역이 하나뿐인 차림에서 지역 탭 자리에 덧붙이의 보기가 선다 (`GSMScreen.views`, wetherilli 455)"""
+
+    def test_지역_탭_자리에_덧붙이의_보기가_선다(self):
+        call_command("seed_catalog", stdout=open(os.devnull, "w"))
+        page = self.check_map_screen("map/")
+        page.wait_for_function("() => window.fakeAddon && window.fakeAddon.ready")
+        self.assertTrue(page.evaluate("window.fakeAddon.views"))
+        self.assertEqual(page.eval_on_selector_all("#regions .region-tab", "els => els.map(e => e.textContent)"), ["가짜 평면", "가짜 입체"])
+        self.assertEqual(page.eval_on_selector_all("#regions .region-tab.on", "els => els.map(e => e.tagName)"), ["BUTTON"])
+        # 둘째는 링크다 — 짚는 순간의 자리를 싣는다
+        page.dispatch_event("#regions a.view-tab", "pointerdown")
+        self.assertRegex(page.get_attribute("#regions a.view-tab", "href"), r"^/GSM/x/fake_addon/\?lat=-\d+\.\d\d&layers=\d+$")
+        self.assertIsNone(page.query_selector("#tool-3d"))                     # 평면 3D 는 보관했다
+        page.context.close()
+
+    def test_극지에서_가운데를_투영_범위_끝까지_끈다(self):
+        """보이는 네모가 아니라 가운데만 가둔다 (wetherilli 454) — 전에는 넓게 볼 때 끌 자리가 없었다"""
+        call_command("seed_catalog", stdout=open(os.devnull, "w"))
+        page = self.check_map_screen("map/")
+        page.wait_for_function("() => window.GSMScreen && !document.getElementById('splash')", timeout=15000)
+        box = page.locator("#map").bounding_box()
+        cx, cy = box["x"] + box["width"] / 2, box["y"] + box["height"] / 2
+        start = page.evaluate("window.GSMScreen.view()")
+        for _ in range(8):
+            page.mouse.move(cx, cy - 150)
+            page.mouse.down()
+            page.mouse.move(cx, cy, steps=5)
+            page.mouse.move(cx, cy + 150, steps=5)
+            page.mouse.up()
+            page.wait_for_timeout(350)
+        end = page.evaluate("window.GSMScreen.view()")
+        self.assertLess(start["lat"], -80, start)
+        self.assertGreater(end["lat"], -62, end)                               # 3031 의 범위 끝은 남위 52° 쯤이다
+        page.context.close()
+
+
 @override_settings(ADDONS=(FAKE,), STATICFILES_DIRS=[*settings.STATICFILES_DIRS, Path(__file__).parent / "fake_addon" / "static"])
 class ScreenSeam(PhoneBase):
     """화면 이음매 — 덧붙이의 `map.js` 가 `GSMScreen` 으로 단추를 달고 다 잰 선을 받는다 (wetherilli 447).
@@ -271,6 +328,14 @@ class ScreenSeam(PhoneBase):
             page.mouse.click(x, y)
             page.wait_for_timeout(450)
         page.wait_for_timeout(400)
+
+    def test_지역이_여럿이면_보기_전환은_서지_않는다(self):
+        page = self.check_map_screen("map/")
+        page.wait_for_function("() => window.fakeAddon && window.fakeAddon.ready")
+        self.assertFalse(page.evaluate("window.fakeAddon.views"))
+        self.assertEqual(page.evaluate("document.querySelectorAll('#regions .view-tab').length"), 0)
+        self.assertGreater(page.evaluate("document.querySelectorAll('#regions .region-tab').length"), 1)
+        page.context.close()
 
     def test_단추가_도구_줄에_서고_잰_선이_넘어온다(self):
         page, errors = self.open("map/?region=antarctica")

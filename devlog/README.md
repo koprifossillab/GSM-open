@@ -521,6 +521,8 @@
 | wetherilli 451 | 2026-11-13 | [구 화면에도 재는 것을 끝내는 단추 — 지역 지도와 같은 셋](20261113_wetherilli_451_globe_measure_finish_buttons.md) |
 | wetherilli 452 | 2026-11-13 | [healthz — 매시 받기를 돌리지 않는 차림은 그 기록을 찾지 않는다, 그리고 가끔 깨지던 휴대폰 시험](20261113_wetherilli_452_health_hourly_switch.md) |
 | wetherilli 453 | 2026-11-13 | [덧붙이의 얼굴 — 이름·아이콘·대기 화면을 차림이 바꾼다](20261113_wetherilli_453_addon_brand.md) |
+| wetherilli 454 | 2026-11-15 | [극지 지도 — 가운데만 가둔다, 끌 수 있는 범위를 넓힌다](20261115_wetherilli_454_polar_pan_range.md) |
+| wetherilli 455 | 2026-11-15 | [덧붙이의 보기 전환 — 지역 탭 자리, 평면 3D 보관, 구에 입힐 격자](20261115_wetherilli_455_addon_view_switch.md) |
 | koprifossillab P01 | 2026-09-30 | [백업 — WegenersDream 의 틀로, 바뀌는 빠르기에 따라 넷으로 (계획)](20260930_koprifossillab_P01_backup_plan.md) |
 | koprifossillab 001 | 2026-09-30 | [매주 월요일 새벽: 운영 자료 백업과 KPDC 목록 갱신](20260930_koprifossillab_001_weekly_backup.md) |
 | koprifossillab 002 | 2026-09-30 | [`/healthz/` — 판·DB·백업 상태를 한 장으로](20260930_koprifossillab_002_healthz.md) |

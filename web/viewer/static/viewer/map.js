@@ -2469,7 +2469,9 @@
       // OL 의 나침반(`rotate`)은 끈다 — 돌린 지도는 "자세" 묶음의 방위 단추가 되돌린다 (wetherilli 114)
       controls: ol.control.defaults.defaults({ attributionOptions: { collapsible: true }, rotate: false })
         .extend([
-          new ol.control.ScaleLine({ target: document.getElementById("scalebar"), bar: true, steps: 2, text: true, minWidth: 130 }),
+          // 좁은 화면에서는 막대를 짧게 — 막대는 `minWidth` 의 2.6 배까지 길어져 투영·줌 번호표와 한 줄에 들지 않았다 (wetherilli 454)
+          new ol.control.ScaleLine({ target: document.getElementById("scalebar"), bar: true, steps: 2, text: true,
+                                     minWidth: window.matchMedia("(max-width: 760px)").matches ? 90 : 130 }),
         ]),
     });
 
@@ -2737,8 +2739,9 @@
         maxZoom: 19,
       });
     }
-    // 극지. 투영 범위 밖으로 끌려 나가지 않게 가둔다. 줌 0 이 투영 범위
-    // 한 장이라, 남극은 화면의 줌이 GeoMAP 타일의 줌과 같다
+    // 극지. 줌 0 이 투영 범위 한 장이라, 남극은 화면의 줌이 GeoMAP 타일의 줌과 같다.
+    // **가운데만 투영 범위 안에 가둔다**(wetherilli 454) — 보이는 네모를 통째로 가두면 넓게 볼 때 끌 자리가 없고, 가까이 봐도
+    // 대륙 가장자리를 화면 가운데로 못 데려온다. 온 지구 화면의 극 평면(`earth.js`)과 같은 규칙이다
     return new ol.View({
       projection: code,
       center: [0, 0],
@@ -2746,6 +2749,7 @@
       minZoom: 0,
       maxZoom: 17,
       extent: ol.proj.get(code).getExtent(),
+      constrainOnlyCenter: true,
     });
   }
 
@@ -4381,7 +4385,9 @@
     document.getElementById("tool-export").addEventListener("click", exportPng);
     // 3D 는 한국의 `gsm.view` 만 읽는다. 일본·중국·동아시아 탭에서도 지금 자리를 열게
     // 누르는 순간 주소에 가운데와 줌을 싣는다
-    document.getElementById("tool-3d").addEventListener("click", function () {
+    // 차림이 평면 3D 를 보관했으면(`GSM_SHELVE_SCREENS=flat3d`, wetherilli 455) 단추가 없다
+    var tool3d = document.getElementById("tool-3d");
+    if (tool3d) tool3d.addEventListener("click", function () {
       var view = map.getView();
       var ll = toLL(view.getCenter());
       // 극 평사도법의 줌은 3857 보다 두세 단계 낮게 읽는다 — 되짚은 줌을 넘긴다(`mercZoom`)
@@ -4614,6 +4620,20 @@
     onLineClear: function (fn) { addonHooks.clear.push(fn); },
     onBox: function (fn) { addonHooks.box.push(fn); },
     mark: function (ll) { profileMark(ll || null); },
+    // 보기 전환 (wetherilli 455) — 지역이 하나뿐인 차림에서 지역 탭 자리에 덧붙이의 보기(평면도·입체도 따위)를 세운다.
+    // `[{label, on}, {label, href}]` — `href` 는 주소이거나 `view()` 를 받아 주소를 돌려주는 손. 지역이 여럿이면 세우지 않고 false
+    views: function (items) {
+      addonViews = items || null;
+      renderRegions();
+      return !!addonViews && Object.keys(REGIONS).length === 1;
+    },
+    // 지금 보는 자리 — 읽기만. 덧붙이의 화면으로 넘어갈 때 자리와 켠 레이어를 싣게
+    view: function () {
+      var view = map.getView(), ll = toLL(view.getCenter());
+      return { lon: ll[0], lat: ll[1], zoom: view.getZoom(), mercZoom: mercZoom(view.getResolution()),
+               layers: active.filter(function (e) { return e.layer.getVisible(); })
+                             .map(function (e) { return { name: e.name, opacity: e.layer.getOpacity() }; }) };
+    },
   };
   var profileSeq = 0, profileData = null, profileSource = null, profileBand = null;
   // 지질 띠 (wetherilli 180) — 켠 레이어 가운데 맨 위의, 우리 파일로 그리는 것(`band`)만. 상류뿐인 곳은 띠가 없다
@@ -7595,10 +7615,29 @@
   /** 지역 탭 — 늘 보이는 셋(한국·북극·남극)과, 나머지를 접은 "그 외" 하나 (wetherilli 214).
    *  지역이 서른을 넘어 탭 줄이 몇 줄로 늘어났다. 더한 지역은 "그 외" 의 위 칸에, 아직 안 더한 것은
    *  그 밑의 "+ 추가 지역" 칸에 묶음째 선다. 접힌 지역을 보는 동안에는 "그 외" 단추가 그 지역 이름이 된다 */
-  var foldCloser = false;
+  var foldCloser = false, addonViews = null;
   function renderRegions() {
     var host = document.getElementById("regions");
     host.innerHTML = "";
+    // 지역이 하나뿐이면 탭으로 가를 것이 없다 — 덧붙이가 보기를 주었으면 그 자리에 세운다 (`GSMScreen.views`, wetherilli 455)
+    if (addonViews && Object.keys(REGIONS).length === 1) {
+      addonViews.forEach(function (item) {
+        var tab = document.createElement(item.on ? "button" : "a");
+        if (item.on) tab.type = "button";
+        tab.className = "region-tab view-tab" + (item.on ? " on" : "");
+        tab.textContent = item.label;
+        if (!item.on) {
+          tab.href = typeof item.href === "function" ? "#" : item.href;
+          // 누르는 순간의 자리를 싣는다 — 가운데 단추·새 탭으로 열 때도
+          if (typeof item.href === "function") {
+            var fresh = function () { try { tab.href = item.href(window.GSMScreen.view()); } catch (e) { console.error(e); } };
+            ["pointerdown", "focus", "click"].forEach(function (type) { tab.addEventListener(type, fresh); });
+          }
+        }
+        host.appendChild(tab);
+      });
+      return;
+    }
     var pinned = PINNED.filter(function (k) { return REGIONS[k]; });
     pinned.forEach(function (key) {
       var tab = document.createElement("button");

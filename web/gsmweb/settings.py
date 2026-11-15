@@ -586,6 +586,9 @@ ADDON_DIR = env("GSM_ADDON_DIR") or str(_data_dir() / "addons")
 ONLY_REGIONS = _names("GSM_REGIONS")
 #: 차림 — 숨길 따로 화면(`GSM_HIDE_SCREENS=moon,mars,mercury`). 차림의 링크가 빠지고 그 주소는 404 다
 HIDDEN_SCREENS = tuple(n for n in _names("GSM_HIDE_SCREENS") if n in ("earth", "moon", "mars", "mercury"))
+#: 차림 — 보관할 화면(`GSM_SHELVE_SCREENS=flat3d`). **링크만 빠지고 주소는 산다** — 숨기기(`GSM_HIDE_SCREENS`, 404)와 다르다.
+#: `flat3d` 는 평면 3D(`3d/`, MapLibre) — 덧붙이가 제 입체 화면을 세운 차림이 지도의 3D 단추를 뗀다 (wetherilli 455)
+SHELVED_SCREENS = tuple(n for n in _names("GSM_SHELVE_SCREENS") if n in ("flat3d",))
 #: 형제 화면으로 가는 입구 — `GSM_SIBLINGS="ASM=/ASM/"`. 아이콘의 숨은 차림에 선다. 밖에 연 판에는 세우지 않는다
 SIBLINGS = () if PUBLIC else tuple(
     {"name": name.strip(), "url": url.strip()}

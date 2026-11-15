@@ -201,7 +201,7 @@ urlpatterns = [
     path("ibcso/info/", views.ibcso_info, name="ibcso-info"),
     path("ibcso/depth/", views.ibcso_depth, name="ibcso-depth"),
     # 3D 가 쓰는 것 — 평면 격자(5179·5181·3031) 타일을 3857 로 다시 편다 (warp.py, 040)
-    re_path(r"^warp/(?P<upstream>peninsula|phyloserver|geomap|ibcso|admap|antgg|ghfgrid|gernontopo)/(?P<layer>[\w-]+)/(?P<z>\d{1,2})/(?P<x>\d{1,6})/(?P<y>\d{1,6})(?P<retina>@2x)?\.png$",
+    re_path(r"^warp/(?P<upstream>[a-z][a-z0-9]{1,23})/(?P<layer>[\w-]+)/(?P<z>\d{1,2})/(?P<x>\d{1,6})/(?P<y>\d{1,6})(?P<retina>@2x)?\.png$",
             views.warp_tile, name="warp-tile"),
     # 한반도 지질도 — phyloserver 의 카카오 격자 타일 (phyloserver.py, devlog 026)
     re_path(r"^phyloserver/(?P<layer>[\w-]+)/(?P<level>\d{1,2})/(?P<x>\d{1,5})_(?P<y>\d{1,5})\.png$",
@@ -293,7 +293,7 @@ urlpatterns = [
     # 남극 고지형 3D(Cesium) — 경위도 격자의 65×65 높이와 극지 격자를 경위도로 편 색 (wetherilli 443)
     re_path(r"^paleo3d/dem/(?:(?P<age>\d{2,3})|today)/(?P<z>\d{1,2})/(?P<x>\d{1,6})/(?P<y>\d{1,6})\.png$",
             views.paleo3d_dem, name="paleo3d-dem"),
-    re_path(r"^geo/(?P<upstream>ibcso|gernontopo)/(?P<layer>[\w-]+)/(?P<z>\d{1,2})/(?P<x>\d{1,6})/(?P<y>\d{1,6})\.png$",
+    re_path(r"^geo/(?P<upstream>[a-z][a-z0-9]{1,23})/(?P<layer>[\w-]+)/(?P<z>\d{1,2})/(?P<x>\d{1,6})/(?P<y>\d{1,6})\.png$",
             views.warp_tile, {"scheme": "4326"}, name="geo-tile"),
 
     path("coords/parse/", views.coord_parse, name="coord-parse"),

@@ -391,10 +391,10 @@
         <span>{% t "반입" %}</span>
       </a>
       {% endif %}
-      <a class="tool server-only" id="tool-3d" href="{{ base }}3d/" title="{% t "3D 로 본다 — 지금 보던 자리를 연다" %}">
+      {% if not shelved.flat3d %}<a class="tool server-only" id="tool-3d" href="{{ base }}3d/" title="{% t "3D 로 본다 — 지금 보던 자리를 연다" %}">
         <svg viewBox="0 0 24 24" aria-hidden="true"><path class="stroke" d="M3 18 9 8l4 6 3-4 5 8H3Z"/><path class="stroke" d="M12 4v2M17 5.5l-1 1.6"/></svg>
         <span>3D</span>
-      </a>
+      </a>{% endif %}
       <span class="tool-sep" aria-hidden="true"></span>
       <button type="button" class="tool danger" id="tool-clear" title="{% t "찍은 점과 잰 것을 모두 지운다" %}">
         <svg viewBox="0 0 24 24" aria-hidden="true"><path class="stroke" d="M4.5 7h15M9.5 7V4.5h5V7M6.5 7l1 13h9l1-13M10 11v5M14 11v5"/></svg>

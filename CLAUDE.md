@@ -706,8 +706,8 @@ VWorld 배경지도(WMTS)만은 문을 거치지 않고 브라우저가 곧장 �
 `brand.py` 의 `BRAND` — 차림의 얼굴: 이름·한 줄 소개·아이콘·대기 화면, 적은 열쇠만 바뀐다(wetherilli 453)). GSM 코드를 덧붙이 쪽에 옮겨 적지 않는다.
 
 **화면의 손은 `window.GSMScreen` 하나다**(`map.js`, wetherilli 447) — 도구 줄의 단추(`tool`), 다 잰 선(`onLine` — 손이 `true` 를 돌려주면 높이 그래프를 띄우지 않는다,
-`onLineClear`), 잡은 범위(`onBox` — 요소를 돌려주면 범위 팝업 끝에 붙인다, wetherilli 448), 지도 위의 표시(`mark`), 읽기만 하는 `base`·`T`·`region()`·`asLength`. **연 것은 이것뿐이다** — `map.js` 안의 다른 것에 덧붙이가 기대지 않는다.
-격자의 누른 자리에 다른 판의 값을 같이 내려면 `polargrid.Set.along` 에 그 레이어 이름을 적는다.
+`onLineClear`), 잡은 범위(`onBox` — 요소를 돌려주면 범위 팝업 끝에 붙인다, wetherilli 448), 지도 위의 표시(`mark`), 보기 전환(`views` — 지역이 하나뿐인 차림에서 지역 탭 자리에 덧붙이의 보기가 선다, wetherilli 455), 읽기만 하는 `base`·`T`·`region()`·`asLength`·`view()`(보는 자리와 켠 레이어). **연 것은 이것뿐이다** — `map.js` 안의 다른 것에 덧붙이가 기대지 않는다.
+격자의 누른 자리에 다른 판의 값을 같이 내려면 `polargrid.Set.along` 에 그 레이어 이름을 적는다. 덧붙이의 `SETS` 는 `warp/`(3857)·`geo/`(Cesium 의 경위도 격자)로도 펴진다 — 덧붙이가 제 입체 화면에 입힌다(wetherilli 455).
 
 | 환경변수 | 뜻 |
 |---|---|
@@ -716,6 +716,7 @@ VWorld 배경지도(WMTS)만은 문을 거치지 않고 브라우저가 곧장 �
 | `GSM_REGIONS` | 차림 — 세울 지역 탭만. 한국이 빠지면 첫 지역이 처음 화면이다 |
 | `GSM_HIDE_SCREENS` | 차림 — 숨길 따로 화면(`earth`·`moon`·`mars`·`mercury`). 링크가 빠지고 주소는 404 |
 | `GSM_SIBLINGS` | 형제 화면의 입구(`ASM=/ASM/`) — 아이콘의 숨은 차림에. `GSM_PUBLIC` 이면 세우지 않는다 |
+| `GSM_SHELVE_SCREENS` | 차림 — 보관할 화면(`flat3d` — 평면 3D). 숨기기와 달리 **링크만 빠지고 주소는 산다** (wetherilli 455) |
 | `GSM_NO_HOURLY` | 이 인스턴스는 매시 받기(`hourly.sh`)를 돌리지 않는다 — healthz 가 그 기록을 찾지 않는다. 받아 둔 것의 나이는 그대로 본다 (wetherilli 452) |
 
 - **다 비우면 GSM 은 전과 한 글자도 다르지 않다.** 운영 GSM 은 비워 둔다(입구가 필요하면 `GSM_SIBLINGS` 만)
