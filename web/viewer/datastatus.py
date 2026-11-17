@@ -52,7 +52,9 @@ MANUAL = msg("(손으로 둔다)")
 ITEMS = [
     # 남극
     Item("admap2/meta.json", "ADMAP_DIR", "meta.json", msg("남극 자력 이상 ADMAP-2"), "build_admap"),
+    Item("glacio/antarctic_boundaries.json", "GLACIO_DIR", "antarctic_boundaries.json", msg("남극 접지선·경계 (MEaSUREs)"), "build_antarctic_boundaries"),
     Item("antgg/bouguer/meta.json", "ANTGG_DIR", "bouguer/meta.json", msg("남극 중력 AntGG2021"), "build_antgg"),
+    Item("bedmachine/bed/meta.json", "BEDMACHINE_DIR", "bed/meta.json", msg("그린란드 BedMachine"), "build_bedmachine"),
     Item("antarctic_ghf/stal/meta.json", "ANTARCTIC_GHF_DIR", "stal/meta.json", msg("남극 지열류 모형"), "build_antarctic_ghf"),
     Item("gernon_paleotopo/100/meta.json", "GERNON_PALEOTOPO_DIR", "100/meta.json", msg("동남극 고지형 (Gernon 2026)"), "build_gernon_paleotopo"),
     Item("gernon_paleotopo/contours.json", "GERNON_PALEOTOPO_DIR", "contours.json", msg("동남극 고지형 등고선 (Gernon 2026)"), "build_gernon_paleotopo"),

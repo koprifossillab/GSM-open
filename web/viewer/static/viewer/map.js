@@ -1226,6 +1226,7 @@
     orda: { source: null, info: null },       // 빙저호 — 받아 둔 Livingstone 2022 목록 한 덩이 (wetherilli 420)
     raised: { source: null, info: null },     // RAISED 접지선 — 연대마다 선 한 덩이 (wetherilli 420)
     antpapers: { source: null, info: null },  // 남극 논문 두 편 — 저장소의 선·점 레이어마다 한 덩이 (wetherilli 435)
+    antbounds: { source: null, info: null },  // 남극 접지선·빙붕·유역 MEaSUREs — 구워 둔 선·면 레이어마다 한 덩이 (wetherilli 460)
     acc: { source: null, info: null },        // 남극순환류 전선 — 저장소의 선 한 덩이 (wetherilli 429)
     kgis: { source: null, info: null },       // 킹조지섬 지형 SCAR KGIS — 받아 둔 셰이프를 한 덩이씩 (wetherilli 424)
     aadc: { source: null, info: null },       // 남극 특별보호구역 ASPA — 받아 둔 AADC 파일의 면·점 한 덩이 (wetherilli 423)
@@ -1272,6 +1273,10 @@
     gernontopo: { source: geomapSource, info: polargridInfoUrl },
     // 자력 이상·부게 중력 이상(wetherilli 391) — 우리가 칠한 경위도 타일을 옮겨 그린다
     gravmag: { source: lonlatSource, info: gravmagInfoUrl },
+    // 그린란드 BedMachine(wetherilli 459) — 같은 틀을 3413 의 GIBS 극지 격자로. 격자는 행이 싣는다
+    bedmachine: { source: gibsOverlaySource, info: polargridInfoUrl },
+    // 3031 밖 격자의 `polargrid` 판 — 행의 `grid` 를 그대로 받는다 (wetherilli 459)
+    polargrid_grid: { source: gibsOverlaySource, info: polargridInfoUrl },
     // 칠해 잘라 둔 남극 격자의 틀 그 자체 — 카탈로그 행의 `hand` 가 가리킨다. 표가 모르는 상류(덧붙이)의 격자가 이 손으로 선다 (wetherilli P19·446)
     polargrid: { source: geomapSource, info: polargridInfoUrl },
   };

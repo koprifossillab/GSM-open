@@ -46,6 +46,10 @@
 - [ ] **대만 지질운 열린자료의 빈 칸**(wetherilli 305·328) — `--holes` 로 1 km 네모까지 나눠 146 개를 더 받았다. 남은 여섯(1 km 남짓, 파일의 `holes`)은
       어떤 크기로도 끊긴다 — 자료 하나가 상류를 멈추는 듯하다. 지질운에 알릴지는 사람이 본다. "암체 강도 등급"(I–VII)은 **암상으로 짐작한 차례**(I 단단 → VII 무름)로 칠하고 범례·팝업에 짐작이라 적었다
       (wetherilli 370) — 지질운·지조소의 공식 뜻(기준·수치)을 찾으면 그것으로 바꾼다. "암석 강도"(A–H)는 아직 받지 않았다 — 뜻을 찾으면 범례에
+- [ ] **Earthdata 반입 후보의 남은 것** — [docs/Earthdata_반입_후보.md](docs/Earthdata_반입_후보.md)(2026-11-17). 가-1·2·3 은 붙였다(459–461).
+      남은 가 — 그린란드 출구 빙하 끝 해마다(NSIDC-0642)·GNSS 관측소 속도(CDDIS)·EMIT 지표 광물. 나 — ICESat-2 빙상 고도 변화(ATL15)·GRACE 질량 변화·
+      흙·퇴적층 두께(Pelletier)·빙붕 바닥 녹음(NSIDC-0792)·환북극 열카르스트. 토큰은 DB 옆 파일, 60 일마다 갈아 넣는다(다음 2027-01-16 전)
+- [ ] BedMachine·바닥 열 상태(3413)를 3D 로 — `warp.Grid` 에 3413 표가 있어야 한다. 그린란드를 3D 로 볼 화면의 쓰임이 생기면 (wetherilli 459)
 
 ## (사람) 정할 것
 
@@ -106,7 +110,12 @@
 
 - [ ] 프랑스령 기아나 BRGM 1:50만 셰이프(`Guyane.zip`, 6.7 MB)를 InfoTerre DROM 양식으로 받아 NAS 에 — 이름·전자우편을 적는다. 받으면 파일을 한 덩이로
       내는 문(얀마옌 꼴)으로 기아나 탭을 세운다. 반나절 (wetherilli 256)
-- [ ] RGI 7.0 빙하 **윤곽** — NSIDC-0770 은 NASA Earthdata 로그인 뒤에만 받힌다. 받아 NAS `sources/earth/rgi7/` 에 두면 `glaciers.py` 의 점을 면으로 (wetherilli 289)
+- [ ] RGI 7.0 빙하 **윤곽** — NSIDC-0770 은 NSIDC 의 옛 자리(`daacdata`)라 **토큰으로는 안 받힌다**(2026-11-17 확인). Earthdata 에 로그인한 브라우저로
+      극지 둘레 지역(01·03·04·05·07·09·19)부터 받아 NAS `sources/earth/rgi7/` 에 두면 `glaciers.py` 의 점을 면으로 (wetherilli 289)
+- [ ] **매일 해빙 농도**(AMSR2 근실시간 NISE_A2, 25 km) — GIBS 마이크로파 해빙이 2025-08-31 에 멈춘 자리를 잇는다. HDF4 라 호스트 venv 에 pyhdf 나 GDAL 을
+      들이고 매일 cron 하나를 더할지 (docs/Earthdata_반입_후보.md 다-13)
+- [ ] ASTER GED 열적외 암상 지수 — 1° 타일 2 만 5 천 장·11 GB, 1 초 간격으로 7 시간 받는다. 할지 (다-14)
+- [ ] MERRA-2(먼지)·OPERA(북미 지표 변위) — Earthdata 프로필에서 GESDISC·ASF 앱을 승인해야 받힌다. 값은 중간 아래 (다-15)
 - [ ] GEOROC 암석 지화학 시료(wetherilli 293) — 조건은 CC BY-SA 4.0. 파일(GRO.data, 356 MB zip 90 개)이 이 서버에서는 TLS 연결이 끊긴다. 다른 망에서 받아
       NAS `sources/earth/georoc/` 에 두면 지열류 꼴의 점 sqlite 로 굽는다
 - [ ] SPA 지질도 원본(Zenodo 10.5281/zenodo.19728952)을 NAS `sources/moon/` 에 둔다 — 운영 `db/moon/` 에는 두었다 (wetherilli 081)

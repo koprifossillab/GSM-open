@@ -10,6 +10,9 @@ ADMAP-2(`admap.py`, wetherilli 262)가 한 번 한 일을 판 여럿이 쓰게 �
   자를 줌(원본 한 칸보다 곱게 자르지 않는다)
 - 흩어진 점(경위도로 적힌 모형, Lösing 2021)은 `rasterize` 가 가장 가까운 점으로 칸을 채운다 — 반지름 밖은 비운다
 그리는 법을 고치면 다시 굽는다 — 타일 주소의 판은 폴더의 고친 때다(`views._dir_version`).
+
+**격자는 둘이다**(`Set.epsg`, wetherilli 459) — 남극은 GeoMAP 의 3031 격자(256 칸, 줌 0 이 한 장), 그린란드는 3413 의 GIBS 극지 격자
+(512 칸, 줌 0 이 2×2 장 — ITS_LIVE 그린란드 판과 같은 격자라 둘을 켜면 칸이 맞는다). 3D·구의 격자로 펴는 길(`warp/`·`geo/`)은 3031 판만이다.
 """
 import io
 import json
@@ -22,7 +25,7 @@ from pathlib import Path
 
 from django.conf import settings
 
-from . import geomap
+from . import geomap, itslive
 
 FORMAT = "webp"
 TILE = geomap.TILE
@@ -31,6 +34,24 @@ NODATA = -32768
 
 class PolarGridError(RuntimeError):
     pass
+
+
+@dataclass(frozen=True)
+class Tiling:
+    """잘라 둘 격자 하나 — 타일 한 변의 칸 수, 줌의 한 칸(m), 타일의 네모, 한 변의 타일 수, 위경도 → 평면"""
+    epsg: str
+    tile: int
+    resolution: object
+    tile_bbox: object
+    count: object
+    to_xy: object
+
+
+TILINGS = {
+    "3031": Tiling("3031", geomap.TILE, geomap.resolution, geomap.tile_bbox, lambda z: 2 ** z, geomap.lonlat_to_3031),
+    # ITS_LIVE 그린란드 판(wetherilli 433)의 격자 — GIBS 극지 격자 (wetherilli 459)
+    "3413": Tiling("3413", itslive.TILE, itslive.resolution, itslive.tile_bbox, itslive.tile_count, itslive.lonlat_to_3413),
+}
 
 
 @dataclass(frozen=True, eq=False)
@@ -48,6 +69,18 @@ class Set:
     attribution: str
     extra: tuple = ()         # 누른 자리에 함께 낼 고정 속성 ((이름, 값), …) — 고지형의 연대 (wetherilli 436)
     along: tuple = ()         # 누른 자리에 함께 낼 다른 판의 레이어 이름들 — 바닥을 누르면 두께·윗면도 (wetherilli 447)
+    epsg: str = "3031"        # 격자 — `TILINGS` 의 열쇠. 그린란드는 3413 (wetherilli 459)
+    words: tuple = ()         # 갈래로 적힌 판 — 누른 자리의 값 → 글 ((값, 글), …). 그린란드 바닥 열 상태 (wetherilli 461)
+
+    def tiling(self) -> Tiling:
+        return TILINGS[self.epsg]
+
+    def grid(self) -> dict:
+        """화면이 받을 격자(OpenLayers TileGrid 의 꼴) — 3413 판의 카탈로그 행이 싣는다. 3031 은 화면이 GeoMAP 격자를 안다"""
+        t = self.tiling()
+        west, _, _, north = t.tile_bbox(0, 0, 0)
+        return {"origin": [west, north], "extent": [west, -north, -west, north], "tileSize": t.tile,
+                "resolutions": [t.resolution(z) for z in range(self.max_zoom + 1)]}
 
     def root(self) -> Path:
         return Path(getattr(settings, self.where)) / self.sub
@@ -59,7 +92,8 @@ class Set:
         return self.tiles_dir().is_dir()
 
     def valid_tile(self, z: int, x: int, y: int) -> bool:
-        return 0 <= z <= self.max_zoom and 0 <= x < 2 ** z and 0 <= y < 2 ** z
+        n = self.tiling().count(z) if 0 <= z else 0
+        return 0 <= z <= self.max_zoom and 0 <= x < n and 0 <= y < n
 
     def read_tile(self, z: int, x: int, y: int):
         try:
@@ -216,30 +250,29 @@ def bake(spec: Set, grid: Grid, source: str, out_dir=None, log=print) -> dict:
     image.info["transparency"] = 0
     full = image.convert("RGBA").convert("RGBa")          # 줄일 때 투명한 가장자리가 번지지 않게 미리 곱한다
     del image
-    stats.update(write_tiles(full, meta, out, spec.max_zoom))
+    stats.update(write_tiles(full, meta, out, spec.max_zoom, spec.tiling()))
     return stats
 
 
-def write_tiles(full, meta: dict, out: Path, max_zoom: int) -> dict:
+def write_tiles(full, meta: dict, out: Path, max_zoom: int, tiling: Tiling = TILINGS["3031"]) -> dict:
     tiles, fresh = out / "tiles", out / "tiles.new"
     shutil.rmtree(fresh, ignore_errors=True)
     written = size = 0
     for z in range(max_zoom, -1, -1):
-        res = geomap.resolution(z)
+        res = tiling.resolution(z)
         factor = max(1, 2 ** int(math.log2(res / meta["res"]))) if res > meta["res"] else 1
         level = full if factor == 1 else full.reduce(factor)
-        for x in range(2 ** z):
-            for y in range(2 ** z):
-                tile = cut(level, factor, meta, z, x, y)
-                if tile is None:
-                    continue
-                buf = io.BytesIO()
-                tile.save(buf, format="WEBP", quality=85, method=4)
-                target = fresh / str(z) / str(x) / f"{y}.{FORMAT}"
-                target.parent.mkdir(parents=True, exist_ok=True)
-                target.write_bytes(buf.getvalue())
-                written += 1
-                size += buf.tell()
+        for x, y in _covering(meta, z, tiling):
+            tile = cut(level, factor, meta, z, x, y, tiling)
+            if tile is None:
+                continue
+            buf = io.BytesIO()
+            tile.save(buf, format="WEBP", quality=85, method=4)
+            target = fresh / str(z) / str(x) / f"{y}.{FORMAT}"
+            target.parent.mkdir(parents=True, exist_ok=True)
+            target.write_bytes(buf.getvalue())
+            written += 1
+            size += buf.tell()
         del level
     fresh.mkdir(parents=True, exist_ok=True)              # 다 빈 판도 폴더는 선다 — "없다" 안내와 가른다
     old = out / "tiles.old"
@@ -251,17 +284,29 @@ def write_tiles(full, meta: dict, out: Path, max_zoom: int) -> dict:
     return {"tiles": written, "mb": round(size / 1e6, 1)}
 
 
-def source_box(meta: dict, z: int, x: int, y: int) -> tuple:
-    """3031 타일이 원본에서 차지하는 화소 네모 (왼, 위, 오른, 아래). 원점은 칸의 가운데라 반 칸 옮긴다"""
-    west, south, east, north = geomap.tile_bbox(z, x, y)
+def _covering(meta: dict, z: int, tiling: Tiling):
+    """격자가 덮는 타일만 — 3413 은 한 변이 넓어(줌 5 에 64 장) 온 칸을 훑으면 빈 네모를 한참 잘라 본다"""
+    n, span = tiling.count(z), tiling.tile * tiling.resolution(z)
+    west0, _, _, north0 = tiling.tile_bbox(0, 0, 0)
+    left, top = meta["x0"] - meta["res"] / 2, meta["ytop"] + meta["res"] / 2
+    right, bottom = left + meta["ne"] * meta["res"], top - meta["nv"] * meta["res"]
+    xs = range(max(0, math.floor((left - west0) / span)), min(n, math.ceil((right - west0) / span)))
+    ys = range(max(0, math.floor((north0 - top) / span)), min(n, math.ceil((north0 - bottom) / span)))
+    return [(x, y) for x in xs for y in ys]
+
+
+def source_box(meta: dict, z: int, x: int, y: int, tiling: Tiling = TILINGS["3031"]) -> tuple:
+    """타일이 원본에서 차지하는 화소 네모 (왼, 위, 오른, 아래). 원점은 칸의 가운데라 반 칸 옮긴다"""
+    west, south, east, north = tiling.tile_bbox(z, x, y)
     res, left0, top0 = meta["res"], meta["x0"] - meta["res"] / 2, meta["ytop"] + meta["res"] / 2
     return (west - left0) / res, (top0 - north) / res, (east - left0) / res, (top0 - south) / res
 
 
-def cut(level_image, factor: int, meta: dict, z: int, x: int, y: int):
+def cut(level_image, factor: int, meta: dict, z: int, x: int, y: int, tiling: Tiling = TILINGS["3031"]):
     """줌 z 의 타일 한 장(RGBA). 다 투명하면 None — ADMAP·IBCSO 의 `cut` 과 같은 꼴"""
     from PIL import Image
-    left, top, right, bottom = (v / factor for v in source_box(meta, z, x, y))
+    TILE = tiling.tile
+    left, top, right, bottom = (v / factor for v in source_box(meta, z, x, y, tiling))
     w, h = level_image.size
     cl, ct, cr, cb = max(left, 0), max(top, 0), min(right, w), min(bottom, h)
     if cr <= cl or cb <= ct:
@@ -300,7 +345,7 @@ def value_at(spec: Set, lat: float, lon: float):
         meta = _meta(spec)
     except (OSError, ValueError):
         return None
-    x, y = geomap.lonlat_to_3031(lon, lat)
+    x, y = spec.tiling().to_xy(lon, lat)
     col = round((x - meta["x0"]) / meta["res"])
     row = round((meta["ytop"] - y) / meta["res"])
     if not (0 <= col < meta["ne"] and 0 <= row < meta["nv"]):

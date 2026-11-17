@@ -1,0 +1,73 @@
+{
+ "_주석": "남극 접지선·빙붕·유역 씨앗이다 — NASA MEaSUREs InSAR 접지선 v2.1(NSIDC-0498)과 남극 경계 v2(NSIDC-0709). Earthdata 로그인 뒤라 사람이 받아 온 토큰으로 한 번 받아 NAS sources/antarctica/measures/ 에 두고, manage.py build_antarctic_boundaries 가 numpy 없이 줄여 GSM_GLACIO_DIR/antarctic_boundaries.json 에 적는다. 파일은 저장소에 없다 (wetherilli 460).",
+ "_뽑은날": "2026-11-17",
+ "_출처": "https://doi.org/10.5067/IKBWW4RYHF1Q",
+ "_지역": "antarctica",
+ "_상류": "antbounds",
+ "_레이어군차례": 21,
+ "레이어군순서": [
+  "빙상 경계 (MEaSUREs)"
+ ],
+ "레이어": [
+  {
+   "name": "antbounds:insar_gl",
+   "title": "접지선 (InSAR, 1992–2025)",
+   "group": "빙상 경계 (MEaSUREs)",
+   "abstract": "위성 레이더 간섭으로 그린 접지선 1 820 줄 — 관측마다 한 줄, 색은 관측 시기. 같은 빙하에 겹친 줄로 접지선이 물러나는 것(파인아일랜드·스웨이츠·토튼)이 보인다. 누르면 빙하·위성·관측일",
+   "bbox": [
+    -180,
+    -90,
+    180,
+    -60
+   ]
+  },
+  {
+   "name": "antbounds:gl2008",
+   "title": "접지선 (2007–2009)",
+   "group": "빙상 경계 (MEaSUREs)",
+   "abstract": "남극 전체를 한 번에 이은 접지선 — 2007–2009 의 InSAR 를 바탕으로",
+   "bbox": [
+    -180,
+    -90,
+    180,
+    -60
+   ]
+  },
+  {
+   "name": "antbounds:shelves",
+   "title": "빙붕",
+   "group": "빙상 경계 (MEaSUREs)",
+   "abstract": "빙붕 181 곳의 면과 이름. 누르면 이름·갈래",
+   "bbox": [
+    -180,
+    -90,
+    180,
+    -60
+   ]
+  },
+  {
+   "name": "antbounds:basins",
+   "title": "빙하 유역",
+   "group": "빙상 경계 (MEaSUREs)",
+   "abstract": "빙하 유역 199 곳 — 얼음이 어느 빙하·빙붕으로 흘러 나가는지. 색은 동·서남극·반도. 누르면 이름·흘러드는 빙붕·IMBIE 유역",
+   "bbox": [
+    -180,
+    -90,
+    180,
+    -60
+   ]
+  },
+  {
+   "name": "antbounds:imbie",
+   "title": "IMBIE 유역",
+   "group": "빙상 경계 (MEaSUREs)",
+   "abstract": "빙상 질량 수지 비교(IMBIE)가 쓰는 유역 19 곳 — 질량 변화를 견줄 때의 칸",
+   "bbox": [
+    -180,
+    -90,
+    180,
+    -60
+   ]
+  }
+ ]
+}

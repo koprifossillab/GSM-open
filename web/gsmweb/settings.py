@@ -403,6 +403,8 @@ IBCSO_DIR = env("GSM_IBCSO_DIR") or str(_data_dir() / "ibcso")
 ADMAP_DIR = env("GSM_ADMAP_DIR") or str(_data_dir() / "admap2")
 #: 남극 중력 AntGG2021 을 칠해 잘라 둔 것 — 판마다 하위 폴더 (wetherilli 431). 원본은 NAS `sources/antgg2021/`
 ANTGG_DIR = env("GSM_ANTGG_DIR") or str(_data_dir() / "antgg")
+#: 그린란드 BedMachine v7 을 칠해 잘라 둔 것 — 판(바닥·두께·윗면)마다 하위 폴더 (wetherilli 459). 원본은 NAS `sources/greenland/bedmachine/`
+BEDMACHINE_DIR = env("GSM_BEDMACHINE_DIR") or str(_data_dir() / "bedmachine")
 #: 남극 지열류 모형 셋(Stål·Lösing·Martos)을 칠해 잘라 둔 것 — 판마다 하위 폴더 (wetherilli 432). 원본은 NAS `sources/antarctic_ghf/`
 ANTARCTIC_GHF_DIR = env("GSM_ANTARCTIC_GHF_DIR") or str(_data_dir() / "antarctic_ghf")
 #: 동남극 고지형 Gernon 외 2026 을 칠해 잘라 둔 것 — 연대마다 하위 폴더 (wetherilli 436). 원본은 NAS `sources/antarctic_papers/`
@@ -756,6 +758,7 @@ CHINA4M_LEGEND = REPO_DIR / "data" / "china4m_legend.json"
 IBCSO_CATALOG_SEED = REPO_DIR / "data" / "ibcso_layers.json"
 ADMAP_CATALOG_SEED = REPO_DIR / "data" / "admap_layers.json"
 ANTGG_CATALOG_SEED = REPO_DIR / "data" / "antgg_layers.json"
+BEDMACHINE_CATALOG_SEED = REPO_DIR / "data" / "bedmachine_layers.json"
 ANTARCTIC_GHF_CATALOG_SEED = REPO_DIR / "data" / "ghfgrid_layers.json"
 GERNON_PALEOTOPO_CATALOG_SEED = REPO_DIR / "data" / "gernontopo_layers.json"
 #: GMRT 극지 수심 — 남극·북극해 탭 (wetherilli 428)
@@ -764,6 +767,7 @@ GMRT_CATALOG_SEEDS = [REPO_DIR / "data" / "gmrt_antarctica_layers.json", REPO_DI
 ACC_CATALOG_SEED = REPO_DIR / "data" / "acc_layers.json"
 #: 남극 논문 두 편의 벡터 레이어 — 남극 탭 (wetherilli 435)
 ANTPAPERS_CATALOG_SEED = REPO_DIR / "data" / "antpapers_layers.json"
+ANTBOUNDS_CATALOG_SEED = REPO_DIR / "data" / "antbounds_layers.json"
 SCAR_CATALOG_SEED = REPO_DIR / "data" / "scar_layers.json"
 #: GTN-P 영구동토 시추공 — 북극해·남극 탭 (wetherilli 422)
 GTNP_CATALOG_SEEDS = [REPO_DIR / "data" / "gtnp_arctic_ocean_layers.json", REPO_DIR / "data" / "gtnp_antarctica_layers.json"]

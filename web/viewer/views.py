@@ -41,11 +41,12 @@ from gsmweb.version import VERSION
 from . import (china4m, coords, gravmag, crs, datastatus, geo3al, geomap, geus, grportal, gsj, gsmma, i18n, ibcso, janmayen, kigam, kopri, npolar, ntgeo,
                patchnotes, elevation, moonmap, peninsula, phyloserver, pointsets, tilecache, tiles, trek, vworld, warp,
                fetchlog, marscraters, marsmap, mercurymap, sources, zhurong)
-from . import admap, antgg, gernontopo, ghfgrid, arcpoints, kmag, caribmap, geonames, crust, glaciers, impacts, faults, minerals, stress, tectonics, seafloor, glim, heatflow, fossils, gvp, icemargins, kigam50k, macrostrat, mantle, metatile, naturalearth, neotoma, paleo, paleoeco, paleocoast, pbdb, quakes, recentquakes, verifylog, spamap, ocean, paleodem, usgs, volcanoes, wind
+from . import admap, antgg, bedmachine, gernontopo, ghfgrid, arcpoints, kmag, caribmap, geonames, crust, glaciers, impacts, faults, minerals, stress, tectonics, seafloor, glim, heatflow, fossils, gvp, icemargins, kigam50k, macrostrat, mantle, metatile, naturalearth, neotoma, paleo, paleoeco, paleocoast, pbdb, quakes, recentquakes, verifylog, spamap, ocean, paleodem, usgs, volcanoes, wind
 from . import ags, austates, bas, basemaps, bcgs, bgr, bgs, brgm, calgs, cgs, dinamige, dmr, dov, egdi, emodnet, esdm, ga, georep, geosphere, gns, gsi, gsiindia, gtk, igme, iige, ineter, ingemmet, ispra, jmg, linked, lneg, mgb, mrdata, mris, natt, ngu, nrcan, nsgs, ogs, pig, segemar, sgb, sgc, sgm, sgs, sgu, sigeom, skgs, spw, stri, swisstopo, tno, twopen, usage, usgscarib, usstates, vmme, ygs
 from . import gmrt  # 극지 수심 (wetherilli 428)
 from . import accfronts  # 남극순환류 전선 (wetherilli 429)
 from . import antpapers  # 남극 논문 두 편의 벡터 레이어 (wetherilli 435)
+from . import antbounds  # 남극 접지선·빙붕·유역 MEaSUREs (wetherilli 460)
 from . import aadc, doors, earthpoints, gtnp, itslive, kgis, offlinereq, orda, pangaea, petrochron, pointvalues, polargrid, profileband, raised, scar, static_tables, tilegrid, timescale, visits
 from .i18n import msg
 from .models import Layer, LayerGroup, Point, PointSet, PointSetDeletion, Shape
@@ -659,7 +660,7 @@ def map3d_view(request):
                                    or (l.get("upstream") == "geomap" and l["name"] in geomap.LAYERS)
                                    # IBCSO 자료 출처·ADMAP 자력 이상도 GeoMAP 처럼 서버가 3857 로 편다 (wetherilli 335)
                                    or l["name"] in ("ibcso:tid", admap.NAME)
-                                   or l["name"] in POLAR_SETS
+                                   or _south_set(l["name"])
                                    or (l.get("upstream") in ("gsj", "gsitile", "ingemmet", "ags", "sim3534", "gsjows", "china4m") and l.get("tiles")))])
               for g in catalog]
     # 커스텀 지질도 — 한반도 지질도 셋은 서버가 3857 로 다시 펴 주고(`warp/`), 암맥은
@@ -3110,7 +3111,7 @@ def _catalog(lang="ko"):
             "bbox": l.bbox,
             "queryable": l.queryable,
             # 대조할 상류가 없는 것(우리가 그리는 GeoMAP)은 "대조 안 함" 표를 달지 않는다
-            "verified": bool(l.verified_at) or l.upstream in ("geomap", "janmayen", "geo3al", "peninsula", "china4m", "kopri", "pangaea", "usgscarib", "stri", "sim3534", "vmme", "ntgs", "gtnp", "petrochron", "orda", "raised", "kgis", "antpapers")
+            "verified": bool(l.verified_at) or l.upstream in ("geomap", "janmayen", "geo3al", "peninsula", "china4m", "kopri", "pangaea", "usgscarib", "stri", "sim3534", "vmme", "ntgs", "gtnp", "petrochron", "orda", "raised", "kgis", "antpapers", "antbounds")
                         or twopen.knows(l.name)
                         # 덧붙이가 제 디스크의 파일로 내는 것도 대조할 상류가 없다 (`REGISTRY` 의 `local`)
                         or bool((spec := doors.specs().get(l.upstream)) and spec.local),
@@ -3242,6 +3243,12 @@ def _point_fields(layer) -> dict:
                                    else msg("원본 자료 — Gernon 외 2026 (Zenodo)")),
                 "attribution": antpapers.CREDIT, "version": antpapers.version(layer.name),
                 **({"ages": list(antpapers.TIMED[layer.name])} if layer.name in antpapers.TIMED else {})}
+    if layer.upstream == "antbounds" and antbounds.knows(layer.name):
+        # 남극 접지선·빙붕·유역 MEaSUREs(wetherilli 460) — 구워 둔 파일을 레이어마다 한 덩이로. 갈래(`class`)의 색은 서버의 표
+        return {"kind": "points", "queryable": False, "style": "class",
+                "source": antbounds.INSAR_DOI if layer.name == "antbounds:insar_gl" else antbounds.BOUNDS_DOI,
+                "sourceLabel": str(msg("원본 자료 — MEaSUREs (NSIDC)")),
+                "attribution": antbounds.CREDIT, "version": antbounds.version()}
     if layer.upstream == "acc" and accfronts.knows(layer.name):
         # 남극순환류 전선(wetherilli 429) — 저장소의 파일을 선 한 덩이로. 전선이 갈래(`class`)이고 색은 서버의 표
         return {"kind": "points", "queryable": False, "style": "class", "source": accfronts.DOI,
@@ -3342,7 +3349,7 @@ def _geo_tiles(layer) -> str | None:
         return f"geo/{gernontopo.UPSTREAM}/{{age}}/{{z}}/{{x}}/{{y}}.png"
     if layer.upstream == "geomap" and name in geomap.LAYERS:
         path = f"geomap/{name}"
-    elif name in (ibcso.TID_LAYER, admap.NAME, ITSLIVE_SOUTH) or name in POLAR_SETS:
+    elif name in (ibcso.TID_LAYER, admap.NAME, ITSLIVE_SOUTH) or _south_set(name):
         path = name.replace(":", "/")
     else:
         return None
@@ -3789,12 +3796,16 @@ def _layer_extra_base(layer, lang: str = "ko") -> dict:
     if layer.name in POLAR_SETS:
         # 남극 중력 AntGG2021(wetherilli 431)·지열류 모형(432) — ADMAP 처럼 우리가 칠해 잘라 둔 3031 타일(`polargrid.py`). 범례는 갈래 표
         spec = POLAR_SETS[layer.name]
-        return {"attribution": spec.attribution, "projection": "EPSG:3031", "maxZoom": spec.max_zoom,
-                "tiles": _versioned_url(f"polargrid/{layer.name.replace(':', '/')}/{{z}}/{{x}}/{{y}}.webp",
-                                        _dir_version(spec.tiles_dir())),
-                "classLegend": _polar_legend(layer.name, lang),
-                # 그리는 손 — 화면의 표(`LAYER_KINDS`)가 모르는 상류(덧붙이)도 이 틀로 그린다 (wetherilli P19·446)
-                "hand": "polargrid"}
+        row = {"attribution": spec.attribution, "projection": f"EPSG:{spec.epsg}", "maxZoom": spec.max_zoom,
+               "tiles": _versioned_url(f"polargrid/{layer.name.replace(':', '/')}/{{z}}/{{x}}/{{y}}.webp",
+                                       _dir_version(spec.tiles_dir())),
+               "classLegend": _polar_legend(layer.name, lang),
+               # 그리는 손 — 화면의 표(`LAYER_KINDS`)가 모르는 상류(덧붙이)도 이 틀로 그린다 (wetherilli P19·446)
+               "hand": "polargrid"}
+        if spec.epsg != "3031":
+            # 그린란드 BedMachine(wetherilli 459) — GIBS 극지 격자. 화면은 행의 격자를 그대로 받는다
+            row.update(grid=spec.grid(), hand="polargrid_grid")
+        return row
     if layer.upstream == "ibcso" and layer.name == ibcso.TID_LAYER:
         # IBCSO 자료 출처(071) — 우리가 잘라 둔 3031 타일. 격자는 GeoMAP 의 것이고 줌 6 까지다.
         # 범례는 갈래 표를 그대로 보낸다(그림이 아니라 — 컨테이너에 한글 글꼴이 없다)
@@ -4375,13 +4386,20 @@ def admap_info(request):
 
 #: 칠해 잘라 둔 남극 격자 — 레이어 이름 → `polargrid.Set` (중력 wetherilli 431, 지열류 모형 432, 동남극 고지형 436)
 #: 덧붙이의 문이 실은 격자(`SETS`)도 같은 길로 낸다 — 타일·누른 자리·카탈로그 행·3D 까지 (`doors.polar_sets`, wetherilli P19·446)
-POLAR_SETS = {**antgg.SETS, **ghfgrid.SETS, **gernontopo.SETS, **doors.polar_sets()}
+POLAR_SETS = {**antgg.SETS, **ghfgrid.SETS, **gernontopo.SETS, **bedmachine.SETS, **doors.polar_sets()}
+
+
+def _south_set(name):
+    """3D(`warp/`)·구의 격자(`geo/`)로 펼 판 — 남극의 3031 판만. 그린란드 BedMachine(3413)은 2D 로만 (wetherilli 459).
+    부를 때마다 `POLAR_SETS` 를 본다 — 덧붙이의 시험이 표를 갈아 끼운다"""
+    spec = POLAR_SETS.get(name)
+    return spec if spec is not None and spec.epsg == "3031" else None
 #: 덧붙이의 점 레이어 — 레이어 이름 → 그 문의 모듈(`POINTS`·`points()`). GSM 의 것은 `point_layer` 가 손으로 적는다 (wetherilli 449)
 ADDON_POINTS = doors.addon_points()
 
 
 def _polar_legend(name, lang):
-    own = next((m for m in (ghfgrid, gernontopo, antgg) if name in m.SETS), None)
+    own = next((m for m in (ghfgrid, gernontopo, antgg, bedmachine) if name in m.SETS), None)
     return own.legend(name, lang) if own else doors.polar_legend(name, lang)
 
 
@@ -4428,6 +4446,9 @@ def polargrid_info(request):
     if value is None:
         return JsonResponse({"features": []})
     def shown(one, v):
+        word = dict(one.words).get(v)
+        if word is not None:
+            return i18n.t(word, lang)
         return f"{v:+,.1f}".replace("-", "−") if one.scale != 1 else v
     props = {spec.prop: shown(spec, value)}
     # 함께 낼 판(`Set.along`) — 같은 자리의 다른 값. 구운 것이 없거나 빈 자리면 그 줄만 빠진다 (wetherilli 447)
@@ -4548,7 +4569,7 @@ def warp_tile(request, upstream, layer, z, x, y, retina=None, scheme="3857"):
     name = layer if upstream == "geomap" else f"{upstream}:{layer}"
     lang = i18n.lang_of(request)
     zooms = {"geomap": GEOMAP_WARP_ZOOMS, "ibcso": IBCSO_WARP_ZOOMS, "admap": IBCSO_WARP_ZOOMS}.get(
-        upstream, IBCSO_WARP_ZOOMS if name in POLAR_SETS else WARP_ZOOMS)
+        upstream, IBCSO_WARP_ZOOMS if _south_set(name) else WARP_ZOOMS)
     # `geo/` 는 같은 원본을 Cesium 의 경위도 격자로 편다 — 남극 고지형 3D 가 쓴다. 극지 격자(3031·9354)만 (wetherilli 443)
     geo = scheme == "4326"
     columns = 2 ** (z + 1) if geo else 2 ** z
@@ -4587,9 +4608,9 @@ def warp_tile(request, upstream, layer, z, x, y, retina=None, scheme="3857"):
         if not admap.available():
             return _tile(tiles.notice_tile(size, size, msg("자력 이상 자료(ADMAP-2)가 서버에 없다")), store=False)
         grid = warp.polar_grid(admap.read_tile, admap.MAX_ZOOM, admap.valid_tile)
-    elif name in POLAR_SETS:
+    elif _south_set(name):
         # 칠해 잘라 둔 남극 격자(wetherilli 431) — ADMAP 과 같은 길
-        spec = POLAR_SETS[name]
+        spec = _south_set(name)
         if south > GEOMAP_NORTH:
             return _tile(tiles.blank_tile(size, size))
         if not spec.available():
@@ -4645,8 +4666,8 @@ def _warp_key(name, upstream, z, x, y, size, scheme="3857"):
         version = _dir_version(ibcso.tid_tiles_dir())
     elif name == admap.NAME:
         version = _dir_version(admap.tiles_dir())
-    elif name in POLAR_SETS:
-        version = _dir_version(POLAR_SETS[name].tiles_dir())
+    elif _south_set(name):
+        version = _dir_version(_south_set(name).tiles_dir())
     elif name == ITSLIVE_SOUTH:
         version = _dir_version(itslive.tiles_dir("antarctica"))
     else:
@@ -6188,6 +6209,8 @@ def point_layer(request):
         return _acc_fronts_layer(request, lang)
     if antpapers.knows(name):
         return _antpapers_layer(request, name, lang, request.GET.get("age"))
+    if antbounds.knows(name):
+        return _antbounds_layer(request, name, lang)
     if aadc.knows(name):
         return _aspa_layer(name, lang)
     if kigam50k.knows_file(name):
@@ -6550,6 +6573,18 @@ def _antpapers_layer(request, name, lang, age=None):
     if settings.TILE_CACHE_SECONDS > 0:
         response["Cache-Control"] = f"public, max-age={settings.TILE_CACHE_SECONDS}"
     return _immutable(request, response, antpapers.version(name))
+
+
+def _antbounds_layer(request, name, lang):
+    """남극 접지선·빙붕·유역(wetherilli 460) — `<GLACIO_DIR>/antarctic_boundaries.json`. 없으면 503 으로 까닭을 말한다"""
+    try:
+        content = antbounds.body(name, lang)
+    except FileNotFoundError:
+        return JsonResponse({"error": i18n.t(msg("남극 접지선·경계 파일이 없다 (build_antarctic_boundaries)"), lang)}, status=503)
+    response = HttpResponse(content, content_type="application/geo+json")
+    if settings.TILE_CACHE_SECONDS > 0:
+        response["Cache-Control"] = f"public, max-age={settings.TILE_CACHE_SECONDS}"
+    return _immutable(request, response, antbounds.version())
 
 
 def _acc_fronts_layer(request, lang):

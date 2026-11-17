@@ -741,6 +741,28 @@
    ]
   },
   {
+   "id": "bedmachine_greenland",
+   "name": {
+    "ko": "그린란드 BedMachine",
+    "en": "BedMachine Greenland"
+   },
+   "org": "NSIDC IDBMG4 v7",
+   "kind": "build",
+   "commands": [
+    "build_bedmachine"
+   ],
+   "runs_on": "host",
+   "schedule": "manual",
+   "license": "NASA open data (cite)",
+   "flags": [],
+   "outputs": [
+    "bedmachine/bed/meta.json"
+   ],
+   "docs": [
+    "wetherilli 459"
+   ]
+  },
+  {
    "id": "antgg2021",
    "name": {
     "ko": "남극 중력 AntGG2021",
@@ -1603,6 +1625,28 @@
    ],
    "docs": [
     "wetherilli 429"
+   ]
+  },
+  {
+   "id": "antarctic_boundaries",
+   "name": {
+    "ko": "남극 접지선·경계 (MEaSUREs)",
+    "en": "Antarctic grounding lines and boundaries (MEaSUREs)"
+   },
+   "org": "NSIDC-0498 v2.1 · NSIDC-0709 v2",
+   "kind": "build",
+   "commands": [
+    "build_antarctic_boundaries"
+   ],
+   "runs_on": "container",
+   "schedule": "manual",
+   "license": "NASA open data (cite)",
+   "flags": [],
+   "outputs": [
+    "glacio/antarctic_boundaries.json"
+   ],
+   "docs": [
+    "wetherilli 460"
    ]
   },
   {

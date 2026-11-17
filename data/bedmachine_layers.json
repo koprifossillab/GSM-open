@@ -1,0 +1,61 @@
+{
+ "_주석": "그린란드 BedMachine v7(Morlighem 외, NSIDC IDBMG4, NASA Earthdata 로그인 뒤) 씨앗이다. 원본 NetCDF-4(2.8 GB)의 바닥·얼음 두께·윗면을 호스트의 manage.py build_bedmachine 이 300 m 로 골라 칠해 GSM_BEDMACHINE_DIR/<판>/tiles 로 잘라 둔다(3413, ITS_LIVE 와 같은 GIBS 극지 격자). 파일은 저장소에 없다 (wetherilli 459). 바닥 열 상태 GBaTS v2(NSIDC RDBTS4)도 같은 명령이 굽는다 (wetherilli 461).",
+ "_뽑은날": "2026-11-17",
+ "_출처": "https://doi.org/10.5067/7U2049INNRMP",
+ "_지역": "greenland",
+ "_상류": "bedmachine",
+ "_레이어군차례": 27,
+ "레이어군순서": [
+  "빙저 지형 (BedMachine)"
+ ],
+ "레이어": [
+  {
+   "name": "bedmachine:bed",
+   "title": "빙저·해저 지형",
+   "group": "빙저 지형 (BedMachine)",
+   "abstract": "얼음 밑의 땅과 둘레 바다의 바닥 고도(m, 지오이드 기준) — 질량 보존으로 메운 150 m 격자를 300 m 로. 출구 빙하의 골이 이어진다. 누르면 바닥·두께·윗면",
+   "bbox": [
+    -75,
+    58,
+    -10,
+    84
+   ]
+  },
+  {
+   "name": "bedmachine:thickness",
+   "title": "얼음 두께",
+   "group": "빙저 지형 (BedMachine)",
+   "abstract": "빙상·빙붕의 두께(m) — 얼음이 앉은 곳만. 누르면 바닥·두께·윗면",
+   "bbox": [
+    -75,
+    58,
+    -10,
+    84
+   ]
+  },
+  {
+   "name": "bedmachine:surface",
+   "title": "얼음·땅 윗면",
+   "group": "빙저 지형 (BedMachine)",
+   "abstract": "얼음 윗면과 얼음 없는 땅의 고도(m, 지오이드 기준) — 바다는 뺐다. 누르면 바닥·두께·윗면",
+   "bbox": [
+    -75,
+    58,
+    -10,
+    84
+   ]
+  },
+  {
+   "name": "bedmachine:thermal",
+   "title": "바닥 열 상태",
+   "group": "빙저 지형 (BedMachine)",
+   "abstract": "빙상 바닥이 언 곳·녹은 곳·판단이 갈리는 곳 — 레이더 층·시추공·모형·유속을 견준 종합 판단(GBaTS v2, MacGregor 외 2022), 5 km. 측정이 아니다. 누르면 바닥 고도·두께도",
+   "bbox": [
+    -75,
+    58,
+    -10,
+    84
+   ]
+  }
+ ]
+}

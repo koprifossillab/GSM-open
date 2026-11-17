@@ -198,6 +198,8 @@ class Command(BaseCommand):
                 (settings.ADMAP_CATALOG_SEED, "남극 ADMAP-2", "antarctica", "admap"),
                 # 남극 중력 AntGG2021 — 우리가 칠해 잘라 둔 3031 타일 (wetherilli 431)
                 (settings.ANTGG_CATALOG_SEED, "남극 AntGG2021", "antarctica", "antgg"),
+                # 그린란드 BedMachine v7 — 같은 틀, 3413 격자 (wetherilli 459)
+                (settings.BEDMACHINE_CATALOG_SEED, "그린란드 BedMachine", "greenland", "bedmachine"),
                 # 남극 지열류 모형 셋 — 같은 틀 (wetherilli 432)
                 (settings.ANTARCTIC_GHF_CATALOG_SEED, "남극 지열류 모형", "antarctica", "ghfgrid"),
                 # 동남극 고지형 Gernon 2026 — 같은 틀 (wetherilli 436)
@@ -206,6 +208,8 @@ class Command(BaseCommand):
                 *((path, f"GMRT ({path.stem})", "antarctica", "gmrt") for path in settings.GMRT_CATALOG_SEEDS),
                 # 남극순환류 전선 — 저장소의 파일 (wetherilli 429)
                 (settings.ACC_CATALOG_SEED, "남극순환류 전선", "antarctica", "acc"),
+                # 남극 접지선·빙붕·유역 MEaSUREs — 우리 디스크의 파일 (wetherilli 460)
+                (settings.ANTBOUNDS_CATALOG_SEED, "남극 접지선·경계 (MEaSUREs)", "antarctica", "antbounds"),
                 # 남극 논문 두 편(Armadillo·Gernon 2026)의 벡터 레이어 — 저장소의 파일 (wetherilli 435)
                 (settings.ANTPAPERS_CATALOG_SEED, "남극 논문 자료", "antarctica", "antpapers"),
                 # 남극 지명 이름표 — 받아 둔 SCAR 지명사전 (wetherilli 412)

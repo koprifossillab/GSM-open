@@ -157,3 +157,87 @@ class HeatFlowModels(TestCase):
         from viewer import views
         row = {l["name"]: l for g in views._catalog("ko") for l in g["layers"]}["ghfgrid:losing"]
         self.assertEqual(row["classLegend"]["groups"][0]["rows"][0]["color"], "#2b5fa8")
+
+
+class BedMachine(TestCase):
+    """그린란드 BedMachine — 같은 틀을 3413 의 GIBS 극지 격자로 (wetherilli 459)"""
+    @classmethod
+    def setUpTestData(cls):
+        call_command("seed_catalog", stdout=io.StringIO())
+
+    def setUp(self):
+        from viewer import bedmachine
+        self.tmp = tempfile.TemporaryDirectory()
+        self.patch = override_settings(BEDMACHINE_DIR=self.tmp.name)
+        self.patch.enable()
+        # 그린란드 한가운데(−40°, 72°) 둘레 1 000 km 네모, 한 칸 10 km — 북쪽 절반 바닥 +200, 남쪽 −300
+        cx, cy = polargrid.TILINGS["3413"].to_xy(-40.0, 72.0)
+        n, res = 101, 10000.0
+        xs = [cx - 50 * res + i * res for i in range(n)]
+        ys = [cy + 50 * res - j * res for j in range(n)]
+        rows = [[200.0 if ys[j] > cy else -300.0 for _ in range(n)] for j in range(n)]
+        self.spec = bedmachine.SETS["bedmachine:bed"]
+        self.stats = polargrid.bake(self.spec, polargrid.from_rows(rows, xs, ys), "test.nc", log=lambda *_: None)
+        self.north = cy + 30 * res
+
+    def tearDown(self):
+        self.patch.disable()
+        self.tmp.cleanup()
+
+    def test_3413_격자로_굽고_누른다(self):
+        from viewer import bedmachine, itslive
+        self.assertEqual(self.spec.epsg, "3413")
+        self.assertEqual(polargrid.value_at(self.spec, 75.0, -40.0), 200)     # 3413 에서 북쪽은 극 쪽
+        self.assertEqual(polargrid.value_at(self.spec, 69.0, -40.0), -300)
+        self.assertIsNone(polargrid.value_at(self.spec, -75.0, 0.0))
+        tiles = list((Path(self.tmp.name) / "bed" / "tiles").rglob("*.webp"))
+        self.assertGreater(len(tiles), 0)
+        z, x, y = (int(p) for p in tiles[0].relative_to(Path(self.tmp.name) / "bed" / "tiles").with_suffix("").parts)
+        self.assertTrue(self.spec.valid_tile(z, x, y))
+        self.assertEqual(Image.open(tiles[0]).size, (itslive.TILE, itslive.TILE))
+        self.assertTrue(self.spec.valid_tile(0, 1, 1))                         # 줌 0 이 2×2 장
+        self.assertFalse(self.spec.valid_tile(0, 2, 0))
+        self.assertFalse(self.spec.valid_tile(bedmachine.MAX_ZOOM + 1, 0, 0))
+
+    def test_주소와_행(self):
+        got = self.client.get("/GSM/polargrid/info/", {"layer": "bedmachine:bed", "lat": 75, "lon": -40}).json()
+        props = got["features"][0]["props"]
+        self.assertEqual(props["바닥 고도 (m)"], 200)
+        self.assertNotIn("얼음 두께 (m)", props)                              # 굽지 않은 판은 줄만 빠진다
+        self.assertEqual(self.client.get("/GSM/polargrid/bedmachine/thickness/0/0/0.webp").status_code, 200)   # 안내 타일
+        from viewer import views
+        row = {l["name"]: l for g in views._catalog("ko") for l in g["layers"]}["bedmachine:bed"]
+        self.assertEqual((row["projection"], row["hand"], row["grid"]["tileSize"]), ("EPSG:3413", "polargrid_grid", 512))
+        self.assertEqual(len(row["grid"]["resolutions"]), row["maxZoom"] + 1)
+        self.assertNotIn("geo", row)                                          # 구의 격자로 펴지 않는다
+        self.assertEqual(self.client.get("/GSM/warp/bedmachine/bed/3/2/1.png").status_code, 404)
+
+    def test_범례(self):
+        from viewer import bedmachine
+        rows = bedmachine.legend("bedmachine:thickness", "en")["groups"][0]["rows"]
+        self.assertEqual(rows[0]["label"], "0 – 500 m")
+        self.assertEqual(bedmachine.legend("bedmachine:bed")["groups"][0]["rows"][0]["label"], "−3,000 – −1,000 m")
+
+
+class BasalThermal(TestCase):
+    """그린란드 바닥 열 상태 — 갈래 판, 누르면 글 (wetherilli 461)"""
+    @classmethod
+    def setUpTestData(cls):
+        call_command("seed_catalog", stdout=io.StringIO())
+
+    def test_갈래를_글로(self):
+        from viewer import bedmachine
+        spec = bedmachine.SETS[bedmachine.THERMAL]
+        cx, cy = polargrid.TILINGS["3413"].to_xy(-40.0, 72.0)
+        xs = [cx - 100000.0 + i * 5000.0 for i in range(41)]
+        ys = [cy + 100000.0 - j * 5000.0 for j in range(41)]
+        rows = [[1.0 if ys[j] > cy else -1.0 for _ in xs] for j in range(41)]
+        with tempfile.TemporaryDirectory() as tmp, override_settings(BEDMACHINE_DIR=tmp):
+            polargrid.bake(spec, polargrid.from_rows(rows, xs, ys), "test.nc", log=lambda *_: None)
+            got = self.client.get("/GSM/polargrid/info/", {"layer": bedmachine.THERMAL, "lat": 72.5, "lon": -40}).json()
+            self.assertEqual(got["features"][0]["props"], {"바닥 열 상태": "녹은 바닥일 가능성이 크다"})
+            en = self.client.get("/GSM/polargrid/info/", {"layer": bedmachine.THERMAL, "lat": 71.5, "lon": -40},
+                                 HTTP_COOKIE="gsm_lang=en").json()
+            self.assertEqual(list(en["features"][0]["props"].values()), ["Likely frozen bed"])
+        rows = bedmachine.legend(bedmachine.THERMAL, "en")["groups"][0]["rows"]
+        self.assertEqual([r["label"] for r in rows], ["Likely frozen bed", "Uncertain", "Likely thawed bed"])

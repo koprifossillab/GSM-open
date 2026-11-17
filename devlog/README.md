@@ -526,6 +526,9 @@
 | wetherilli 456 | 2026-11-15 | [넘겨받은 자리(`keep`)와 카탈로그 행의 `geo`](20261115_wetherilli_456_view_handoff.md) |
 | wetherilli 457 | 2026-11-15 | [남극 빙하 유속도 구의 격자로 편다](20261115_wetherilli_457_geo_itslive.md) |
 | wetherilli 458 | 2026-11-15 | [온 지구 화면이 자료를 통째로 붙들지 않게](20261115_wetherilli_458_earth_page_memory.md) |
+| wetherilli 459 | 2026-11-17 | [그린란드 — BedMachine v7 의 빙저 지형·얼음 두께·윗면](20261117_wetherilli_459_bedmachine_greenland.md) |
+| wetherilli 460 | 2026-11-17 | [남극 — InSAR 접지선 1992–2025·빙붕·빙하 유역 (MEaSUREs)](20261117_wetherilli_460_antarctic_boundaries.md) |
+| wetherilli 461 | 2026-11-17 | [그린란드 — 빙상 바닥의 열 상태 (GBaTS v2)](20261117_wetherilli_461_greenland_basal_thermal.md) |
 | koprifossillab P01 | 2026-09-30 | [백업 — WegenersDream 의 틀로, 바뀌는 빠르기에 따라 넷으로 (계획)](20260930_koprifossillab_P01_backup_plan.md) |
 | koprifossillab 001 | 2026-09-30 | [매주 월요일 새벽: 운영 자료 백업과 KPDC 목록 갱신](20260930_koprifossillab_001_weekly_backup.md) |
 | koprifossillab 002 | 2026-09-30 | [`/healthz/` — 판·DB·백업 상태를 한 장으로](20260930_koprifossillab_002_healthz.md) |
