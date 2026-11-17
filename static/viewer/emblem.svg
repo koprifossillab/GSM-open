@@ -1,0 +1,26 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="-124 -124 248 248" role="img" aria-label="대돌여지도">
+  <!-- 대돌여지도 엠블럼 — 육각 틀 안의 나침반과 지질 해머.
+       원본은 docs/brand/daedol_concept34_hammer_fixed.svg. 여기서는 작게
+       (16~48px) 그려도 선이 살도록 굵기를 올리고 바탕 무늬를 뺐다. -->
+  <polygon points="0,-118 102,-59 102,59 0,118 -102,59 -102,-59" fill="#241a0e" stroke="#c9a24b" stroke-width="9" stroke-linejoin="round"/>
+  <g fill="none" stroke="#e8c876" stroke-width="5">
+    <circle r="78"/>
+    <circle r="62"/>
+  </g>
+  <g stroke="#e8c876" stroke-width="5">
+    <line x1="0" y1="-78" x2="0" y2="-62"/>
+    <line x1="0" y1="78" x2="0" y2="62"/>
+    <line x1="-78" y1="0" x2="-62" y2="0"/>
+    <line x1="78" y1="0" x2="62" y2="0"/>
+  </g>
+  <g transform="rotate(-40)">
+    <line x1="0" y1="-41" x2="0" y2="42" stroke="#e8c876" stroke-width="8" stroke-linecap="round"/>
+    <polygon points="-31,-57 -8,-57 -8,-39 -31,-39" fill="#e8c876"/>
+    <polygon points="-8,-57 32,-48 -8,-39" fill="#e8c876"/>
+  </g>
+  <g transform="rotate(50)">
+    <polygon points="0,-50 9,0 0,10 -9,0" fill="#e8c876"/>
+    <polygon points="0,50 9,0 0,-10 -9,0" fill="none" stroke="#e8c876" stroke-width="4" stroke-linejoin="round"/>
+  </g>
+  <circle r="6" fill="#e8c876"/>
+</svg>
